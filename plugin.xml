@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
+		id="com.eface2face.iosrtc"
+		version="1.0.0">
+
+	<name>iosrtc</name>
+	<description>Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs</description>
+	<author>Iñaki Baz Castillo at eFace2Face, inc.</author>
+	<license>MIT</license>
+	<keywords>WebRTC iOS</keywords>
+
+	<engines>
+		<engine name="cordova-ios" version=">=3.8.0" />
+	</engines>
+
+	<js-module src="dist/iosrtc.js" name="Plugin">
+		<clobbers target="cordova.plugins.iosrtc" />
+	</js-module>
+
+	<platform name="ios">
+		<hook type="after_plugin_install" src="hooks/add_swift_support.js" />
+
+		<config-file target="config.xml" parent="/*">
+			<feature name="iosrtcPlugin">
+				<param name="ios-package" value="iosrtcPlugin" />
+				<param name="onload" value="true" />
+			</feature>
+		</config-file>
+
+		<!-- WebRTC ObjetiveC headers -->
+		<header-file src="src/webrtc-headers/RTCAudioSource.h" />
+		<header-file src="src/webrtc-headers/RTCAudioTrack.h" />
+		<header-file src="src/webrtc-headers/RTCDataChannel.h" />
+		<header-file src="src/webrtc-headers/RTCEAGLVideoView.h" />
+		<header-file src="src/webrtc-headers/RTCI420Frame.h" />
+		<header-file src="src/webrtc-headers/RTCICECandidate.h" />
+		<header-file src="src/webrtc-headers/RTCICEServer.h" />
+		<header-file src="src/webrtc-headers/RTCMediaConstraints.h" />
+		<header-file src="src/webrtc-headers/RTCMediaSource.h" />
+		<header-file src="src/webrtc-headers/RTCMediaStream.h" />
+		<header-file src="src/webrtc-headers/RTCMediaStreamTrack.h" />
+		<header-file src="src/webrtc-headers/RTCNSGLVideoView.h" />
+		<header-file src="src/webrtc-headers/RTCOpenGLVideoRenderer.h" />
+		<header-file src="src/webrtc-headers/RTCPair.h" />
+		<header-file src="src/webrtc-headers/RTCPeerConnection.h" />
+		<header-file src="src/webrtc-headers/RTCPeerConnectionDelegate.h" />
+		<header-file src="src/webrtc-headers/RTCPeerConnectionFactory.h" />
+		<header-file src="src/webrtc-headers/RTCSessionDescription.h" />
+		<header-file src="src/webrtc-headers/RTCSessionDescriptionDelegate.h" />
+		<header-file src="src/webrtc-headers/RTCStatsDelegate.h" />
+		<header-file src="src/webrtc-headers/RTCStatsReport.h" />
+		<header-file src="src/webrtc-headers/RTCTypes.h" />
+		<header-file src="src/webrtc-headers/RTCVideoCapturer.h" />
+		<header-file src="src/webrtc-headers/RTCVideoRenderer.h" />
+		<header-file src="src/webrtc-headers/RTCVideoSource.h" />
+		<header-file src="src/webrtc-headers/RTCVideoTrack.h" />
+
+		<!-- Bridging header for using ObjetiveC libraries in Swift -->
+		<header-file src="src/Bridging-Header.h" />
+
+		<!-- Project source files -->
+		<source-file src="src/iosrtcPlugin.swift" />
+		<source-file src="src/PluginRTCTypes.swift" />
+		<source-file src="src/PluginRTCPeerConnection.swift" />
+		<source-file src="src/PluginRTCPeerConnectionConfig.swift" />
+		<source-file src="src/PluginRTCPeerConnectionConstraints.swift" />
+		<source-file src="src/PluginRTCDataChannel.swift" />
+		<source-file src="src/PluginMediaStream.swift" />
+		<source-file src="src/PluginMediaStreamTrack.swift" />
+		<source-file src="src/PluginGetUserMedia.swift" />
+		<source-file src="src/PluginGetMediaDevices.swift" />
+		<source-file src="src/PluginUtils.swift" />
+		<source-file src="src/PluginMediaStreamRenderer.swift" />
+
+		<!-- iOS shared dependencies -->
+		<framework src="AVFoundation.framework" />
+		<framework src="CoreGraphics.framework" />
+		<framework src="CoreMedia.framework" />
+		<framework src="GLKit.framework" />
+		<framework src="OpenGLES.framework" />
+		<framework src="CoreVideo.framework" />
+		<framework src="CoreAudio.framework" />
+		<framework src="QuartzCore.framework" />
+		<framework src="AssetsLibrary.framework" />
+		<framework src="MobileCoreServices.framework" />
+		<framework src="CoreLocation.framework" />
+		<framework src="AudioToolbox.framework" />
+		<framework src="libc++.dylib" />
+		<framework src="libstdc++.dylib" />
+		<framework src="libsqlite3.0.dylib" />
+
+		<!-- WebRTC static library -->
+		<source-file src="lib/libWebRTC-LATEST-Universal-Release.a" framework="true" />
+	</platform>
+
+</plugin>
