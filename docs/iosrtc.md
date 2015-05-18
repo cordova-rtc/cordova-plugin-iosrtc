@@ -91,7 +91,7 @@ Exposes the `MediaStreamTrack` class as defined by the [spec](http://w3c.github.
 
 ### `iosrtc.MediaStreamRenderer`
 
-See the [`MediaStreamRenderer` API](MediaStreamRenderer.md).
+See the [`MediaStreamRenderer` API](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/docs/MediaStreamRenderer.md).
 
 
 ### `iosrtc.debug`

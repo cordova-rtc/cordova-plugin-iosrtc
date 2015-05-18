@@ -3,9 +3,9 @@
 
 ### WebRTC API
 
-* [`iosrtc` API](iosrtc.md)
+* [`iosrtc` API](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/docs/iosrtc.md)
 
 
 ### Others
 
-* [`MediaStreamRenderer` API](MediaStreamRenderer.md)
+* [`MediaStreamRenderer` API](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/docs/MediaStreamRenderer.md)
