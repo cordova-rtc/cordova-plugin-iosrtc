@@ -6,7 +6,6 @@ class PluginUtils {
 		return Int(arc4random_uniform(UInt32(max - min))) + min
 	}
 
-	// TODO: Not needed.
 	// class func randomString(len: Int) -> String {
 	// 	let letters: NSString = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	// 	var randomString: NSMutableString = NSMutableString(capacity: len)

@@ -104,8 +104,6 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 			errback(error: error)
 		}
 
-		// self.rtcPeerConnection.createAnswerWithDelegate(self,
-		// 	constraints: pluginRTCPeerConnectionConstraints.getConstraints())
 		self.rtcPeerConnection.createAnswerWithDelegate(self,
 			constraints: RTCMediaConstraints())
 	}

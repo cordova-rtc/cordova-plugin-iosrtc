@@ -40,6 +40,7 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 		}
 
 		// TODO: error: expected member name following '.'
+		//   https://code.google.com/p/webrtc/issues/detail?id=4614
 		// if options?.objectForKey("protocol") != nil {
 			// rtcDataChannelInit.protocol = options!.objectForKey("protocol") as! String
 		// }
@@ -147,7 +148,6 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 		NSLog("PluginRTCDataChannel#sendBinary()")
 
 		var buffer = RTCDataBuffer(
-			// data: NSKeyedArchiver.archivedDataWithRootObject(data),
 			data: data,
 			isBinary: true
 		)

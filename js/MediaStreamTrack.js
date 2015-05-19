@@ -14,13 +14,9 @@ module.exports = MediaStreamTrack;
  */
 var
 	debug = require('debug')('iosrtc:MediaStreamTrack'),
-	// debugerror = require('debug')('iosrtc:ERROR:MediaStreamTrack'),
 	exec = require('cordova/exec'),
 	getMediaDevices = require('./getMediaDevices'),
-	EventTarget = require('./EventTarget');  // TODO: Sure? events not implemented in ObjC.
-
-
-// debugerror.log = console.warn.bind(console);
+	EventTarget = require('./EventTarget');
 
 
 function MediaStreamTrack(dataFromEvent) {

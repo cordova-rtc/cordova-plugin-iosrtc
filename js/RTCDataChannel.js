@@ -50,6 +50,17 @@ function RTCDataChannel(peerConnection, label, options, dataFromEvent) {
 			throw new SyntaxError('both maxPacketLifeTime and maxRetransmits can not be present');
 		}
 
+		if (options.hasOwnProperty('id')) {
+			if (typeof options.id !== 'number' || isNaN(options.id) || options.id < 0) {
+				throw new SyntaxError('id must be a number');
+			}
+			// TODO:
+			//   https://code.google.com/p/webrtc/issues/detail?id=4618
+			if (options.id > 1023) {
+				throw new SyntaxError('id cannot be greater than 1023 (https://code.google.com/p/webrtc/issues/detail?id=4614)');
+			}
+		}
+
 		// Public atributes.
 		this.label = label;
 		this.ordered = options.hasOwnProperty('ordered') ? !!options.ordered : true;

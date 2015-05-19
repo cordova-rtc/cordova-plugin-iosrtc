@@ -14,13 +14,9 @@ var MediaStream = module.exports = window.Blob,
  * Dependencies.
  */
 	debug = require('debug')('iosrtc:MediaStream'),
-	// debugerror = require('debug')('iosrtc:ERROR:MediaStream'),
 	exec = require('cordova/exec'),
 	MediaStreamTrack = require('./MediaStreamTrack'),
 	EventTarget = require('./EventTarget');
-
-
-// debugerror.log = console.warn.bind(console);
 
 
 /**

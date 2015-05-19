@@ -79,7 +79,6 @@ class PluginGetUserMedia {
 			NSLog("PluginGetUserMedia#call() | chosen video device: \(videoDevice!)")
 
 			rtcVideoCapturer = RTCVideoCapturer(deviceName: videoDevice!.localizedName)
-			// rtcVideoCapturer = RTCVideoCapturer(deviceName: videoDevice!.uniqueID)
 
 			rtcVideoSource = self.rtcPeerConnectionFactory.videoSourceWithCapturer(rtcVideoCapturer,
 				constraints: RTCMediaConstraints()

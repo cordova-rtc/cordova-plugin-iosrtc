@@ -195,13 +195,9 @@ var MediaStream = module.exports = window.Blob,
  * Dependencies.
  */
 	debug = require('debug')('iosrtc:MediaStream'),
-	// debugerror = require('debug')('iosrtc:ERROR:MediaStream'),
 	exec = require('cordova/exec'),
 	MediaStreamTrack = require('./MediaStreamTrack'),
 	EventTarget = require('./EventTarget');
-
-
-// debugerror.log = console.warn.bind(console);
 
 
 /**
@@ -704,13 +700,9 @@ module.exports = MediaStreamTrack;
  */
 var
 	debug = require('debug')('iosrtc:MediaStreamTrack'),
-	// debugerror = require('debug')('iosrtc:ERROR:MediaStreamTrack'),
 	exec = require('cordova/exec'),
 	getMediaDevices = require('./getMediaDevices'),
-	EventTarget = require('./EventTarget');  // TODO: Sure? events not implemented in ObjC.
-
-
-// debugerror.log = console.warn.bind(console);
+	EventTarget = require('./EventTarget');
 
 
 function MediaStreamTrack(dataFromEvent) {
@@ -858,6 +850,17 @@ function RTCDataChannel(peerConnection, label, options, dataFromEvent) {
 
 		if (options.hasOwnProperty('maxPacketLifeTime') && options.hasOwnProperty('maxRetransmits')) {
 			throw new SyntaxError('both maxPacketLifeTime and maxRetransmits can not be present');
+		}
+
+		if (options.hasOwnProperty('id')) {
+			if (typeof options.id !== 'number' || isNaN(options.id) || options.id < 0) {
+				throw new SyntaxError('id must be a number');
+			}
+			// TODO:
+			//   https://code.google.com/p/webrtc/issues/detail?id=4618
+			if (options.id > 1023) {
+				throw new SyntaxError('id cannot be greater than 1023 (https://code.google.com/p/webrtc/issues/detail?id=4614)');
+			}
 		}
 
 		// Public atributes.
@@ -2013,11 +2016,12 @@ module.exports = {
 		RTCSessionDescription: require('./RTCSessionDescription'),
 		RTCIceCandidate: require('./RTCIceCandidate'),
 		canRenegotiate: true,
-		getUserMedia: require('./getUserMedia')
+		getUserMedia: require('./getUserMedia'),
+		getMediaDevices: require('./getMediaDevices')
 	}
 };
 
-},{"./RTCIceCandidate":8,"./RTCPeerConnection":9,"./RTCSessionDescription":10,"./getUserMedia":12}],15:[function(require,module,exports){
+},{"./RTCIceCandidate":8,"./RTCPeerConnection":9,"./RTCSessionDescription":10,"./getMediaDevices":11,"./getUserMedia":12}],15:[function(require,module,exports){
 
 /**
  * This is the web browser implementation of `debug()`.

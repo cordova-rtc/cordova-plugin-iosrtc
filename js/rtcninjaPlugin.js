@@ -15,6 +15,7 @@ module.exports = {
 		RTCSessionDescription: require('./RTCSessionDescription'),
 		RTCIceCandidate: require('./RTCIceCandidate'),
 		canRenegotiate: true,
-		getUserMedia: require('./getUserMedia')
+		getUserMedia: require('./getUserMedia'),
+		getMediaDevices: require('./getMediaDevices')
 	}
 };
