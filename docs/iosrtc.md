@@ -1,15 +1,36 @@
 # `iosrtc` API
 
-The top level `iosrtc` module is a JavaScript Object containing all the exposes WebRTC classes and functions along with other utilities.
+The top level `iosrtc` module is a JavaScript Object containing all the WebRTC classes and functions.
 
-The `iosrtc` module is exposed within the `window.cordova.plugins` namespace (Cordova plugins convention).
+The `iosrtc` module is exposed within the `window.cordova.plugins` namespace (Cordova plugins convention). Example:
+
+```javascript
+var pc = new cordova.plugins.iosrtc.RTCPeerConnection({
+  iceServers: []
+});
+
+cordova.plugins.iosrtc.getUserMedia(
+  // constraints
+  { audio: true, video: true },
+  // success callback
+  function (stream) {
+    console.log('got local MediaStream: ', stream);
+
+    pc.addStream(stream);
+  },
+  // failure callback
+  function (error) {
+    console.error('getUserMedia failed: ', error);
+  }
+);
+```
 
 
 ### `iosrtc.getUserMedia()`
 
 Implementation of the  `getUserMedia()` function as specified by the [W3C Media Capture and Streams draft](http://w3c.github.io/mediacapture-main/#local-content).
 
-The function allows both the old/decrecated callbacks based syntax and the new one based on Promises (depending on the number and type of the given arguments).
+The function allows both the old/deprecated callbacks based syntax and the new one based on Promises (depending on the number and type of the given arguments).
 
 *NOTE:* In iOS devices there is a single audio input (mic) and two video inputs (camera). If the given constraints include "video" the device chosen by default is the front camera. However the back camera can be chosen by passing an "optional" or "mandatory" constraint to the function:
 
@@ -35,7 +56,7 @@ cordova.plugins.iosrtc.getUserMedia({
 
 Implementation of the  `enumerateDevices()` function as specified in the [W3C Media Capture and Streams draft](http://w3c.github.io/mediacapture-main/#enumerating-devices).
 
-The function allows both the old/decrecated callbacks based syntax and the new one based on Promises.
+The function allows both the old/deprecated callbacks based syntax and the new one based on Promises.
 
 The success callback is called with a list of `MediaDeviceInfo` objects as defined in the same spec. However such an object includes deprecated fields for backwards compatibility. The read-only fields in a `MediaDeviceInfo` object are:
 

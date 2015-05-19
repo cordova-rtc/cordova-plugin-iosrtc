@@ -15,7 +15,30 @@ $ cordova plugin add com.eface2face.iosrtc
 
 
 ## Usage
-TODO
+
+The plugin exposes the `cordova.plugins.iosrtc` JavaScript namespace which contains all the WebRTC classes and functions.
+
+```javascript
+var pc = new cordova.plugins.iosrtc.RTCPeerConnection({
+  iceServers: []
+});
+
+cordova.plugins.iosrtc.getUserMedia(
+  // constraints
+  { audio: true, video: true },
+  // success callback
+  function (stream) {
+    console.log('got local MediaStream: ', stream);
+
+    pc.addStream(stream);
+  },
+  // failure callback
+  function (error) {
+    console.error('getUserMedia failed: ', error);
+  }
+);
+```
+
 
 
 ## Documentation
