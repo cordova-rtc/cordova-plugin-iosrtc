@@ -39,6 +39,21 @@ cordova.plugins.iosrtc.getUserMedia(
 );
 ```
 
+**Q:** But... wait! Does it mean that there is no `window.RTCPeerConnection` nor `navigator.getUserMedia`?
+
+**R:** A Cordova plugin is supposed to expose its JavaScript stuff in a specific namespace, and personally, I just hate those libraries that pollute the global namespace. Said that, the plugin provides a `polluteGlobals()` method, so you just need the following extra-code in your app (assuming that [Cordova Device Plugin](http://plugins.cordova.io/#/package/org.apache.cordova.device) is installed):
+
+```javascript
+// Just for Cordova apps.
+document.addEventListener('deviceready', function () {
+  // Just for iOS devices.
+  if (window.device.platform === 'iOS') {
+    cordova.plugins.iosrtc.polluteGlobals();
+  }
+});
+```
+
+And that's all. Now you have `window.RTCPeerConnection`, `navigator.getUserMedia`, etc.
 
 
 ## Documentation

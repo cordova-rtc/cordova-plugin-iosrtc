@@ -1982,7 +1982,10 @@ module.exports = {
 	MediaStreamTrack:      require('./MediaStreamTrack'),
 
 	// Expose a function to refresh current videos rendering a MediaStream.
-	refreshVideos:          refreshVideos,
+	refreshVideos:         refreshVideos,
+
+	// Expose a function to pollute window and naigator namespaces.
+	polluteGlobals:        polluteGlobals,
 
 	// Expose the rtcninjaPlugin module.
 	rtcninjaPlugin:        require('./rtcninjaPlugin'),
@@ -2011,6 +2014,15 @@ function refreshVideos() {
 			mediaStreamRenderers[id].refresh();
 		}
 	}
+}
+
+
+function polluteGlobals() {
+	navigator.getUserMedia       = require('./getUserMedia');
+	window.RTCPeerConnection     = require('./RTCPeerConnection');
+	window.RTCSessionDescription = require('./RTCSessionDescription');
+	window.RTCIceCandidate       = require('./RTCIceCandidate');
+	window.MediaStreamTrack      = require('./MediaStreamTrack');
 }
 
 

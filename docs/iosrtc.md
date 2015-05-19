@@ -70,13 +70,6 @@ The success callback is called with a list of `MediaDeviceInfo` objects as defin
 *NOTE:* The `deviceId` or `id` field is the value to be used in the `sourceId` field of `getUserMedia()` above to choose a specific device.
 
 
-### `iosrtc.refreshVideos()`
-
-When calling this method, the height/width, opacity, visibility and z-index of all the HTML5 video elements rendering a `MediaStream` are recomputed and the iOS native `UIView` layer updated according.
-
-Call this method when the position or size of a video element change.
-
-
 ### `iosrtc.RTCPeerConnection`
 
 Exposes the `RTCPeerConnection` class as defined by the [W3C Real-time Communication Between Browsers draft](http://www.w3.org/TR/webrtc/#rtcpeerconnection-interface).
@@ -118,6 +111,26 @@ Exposes the `MediaStreamTrack` class as defined by the [spec](http://w3c.github.
 * `onoverconstrained` event.
 
 
+### `iosrtc.refreshVideos()`
+
+When calling this method, the height/width, opacity, visibility and z-index of all the HTML5 video elements rendering a `MediaStream` are recomputed and the iOS native `UIView` layer updated according.
+
+Call this method when the position or size of a video element change.
+
+
+### `iosrtc.polluteGlobals()`
+
+By calling this method the JavaScript global namespace gets "polluted" with the following additions:
+
+* `navigator.getUserMedia`
+* `window.RTCPeerConnection`
+* `window.RTCSessionDescription`
+* `window.RTCIceCandidate`
+* `window.MediaStreamTrack`
+
+Useful to avoid iOS specified code in your HTML5 application.
+
+
 ### `iosrtc.debug`
 
 The [debug](https://github.com/visionmedia/debug) module. Useful to enable verbose logging:
@@ -134,9 +147,10 @@ A plugin interface for [rtcninja](https://github.com/eface2face/rtcninja.js/).
 Usage (assuming that [Cordova Device Plugin](http://plugins.cordova.io/#/package/org.apache.cordova.device) is installed):
 
 ```javascript
+// Just for Cordova apps.
 document.addEventListener('deviceready', function () {
   // Just for iOS devices.
-  if (window.cordova && window.device.platform === 'iOS') {
+  if (window.device.platform === 'iOS') {
     rtcninja({plugin: cordova.plugins.iosrtc.rtcninjaPlugin});
   }
 
