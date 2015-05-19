@@ -123,7 +123,7 @@ Exposes the `MediaStreamTrack` class as defined by the [spec](http://w3c.github.
 The [debug](https://github.com/visionmedia/debug) module. Useful to enable verbose logging:
 
 ```javascript
-cordova.plugins.iosrtc.debug('iosrtc*');
+cordova.plugins.iosrtc.debug.enable('iosrtc*');
 ```
 
 
