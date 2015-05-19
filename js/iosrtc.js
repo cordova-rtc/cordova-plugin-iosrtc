@@ -1,7 +1,24 @@
 /**
+ * Variables.
+ */
+
+var
+	// Dictionary of MediaStreamRenderers.
+	// - key: MediaStreamRenderer id.
+	// - value: MediaStreamRenderer.
+	mediaStreamRenderers = {},
+
+	// Dictionary of MediaStreams.
+	// - key: MediaStream blobId.
+	// - value: MediaStream.
+	mediaStreams = {},
+
+
+/**
  * Dependencies.
  */
-var exec = require('cordova/exec');
+	exec = require('cordova/exec'),
+	videoElementsHandler = require('./videoElementsHandler');
 
 
 /**
@@ -15,7 +32,9 @@ module.exports = {
 	RTCSessionDescription: require('./RTCSessionDescription'),
 	RTCIceCandidate:       require('./RTCIceCandidate'),
 	MediaStreamTrack:      require('./MediaStreamTrack'),
-	MediaStreamRenderer:   require('./MediaStreamRenderer'),
+
+	// Expose a function to refresh current videos rendering a MediaStream.
+	refreshVideos:          refreshVideos,
 
 	// Expose the rtcninjaPlugin module.
 	rtcninjaPlugin:        require('./rtcninjaPlugin'),
@@ -26,6 +45,25 @@ module.exports = {
 	// TMP: Debug function to see what happens internally.
 	dump:                  dump
 };
+
+
+// Observe video elements.
+document.addEventListener('deviceready', function () {
+	// Let the MediaStream class and the videoElementsHandler share same MediaStreams container.
+	require('./MediaStream').setMediaStreams(mediaStreams);
+	videoElementsHandler(mediaStreams, mediaStreamRenderers);
+});
+
+
+function refreshVideos() {
+	var id;
+
+	for (id in mediaStreamRenderers) {
+		if (mediaStreamRenderers.hasOwnProperty(id)) {
+			mediaStreamRenderers[id].refresh();
+		}
+	}
+}
 
 
 function dump() {

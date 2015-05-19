@@ -16,7 +16,17 @@ var MediaStream = module.exports = window.Blob,
 	debug = require('debug')('iosrtc:MediaStream'),
 	exec = require('cordova/exec'),
 	MediaStreamTrack = require('./MediaStreamTrack'),
-	EventTarget = require('./EventTarget');
+	EventTarget = require('./EventTarget'),
+
+
+/**
+ * Local variables.
+ */
+
+	// Dictionary of MediaStreams (provided via setMediaStreams() class method).
+	// - key: MediaStream blobId.
+	// - value: MediaStream.
+	mediaStreams;
 
 
 /**
@@ -24,17 +34,26 @@ var MediaStream = module.exports = window.Blob,
  */
 
 
+MediaStream.setMediaStreams = function (_mediaStreams) {
+	mediaStreams = _mediaStreams;
+};
+
+
 MediaStream.create = function (dataFromEvent) {
 	debug('create() | [dataFromEvent:%o]', dataFromEvent);
 
 	var stream,
+		blobId = 'MediaStream_' + dataFromEvent.id,
 		trackId,
 		track;
 
 	// Note that this is the Blob constructor.
-	stream = new MediaStream([dataFromEvent.id], {
+	stream = new MediaStream([blobId], {
 		type: 'stream'
 	});
+
+	// Store the stream into the dictionary.
+	mediaStreams[blobId] = stream;
 
 	// Make it an EventTarget.
 	EventTarget.call(stream);
@@ -45,6 +64,7 @@ MediaStream.create = function (dataFromEvent) {
 	stream.active = true;
 
 	// Private attributes.
+	stream.blobId = blobId;
 	stream.audioTracks = {};
 	stream.videoTracks = {};
 
@@ -70,42 +90,6 @@ MediaStream.create = function (dataFromEvent) {
 
 	return stream;
 };
-
-
-// function MediaStream(dataFromEvent) {
-// 	debug('new() | [dataFromEvent:%o]', dataFromEvent);
-
-// 	var trackId,
-// 		track;
-
-// 	// Make this an EventTarget.
-// 	EventTarget.call(this);
-
-// 	// Public atributes.
-// 	this.id = dataFromEvent.id;
-// 	this.label = dataFromEvent.id;  // Backwards compatibility.
-// 	this.active = true;  // TODO: No 'active' property in the RTCMediaStream ObjC class.
-
-// 	// Private attributes.
-// 	this.audioTracks = {};
-// 	this.videoTracks = {};
-
-// 	for (trackId in dataFromEvent.audioTracks) {
-// 		if (dataFromEvent.audioTracks.hasOwnProperty(trackId)) {
-// 			track = new MediaStreamTrack(dataFromEvent.audioTracks[trackId]);
-
-// 			this.audioTracks[track.id] = track;
-// 		}
-// 	}
-
-// 	for (trackId in dataFromEvent.videoTracks) {
-// 		if (dataFromEvent.videoTracks.hasOwnProperty(trackId)) {
-// 			track = new MediaStreamTrack(dataFromEvent.videoTracks[trackId]);
-
-// 			this.videoTracks[track.id] = track;
-// 		}
-// 	}
-// }
 
 
 MediaStream.prototype.getAudioTracks = function () {
@@ -269,6 +253,9 @@ function checkActive() {
 
 		this.active = false;
 		this.dispatchEvent(new Event('inactive'));
+
+		// Remove the stream from the dictionary.
+		delete mediaStreams[this.blobId];
 
 		exec(null, null, 'iosrtcPlugin', 'MediaStream_release', [this.id]);
 	}

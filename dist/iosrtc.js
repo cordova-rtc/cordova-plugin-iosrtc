@@ -197,7 +197,17 @@ var MediaStream = module.exports = window.Blob,
 	debug = require('debug')('iosrtc:MediaStream'),
 	exec = require('cordova/exec'),
 	MediaStreamTrack = require('./MediaStreamTrack'),
-	EventTarget = require('./EventTarget');
+	EventTarget = require('./EventTarget'),
+
+
+/**
+ * Local variables.
+ */
+
+	// Dictionary of MediaStreams (provided via setMediaStreams() class method).
+	// - key: MediaStream blobId.
+	// - value: MediaStream.
+	mediaStreams;
 
 
 /**
@@ -205,17 +215,26 @@ var MediaStream = module.exports = window.Blob,
  */
 
 
+MediaStream.setMediaStreams = function (_mediaStreams) {
+	mediaStreams = _mediaStreams;
+};
+
+
 MediaStream.create = function (dataFromEvent) {
 	debug('create() | [dataFromEvent:%o]', dataFromEvent);
 
 	var stream,
+		blobId = 'MediaStream_' + dataFromEvent.id,
 		trackId,
 		track;
 
 	// Note that this is the Blob constructor.
-	stream = new MediaStream([dataFromEvent.id], {
+	stream = new MediaStream([blobId], {
 		type: 'stream'
 	});
+
+	// Store the stream into the dictionary.
+	mediaStreams[blobId] = stream;
 
 	// Make it an EventTarget.
 	EventTarget.call(stream);
@@ -226,6 +245,7 @@ MediaStream.create = function (dataFromEvent) {
 	stream.active = true;
 
 	// Private attributes.
+	stream.blobId = blobId;
 	stream.audioTracks = {};
 	stream.videoTracks = {};
 
@@ -451,11 +471,14 @@ function checkActive() {
 		this.active = false;
 		this.dispatchEvent(new Event('inactive'));
 
+		// Remove the stream from the dictionary.
+		delete mediaStreams[this.blobId];
+
 		exec(null, null, 'iosrtcPlugin', 'MediaStream_release', [this.id]);
 	}
 }
 
-},{"./EventTarget":2,"./MediaStreamTrack":6,"cordova/exec":undefined,"debug":15}],5:[function(require,module,exports){
+},{"./EventTarget":2,"./MediaStreamTrack":6,"cordova/exec":undefined,"debug":16}],5:[function(require,module,exports){
 /**
  * Expose the MediaStreamRenderer class.
  */
@@ -467,14 +490,10 @@ module.exports = MediaStreamRenderer;
  */
 var
 	debug = require('debug')('iosrtc:MediaStreamRenderer'),
-	debugerror = require('debug')('iosrtc:ERROR:MediaStreamRenderer'),
 	exec = require('cordova/exec'),
 	randomNumber = require('random-number').generator({min: 10000, max: 99999, integer: true}),
 	EventTarget = require('./EventTarget'),
 	MediaStream = require('./MediaStream');
-
-
-debugerror.log = console.warn.bind(console);
 
 
 function MediaStreamRenderer(element) {
@@ -683,7 +702,7 @@ function getElementPositionAndSize() {
 	};
 }
 
-},{"./EventTarget":2,"./MediaStream":4,"cordova/exec":undefined,"debug":15,"random-number":18}],6:[function(require,module,exports){
+},{"./EventTarget":2,"./MediaStream":4,"cordova/exec":undefined,"debug":16,"random-number":19}],6:[function(require,module,exports){
 /**
  * Expose the MediaStreamTrack class.
  */
@@ -799,7 +818,7 @@ function onEvent(data) {
 	}
 }
 
-},{"./EventTarget":2,"./getMediaDevices":11,"cordova/exec":undefined,"debug":15}],7:[function(require,module,exports){
+},{"./EventTarget":2,"./getMediaDevices":11,"cordova/exec":undefined,"debug":16}],7:[function(require,module,exports){
 /**
  * Expose the RTCDataChannel class.
  */
@@ -1021,7 +1040,7 @@ function onEvent(data) {
 	}
 }
 
-},{"./EventTarget":2,"cordova/exec":undefined,"debug":15,"random-number":18}],8:[function(require,module,exports){
+},{"./EventTarget":2,"cordova/exec":undefined,"debug":16,"random-number":19}],8:[function(require,module,exports){
 /**
  * Expose the RTCIceCandidate class.
  */
@@ -1742,7 +1761,7 @@ function onEvent(data) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./Errors":1,"./EventTarget":2,"./MediaStream":4,"./RTCDataChannel":7,"./RTCIceCandidate":8,"./RTCSessionDescription":10,"cordova/exec":undefined,"debug":15,"random-number":18}],10:[function(require,module,exports){
+},{"./Errors":1,"./EventTarget":2,"./MediaStream":4,"./RTCDataChannel":7,"./RTCIceCandidate":8,"./RTCSessionDescription":10,"cordova/exec":undefined,"debug":16,"random-number":19}],10:[function(require,module,exports){
 /**
  * Expose the RTCSessionDescription class.
  */
@@ -1826,7 +1845,7 @@ function getMediaDeviceInfos(devices) {
 	return mediaDeviceInfos;
 }
 
-},{"./MediaDeviceInfo":3,"cordova/exec":undefined,"debug":15}],12:[function(require,module,exports){
+},{"./MediaDeviceInfo":3,"cordova/exec":undefined,"debug":16}],12:[function(require,module,exports){
 /**
  * Expose the getUserMedia function.
  */
@@ -1962,11 +1981,28 @@ function getUserMedia(constraints) {
 	exec(onResultOK, onResultError, 'iosrtcPlugin', 'getUserMedia', [newConstraints]);
 }
 
-},{"./Errors":1,"./MediaStream":4,"cordova/exec":undefined,"debug":15}],13:[function(require,module,exports){
+},{"./Errors":1,"./MediaStream":4,"cordova/exec":undefined,"debug":16}],13:[function(require,module,exports){
+/**
+ * Variables.
+ */
+
+var
+	// Dictionary of MediaStreamRenderers.
+	// - key: MediaStreamRenderer id.
+	// - value: MediaStreamRenderer.
+	mediaStreamRenderers = {},
+
+	// Dictionary of MediaStreams.
+	// - key: MediaStream blobId.
+	// - value: MediaStream.
+	mediaStreams = {},
+
+
 /**
  * Dependencies.
  */
-var exec = require('cordova/exec');
+	exec = require('cordova/exec'),
+	videoElementsHandler = require('./videoElementsHandler');
 
 
 /**
@@ -1980,7 +2016,9 @@ module.exports = {
 	RTCSessionDescription: require('./RTCSessionDescription'),
 	RTCIceCandidate:       require('./RTCIceCandidate'),
 	MediaStreamTrack:      require('./MediaStreamTrack'),
-	MediaStreamRenderer:   require('./MediaStreamRenderer'),
+
+	// Expose a function to refresh current videos rendering a MediaStream.
+	refreshVideos:          refreshVideos,
 
 	// Expose the rtcninjaPlugin module.
 	rtcninjaPlugin:        require('./rtcninjaPlugin'),
@@ -1993,12 +2031,31 @@ module.exports = {
 };
 
 
+// Observe video elements.
+document.addEventListener('deviceready', function () {
+	// Let the MediaStream class and the videoElementsHandler share same MediaStreams container.
+	require('./MediaStream').setMediaStreams(mediaStreams);
+	videoElementsHandler(mediaStreams, mediaStreamRenderers);
+});
+
+
+function refreshVideos() {
+	var id;
+
+	for (id in mediaStreamRenderers) {
+		if (mediaStreamRenderers.hasOwnProperty(id)) {
+			mediaStreamRenderers[id].refresh();
+		}
+	}
+}
+
+
 function dump() {
 	exec(null, null, 'iosrtcPlugin', 'dump', []);
 }
 
 
-},{"./MediaStreamRenderer":5,"./MediaStreamTrack":6,"./RTCIceCandidate":8,"./RTCPeerConnection":9,"./RTCSessionDescription":10,"./getMediaDevices":11,"./getUserMedia":12,"./rtcninjaPlugin":14,"cordova/exec":undefined,"debug":15}],14:[function(require,module,exports){
+},{"./MediaStream":4,"./MediaStreamTrack":6,"./RTCIceCandidate":8,"./RTCPeerConnection":9,"./RTCSessionDescription":10,"./getMediaDevices":11,"./getUserMedia":12,"./rtcninjaPlugin":14,"./videoElementsHandler":15,"cordova/exec":undefined,"debug":16}],14:[function(require,module,exports){
 /**
  * Expose the rtcninjaPlugin object.
  */
@@ -2022,6 +2079,242 @@ module.exports = {
 };
 
 },{"./RTCIceCandidate":8,"./RTCPeerConnection":9,"./RTCSessionDescription":10,"./getMediaDevices":11,"./getUserMedia":12}],15:[function(require,module,exports){
+/**
+ * Expose a function that must be called when the library is loaded.
+ */
+module.exports = videoElementsHandler;
+
+
+/**
+ * Dependencies.
+ */
+var debug = require('debug')('iosrtc:videoElementsHandler'),
+	MediaStreamRenderer = require('./MediaStreamRenderer'),
+
+
+/**
+ * Local variables.
+ */
+
+	// RegExp for MediaStream blobId.
+	MEDIASTREAM_ID_REGEXP = new RegExp(/^MediaStream_/),
+
+	// Dictionary of MediaStreamRenderers (provided via module argument).
+	// - key: MediaStreamRenderer id.
+	// - value: MediaStreamRenderer.
+	mediaStreamRenderers,
+
+	// Dictionary of MediaStreams (provided via module argument).
+	// - key: MediaStream blobId.
+	// - value: MediaStream.
+	mediaStreams,
+
+	// Video element mutation observer.
+	videoObserver = new MutationObserver(function (mutations) {
+		var i, numMutations, mutation,
+			video;
+
+		for (i = 0, numMutations = mutations.length; i < numMutations; i++) {
+			mutation = mutations[i];
+
+			// HTML video element.
+			video = mutation.target;
+
+			// .src removed.
+			if (!video.src) {
+				// If this video element was previously handling a MediaStreamRenderer, release it.
+				releaseMediaStreamRenderer(video);
+
+				continue;
+			}
+
+			handleVideo(video);
+		}
+
+		function handleVideo(video) {
+			var xhr = new XMLHttpRequest();
+
+			xhr.open('GET', video.src, true);
+			xhr.responseType = 'blob';
+			xhr.onload = function () {
+				if (xhr.status !== 200) {
+					// If this video element was previously handling a MediaStreamRenderer, release it.
+					releaseMediaStreamRenderer(video);
+
+					return;
+				}
+
+				var reader = new FileReader();
+
+				reader.addEventListener('loadend', function () {
+					var mediaStreamBlobId = reader.result;
+
+					// The retrieved URL does not point to a MediaStream.
+					if (!mediaStreamBlobId || typeof mediaStreamBlobId !== 'string' || !mediaStreamBlobId.match(MEDIASTREAM_ID_REGEXP)) {
+						// If this video element was previously handling a MediaStreamRenderer, release it.
+						releaseMediaStreamRenderer(video);
+
+						return;
+					}
+
+					// TMP
+					debug('retrieved MediaStream blobId: %s', mediaStreamBlobId);
+
+					provideMediaStreamRenderer(video, mediaStreamBlobId);
+				});
+				reader.readAsText(xhr.response);
+			};
+			xhr.send();
+		}
+	}),
+
+	// DOM mutation observer.
+	domObserver = new MutationObserver(function (mutations) {
+		var i, numMutations, mutation,
+			j, numNodes, node;
+
+		for (i = 0, numMutations = mutations.length; i < numMutations; i++) {
+			mutation = mutations[i];
+
+			// Check if there has been addition or deletion of nodes.
+			if (mutation.type !== 'childList') {
+				continue;
+			}
+
+			// Check added nodes.
+			for (j = 0, numNodes = mutation.addedNodes.length; j < numNodes; j++) {
+				node = mutation.addedNodes[j];
+
+				if (node.nodeName !== 'VIDEO') {
+					continue;
+				}
+
+				debug('new video element added: %o', node);
+
+				observeVideo(node);
+			}
+
+			// Check removed nodes.
+			for (j = 0, numNodes = mutation.removedNodes.length; j < numNodes; j++) {
+				node = mutation.removedNodes[j];
+
+				if (node.nodeName !== 'VIDEO') {
+					continue;
+				}
+
+				debug('video element removed: %o', node);
+
+				// If this video element was previously handling a MediaStreamRenderer, release it.
+				releaseMediaStreamRenderer(node);
+			}
+		}
+	});
+
+
+function videoElementsHandler(_mediaStreams, _mediaStreamRenderers) {
+	var existingVideos = document.querySelectorAll('video'),
+		i, len,
+		video;
+
+	mediaStreams = _mediaStreams;
+	mediaStreamRenderers = _mediaStreamRenderers;
+
+	// Search the whole document for already existing HTML video elements and observe them.
+	for (i = 0, len = existingVideos.length; i < len; i++) {
+		video = existingVideos.item(i);
+
+		debug('video element found: %o', video);
+
+		observeVideo(video);
+	}
+
+	// Observe the whole document for additions of new HTML video elements and observe them.
+	domObserver.observe(document, {
+		// Set to true if additions and removals of the target node's child elements (including text nodes) are to
+		// be observed.
+		childList: true,
+		// Set to true if mutations to target's attributes are to be observed.
+		attributes: false,
+		// Set to true if mutations to target's data are to be observed.
+		characterData: false,
+		// Set to true if mutations to not just target, but also target's descendants are to be observed.
+		subtree: true,
+		// Set to true if attributes is set to true and target's attribute value before the mutation needs to be
+		// recorded.
+		attributeOldValue: false,
+		// Set to true if characterData is set to true and target's data before the mutation needs to be recorded.
+		characterDataOldValue: false
+		// Set to an array of attribute local names (without namespace) if not all attribute mutations need to be
+		// observed.
+		// attributeFilter:
+	});
+}
+
+
+/**
+ * Private API.
+ */
+
+function observeVideo(video) {
+	// Add .src observer to the video element.
+	videoObserver.observe(video, {
+		// Set to true if additions and removals of the target node's child elements (including text
+		// nodes) are to be observed.
+		childList: false,
+		// Set to true if mutations to target's attributes are to be observed.
+		attributes: true,
+		// Set to true if mutations to target's data are to be observed.
+		characterData: false,
+		// Set to true if mutations to not just target, but also target's descendants are to be observed.
+		subtree: false,
+		// Set to true if attributes is set to true and target's attribute value before the mutation
+		// needs to be recorded.
+		attributeOldValue: false,
+		// Set to true if characterData is set to true and target's data before the mutation needs to be
+		// recorded.
+		characterDataOldValue: false,
+		// Set to an array of attribute local names (without namespace) if not all attribute mutations
+		// need to be observed.
+		// TODO: Add srcObject, mozSrcObject
+		attributeFilter: ['src']
+	});
+}
+
+
+function provideMediaStreamRenderer(video, mediaStreamBlobId) {
+	var mediaStream = mediaStreams[mediaStreamBlobId],
+		mediaStreamRenderer = mediaStreamRenderers[video._iosrtcMediaStreamRendererId];
+
+	if (!mediaStream) {
+		releaseMediaStreamRenderer(video);
+
+		return;
+	}
+
+	if (mediaStreamRenderer) {
+		mediaStreamRenderer.render(mediaStream);
+	} else {
+		mediaStreamRenderer = new MediaStreamRenderer(video);
+		mediaStreamRenderer.render(mediaStream);
+
+		mediaStreamRenderers[mediaStreamRenderer.id] = mediaStreamRenderer;
+		video._iosrtcMediaStreamRendererId = mediaStreamRenderer.id;
+	}
+}
+
+
+function releaseMediaStreamRenderer(video) {
+	var mediaStreamRenderer = mediaStreamRenderers[video._iosrtcMediaStreamRendererId];
+
+	delete video._iosrtcMediaStreamRendererId;
+
+	if (mediaStreamRenderer) {
+		delete mediaStreamRenderers[video._iosrtcMediaStreamRendererId];
+		mediaStreamRenderer.close();
+	}
+}
+
+},{"./MediaStreamRenderer":5,"debug":16}],16:[function(require,module,exports){
 
 /**
  * This is the web browser implementation of `debug()`.
@@ -2191,7 +2484,7 @@ function localstorage(){
   } catch (e) {}
 }
 
-},{"./debug":16}],16:[function(require,module,exports){
+},{"./debug":17}],17:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -2390,7 +2683,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":17}],17:[function(require,module,exports){
+},{"ms":18}],18:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -2517,7 +2810,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 void function(root){
 
   function defaults(options){

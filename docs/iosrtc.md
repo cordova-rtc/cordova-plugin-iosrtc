@@ -49,6 +49,13 @@ The success callback is called with a list of `MediaDeviceInfo` objects as defin
 *NOTE:* The `deviceId` or `id` field is the value to be used in the `sourceId` field of `getUserMedia()` above to choose a specific device.
 
 
+### `iosrtc.refreshVideos()`
+
+When calling this method, the height/width, opacity, visibility and z-index of all the HTML5 video elements rendering a `MediaStream` are recomputed and the iOS native `UIView` layer updated according.
+
+Call this method when the position or size of a video element change.
+
+
 ### `iosrtc.RTCPeerConnection`
 
 Exposes the `RTCPeerConnection` class as defined by the [W3C Real-time Communication Between Browsers draft](http://www.w3.org/TR/webrtc/#rtcpeerconnection-interface).
@@ -88,11 +95,6 @@ Exposes the `MediaStreamTrack` class as defined by the [spec](http://w3c.github.
 * `getSettings()` method.
 * `applyConstraints()` method.
 * `onoverconstrained` event.
-
-
-### `iosrtc.MediaStreamRenderer`
-
-See the [`MediaStreamRenderer` API](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/docs/MediaStreamRenderer.md).
 
 
 ### `iosrtc.debug`
