@@ -14,6 +14,10 @@ $ cordova plugin add com.eface2face.iosrtc
 ```
 
 
+## Usage
+TODO
+
+
 ## Documentation
 
 Read the full [API documentation](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/docs/index.md) in the *docs* folder.
