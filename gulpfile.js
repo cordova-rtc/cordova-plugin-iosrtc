@@ -8,12 +8,23 @@ var gulp = require('gulp'),
 	vinyl_source_stream = require('vinyl-source-stream'),
 	jshint = require('gulp-jshint'),
 	filelog = require('gulp-filelog'),
+	header = require('gulp-header'),
 	path = require('path'),
+	fs = require('fs'),
 
 /**
  * Constants.
  */
-	PKG = require('./package.json');
+	PKG = require('./package.json'),
+
+/**
+ * Banner.
+ */
+	banner = fs.readFileSync('banner.txt').toString(),
+	banner_options = {
+		pkg: PKG,
+		currentYear: (new Date()).getFullYear()
+	};
 
 
 gulp.task('lint', function () {
@@ -21,8 +32,8 @@ gulp.task('lint', function () {
 
 	return gulp.src(src)
 		.pipe(filelog('lint'))
-		.pipe(jshint('.jshintrc')) // enforce good practics
-		.pipe(jscs('.jscsrc')) // enforce style guide
+		.pipe(jshint('.jshintrc'))  // Enforce good practics.
+		.pipe(jscs('.jscsrc'))  // Enforce style guide.
 		.pipe(stylish.combineWithHintResults())
 		.pipe(jshint.reporter('jshint-stylish', {verbose: true}))
 		.pipe(jshint.reporter('fail'));
@@ -35,8 +46,9 @@ gulp.task('browserify', function () {
 	})
 		.exclude('cordova/exec')  // Exclude require('cordova/exec').
 		.bundle()
-		.pipe(vinyl_source_stream('iosrtc.js'))
+		.pipe(vinyl_source_stream(PKG.name + '.js'))
 		.pipe(filelog('browserify'))
+		.pipe(header(banner, banner_options))
 		.pipe(gulp.dest('dist/'));
 });
 

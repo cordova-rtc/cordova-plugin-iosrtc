@@ -13,7 +13,7 @@
 		<engine name="cordova-ios" version=">=3.8.0" />
 	</engines>
 
-	<js-module src="dist/iosrtc.js" name="Plugin">
+	<js-module src="dist/cordova-plugin-iosrtc.js" name="Plugin">
 		<clobbers target="cordova.plugins.iosrtc" />
 	</js-module>
 
