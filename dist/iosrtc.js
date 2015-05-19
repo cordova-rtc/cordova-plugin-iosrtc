@@ -273,42 +273,6 @@ MediaStream.create = function (dataFromEvent) {
 };
 
 
-// function MediaStream(dataFromEvent) {
-// 	debug('new() | [dataFromEvent:%o]', dataFromEvent);
-
-// 	var trackId,
-// 		track;
-
-// 	// Make this an EventTarget.
-// 	EventTarget.call(this);
-
-// 	// Public atributes.
-// 	this.id = dataFromEvent.id;
-// 	this.label = dataFromEvent.id;  // Backwards compatibility.
-// 	this.active = true;  // TODO: No 'active' property in the RTCMediaStream ObjC class.
-
-// 	// Private attributes.
-// 	this.audioTracks = {};
-// 	this.videoTracks = {};
-
-// 	for (trackId in dataFromEvent.audioTracks) {
-// 		if (dataFromEvent.audioTracks.hasOwnProperty(trackId)) {
-// 			track = new MediaStreamTrack(dataFromEvent.audioTracks[trackId]);
-
-// 			this.audioTracks[track.id] = track;
-// 		}
-// 	}
-
-// 	for (trackId in dataFromEvent.videoTracks) {
-// 		if (dataFromEvent.videoTracks.hasOwnProperty(trackId)) {
-// 			track = new MediaStreamTrack(dataFromEvent.videoTracks[trackId]);
-
-// 			this.videoTracks[track.id] = track;
-// 		}
-// 	}
-// }
-
-
 MediaStream.prototype.getAudioTracks = function () {
 	debug('getAudioTracks()');
 
@@ -2156,9 +2120,6 @@ var debug = require('debug')('iosrtc:videoElementsHandler'),
 
 						return;
 					}
-
-					// TMP
-					debug('retrieved MediaStream blobId: %s', mediaStreamBlobId);
 
 					provideMediaStreamRenderer(video, mediaStreamBlobId);
 				});
