@@ -673,7 +673,7 @@ function getElementPositionAndSize() {
 	};
 }
 
-},{"./EventTarget":2,"./MediaStream":4,"cordova/exec":undefined,"debug":16,"random-number":19}],6:[function(require,module,exports){
+},{"./EventTarget":2,"./MediaStream":4,"cordova/exec":undefined,"debug":16,"random-number":20}],6:[function(require,module,exports){
 /**
  * Expose the MediaStreamTrack class.
  */
@@ -1011,7 +1011,7 @@ function onEvent(data) {
 	}
 }
 
-},{"./EventTarget":2,"cordova/exec":undefined,"debug":16,"random-number":19}],8:[function(require,module,exports){
+},{"./EventTarget":2,"cordova/exec":undefined,"debug":16,"random-number":20}],8:[function(require,module,exports){
 /**
  * Expose the RTCIceCandidate class.
  */
@@ -1732,7 +1732,7 @@ function onEvent(data) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./Errors":1,"./EventTarget":2,"./MediaStream":4,"./RTCDataChannel":7,"./RTCIceCandidate":8,"./RTCSessionDescription":10,"cordova/exec":undefined,"debug":16,"random-number":19}],10:[function(require,module,exports){
+},{"./Errors":1,"./EventTarget":2,"./MediaStream":4,"./RTCDataChannel":7,"./RTCIceCandidate":8,"./RTCSessionDescription":10,"cordova/exec":undefined,"debug":16,"random-number":20}],10:[function(require,module,exports){
 /**
  * Expose the RTCSessionDescription class.
  */
@@ -1973,6 +1973,7 @@ var
  * Dependencies.
  */
 	exec = require('cordova/exec'),
+	domready = require('domready'),
 	videoElementsHandler = require('./videoElementsHandler');
 
 
@@ -2001,16 +2002,25 @@ module.exports = {
 	debug:                 require('debug'),
 
 	// TMP: Debug function to see what happens internally.
-	dump:                  dump
+	dump:                  dump,
+
+	// TMP: Expose the observeVideos() function (for testing).
+	observeVideos:         observeVideos
 };
 
 
-// Observe video elements.
-document.addEventListener('deviceready', function () {
+domready(function () {
+	document.addEventListener('deviceready', function () {
+		observeVideos();
+	});
+});
+
+
+function observeVideos() {
 	// Let the MediaStream class and the videoElementsHandler share same MediaStreams container.
 	require('./MediaStream').setMediaStreams(mediaStreams);
 	videoElementsHandler(mediaStreams, mediaStreamRenderers);
-});
+}
 
 
 function refreshVideos() {
@@ -2044,7 +2054,7 @@ function dump() {
 }
 
 
-},{"./MediaStream":4,"./MediaStreamTrack":6,"./RTCIceCandidate":8,"./RTCPeerConnection":9,"./RTCSessionDescription":10,"./getMediaDevices":11,"./getUserMedia":12,"./rtcninjaPlugin":14,"./videoElementsHandler":15,"cordova/exec":undefined,"debug":16}],14:[function(require,module,exports){
+},{"./MediaStream":4,"./MediaStreamTrack":6,"./RTCIceCandidate":8,"./RTCPeerConnection":9,"./RTCSessionDescription":10,"./getMediaDevices":11,"./getUserMedia":12,"./rtcninjaPlugin":14,"./videoElementsHandler":15,"cordova/exec":undefined,"debug":16,"domready":19}],14:[function(require,module,exports){
 /**
  * Expose the rtcninjaPlugin object.
  */
@@ -2805,6 +2815,38 @@ function plural(ms, n, name) {
 }
 
 },{}],19:[function(require,module,exports){
+/*!
+  * domready (c) Dustin Diaz 2014 - License MIT
+  */
+!function (name, definition) {
+
+  if (typeof module != 'undefined') module.exports = definition()
+  else if (typeof define == 'function' && typeof define.amd == 'object') define(definition)
+  else this[name] = definition()
+
+}('domready', function () {
+
+  var fns = [], listener
+    , doc = document
+    , hack = doc.documentElement.doScroll
+    , domContentLoaded = 'DOMContentLoaded'
+    , loaded = (hack ? /^loaded|^c/ : /^loaded|^i|^c/).test(doc.readyState)
+
+
+  if (!loaded)
+  doc.addEventListener(domContentLoaded, listener = function () {
+    doc.removeEventListener(domContentLoaded, listener)
+    loaded = 1
+    while (listener = fns.shift()) listener()
+  })
+
+  return function (fn) {
+    loaded ? setTimeout(fn, 0) : fns.push(fn)
+  }
+
+});
+
+},{}],20:[function(require,module,exports){
 void function(root){
 
   function defaults(options){

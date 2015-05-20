@@ -18,6 +18,7 @@ var
  * Dependencies.
  */
 	exec = require('cordova/exec'),
+	domready = require('domready'),
 	videoElementsHandler = require('./videoElementsHandler');
 
 
@@ -46,16 +47,25 @@ module.exports = {
 	debug:                 require('debug'),
 
 	// TMP: Debug function to see what happens internally.
-	dump:                  dump
+	dump:                  dump,
+
+	// TMP: Expose the observeVideos() function (for testing).
+	observeVideos:         observeVideos
 };
 
 
-// Observe video elements.
-document.addEventListener('deviceready', function () {
+domready(function () {
+	document.addEventListener('deviceready', function () {
+		observeVideos();
+	});
+});
+
+
+function observeVideos() {
 	// Let the MediaStream class and the videoElementsHandler share same MediaStreams container.
 	require('./MediaStream').setMediaStreams(mediaStreams);
 	videoElementsHandler(mediaStreams, mediaStreamRenderers);
-});
+}
 
 
 function refreshVideos() {
