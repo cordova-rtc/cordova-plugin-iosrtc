@@ -11,11 +11,19 @@ module.exports = {
 	},
 
 	interface: {
-		RTCPeerConnection: require('./RTCPeerConnection'),
+		getUserMedia:          require('./getUserMedia'),
+		RTCPeerConnection:     require('./RTCPeerConnection'),
 		RTCSessionDescription: require('./RTCSessionDescription'),
-		RTCIceCandidate: require('./RTCIceCandidate'),
-		canRenegotiate: true,
-		getUserMedia: require('./getUserMedia'),
-		getMediaDevices: require('./getMediaDevices')
+		RTCIceCandidate:       require('./RTCIceCandidate'),
+		MediaStreamTrack:      require('./MediaStreamTrack'),
+		getMediaDevices:       require('./getMediaDevices'),
+		attachMediaStream:     attachMediaStream,
+		canRenegotiate:        true
 	}
 };
+
+
+function attachMediaStream(element, stream) {
+	element.src = URL.createObjectURL(stream);
+	return element;
+}
