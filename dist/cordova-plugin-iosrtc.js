@@ -1,5 +1,5 @@
 /*
- * cordova-plugin-iosrtc v1.1.1
+ * cordova-plugin-iosrtc v1.1.2-pre
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015 Iñaki Baz Castillo at eFace2Face, inc. (https://eface2face.com)
  * License MIT
@@ -1992,7 +1992,7 @@ module.exports = {
 	refreshVideos:         refreshVideos,
 
 	// Expose a function to pollute window and naigator namespaces.
-	polluteGlobals:        polluteGlobals,
+	registerGlobals:       registerGlobals,
 
 	// Expose the rtcninjaPlugin module.
 	rtcninjaPlugin:        require('./rtcninjaPlugin'),
@@ -2024,12 +2024,18 @@ function refreshVideos() {
 }
 
 
-function polluteGlobals() {
-	navigator.getUserMedia       = require('./getUserMedia');
-	window.RTCPeerConnection     = require('./RTCPeerConnection');
-	window.RTCSessionDescription = require('./RTCSessionDescription');
-	window.RTCIceCandidate       = require('./RTCIceCandidate');
-	window.MediaStreamTrack      = require('./MediaStreamTrack');
+function registerGlobals() {
+	if (!navigator.mediaDevices) {
+		navigator.mediaDevices = {};
+	}
+
+	navigator.getUserMedia                  = require('./getUserMedia');
+	navigator.mediaDevices.getUserMedia     = require('./getUserMedia');
+	navigator.mediaDevices.enumerateDevices = require('./getMediaDevices');
+	window.RTCPeerConnection                = require('./RTCPeerConnection');
+	window.RTCSessionDescription            = require('./RTCSessionDescription');
+	window.RTCIceCandidate                  = require('./RTCIceCandidate');
+	window.MediaStreamTrack                 = require('./MediaStreamTrack');
 }
 
 

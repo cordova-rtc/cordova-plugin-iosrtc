@@ -37,7 +37,7 @@ module.exports = {
 	refreshVideos:         refreshVideos,
 
 	// Expose a function to pollute window and naigator namespaces.
-	polluteGlobals:        polluteGlobals,
+	registerGlobals:       registerGlobals,
 
 	// Expose the rtcninjaPlugin module.
 	rtcninjaPlugin:        require('./rtcninjaPlugin'),
@@ -69,12 +69,18 @@ function refreshVideos() {
 }
 
 
-function polluteGlobals() {
-	navigator.getUserMedia       = require('./getUserMedia');
-	window.RTCPeerConnection     = require('./RTCPeerConnection');
-	window.RTCSessionDescription = require('./RTCSessionDescription');
-	window.RTCIceCandidate       = require('./RTCIceCandidate');
-	window.MediaStreamTrack      = require('./MediaStreamTrack');
+function registerGlobals() {
+	if (!navigator.mediaDevices) {
+		navigator.mediaDevices = {};
+	}
+
+	navigator.getUserMedia                  = require('./getUserMedia');
+	navigator.mediaDevices.getUserMedia     = require('./getUserMedia');
+	navigator.mediaDevices.enumerateDevices = require('./getMediaDevices');
+	window.RTCPeerConnection                = require('./RTCPeerConnection');
+	window.RTCSessionDescription            = require('./RTCSessionDescription');
+	window.RTCIceCandidate                  = require('./RTCIceCandidate');
+	window.MediaStreamTrack                 = require('./MediaStreamTrack');
 }
 
 

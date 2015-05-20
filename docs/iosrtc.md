@@ -80,7 +80,7 @@ All the methods are implemented in both fashions: the deprecated callbacks based
 
 * `updateIce()` method.
 * `getStats()` method.
-* Cannot use `id` value greater than 1023 in the config object for `createDataChannel()` (see [issue #4618](https://code.google.com/p/webrtc/issues/detail?id=4618)).
+* Can not use `id` value greater than 1023 in the config object for `createDataChannel()` (see [issue #4618](https://code.google.com/p/webrtc/issues/detail?id=4618)).
 
 
 ###  `iosrtc.RTCSessionDescription`
@@ -115,14 +115,16 @@ Exposes the `MediaStreamTrack` class as defined by the [spec](http://w3c.github.
 
 When calling this method, the height/width, opacity, visibility and z-index of all the HTML5 video elements rendering a `MediaStream` are recomputed and the iOS native `UIView` layer updated according.
 
-Call this method when the position or size of a video element change.
+Call this method when the position or size of a video element changes.
 
 
-### `iosrtc.polluteGlobals()`
+### `iosrtc.registerGlobals()`
 
 By calling this method the JavaScript global namespace gets "polluted" with the following additions:
 
 * `navigator.getUserMedia`
+* `navigator.mediaDevices.getUserMedia`
+* `navigator.mediaDevices.enumerateDevices`
 * `window.RTCPeerConnection`
 * `window.RTCSessionDescription`
 * `window.RTCIceCandidate`
@@ -151,7 +153,10 @@ Usage (assuming that [Cordova Device Plugin](http://plugins.cordova.io/#/package
 document.addEventListener('deviceready', function () {
   // Just for iOS devices.
   if (window.device.platform === 'iOS') {
-    rtcninja({plugin: cordova.plugins.iosrtc.rtcninjaPlugin});
+    // Load rtcninja with cordova-plugin-iosrtc.
+    rtcninja({
+      plugin: cordova.plugins.iosrtc.rtcninjaPlugin
+    });
   }
 
   console.log('WebRTC supported?: %s', rtcninja.hasWebRTC());
@@ -190,4 +195,4 @@ The full DataChannel API is implemented (including binary messages).
 *TODO:*
 
 * `binaryType` just accepts `arraybuffer` (same as Chrome browser).
-* Cannot read the `protocol` field of a `RTCDataChannel` (see [issue #4614](https://code.google.com/p/webrtc/issues/detail?id=4614)).
+* Cannot read the `protocol` property of a `RTCDataChannel` (see [issue #4614](https://code.google.com/p/webrtc/issues/detail?id=4614)).
