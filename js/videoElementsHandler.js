@@ -65,7 +65,7 @@ var debug = require('debug')('iosrtc:videoElementsHandler'),
 
 				var reader = new FileReader();
 
-				reader.addEventListener('loadend', function () {
+				reader.onloadend = function () {
 					var mediaStreamBlobId = reader.result;
 
 					// The retrieved URL does not point to a MediaStream.
@@ -77,7 +77,7 @@ var debug = require('debug')('iosrtc:videoElementsHandler'),
 					}
 
 					provideMediaStreamRenderer(video, mediaStreamBlobId);
-				});
+				};
 				reader.readAsText(xhr.response);
 			};
 			xhr.send();

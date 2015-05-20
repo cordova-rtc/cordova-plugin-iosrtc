@@ -62,7 +62,7 @@ class PluginMediaStreamTrack : NSObject, RTCMediaStreamTrackDelegate {
 
 
 	func setEnabled(value: Bool) {
-		NSLog("PluginMediaStreamTrack#setEnabled()")
+		NSLog("PluginMediaStreamTrack#setEnabled() [value:\(value)]")
 
 		self.rtcMediaStreamTrack.setEnabled(value)
 	}

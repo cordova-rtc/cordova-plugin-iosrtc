@@ -55,9 +55,7 @@ module.exports = {
 
 
 domready(function () {
-	document.addEventListener('deviceready', function () {
-		observeVideos();
-	});
+	observeVideos();
 });
 
 

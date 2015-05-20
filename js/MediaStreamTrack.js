@@ -96,6 +96,7 @@ function onEvent(data) {
 	switch (type) {
 		case 'statechange':
 			this.readyState = data.readyState;
+			this._enabled = data.enabled;
 
 			switch (data.readyState) {
 				case 'initializing':
