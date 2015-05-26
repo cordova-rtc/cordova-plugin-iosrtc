@@ -44,6 +44,8 @@ function MediaStreamTrack(dataFromEvent) {
 			return self._enabled;
 		},
 		set: function (value) {
+			debug('enabled = %s', !!value);
+
 			self._enabled = !!value;
 			exec(null, null, 'iosrtcPlugin', 'MediaStreamTrack_setEnabled', [self.id, self._enabled]);
 		}

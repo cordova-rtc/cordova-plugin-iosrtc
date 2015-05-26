@@ -52,6 +52,8 @@ function MediaStreamRenderer(element) {
 MediaStreamRenderer.prototype.render = function (stream) {
 	debug('render() [stream:%o]', stream);
 
+	var self = this;
+
 	if (!(stream instanceof MediaStream)) {
 		throw new Error('render() requires a MediaStream instance as argument');
 	}
@@ -59,6 +61,16 @@ MediaStreamRenderer.prototype.render = function (stream) {
 	this.stream = stream;
 
 	exec(null, null, 'iosrtcPlugin', 'MediaStreamRenderer_render', [this.id, stream.id]);
+
+	// Subscribe to 'update' event so we call native mediaStreamChangedrefresh() on it.
+	this.stream.addEventListener('update', function () {
+		debug('MediaStream emits "update", calling native mediaStreamChanged()');
+
+		console.warn('MediaStream audio tracks: %o', self.stream.getAudioTracks());
+		console.warn('MediaStream video tracks: %o', self.stream.getVideoTracks());
+
+		exec(null, null, 'iosrtcPlugin', 'MediaStreamRenderer_mediaStreamChanged', [self.id]);
+	});
 };
 
 

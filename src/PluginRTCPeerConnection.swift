@@ -10,7 +10,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 	var pluginRTCDataChannels: [Int : PluginRTCDataChannel] = [:]
 	var eventListener: (data: NSDictionary) -> Void
 	var eventListenerForAddStream: (pluginMediaStream: PluginMediaStream) -> Void
-	var eventListenerForRemoveStream: (pluginMediaStream: PluginMediaStream) -> Void
+	var eventListenerForRemoveStream: (id: String) -> Void
 	var onCreateDescriptionSuccessCallback: ((rtcSessionDescription: RTCSessionDescription) -> Void)!
 	var onCreateDescriptionFailureCallback: ((error: NSError) -> Void)!
 	var onSetDescriptionSuccessCallback: (() -> Void)!
@@ -23,7 +23,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 		pcConstraints: NSDictionary?,
 		eventListener: (data: NSDictionary) -> Void,
 		eventListenerForAddStream: (pluginMediaStream: PluginMediaStream) -> Void,
-		eventListenerForRemoveStream: (pluginMediaStream: PluginMediaStream) -> Void
+		eventListenerForRemoveStream: (id: String) -> Void
 	) {
 		NSLog("PluginRTCPeerConnection#init()")
 
@@ -57,7 +57,8 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 		let pluginRTCPeerConnectionConstraints = PluginRTCPeerConnectionConstraints(pcConstraints: options)
 
 		self.onCreateDescriptionSuccessCallback = { (rtcSessionDescription: RTCSessionDescription) -> Void in
-			NSLog("PluginRTCPeerConnection#createOffer() | success callback [type:\(rtcSessionDescription.type), sdp:\(rtcSessionDescription.description)]")
+			// NSLog("PluginRTCPeerConnection#createOffer() | success callback [type:\(rtcSessionDescription.type), sdp:\(rtcSessionDescription.description)]")
+			NSLog("PluginRTCPeerConnection#createOffer() | success callback [type:\(rtcSessionDescription.type)]")
 
 			let data = [
 				"type": rtcSessionDescription.type,
@@ -88,7 +89,8 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 		let pluginRTCPeerConnectionConstraints = PluginRTCPeerConnectionConstraints(pcConstraints: options)
 
 		self.onCreateDescriptionSuccessCallback = { (rtcSessionDescription: RTCSessionDescription) -> Void in
-			NSLog("PluginRTCPeerConnection#createAnswer() | success callback [type:\(rtcSessionDescription.type), sdp:\(rtcSessionDescription.description)]")
+			// NSLog("PluginRTCPeerConnection#createAnswer() | success callback [type:\(rtcSessionDescription.type), sdp:\(rtcSessionDescription.description)]")
+			NSLog("PluginRTCPeerConnection#createAnswer() | success callback [type:\(rtcSessionDescription.type)]")
 
 			let data = [
 				"type": rtcSessionDescription.type,
@@ -414,6 +416,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 		NSLog("PluginRTCPeerConnection | onaddstream")
 
 		let pluginMediaStream = PluginMediaStream(rtcMediaStream: rtcMediaStream)
+		pluginMediaStream.run()
 
 		// Let the plugin store it in its dictionary.
 		self.eventListenerForAddStream(pluginMediaStream: pluginMediaStream)
@@ -430,12 +433,8 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 		removedStream rtcMediaStream: RTCMediaStream!) {
 		NSLog("PluginRTCPeerConnection | onremovestream")
 
-		let pluginMediaStream = PluginMediaStream(
-			rtcMediaStream: rtcMediaStream
-		)
-
 		// Let the plugin remove it from its dictionary.
-		self.eventListenerForRemoveStream(pluginMediaStream: pluginMediaStream)
+		self.eventListenerForRemoveStream(id: rtcMediaStream.label)
 
 		self.eventListener(data: [
 			"type": "removestream",
@@ -477,6 +476,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 				"ordered": rtcDataChannel.isOrdered,
 				"maxPacketLifeTime": rtcDataChannel.maxRetransmitTime,
 				"maxRetransmits": rtcDataChannel.maxRetransmits,
+				"protocol": rtcDataChannel.`protocol`,
 				"negotiated": rtcDataChannel.isNegotiated,
 				"id": rtcDataChannel.streamId,
 				"readyState": PluginRTCTypes.dataChannelStates[rtcDataChannel.state.value] as String!,

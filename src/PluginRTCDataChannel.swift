@@ -44,6 +44,9 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 		// if options?.objectForKey("protocol") != nil {
 			// rtcDataChannelInit.protocol = options!.objectForKey("protocol") as! String
 		// }
+		if options?.objectForKey("protocol") != nil {
+			rtcDataChannelInit.`protocol` = options!.objectForKey("protocol") as! String
+		}
 
 		if options?.objectForKey("negotiated") != nil {
 			rtcDataChannelInit.isNegotiated = options!.objectForKey("negotiated") as! Bool
@@ -69,6 +72,7 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 				"ordered": self.rtcDataChannel!.isOrdered,
 				"maxPacketLifeTime": self.rtcDataChannel!.maxRetransmitTime,
 				"maxRetransmits": self.rtcDataChannel!.maxRetransmits,
+				"protocol": self.rtcDataChannel!.`protocol`,
 				"negotiated": self.rtcDataChannel!.isNegotiated,
 				"id": self.rtcDataChannel!.streamId,
 				"readyState": PluginRTCTypes.dataChannelStates[self.rtcDataChannel!.state.value] as String!,

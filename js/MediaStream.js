@@ -88,6 +88,12 @@ MediaStream.create = function (dataFromEvent) {
 		}
 	}
 
+	function onResultOK(data) {
+		onEvent.call(stream, data);
+	}
+
+	exec(onResultOK, null, 'iosrtcPlugin', 'MediaStream_setListener', [stream.id]);
+
 	return stream;
 };
 
@@ -234,12 +240,11 @@ MediaStream.prototype.stop = function () {
 function addListenerForTrackEnded(track) {
 	var self = this;
 
-	// NOTE: Theorically I shouldn't remove ended tracks, but I do.
 	track.addEventListener('ended', function () {
-		if (track.kind === 'audio' && self.audioTracks[track.id]) {
-			delete self.audioTracks[track.id];
-		} else if (track.kind === 'video' && self.videoTracks[track.id]) {
-			delete self.videoTracks[track.id];
+		if (track.kind === 'audio' && !self.audioTracks[track.id]) {
+			return;
+		} else if (track.kind === 'video' && !self.videoTracks[track.id]) {
+			return;
 		}
 
 		checkActive.call(self);
@@ -248,15 +253,103 @@ function addListenerForTrackEnded(track) {
 
 
 function checkActive() {
-	if (Object.keys(this.audioTracks).length === 0 && Object.keys(this.videoTracks).length === 0) {
-		debug('no tracks in the MediaStream, releasing it');
+	// A MediaStream object is said to be active when it has at least one MediaStreamTrack
+	// that has not ended. A MediaStream that does not have any tracks or only has tracks
+	// that are ended is inactive.
 
-		this.active = false;
-		this.dispatchEvent(new Event('inactive'));
+	var self = this,
+		trackId;
+
+	if (!this.active) {
+		return;
+	}
+
+	if (Object.keys(this.audioTracks).length === 0 && Object.keys(this.videoTracks).length === 0) {
+		debug('no tracks, releasing MediaStream');
+
+		release();
+		return;
+	}
+
+	for (trackId in this.audioTracks) {
+		if (this.audioTracks.hasOwnProperty(trackId)) {
+			if (this.audioTracks[trackId].readyState !== 'ended') {
+				return;
+			}
+		}
+	}
+
+	for (trackId in this.videoTracks) {
+		if (this.videoTracks.hasOwnProperty(trackId)) {
+			if (this.videoTracks[trackId].readyState !== 'ended') {
+				return;
+			}
+		}
+	}
+
+	debug('all tracks are ended, releasing MediaStream');
+	release();
+
+	function release() {
+		self.active = false;
+		self.dispatchEvent(new Event('inactive'));
 
 		// Remove the stream from the dictionary.
-		delete mediaStreams[this.blobId];
+		delete mediaStreams[self.blobId];
 
-		exec(null, null, 'iosrtcPlugin', 'MediaStream_release', [this.id]);
+		exec(null, null, 'iosrtcPlugin', 'MediaStream_release', [self.id]);
+	}
+}
+
+
+function onEvent(data) {
+	var type = data.type,
+		event,
+		track;
+
+	debug('onEvent() | [type:%s, data:%o]', type, data);
+
+	switch (type) {
+		case 'addtrack':
+			track = new MediaStreamTrack(data.track);
+
+			if (track.kind === 'audio') {
+				this.audioTracks[track.id] = track;
+			} else if (track.kind === 'video') {
+				this.videoTracks[track.id] = track;
+			}
+			addListenerForTrackEnded.call(this, track);
+
+			event = new Event('addtrack');
+			event.track = track;
+
+			this.dispatchEvent(event);
+			// Also emit 'update' for the MediaStreamRenderer.
+			this.dispatchEvent(new Event('update'));
+			break;
+
+		case 'removetrack':
+			if (data.track.kind === 'audio') {
+				track = this.audioTracks[data.track.id];
+				delete this.audioTracks[data.track.id];
+			} else if (data.track.kind === 'video') {
+				track = this.videoTracks[data.track.id];
+				delete this.videoTracks[data.track.id];
+			}
+
+			if (!track) {
+				throw new Error('"removetrack" event fired on MediaStream for a non existing MediaStreamTrack');
+			}
+
+			event = new Event('removetrack');
+			event.track = track;
+
+			this.dispatchEvent(event);
+			// Also emit 'update' for the MediaStreamRenderer.
+			this.dispatchEvent(new Event('update'));
+
+			// Check whether the MediaStream still is active.
+			checkActive.call(this);
+			break;
 	}
 }

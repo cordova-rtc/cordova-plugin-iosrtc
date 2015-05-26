@@ -7,6 +7,7 @@ class PluginMediaStreamRenderer : RTCEAGLVideoViewDelegate {
 	var webView: UIWebView
 	var eventListener: (data: NSDictionary) -> Void
 	var videoTrackView: RTCEAGLVideoView
+	var pluginMediaStream: PluginMediaStream?
 	var rtcAudioTrack: RTCAudioTrack?
 	var rtcVideoTrack: RTCVideoTrack?
 
@@ -40,15 +41,19 @@ class PluginMediaStreamRenderer : RTCEAGLVideoViewDelegate {
 	func render(pluginMediaStream: PluginMediaStream) {
 		NSLog("PluginMediaStreamRenderer#render()")
 
-		if self.rtcAudioTrack != nil || self.rtcVideoTrack != nil {
+		if self.pluginMediaStream != nil {
 			self.reset()
 		}
 
+		self.pluginMediaStream = pluginMediaStream
+
+		// Take the first audio track.
 		for (id, track) in pluginMediaStream.audioTracks {
 			self.rtcAudioTrack = track.rtcMediaStreamTrack as? RTCAudioTrack
 			break
 		}
 
+		// Take the first video track.
 		for (id, track) in pluginMediaStream.videoTracks {
 			self.rtcVideoTrack = track.rtcMediaStreamTrack as? RTCVideoTrack
 			break
@@ -56,6 +61,61 @@ class PluginMediaStreamRenderer : RTCEAGLVideoViewDelegate {
 
 		if self.rtcVideoTrack != nil {
 			self.rtcVideoTrack!.addRenderer(self.videoTrackView)
+		}
+	}
+
+
+	func mediaStreamChanged() {
+		NSLog("PluginMediaStreamRenderer#mediaStreamChanged()")
+
+		if self.pluginMediaStream == nil {
+			return
+		}
+
+		var oldRtcVideoTrack: RTCVideoTrack? = self.rtcVideoTrack
+
+		self.rtcAudioTrack = nil
+		self.rtcVideoTrack = nil
+
+		// Take the first audio track.
+		for (id, track) in self.pluginMediaStream!.audioTracks {
+			self.rtcAudioTrack = track.rtcMediaStreamTrack as? RTCAudioTrack
+			break
+		}
+
+		// Take the first video track.
+		for (id, track) in pluginMediaStream!.videoTracks {
+			self.rtcVideoTrack = track.rtcMediaStreamTrack as? RTCVideoTrack
+			break
+		}
+
+		// If same video track as before do nothing.
+		if oldRtcVideoTrack != nil && self.rtcVideoTrack != nil &&
+			oldRtcVideoTrack!.label == self.rtcVideoTrack!.label {
+			NSLog("PluginMediaStreamRenderer#mediaStreamChanged() | same video track as before")
+		}
+
+		// Different video track.
+		else if oldRtcVideoTrack != nil && self.rtcVideoTrack != nil &&
+			oldRtcVideoTrack!.label != self.rtcVideoTrack!.label {
+			NSLog("PluginMediaStreamRenderer#mediaStreamChanged() | has a new video track")
+
+			oldRtcVideoTrack!.removeRenderer(self.videoTrackView)
+			self.rtcVideoTrack!.addRenderer(self.videoTrackView)
+		}
+
+		// Did not have video but now it has.
+		else if oldRtcVideoTrack == nil && self.rtcVideoTrack != nil {
+			NSLog("PluginMediaStreamRenderer#mediaStreamChanged() | video track added")
+
+			self.rtcVideoTrack!.addRenderer(self.videoTrackView)
+		}
+
+		// Had video but now it has not.
+		else if oldRtcVideoTrack != nil && self.rtcVideoTrack == nil {
+			NSLog("PluginMediaStreamRenderer#mediaStreamChanged() | video track removed")
+
+			oldRtcVideoTrack!.removeRenderer(self.videoTrackView)
 		}
 	}
 
@@ -114,6 +174,7 @@ class PluginMediaStreamRenderer : RTCEAGLVideoViewDelegate {
 			self.rtcVideoTrack!.removeRenderer(self.videoTrackView)
 		}
 
+		self.pluginMediaStream = nil
 		self.rtcAudioTrack = nil
 		self.rtcVideoTrack = nil
 	}

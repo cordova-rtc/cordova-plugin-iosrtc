@@ -86,7 +86,7 @@ function RTCDataChannel(peerConnection, label, options, dataFromEvent) {
 		this.ordered = dataFromEvent.ordered;
 		this.maxPacketLifeTime = dataFromEvent.maxPacketLifeTime;
 		this.maxRetransmits = dataFromEvent.maxRetransmits;
-		this.protocol = dataFromEvent.protocol || '';
+		this.protocol = dataFromEvent.protocol;
 		this.negotiated = dataFromEvent.negotiated;
 		this.id = dataFromEvent.id;
 		this.readyState = dataFromEvent.readyState;
@@ -188,6 +188,7 @@ function onEvent(data) {
 			this.ordered = data.channel.ordered;
 			this.maxPacketLifeTime = data.channel.maxPacketLifeTime;
 			this.maxRetransmits = data.channel.maxRetransmits;
+			this.protocol = data.channel.protocol;
 			this.negotiated = data.channel.negotiated;
 			this.id = data.channel.id;
 			this.readyState = data.channel.readyState;

@@ -1,11 +1,14 @@
 import Foundation
 
 
-class PluginMediaStream {
+class PluginMediaStream : NSObject, RTCMediaStreamDelegate {
 	var rtcMediaStream: RTCMediaStream
 	var id: String
 	var audioTracks: [String : PluginMediaStreamTrack] = [:]
 	var videoTracks: [String : PluginMediaStreamTrack] = [:]
+	var eventListener: ((data: NSDictionary) -> Void)?
+	var eventListenerForAddTrack: ((pluginMediaStreamTrack: PluginMediaStreamTrack) -> Void)?
+	var eventListenerForRemoveTrack: ((id: String) -> Void)?
 
 
 	/**
@@ -33,6 +36,13 @@ class PluginMediaStream {
 	}
 
 
+	func run() {
+		NSLog("PluginMediaStream#run()")
+
+		self.rtcMediaStream.delegate = self
+	}
+
+
 	func getJSON() -> NSDictionary {
 		var json: NSMutableDictionary = [
 			"id": self.id,
@@ -49,6 +59,19 @@ class PluginMediaStream {
 		}
 
 		return json as NSDictionary
+	}
+
+
+	func setListener(
+		eventListener: (data: NSDictionary) -> Void,
+		eventListenerForAddTrack: ((pluginMediaStreamTrack: PluginMediaStreamTrack) -> Void)?,
+		eventListenerForRemoveTrack: ((id: String) -> Void)?
+	) {
+		NSLog("PluginMediaStream#setListener()")
+
+		self.eventListener = eventListener
+		self.eventListenerForAddTrack = eventListenerForAddTrack
+		self.eventListenerForRemoveTrack = eventListenerForRemoveTrack
 	}
 
 
@@ -83,18 +106,18 @@ class PluginMediaStream {
 		NSLog("PluginMediaStream#removeTrack()")
 
 		if pluginMediaStreamTrack.kind == "audio" {
+			self.audioTracks[pluginMediaStreamTrack.id] = nil
 			if self.rtcMediaStream.removeAudioTrack(pluginMediaStreamTrack.rtcMediaStreamTrack as! RTCAudioTrack) {
 				NSLog("PluginMediaStream#removeTrack() | audio track removed")
-				self.audioTracks[pluginMediaStreamTrack.id] = nil
 				return true
 			} else {
 				NSLog("PluginMediaStream#removeTrack() | ERROR: audio track not removed")
 				return false
 			}
 		} else if pluginMediaStreamTrack.kind == "video" {
+			self.videoTracks[pluginMediaStreamTrack.id] = nil
 			if self.rtcMediaStream.removeVideoTrack(pluginMediaStreamTrack.rtcMediaStreamTrack as! RTCVideoTrack) {
 				NSLog("PluginMediaStream#removeTrack() | video track removed")
-				self.videoTracks[pluginMediaStreamTrack.id] = nil
 				return true
 			} else {
 				NSLog("PluginMediaStream#removeTrack() | ERROR: video track not removed")
@@ -107,4 +130,95 @@ class PluginMediaStream {
 
 
 	// TODO: API methods
+
+
+		/**
+		 * Methods inherited from RTCMediaStreamDelegate.
+		 */
+
+
+	func OnAddAudioTrack(rtcMediaStream: RTCMediaStream!, track: RTCMediaStreamTrack!) {
+		NSLog("PluginMediaStream | OnAddAudioTrack [label:\(track.label)]")
+
+		var pluginMediaStreamTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: track)
+
+		pluginMediaStreamTrack.run()
+		self.audioTracks[pluginMediaStreamTrack.id] = pluginMediaStreamTrack
+
+		if self.eventListener != nil {
+			self.eventListenerForAddTrack!(pluginMediaStreamTrack: pluginMediaStreamTrack)
+
+			self.eventListener!(data: [
+				"type": "addtrack",
+				"track": pluginMediaStreamTrack.getJSON()
+			])
+		}
+	}
+
+
+	func OnAddVideoTrack(rtcMediaStream: RTCMediaStream!, track: RTCMediaStreamTrack!) {
+		NSLog("PluginMediaStream | OnAddVideoTrack [label:\(track.label)]")
+
+		var pluginMediaStreamTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: track)
+
+		pluginMediaStreamTrack.run()
+		self.videoTracks[pluginMediaStreamTrack.id] = pluginMediaStreamTrack
+
+		if self.eventListener != nil {
+			self.eventListenerForAddTrack!(pluginMediaStreamTrack: pluginMediaStreamTrack)
+
+			self.eventListener!(data: [
+				"type": "addtrack",
+				"track": pluginMediaStreamTrack.getJSON()
+			])
+		}
+	}
+
+
+	func OnRemoveAudioTrack(rtcMediaStream: RTCMediaStream!, track: RTCMediaStreamTrack!) {
+		NSLog("PluginMediaStream | OnRemoveAudioTrack [label:\(track.label)]")
+
+		// It may happen that track was removed due to user action (removeTrack()).
+		if self.audioTracks[track.label] == nil {
+			return
+		}
+
+		self.audioTracks[track.label] = nil
+
+		if self.eventListener != nil {
+			self.eventListenerForRemoveTrack!(id: track.label)
+
+			self.eventListener!(data: [
+				"type": "removetrack",
+				"track": [
+					"id": track.label,
+					"kind": "audio"
+				]
+			])
+		}
+	}
+
+
+	func OnRemoveVideoTrack(rtcMediaStream: RTCMediaStream!, track: RTCMediaStreamTrack!) {
+		NSLog("PluginMediaStream | OnRemoveVideoTrack [label:\(track.label)]")
+
+		// It may happen that track was removed due to user action (removeTrack()).
+		if self.videoTracks[track.label] == nil {
+			return
+		}
+
+		self.videoTracks[track.label] = nil
+
+		if self.eventListener != nil {
+			self.eventListenerForRemoveTrack!(id: track.label)
+
+			self.eventListener!(data: [
+				"type": "removetrack",
+				"track": [
+					"id": track.label,
+					"kind": "video"
+				]
+			])
+		}
+	}
 }

@@ -110,6 +110,7 @@ class PluginGetUserMedia {
 		}
 
 		pluginMediaStream = PluginMediaStream(rtcMediaStream: rtcMediaStream)
+		pluginMediaStream!.run()
 
 		// Let the plugin store it in its dictionary.
 		eventListenerForNewStream(pluginMediaStream: pluginMediaStream!)

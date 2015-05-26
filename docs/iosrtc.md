@@ -195,4 +195,3 @@ The full DataChannel API is implemented (including binary messages).
 *TODO:*
 
 * `binaryType` just accepts `arraybuffer` (same as Chrome browser).
-* Cannot read the `protocol` property of a `RTCDataChannel` (see [issue #4614](https://code.google.com/p/webrtc/issues/detail?id=4614)).

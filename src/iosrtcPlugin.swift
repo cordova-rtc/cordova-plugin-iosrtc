@@ -423,6 +423,33 @@ class iosrtcPlugin : CDVPlugin {
 	}
 
 
+	func MediaStream_setListener(command: CDVInvokedUrlCommand) {
+		NSLog("iosrtcPlugin#MediaStream_setListener()")
+
+		let id = command.argumentAtIndex(0) as! String
+		let pluginMediaStream = self.pluginMediaStreams[id]
+
+		if pluginMediaStream == nil {
+			return;
+		}
+
+		dispatch_async(self.queue) {
+			// Set the eventListener.
+			pluginMediaStream!.setListener(
+				{ (data: NSDictionary) -> Void in
+					var result = CDVPluginResult(status: CDVCommandStatus_OK, messageAsDictionary: data as [NSObject : AnyObject])
+
+					// Allow more callbacks.
+					result.setKeepCallbackAsBool(true);
+					self.emit(command.callbackId, result: result)
+				},
+				eventListenerForAddTrack: self.saveMediaStreamTrack,
+				eventListenerForRemoveTrack: self.deleteMediaStreamTrack
+			)
+		}
+	}
+
+
 	func MediaStream_addTrack(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#MediaStream_addTrack()")
 
@@ -575,6 +602,20 @@ class iosrtcPlugin : CDVPlugin {
 	}
 
 
+	func MediaStreamRenderer_mediaStreamChanged(command: CDVInvokedUrlCommand) {
+		NSLog("iosrtcPlugin#MediaStreamRenderer_mediaStreamChanged()")
+
+		let id = command.argumentAtIndex(0) as! Int
+		let pluginMediaStreamRenderer = self.pluginMediaStreamRenderers[id]
+
+		if pluginMediaStreamRenderer == nil {
+			return;
+		}
+
+		pluginMediaStreamRenderer!.mediaStreamChanged()
+	}
+
+
 	func MediaStreamRenderer_refresh(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#MediaStreamRenderer_refresh()")
 
@@ -664,7 +705,7 @@ class iosrtcPlugin : CDVPlugin {
 		}
 
 		for (id, pluginMediaStream) in self.pluginMediaStreams {
-			NSLog("- PluginMediaStream [id:\(id)]")
+			NSLog("- PluginMediaStream \(pluginMediaStream.rtcMediaStream.description)")
 		}
 
 		for (id, pluginMediaStreamTrack) in self.pluginMediaStreamTracks {
@@ -690,7 +731,6 @@ class iosrtcPlugin : CDVPlugin {
 
 
 	private func saveMediaStream(pluginMediaStream: PluginMediaStream) {
-		// Store the pluginMediaStream into the dictionary.
 		if self.pluginMediaStreams[pluginMediaStream.id] == nil {
 			self.pluginMediaStreams[pluginMediaStream.id] = pluginMediaStream
 		} else {
@@ -711,8 +751,19 @@ class iosrtcPlugin : CDVPlugin {
 	}
 
 
-	private func deleteMediaStream(pluginMediaStream: PluginMediaStream) {
-		// Remove the pluginMediaStream from the dictionary.
-		self.pluginMediaStreams[pluginMediaStream.id] = nil
+	private func deleteMediaStream(id: String) {
+		self.pluginMediaStreams[id] = nil
+	}
+
+
+	private func saveMediaStreamTrack(pluginMediaStreamTrack: PluginMediaStreamTrack) {
+		if self.pluginMediaStreamTracks[pluginMediaStreamTrack.id] == nil {
+			self.pluginMediaStreamTracks[pluginMediaStreamTrack.id] = pluginMediaStreamTrack
+		}
+	}
+
+
+	private func deleteMediaStreamTrack(id: String) {
+		self.pluginMediaStreamTracks[id] = nil
 	}
 }
