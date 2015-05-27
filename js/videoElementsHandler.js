@@ -116,7 +116,7 @@ var debug = require('debug')('iosrtc:videoElementsHandler'),
 			var j, childNode;
 
 			if (node.nodeName === 'VIDEO') {
-				debug('new video element added: %o', node);
+				debug('new video element added');
 
 				observeVideo(node);
 			} else {
@@ -132,7 +132,7 @@ var debug = require('debug')('iosrtc:videoElementsHandler'),
 			var j, childNode;
 
 			if (node.nodeName === 'VIDEO') {
-				debug('video element removed: %o', node);
+				debug('video element removed');
 
 				// If this video element was previously handling a MediaStreamRenderer, release it.
 				releaseMediaStreamRenderer(node);
@@ -159,7 +159,7 @@ function videoElementsHandler(_mediaStreams, _mediaStreamRenderers) {
 	for (i = 0, len = existingVideos.length; i < len; i++) {
 		video = existingVideos.item(i);
 
-		debug('video element found: %o', video);
+		debug('video element found');
 
 		observeVideo(video);
 	}

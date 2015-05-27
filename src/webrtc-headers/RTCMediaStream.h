@@ -34,10 +34,14 @@
 
 @protocol RTCMediaStreamDelegate<NSObject>
 
-- (void)OnAddAudioTrack:(RTCMediaStream*)mediaStream track:(RTCMediaStreamTrack*)track;
-- (void)OnAddVideoTrack:(RTCMediaStream*)mediaStream track:(RTCMediaStreamTrack*)track;
-- (void)OnRemoveAudioTrack:(RTCMediaStream*)mediaStream track:(RTCMediaStreamTrack*)track;
-- (void)OnRemoveVideoTrack:(RTCMediaStream*)mediaStream track:(RTCMediaStreamTrack*)track;
+- (void)OnAddAudioTrack:
+    (RTCMediaStream*)mediaStream track:(RTCMediaStreamTrack*)track;
+- (void)OnAddVideoTrack:
+    (RTCMediaStream*)mediaStream track:(RTCMediaStreamTrack*)track;
+- (void)OnRemoveAudioTrack:
+    (RTCMediaStream*)mediaStream track:(RTCMediaStreamTrack*)track;
+- (void)OnRemoveVideoTrack:
+    (RTCMediaStream*)mediaStream track:(RTCMediaStreamTrack*)track;
 
 @end
 
