@@ -101,27 +101,47 @@ var debug = require('debug')('iosrtc:videoElementsHandler'),
 			for (j = 0, numNodes = mutation.addedNodes.length; j < numNodes; j++) {
 				node = mutation.addedNodes[j];
 
-				if (node.nodeName !== 'VIDEO') {
-					continue;
-				}
-
-				debug('new video element added: %o', node);
-
-				observeVideo(node);
+				checkNewNode(node);
 			}
 
 			// Check removed nodes.
 			for (j = 0, numNodes = mutation.removedNodes.length; j < numNodes; j++) {
 				node = mutation.removedNodes[j];
 
-				if (node.nodeName !== 'VIDEO') {
-					continue;
-				}
+				checkRemovedNode(node);
+			}
+		}
 
+		function checkNewNode(node) {
+			var j, childNode;
+
+			if (node.nodeName === 'VIDEO') {
+				debug('new video element added: %o', node);
+
+				observeVideo(node);
+			} else {
+				for (j = 0; j < node.childNodes.length; j++) {
+					childNode = node.childNodes.item(j);
+
+					checkNewNode(childNode);
+				}
+			}
+		}
+
+		function checkRemovedNode(node) {
+			var j, childNode;
+
+			if (node.nodeName === 'VIDEO') {
 				debug('video element removed: %o', node);
 
 				// If this video element was previously handling a MediaStreamRenderer, release it.
 				releaseMediaStreamRenderer(node);
+			} else {
+				for (j = 0; j < node.childNodes.length; j++) {
+					childNode = node.childNodes.item(j);
+
+					checkRemovedNode(childNode);
+				}
 			}
 		}
 	});
