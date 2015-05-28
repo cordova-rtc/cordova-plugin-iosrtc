@@ -15,7 +15,7 @@
 #import "RTCMediaConstraints.h"
 // #import "RTCMediaSource.h"
 #import "RTCMediaStream.h"
-// #import "RTCMediaStreamTrack.h"
+#import "RTCMediaStreamTrack.h"
 // #import "RTCNSGLVideoView.h"
 // #import "RTCOpenGLVideoRenderer.h"
 #import "RTCPair.h"

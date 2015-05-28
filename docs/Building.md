@@ -20,10 +20,10 @@ Xcode >= 6.3 is required due to Swift language.
 
 When adding the `ios` platform to a Cordova project a Xcode project is automatically generated at `platforms/ios/PROJECT_NAME.xcodeproj/`. Open it with Xcode and follow these steps:
 
-* Set "iOS Deployment Target" to *7.0* or higher within your project settings.
-* Set "Deployment Target" to *7.0* or higher within the project target settings.
-* Within the project "Build Settings" add an entry to the "Runpath Search Paths" setting with value *@executable_path/Frameworks*.
-* Within the project "Build Settings" set "Objective-C Bridging Header" to *PROJECT_NAME/Plugins/com.eface2face.iosrtc/cordova-plugin-iosrtc-Bridging-Header.h* (read more about the "Bridging Header" below).
+* Set "iOS Deployment Target" to `7.0` or higher within your project settings.
+* Set "Deployment Target" to `7.0` or higher within the project target settings.
+* Within the project "Build Settings" add an entry to the "Runpath Search Paths" setting with value `@executable_path/Frameworks`.
+* Within the project "Build Settings" set "Objective-C Bridging Header" to `PROJECT_NAME/Plugins/com.eface2face.iosrtc/cordova-plugin-iosrtc-Bridging-Header.h` (read more about the "Bridging Header" below).
 
 
 ## Bridging Header
@@ -44,6 +44,6 @@ It may happen that your Cordova application uses more than a single plugin coded
 #import "cordova-plugin-iosrtc-Bridging-Header.h"
 ```
 
-And then set *Unified-Bridging-Header.h* as the value of the "Objective-C Bridging Header" build setting in your Xcode project.
+And then set `Unified-Bridging-Header.h` as the value of the "Objective-C Bridging Header" build setting in your Xcode project.
 
 For more information check this [issue](https://github.com/eface2face/cordova-plugin-iosrtc/issues/9).

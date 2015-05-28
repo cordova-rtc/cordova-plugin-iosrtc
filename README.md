@@ -2,15 +2,13 @@
 
 [Cordova](http://cordova.apache.org/) iOS plugin exposing the full [WebRTC W3C JavaScript APIs](http://www.w3.org/TR/webrtc/).
 
-*Why?*
-
-Check the [release announcement](https://eface2face.com/blog/cordova-plugin-iosrtc.html) at the [eFace2Face](https://eface2face.com) site.
+*Why?* Check the [release announcement](https://eface2face.com/blog/cordova-plugin-iosrtc.html) at the [eFace2Face](https://eface2face.com) site.
 
 * [Plugin entry](http://plugins.cordova.io/#/package/com.eface2face.iosrtc) at the Apache Cordova Plugins Registry.
 * [Public Google Group](https://groups.google.com/forum/?hl=es#!forum/cordova-plugin-iosrtc) for questions and discussions about *cordova-plugin-iosrtc*.
 * [Bug Tracker](https://github.com/eface2face/cordova-plugin-iosrtc/issues) for reporting issues and requesting new features (please don't use the bug tracker for questions or problems, use the Google Group instead).
 
-**IMPORTANT:** Ensure you check the proper documentation according to the exact version of the **cordova-plugin-iosrtc** plugin you have installed. On GitHub go to the top of this page and select the appropriate *tag* within the "branch"/"tag" selector and make it match the plugin version.
+**IMPORTANT:** Ensure you check the proper documentation according to the exact version of the *cordova-plugin-iosrtc* plugin you have installed. On GitHub go to the top of this page and select the appropriate *tag* within the "branch"/"tag" selector and make it match the plugin version.
 
 
 ## Installation

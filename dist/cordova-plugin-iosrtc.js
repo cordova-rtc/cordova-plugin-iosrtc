@@ -1,5 +1,5 @@
 /*
- * cordova-plugin-iosrtc v1.2.0
+ * cordova-plugin-iosrtc v1.2.1-pre
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015 Iñaki Baz Castillo at eFace2Face, inc. (https://eface2face.com)
  * License MIT
@@ -2313,6 +2313,7 @@ var debug = require('debug')('iosrtc:videoElementsHandler'),
 			if (node.nodeName === 'VIDEO') {
 				debug('new video element added');
 
+				// Observe changes in the video element.
 				observeVideo(node);
 			} else {
 				for (j = 0; j < node.childNodes.length; j++) {
