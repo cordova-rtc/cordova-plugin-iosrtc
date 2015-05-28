@@ -1,3 +1,8 @@
-# API Documentation
+# Documentation
 
-* [`iosrtc` API](iosrtc.md)
+* [`iosrtc` API](iosrtc.md): JavaScript API Documentation.
+* [Building](Building.md): Guidelines for building a Cordova iOS application including the *cordova-plugin-iosrtc* plugin.
+
+
+
+

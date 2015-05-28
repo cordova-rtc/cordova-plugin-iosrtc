@@ -183,7 +183,6 @@ The `MediaStream` class (as defined in the [spec](http://w3c.github.io/mediacapt
 *TODO:*
 
 * `clone()` method.
-* No `onaddtrack` / `onremovetrack` events due to a limitation in the Objective-C wrapper (see [issue #4640](https://code.google.com/p/webrtc/issues/detail?id=4640)).
 
 
 ### `RTCDataChannel`

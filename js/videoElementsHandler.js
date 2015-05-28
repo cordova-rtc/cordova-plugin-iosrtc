@@ -118,6 +118,7 @@ var debug = require('debug')('iosrtc:videoElementsHandler'),
 			if (node.nodeName === 'VIDEO') {
 				debug('new video element added');
 
+				// Observe changes in the video element.
 				observeVideo(node);
 			} else {
 				for (j = 0; j < node.childNodes.length; j++) {

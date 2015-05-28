@@ -2,7 +2,15 @@
 
 [Cordova](http://cordova.apache.org/) iOS plugin exposing the full [WebRTC W3C JavaScript APIs](http://www.w3.org/TR/webrtc/).
 
-* Cordova Plugins Registry: http://plugins.cordova.io/#/package/com.eface2face.iosrtc
+*Why?*
+
+Check the [release announcement](https://eface2face.com/blog/cordova-plugin-iosrtc.html) at the [eFace2Face](https://eface2face.com) site.
+
+* [Plugin entry](http://plugins.cordova.io/#/package/com.eface2face.iosrtc) at the Apache Cordova Plugins Registry.
+* [Public Google Group](https://groups.google.com/forum/?hl=es#!forum/cordova-plugin-iosrtc) for questions and discussions about *cordova-plugin-iosrtc*.
+* [Bug Tracker](https://github.com/eface2face/cordova-plugin-iosrtc/issues) for reporting issues and requesting new features (please don't use the bug tracker for questions or problems, use the Google Group instead).
+
+**IMPORTANT:** Ensure you check the proper documentation according to the exact version of the **cordova-plugin-iosrtc** plugin you have installed. On GitHub go to the top of this page and select the appropriate *tag* within the "branch"/"tag" selector and make it match the plugin version.
 
 
 ## Installation
@@ -12,6 +20,13 @@ Within your Cordova project:
 ```bash
 $ cordova plugin add com.eface2face.iosrtc
 ```
+
+
+## Building
+
+If you just use the `cordova-cli` to manage and build your Cordova project then you are done with the usual commans (`cordova build ios`, etc).
+
+If you build your Cordova application using Xcode then some steps must be done as explained in the [documentation](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/docs/Building.md).
 
 
 ## Usage
@@ -63,10 +78,14 @@ And that's all. Now you have `window.RTCPeerConnection`, `navigator.getUserMedia
 
 **R:** Good question. An `RTCPeerConnection` is released when `close()` is called on it, a `MediaStream` is released when all its tracks end, and other elements are garbage collected when no longer needed. Basically the same behavior as in a WebRTC capable browser.
 
+**Q:** What about Android? Why just iOS?
+
+**R:** In modern versions of Android the *WebView* component is based on the Chromium open source project which already includes WebRTC ([more info](https://developer.chrome.com/multidevice/webview/overview)). For older versions of Android the [CrossWalk](https://crosswalk-project.org) project provides new *WebView* versions with WebRTC support as well.
+
 
 ## Documentation
 
-Read the full [API documentation](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/docs/index.md) in the *docs* folder.
+Read the full [documentation](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/docs/index.md) in the *docs* folder.
 
 
 ## Author

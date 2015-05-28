@@ -13,7 +13,7 @@ module.exports = function (context) {
 		swiftOptions = ['']; // <-- begin to file appending AFTER initial newline
 
 	swiftOptions.push('IPHONEOS_DEPLOYMENT_TARGET = 8.2');
-	swiftOptions.push('SWIFT_OBJC_BRIDGING_HEADER = ' + path.join(pluginDir, '/src/Bridging-Header.h'));
+	swiftOptions.push('SWIFT_OBJC_BRIDGING_HEADER = ' + path.join(pluginDir, '/src/cordova-plugin-iosrtc-Bridging-Header.h'));
 	swiftOptions.push('LD_RUNPATH_SEARCH_PATHS = $(inherited) @executable_path/Frameworks');
 	// swiftOptions.push('EMBEDDED_CONTENT_CONTAINS_SWIFT = YES');  // NOTE: Not needed.
 
