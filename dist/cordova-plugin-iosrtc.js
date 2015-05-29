@@ -1,5 +1,5 @@
 /*
- * cordova-plugin-iosrtc v1.2.1
+ * cordova-plugin-iosrtc v1.2.2
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015 Iñaki Baz Castillo at eFace2Face, inc. (https://eface2face.com)
  * License MIT
@@ -2111,10 +2111,7 @@ module.exports = {
 	debug:                 require('debug'),
 
 	// TMP: Debug function to see what happens internally.
-	dump:                  dump,
-
-	// TMP: Expose the observeVideos() function (for testing).
-	observeVideos:         observeVideos
+	dump:                  dump
 };
 
 

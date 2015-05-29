@@ -106,6 +106,7 @@ class PluginGetUserMedia {
 			NSLog("PluginGetUserMedia#call() | audio requested")
 
 			rtcAudioTrack = self.rtcPeerConnectionFactory.audioTrackWithID(NSUUID().UUIDString)
+
 			rtcMediaStream.addAudioTrack(rtcAudioTrack!)
 		}
 

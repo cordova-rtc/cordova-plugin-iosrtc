@@ -13,6 +13,8 @@ class PluginRTCPeerConnectionConstraints {
 			return
 		}
 
+		NSLog("PluginRTCPeerConnectionConstraints#init() 1")
+
 		var	offerToReceiveAudio = pcConstraints?.objectForKey("offerToReceiveAudio") as? Bool
 		var	offerToReceiveVideo = pcConstraints?.objectForKey("offerToReceiveVideo") as? Bool
 
@@ -38,6 +40,8 @@ class PluginRTCPeerConnectionConstraints {
 			],
 			optionalConstraints: []
 		)
+
+		NSLog("PluginRTCPeerConnectionConstraints#init() exit")
 	}
 
 

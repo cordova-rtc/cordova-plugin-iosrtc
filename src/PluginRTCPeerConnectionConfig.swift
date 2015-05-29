@@ -10,6 +10,8 @@ class PluginRTCPeerConnectionConfig {
 
 		var iceServers = pcConfig?.objectForKey("iceServers") as? [NSDictionary]
 
+		NSLog("PluginRTCPeerConnectionConfig#init() 1")
+
 		if iceServers == nil {
 			return
 		}
@@ -29,6 +31,8 @@ class PluginRTCPeerConnectionConfig {
 				))
 			}
 		}
+
+		NSLog("PluginRTCPeerConnectionConfig#init() exit")
 	}
 
 

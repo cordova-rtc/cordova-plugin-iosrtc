@@ -47,10 +47,7 @@ module.exports = {
 	debug:                 require('debug'),
 
 	// TMP: Debug function to see what happens internally.
-	dump:                  dump,
-
-	// TMP: Expose the observeVideos() function (for testing).
-	observeVideos:         observeVideos
+	dump:                  dump
 };
 
 

@@ -33,6 +33,8 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 		self.eventListener = eventListener
 		self.eventListenerForAddStream = eventListenerForAddStream
 		self.eventListenerForRemoveStream = eventListenerForRemoveStream
+
+		NSLog("PluginRTCPeerConnection#init() exit")
 	}
 
 
@@ -44,6 +46,8 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 			constraints: self.pluginRTCPeerConnectionConstraints.getConstraints(),
 			delegate: self
 		)
+
+		NSLog("PluginRTCPeerConnection#run() exit")
 	}
 
 
@@ -54,10 +58,15 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 	) {
 		NSLog("PluginRTCPeerConnection#createOffer()")
 
+		if self.rtcPeerConnection.signalingState.value == RTCSignalingClosed.value {
+			return
+		}
+
 		let pluginRTCPeerConnectionConstraints = PluginRTCPeerConnectionConstraints(pcConstraints: options)
 
+		NSLog("PluginRTCPeerConnection#createOffer() 1")
+
 		self.onCreateDescriptionSuccessCallback = { (rtcSessionDescription: RTCSessionDescription) -> Void in
-			// NSLog("PluginRTCPeerConnection#createOffer() | success callback [type:\(rtcSessionDescription.type), sdp:\(rtcSessionDescription.description)]")
 			NSLog("PluginRTCPeerConnection#createOffer() | success callback [type:\(rtcSessionDescription.type)]")
 
 			let data = [
@@ -68,14 +77,20 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 			callback(data: data)
 		}
 
+		NSLog("PluginRTCPeerConnection#createOffer() 2")
+
 		self.onCreateDescriptionFailureCallback = { (error: NSError) -> Void in
 			NSLog("PluginRTCPeerConnection#createOffer() | failure callback: \(error)")
 
 			errback(error: error)
 		}
 
+		NSLog("PluginRTCPeerConnection#createOffer() 3")
+
 		self.rtcPeerConnection.createOfferWithDelegate(self,
 			constraints: pluginRTCPeerConnectionConstraints.getConstraints())
+
+		NSLog("PluginRTCPeerConnection#createOffer() exit")
 	}
 
 
@@ -86,10 +101,13 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 	) {
 		NSLog("PluginRTCPeerConnection#createAnswer()")
 
+		if self.rtcPeerConnection.signalingState.value == RTCSignalingClosed.value {
+			return
+		}
+
 		let pluginRTCPeerConnectionConstraints = PluginRTCPeerConnectionConstraints(pcConstraints: options)
 
 		self.onCreateDescriptionSuccessCallback = { (rtcSessionDescription: RTCSessionDescription) -> Void in
-			// NSLog("PluginRTCPeerConnection#createAnswer() | success callback [type:\(rtcSessionDescription.type), sdp:\(rtcSessionDescription.description)]")
 			NSLog("PluginRTCPeerConnection#createAnswer() | success callback [type:\(rtcSessionDescription.type)]")
 
 			let data = [
@@ -117,6 +135,10 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 		errback: (error: NSError) -> Void
 	) {
 		NSLog("PluginRTCPeerConnection#setLocalDescription()")
+
+		if self.rtcPeerConnection.signalingState.value == RTCSignalingClosed.value {
+			return
+		}
 
 		let type = desc.objectForKey("type") as? String ?? ""
 		let sdp = desc.objectForKey("sdp") as? String ?? ""
@@ -152,6 +174,10 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 	) {
 		NSLog("PluginRTCPeerConnection#setRemoteDescription()")
 
+		if self.rtcPeerConnection.signalingState.value == RTCSignalingClosed.value {
+			return
+		}
+
 		let type = desc.objectForKey("type") as? String ?? ""
 		let sdp = desc.objectForKey("sdp") as? String ?? ""
 		let rtcSessionDescription = RTCSessionDescription(type: type, sdp: sdp)
@@ -185,6 +211,10 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 		errback: () -> Void
 	) {
 		NSLog("PluginRTCPeerConnection#addIceCandidate()")
+
+		if self.rtcPeerConnection.signalingState.value == RTCSignalingClosed.value {
+			return
+		}
 
 		let sdpMid = candidate.objectForKey("sdpMid") as? String ?? ""
 		let sdpMLineIndex = candidate.objectForKey("sdpMLineIndex") as? Int ?? 0
@@ -222,12 +252,20 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 	func addStream(pluginMediaStream: PluginMediaStream) -> Bool {
 		NSLog("PluginRTCPeerConnection#addStream()")
 
+		if self.rtcPeerConnection.signalingState.value == RTCSignalingClosed.value {
+			return false
+		}
+
 		return self.rtcPeerConnection.addStream(pluginMediaStream.rtcMediaStream)
 	}
 
 
 	func removeStream(pluginMediaStream: PluginMediaStream) {
 		NSLog("PluginRTCPeerConnection#removeStream()")
+
+		if self.rtcPeerConnection.signalingState.value == RTCSignalingClosed.value {
+			return
+		}
 
 		self.rtcPeerConnection.removeStream(pluginMediaStream.rtcMediaStream)
 	}
@@ -241,6 +279,10 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 		eventListenerForBinaryMessage: (data: NSData) -> Void
 	) {
 		NSLog("PluginRTCPeerConnection#createDataChannel()")
+
+		if self.rtcPeerConnection.signalingState.value == RTCSignalingClosed.value {
+			return
+		}
 
 		let pluginRTCDataChannel = PluginRTCDataChannel(
 			rtcPeerConnection: rtcPeerConnection,
@@ -281,6 +323,10 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 	func close() {
 		NSLog("PluginRTCPeerConnection#close()")
 
+		if self.rtcPeerConnection.signalingState.value == RTCSignalingClosed.value {
+			return
+		}
+
 		self.rtcPeerConnection.close()
 	}
 
@@ -291,6 +337,10 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 		callback: (data: NSDictionary) -> Void
 	) {
 		NSLog("PluginRTCPeerConnection#RTCDataChannel_sendString()")
+
+		if self.rtcPeerConnection.signalingState.value == RTCSignalingClosed.value {
+			return
+		}
 
 		let pluginRTCDataChannel = self.pluginRTCDataChannels[dcId]
 
@@ -309,6 +359,10 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 	) {
 		NSLog("PluginRTCPeerConnection#RTCDataChannel_sendBinary()")
 
+		if self.rtcPeerConnection.signalingState.value == RTCSignalingClosed.value {
+			return
+		}
+
 		let pluginRTCDataChannel = self.pluginRTCDataChannels[dcId]
 
 		if pluginRTCDataChannel == nil {
@@ -321,6 +375,10 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 
 	func RTCDataChannel_close(dcId: Int) {
 		NSLog("PluginRTCPeerConnection#RTCDataChannel_close()")
+
+		if self.rtcPeerConnection.signalingState.value == RTCSignalingClosed.value {
+			return
+		}
 
 		let pluginRTCDataChannel = self.pluginRTCDataChannels[dcId]
 
@@ -357,12 +415,14 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 		iceGatheringChanged newState: RTCICEGatheringState) {
 		let state_str = PluginRTCTypes.iceGatheringStates[newState.value] as String!
 
-		NSLog("PluginRTCPeerConnection | onicegatheringstatechange [iceGatheringState:\(state_str)]")
-
 		self.eventListener(data: [
 			"type": "icegatheringstatechange",
 			"iceGatheringState": state_str
 		])
+
+		if self.rtcPeerConnection.signalingState.value == RTCSignalingClosed.value {
+			return
+		}
 
 		// Emit an empty candidate if iceGatheringState is "complete".
 		if newState.value == RTCICEGatheringComplete.value {
@@ -382,6 +442,10 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 	func peerConnection(peerConnection: RTCPeerConnection!,
 		gotICECandidate candidate: RTCICECandidate!) {
 		NSLog("PluginRTCPeerConnection | onicecandidate [sdpMid:\(candidate.sdpMid), sdpMLineIndex:\(candidate.sdpMLineIndex), candidate:\(candidate.sdp)]")
+
+		if self.rtcPeerConnection.signalingState.value == RTCSignalingClosed.value {
+			return
+		}
 
 		self.eventListener(data: [
 			"type": "icecandidate",
