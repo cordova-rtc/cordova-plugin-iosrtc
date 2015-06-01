@@ -38,6 +38,16 @@ class iosrtcPlugin : CDVPlugin {
 	}
 
 
+	override func onReset() {
+		NSLog("iosrtcPlugin#onReset() | doing nothing")
+	}
+
+
+	override func onAppTerminate() {
+		NSLog("iosrtcPlugin#onAppTerminate() | doing nothing")
+	}
+
+
 	func new_RTCPeerConnection(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#new_RTCPeerConnection()")
 
