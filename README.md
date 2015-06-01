@@ -86,6 +86,11 @@ And that's all. Now you have `window.RTCPeerConnection`, `navigator.getUserMedia
 Read the full [documentation](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/docs/index.md) in the *docs* folder.
 
 
+## Known Issues
+
+* Don't call plugin methods within WebSocket events (`onopen`, `onmessage`, etc). There is an issue in Cordova iOS or Safari iOS related to it (see [issue #12](#12)).
+
+
 ## Author
 
 Iñaki Baz Castillo at [eFace2Face, inc.](https://eface2face.com)
