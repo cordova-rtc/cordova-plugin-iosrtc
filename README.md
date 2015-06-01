@@ -88,7 +88,7 @@ Read the full [documentation](https://github.com/eface2face/cordova-plugin-iosrt
 
 ## Known Issues
 
-* Don't call plugin methods within WebSocket events (`onopen`, `onmessage`, etc). There is an issue in Cordova iOS or Safari iOS related to it (see [issue #12](#12)).
+* Don't call plugin methods within WebSocket events (`onopen`, `onmessage`, etc). There is an issue in Cordova iOS or Safari iOS related to it (see [issue #12](https://github.com/eface2face/cordova-plugin-iosrtc/issues/12)).
 
 
 ## Author
