@@ -33,8 +33,6 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 		self.eventListener = eventListener
 		self.eventListenerForAddStream = eventListenerForAddStream
 		self.eventListenerForRemoveStream = eventListenerForRemoveStream
-
-		NSLog("PluginRTCPeerConnection#init() exit")
 	}
 
 
@@ -46,8 +44,6 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 			constraints: self.pluginRTCPeerConnectionConstraints.getConstraints(),
 			delegate: self
 		)
-
-		NSLog("PluginRTCPeerConnection#run() exit")
 	}
 
 
@@ -89,8 +85,6 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 
 		self.rtcPeerConnection.createOfferWithDelegate(self,
 			constraints: pluginRTCPeerConnectionConstraints.getConstraints())
-
-		NSLog("PluginRTCPeerConnection#createOffer() exit")
 	}
 
 
@@ -414,6 +408,8 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 	func peerConnection(peerConnection: RTCPeerConnection!,
 		iceGatheringChanged newState: RTCICEGatheringState) {
 		let state_str = PluginRTCTypes.iceGatheringStates[newState.value] as String!
+
+		NSLog("PluginRTCPeerConnection | onicegatheringstatechange [iceGatheringState:\(state_str)]")
 
 		self.eventListener(data: [
 			"type": "icegatheringstatechange",
