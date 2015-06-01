@@ -66,9 +66,6 @@ MediaStreamRenderer.prototype.render = function (stream) {
 	this.stream.addEventListener('update', function () {
 		debug('MediaStream emits "update", calling native mediaStreamChanged()');
 
-		console.warn('MediaStream audio tracks: %o', self.stream.getAudioTracks());
-		console.warn('MediaStream video tracks: %o', self.stream.getVideoTracks());
-
 		exec(null, null, 'iosrtcPlugin', 'MediaStreamRenderer_mediaStreamChanged', [self.id]);
 	});
 };
@@ -81,9 +78,6 @@ MediaStreamRenderer.prototype.refresh = function () {
 	 * First remove "width" and "height" from the inline style in the element (prebiously added
 	 * by this method).
 	 */
-
-	this.element.style.width = null;
-	this.element.style.height = null;
 
 	var elementPositionAndSize = getElementPositionAndSize.call(this),
 		videoRatio,
@@ -176,7 +170,7 @@ MediaStreamRenderer.prototype.refresh = function () {
 	nativeRefresh.call(this);
 
 	function nativeRefresh() {
-		debug('refresh() | videoView: [left:%d, top:%s, width:%s, height:%s, visible:%s, opacity:%s, zIndex:%s]',
+		debug('refresh() | videoView: [left:%s, top:%s, width:%s, height:%s, visible:%s, opacity:%s, zIndex:%s]',
 			videoViewLeft, videoViewTop, videoViewWidth, videoViewHeight, visible, opacity, zIndex);
 
 		exec(null, null, 'iosrtcPlugin', 'MediaStreamRenderer_refresh', [

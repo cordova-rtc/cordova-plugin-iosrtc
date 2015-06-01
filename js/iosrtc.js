@@ -46,7 +46,7 @@ module.exports = {
 	// Expose the debug module.
 	debug:                 require('debug'),
 
-	// TMP: Debug function to see what happens internally.
+	// Debug function to see what happens internally.
 	dump:                  dump
 };
 
