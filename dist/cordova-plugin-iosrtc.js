@@ -1,5 +1,5 @@
 /*
- * cordova-plugin-iosrtc v1.2.3
+ * cordova-plugin-iosrtc v1.2.4
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015 Iñaki Baz Castillo at eFace2Face, inc. (https://eface2face.com)
  * License MIT
@@ -652,7 +652,8 @@ MediaStreamRenderer.prototype.refresh = function () {
 		videoViewHeight = elementHeight,
 		visible,
 		opacity,
-		zIndex;
+		zIndex,
+		mirrored = false;
 
 	// visible
 	if (window.getComputedStyle(this.element).visibility === 'hidden') {
@@ -670,6 +671,12 @@ MediaStreamRenderer.prototype.refresh = function () {
 	debug('refresh() | video element: [left:%s, top:%s, width:%s, height:%s]',
 		elementLeft, elementTop, elementWidth, elementHeight
 	);
+
+	// mirrored
+	if (window.getComputedStyle(this.element).transform === 'matrix(-1, 0, 0, 1, 0, 0)' ||
+		window.getComputedStyle(this.element)['-webkit-transform'] === 'matrix(-1, 0, 0, 1, 0, 0)') {
+		mirrored = true;
+	}
 
 	/**
 	 * No video yet, so just update the UIView with the element settings.
@@ -749,11 +756,11 @@ MediaStreamRenderer.prototype.refresh = function () {
 	nativeRefresh.call(this);
 
 	function nativeRefresh() {
-		debug('refresh() | videoView: [left:%s, top:%s, width:%s, height:%s, visible:%s, opacity:%s, zIndex:%s]',
-			videoViewLeft, videoViewTop, videoViewWidth, videoViewHeight, visible, opacity, zIndex);
+		debug('refresh() | videoView: [left:%s, top:%s, width:%s, height:%s, visible:%s, opacity:%s, zIndex:%s, mirrored:%s]',
+			videoViewLeft, videoViewTop, videoViewWidth, videoViewHeight, visible, opacity, zIndex, mirrored);
 
 		exec(null, null, 'iosrtcPlugin', 'MediaStreamRenderer_refresh', [
-			this.id, videoViewLeft, videoViewTop, videoViewWidth, videoViewHeight, visible, opacity, zIndex
+			this.id, videoViewLeft, videoViewTop, videoViewWidth, videoViewHeight, visible, opacity, zIndex, mirrored
 		]);
 	}
 };
@@ -2273,8 +2280,7 @@ var debug = require('debug')('iosrtc:videoElementsHandler'),
 	// DOM mutation observer.
 	domObserver = new MutationObserver(function (mutations) {
 		var i, numMutations, mutation,
-			j, numNodes, node,
-			newNodes = [];
+			j, numNodes, node;
 
 		for (i = 0, numMutations = mutations.length; i < numMutations; i++) {
 			mutation = mutations[i];
