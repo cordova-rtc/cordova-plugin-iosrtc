@@ -88,7 +88,11 @@ Read the full [documentation](https://github.com/eface2face/cordova-plugin-iosrt
 
 ## Known Issues
 
-* Don't call plugin methods within WebSocket events (`onopen`, `onmessage`, etc). There is an issue in Cordova iOS or Safari iOS related to it (see [issue #12](https://github.com/eface2face/cordova-plugin-iosrtc/issues/12)). Instead run a `setTimeout()` within the WebSocket event if you need to call plugin methods on it.
+### iOS Safari and crash on WebSocket events
+
+Don't call plugin methods within WebSocket events (`onopen`, `onmessage`, etc). There is an issue in iOS Safari (see [issue #12](https://github.com/eface2face/cordova-plugin-iosrtc/issues/12)). Instead run a `setTimeout()` within the WebSocket event if you need to call plugin methods on it.
+
+Or better, just load the provided [ios-websocket-hack.js](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/extra/ios-websocket-hack.js) script into your Cordova iOS app.
 
 
 ## Author
