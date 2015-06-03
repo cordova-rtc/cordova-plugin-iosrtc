@@ -621,14 +621,6 @@ MediaStreamRenderer.prototype.render = function (stream) {
 MediaStreamRenderer.prototype.refresh = function () {
 	debug('refresh()');
 
-	// TODO
-	debug('refresh() | initial [element_added_style_width:%s, element_added_style_height:%s, element.style.width:%s, element.style.height:%s]',
-		this.element_added_style_width,
-		this.element_added_style_height,
-		this.element.style.width,
-		this.element.style.height
-	);
-
 	/**
 	 * First remove "width" and "height" from the inline style in the element if
 	 * previously added by this function.
@@ -675,7 +667,7 @@ MediaStreamRenderer.prototype.refresh = function () {
 	// zIndex
 	zIndex = parseFloat(window.getComputedStyle(this.element).zIndex) || parseFloat(this.element.style.zIndex) || 0;
 
-	debug('refresh() | element: [left:%s, top:%s, width:%s, height:%s]',
+	debug('refresh() | video element: [left:%s, top:%s, width:%s, height:%s]',
 		elementLeft, elementTop, elementWidth, elementHeight
 	);
 
@@ -684,7 +676,7 @@ MediaStreamRenderer.prototype.refresh = function () {
 	 */
 
 	if (!this.videoWidth || !this.videoHeight) {
-		debug('refresh() | no video yet');
+		debug('refresh() | no video track yet');
 
 		nativeRefresh.call(this);
 		return;
@@ -697,7 +689,7 @@ MediaStreamRenderer.prototype.refresh = function () {
 	 */
 
 	if (!elementWidth && !elementHeight) {
-		debug('refresh() | no element width nor height');
+		debug('refresh() | video element has 0 width and 0 height');
 
 		if (!this.element.style.width) {
 			elementWidth = this.videoWidth;
@@ -715,7 +707,7 @@ MediaStreamRenderer.prototype.refresh = function () {
 			elementHeight = parseInt(this.element.style.height);
 		}
 	} else if (!elementWidth) {
-		debug('refresh() | no element width');
+		debug('refresh() | video element has 0 width');
 
 		if (!this.element.style.width) {
 			elementWidth = elementHeight * videoRatio;
@@ -725,7 +717,7 @@ MediaStreamRenderer.prototype.refresh = function () {
 			elementWidth = parseInt(this.element.style.width);
 		}
 	} else if (!elementHeight) {
-		debug('refresh() | no element height');
+		debug('refresh() | video element has 0 height');
 
 		if (!this.element.style.height) {
 			elementHeight = elementWidth / videoRatio;
@@ -741,9 +733,6 @@ MediaStreamRenderer.prototype.refresh = function () {
 	 */
 
 	elementRatio = elementWidth / elementHeight;
-
-	debug('refresh() | [videoWidth:%s, videoHeight:%s, videoRatio:%s, elementRatio:%s]',
-		this.videoWidth, this.videoHeight, videoRatio, elementRatio);
 
 	// The element has higher or equal width/height ratio than the video.
 	if (elementRatio >= videoRatio) {
@@ -2274,51 +2263,18 @@ var debug = require('debug')('iosrtc:videoElementsHandler'),
 			if (!video.src) {
 				// If this video element was previously handling a MediaStreamRenderer, release it.
 				releaseMediaStreamRenderer(video);
-
 				continue;
 			}
 
 			handleVideo(video);
-		}
-
-		function handleVideo(video) {
-			var xhr = new XMLHttpRequest();
-
-			xhr.open('GET', video.src, true);
-			xhr.responseType = 'blob';
-			xhr.onload = function () {
-				if (xhr.status !== 200) {
-					// If this video element was previously handling a MediaStreamRenderer, release it.
-					releaseMediaStreamRenderer(video);
-
-					return;
-				}
-
-				var reader = new FileReader();
-
-				reader.onloadend = function () {
-					var mediaStreamBlobId = reader.result;
-
-					// The retrieved URL does not point to a MediaStream.
-					if (!mediaStreamBlobId || typeof mediaStreamBlobId !== 'string' || !mediaStreamBlobId.match(MEDIASTREAM_ID_REGEXP)) {
-						// If this video element was previously handling a MediaStreamRenderer, release it.
-						releaseMediaStreamRenderer(video);
-
-						return;
-					}
-
-					provideMediaStreamRenderer(video, mediaStreamBlobId);
-				};
-				reader.readAsText(xhr.response);
-			};
-			xhr.send();
 		}
 	}),
 
 	// DOM mutation observer.
 	domObserver = new MutationObserver(function (mutations) {
 		var i, numMutations, mutation,
-			j, numNodes, node;
+			j, numNodes, node,
+			newNodes = [];
 
 		for (i = 0, numMutations = mutations.length; i < numMutations; i++) {
 			mutation = mutations[i];
@@ -2348,6 +2304,12 @@ var debug = require('debug')('iosrtc:videoElementsHandler'),
 
 			if (node.nodeName === 'VIDEO') {
 				debug('new video element added');
+
+				// Avoid same node firing more than once (really, may happen in some cases).
+				if (node._iosrtcVideoHandled) {
+					return;
+				}
+				node._iosrtcVideoHandled = true;
 
 				// Observe changes in the video element.
 				observeVideo(node);
@@ -2424,6 +2386,12 @@ function videoElementsHandler(_mediaStreams, _mediaStreamRenderers) {
  */
 
 function observeVideo(video) {
+	debug('observeVideo() | [class:"%s", src:%s]', video.className, video.src);
+
+	if (video.src) {
+		handleVideo(video);
+	}
+
 	// Add .src observer to the video element.
 	videoObserver.observe(video, {
 		// Set to true if additions and removals of the target node's child elements (including text
@@ -2446,6 +2414,40 @@ function observeVideo(video) {
 		// TODO: Add srcObject, mozSrcObject
 		attributeFilter: ['src']
 	});
+}
+
+
+function handleVideo(video) {
+	var xhr = new XMLHttpRequest();
+
+	xhr.open('GET', video.src, true);
+	xhr.responseType = 'blob';
+	xhr.onload = function () {
+		if (xhr.status !== 200) {
+			// If this video element was previously handling a MediaStreamRenderer, release it.
+			releaseMediaStreamRenderer(video);
+
+			return;
+		}
+
+		var reader = new FileReader();
+
+		reader.onloadend = function () {
+			var mediaStreamBlobId = reader.result;
+
+			// The retrieved URL does not point to a MediaStream.
+			if (!mediaStreamBlobId || typeof mediaStreamBlobId !== 'string' || !mediaStreamBlobId.match(MEDIASTREAM_ID_REGEXP)) {
+				// If this video element was previously handling a MediaStreamRenderer, release it.
+				releaseMediaStreamRenderer(video);
+
+				return;
+			}
+
+			provideMediaStreamRenderer(video, mediaStreamBlobId);
+		};
+		reader.readAsText(xhr.response);
+	};
+	xhr.send();
 }
 
 
