@@ -70,7 +70,7 @@ And that's all. Now you have `window.RTCPeerConnection`, `navigator.getUserMedia
 
 **Q:** What about `<video>` elements and `video.src = URL.createObjectURL(stream)`? do I need custom HTML tags or functions to display WebRTC videos?
 
-**R:** No. Just use an HTML video element as usual, really. The plugin will properly place a native `UIView` layer on top of it by respecting its properties such as the CSS "display", "opacity", "visibility" or "z-index".
+**R:** No. Just use an HTML video element as usual, really. The plugin will properly place a native `UIView` layer on top of it by respecting its properties such as the CSS `display`, `opacity`, `visibility`, `z-index` and also horizontal mirror effect with `-webkit-transform: scaleX(-1);`.
 
 **Q:** Do I need to call special methods to release/free native WebRTC objects? How are they garbage collected?
 

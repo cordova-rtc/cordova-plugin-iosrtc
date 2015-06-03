@@ -53,8 +53,7 @@ var debug = require('debug')('iosrtc:videoElementsHandler'),
 	// DOM mutation observer.
 	domObserver = new MutationObserver(function (mutations) {
 		var i, numMutations, mutation,
-			j, numNodes, node,
-			newNodes = [];
+			j, numNodes, node;
 
 		for (i = 0, numMutations = mutations.length; i < numMutations; i++) {
 			mutation = mutations[i];

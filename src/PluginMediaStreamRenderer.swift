@@ -127,9 +127,10 @@ class PluginMediaStreamRenderer : RTCEAGLVideoViewDelegate {
 		height: Float,
 		visible: Bool,
 		opacity: Float,
-		zIndex: Float
+		zIndex: Float,
+		mirrored: Bool
 	) {
-		NSLog("PluginMediaStreamRenderer#refresh() [left:\(left), top:\(top), width:\(width), height:\(height), visible:\(visible), opacity:\(opacity), zIndex:\(zIndex)]")
+		NSLog("PluginMediaStreamRenderer#refresh() [left:\(left), top:\(top), width:\(width), height:\(height), visible:\(visible), opacity:\(opacity), zIndex:\(zIndex), mirrored:\(mirrored)]")
 
 		if width == 0 || height == 0 {
 			return
@@ -146,6 +147,13 @@ class PluginMediaStreamRenderer : RTCEAGLVideoViewDelegate {
 			self.videoTrackView.hidden = false
 		} else {
 			self.videoTrackView.hidden = true
+		}
+
+		if !mirrored {
+			// self.videoTrackView.transform = CGAffineTransformMakeScale(1.0, 1.0);
+			self.videoTrackView.transform = CGAffineTransformIdentity;
+		} else {
+			self.videoTrackView.transform = CGAffineTransformMakeScale(-1.0, 1.0);
 		}
 
 		self.videoTrackView.alpha = CGFloat(opacity)
