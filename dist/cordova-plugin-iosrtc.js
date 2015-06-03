@@ -580,6 +580,8 @@ function MediaStreamRenderer(element) {
 	this.id = randomNumber();
 	this.videoWidth = undefined;
 	this.videoHeight = undefined;
+	this.element_added_style_width = undefined;
+	this.element_added_style_height = undefined;
 
 	// Set black background.
 	this.element.style.backgroundColor = '#000';
@@ -619,10 +621,31 @@ MediaStreamRenderer.prototype.render = function (stream) {
 MediaStreamRenderer.prototype.refresh = function () {
 	debug('refresh()');
 
+	// TODO
+	debug('refresh() | initial [element_added_style_width:%s, element_added_style_height:%s, element.style.width:%s, element.style.height:%s]',
+		this.element_added_style_width,
+		this.element_added_style_height,
+		this.element.style.width,
+		this.element.style.height
+	);
+
 	/**
-	 * First remove "width" and "height" from the inline style in the element (prebiously added
-	 * by this method).
+	 * First remove "width" and "height" from the inline style in the element if
+	 * previously added by this function.
 	 */
+
+	if (this.element_added_style_width && this.element.style.width) {
+		debug('refresh() | removing element style width previously added by this function');
+
+		this.element.style.width = '';
+		this.element_added_style_width = undefined;
+	}
+	if (this.element_added_style_height && this.element.style.height) {
+		debug('refresh() | removing element style height previously added by this function');
+
+		this.element.style.height = '';
+		this.element_added_style_height = undefined;
+	}
 
 	var elementPositionAndSize = getElementPositionAndSize.call(this),
 		videoRatio,
@@ -652,11 +675,17 @@ MediaStreamRenderer.prototype.refresh = function () {
 	// zIndex
 	zIndex = parseFloat(window.getComputedStyle(this.element).zIndex) || parseFloat(this.element.style.zIndex) || 0;
 
+	debug('refresh() | element: [left:%s, top:%s, width:%s, height:%s]',
+		elementLeft, elementTop, elementWidth, elementHeight
+	);
+
 	/**
 	 * No video yet, so just update the UIView with the element settings.
 	 */
 
 	if (!this.videoWidth || !this.videoHeight) {
+		debug('refresh() | no video yet');
+
 		nativeRefresh.call(this);
 		return;
 	}
@@ -670,21 +699,41 @@ MediaStreamRenderer.prototype.refresh = function () {
 	if (!elementWidth && !elementHeight) {
 		debug('refresh() | no element width nor height');
 
-		elementWidth = this.videoWidth;
-		this.element.style.width = elementWidth + 'px';
+		if (!this.element.style.width) {
+			elementWidth = this.videoWidth;
+			this.element.style.width = elementWidth + 'px';
+			this.element_added_style_width = this.element.style.width;
+		} else {
+			elementWidth = parseInt(this.element.style.width);
+		}
 
-		elementHeight = this.videoHeight;
-		this.element.style.height = elementHeight + 'px';
+		if (!this.element.style.height) {
+			elementHeight = this.videoHeight;
+			this.element.style.height = elementHeight + 'px';
+			this.element_added_style_height = this.element.style.height;
+		} else {
+			elementHeight = parseInt(this.element.style.height);
+		}
 	} else if (!elementWidth) {
 		debug('refresh() | no element width');
 
-		elementWidth = elementHeight * videoRatio;
-		this.element.style.width = elementWidth + 'px';
+		if (!this.element.style.width) {
+			elementWidth = elementHeight * videoRatio;
+			this.element.style.width = elementWidth + 'px';
+			this.element_added_style_width = this.element.style.width;
+		} else {
+			elementWidth = parseInt(this.element.style.width);
+		}
 	} else if (!elementHeight) {
 		debug('refresh() | no element height');
 
-		elementHeight = elementWidth / videoRatio;
-		this.element.style.height = elementHeight + 'px';
+		if (!this.element.style.height) {
+			elementHeight = elementWidth / videoRatio;
+			this.element.style.height = elementHeight + 'px';
+			this.element_added_style_height = this.element.style.height;
+		} else {
+			elementHeight = parseInt(this.element.style.height);
+		}
 	}
 
 	/**
@@ -698,15 +747,11 @@ MediaStreamRenderer.prototype.refresh = function () {
 
 	// The element has higher or equal width/height ratio than the video.
 	if (elementRatio >= videoRatio) {
-		debug('refresh() | elementRatio:%s >= videoRatio:%s', elementRatio, videoRatio);
-
 		videoViewHeight = elementHeight;
 		videoViewWidth = videoViewHeight * videoRatio;
 		videoViewLeft = elementLeft + ((elementWidth - videoViewWidth) / 2);
 	// The element has lower width/height ratio than the video.
 	} else if (elementRatio < videoRatio) {
-		debug('refresh() | elementRatio:%s < videoRatio:%s', elementRatio, videoRatio);
-
 		videoViewWidth = elementWidth;
 		videoViewHeight = videoViewWidth / videoRatio;
 		videoViewTop = elementTop + ((elementHeight - videoViewHeight) / 2);
