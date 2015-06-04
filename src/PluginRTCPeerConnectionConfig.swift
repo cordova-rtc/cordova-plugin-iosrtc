@@ -16,16 +16,16 @@ class PluginRTCPeerConnectionConfig {
 
 		for iceServer: NSDictionary in iceServers! {
 			var url = iceServer.objectForKey("url") as? String
-			var username = iceServer.objectForKey("username") as? String
-			var password = iceServer.objectForKey("password") as? String
+			var username = iceServer.objectForKey("username") as? String ?? ""
+			var password = iceServer.objectForKey("credential") as? String ?? ""
 
 			if (url != nil) {
-				NSLog("PluginRTCPeerConnectionConfig#init() | adding ICE server [url:\(url!)]")
+				NSLog("PluginRTCPeerConnectionConfig#init() | adding ICE server [url:\(url!), username:\(username), password:\(password)]")
 
 				self.iceServers.append(RTCICEServer(
 					URI: NSURL(string: url!),
-					username: username != nil ? username : "",
-					password: password != nil ? password : ""
+					username: username,
+					password: password
 				))
 			}
 		}
