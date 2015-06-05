@@ -1,4 +1,5 @@
 import Foundation
+import AVFoundation
 
 
 @objc(iosrtcPlugin)  // This class must be accesible from ObjetiveC.
@@ -754,6 +755,32 @@ class iosrtcPlugin : CDVPlugin {
 					)
 				}
 			)
+		}
+	}
+
+
+	func selectAudioOutputEarpiece(command: CDVInvokedUrlCommand) {
+		NSLog("iosrtcPlugin#selectAudioOutputEarpiece()")
+
+		var error: NSError?
+
+		AVAudioSession.sharedInstance().overrideOutputAudioPort(AVAudioSessionPortOverride.None, error: &error);
+
+		if error != nil {
+			NSLog("iosrtcPlugin#selectAudioOutputEarpiece() | ERROR: \(error!.localizedDescription)")
+		}
+	}
+
+
+	func selectAudioOutputSpeaker(command: CDVInvokedUrlCommand) {
+		NSLog("iosrtcPlugin#selectAudioOutputSpeaker()")
+
+		var error: NSError?
+
+		AVAudioSession.sharedInstance().overrideOutputAudioPort(AVAudioSessionPortOverride.Speaker, error: &error);
+
+		if error != nil {
+			NSLog("iosrtcPlugin#selectAudioOutputSpeaker() | ERROR: \(error!.localizedDescription)")
 		}
 	}
 

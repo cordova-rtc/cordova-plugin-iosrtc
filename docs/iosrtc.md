@@ -118,6 +118,13 @@ When calling this method, the height/width, opacity, visibility and z-index of a
 Call this method when the position or size of a video element changes.
 
 
+### `iosrtc.selectAudioOutput(output)`
+
+Select the audio output device. Given `output` argument must be "earpiece" or "speaker".
+
+*NOTE:* "speaker" output can only be set during a WebRTC session.
+
+
 ### `iosrtc.registerGlobals()`
 
 By calling this method the JavaScript global namespace gets "polluted" with the following additions:

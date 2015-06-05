@@ -1,5 +1,5 @@
 /*
- * cordova-plugin-iosrtc v1.2.5
+ * cordova-plugin-iosrtc v1.2.6
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015 Iñaki Baz Castillo at eFace2Face, inc. (https://eface2face.com)
  * License MIT
@@ -2116,6 +2116,7 @@ var
 /**
  * Dependencies.
  */
+	debug = require('debug')('iosrtc'),
 	exec = require('cordova/exec'),
 	domready = require('domready'),
 	videoElementsHandler = require('./videoElementsHandler');
@@ -2135,6 +2136,9 @@ module.exports = {
 
 	// Expose a function to refresh current videos rendering a MediaStream.
 	refreshVideos:         refreshVideos,
+
+	// Select audio output (earpiece or speaker).
+	selectAudioOutput:     selectAudioOutput,
 
 	// Expose a function to pollute window and naigator namespaces.
 	registerGlobals:       registerGlobals,
@@ -2163,12 +2167,30 @@ function observeVideos() {
 
 
 function refreshVideos() {
+	debug('refreshVideos()');
+
 	var id;
 
 	for (id in mediaStreamRenderers) {
 		if (mediaStreamRenderers.hasOwnProperty(id)) {
 			mediaStreamRenderers[id].refresh();
 		}
+	}
+}
+
+
+function selectAudioOutput(output) {
+	debug('selectAudioOutput() | [output:"%s"]', output);
+
+	switch (output) {
+		case 'earpiece':
+			exec(null, null, 'iosrtcPlugin', 'selectAudioOutputEarpiece', []);
+			break;
+		case 'speaker':
+			exec(null, null, 'iosrtcPlugin', 'selectAudioOutputSpeaker', []);
+			break;
+		default:
+			throw new Error('output must be "earpiece" or "speaker"');
 	}
 }
 
