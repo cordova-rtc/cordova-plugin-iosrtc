@@ -2,7 +2,9 @@
 
 [Cordova](http://cordova.apache.org/) iOS plugin exposing the full [WebRTC W3C JavaScript APIs](http://www.w3.org/TR/webrtc/).
 
-*Why?* Check the [release announcement](https://eface2face.com/blog/cordova-plugin-iosrtc.html) at the [eFace2Face](https://eface2face.com) site.
+*Yet another WebRTC SDK for iOS?:* Absolutely **not**. This plugin exposes the WebRTC W3C API for Cordova iOS apps (you know there is no WebRTC on iOS, right?), which means no need to learn "yet another WebRTC API" and no need to use a specific service/product/provider. 
+
+*Why?:* Check the [release announcement](https://eface2face.com/blog/cordova-plugin-iosrtc.html) at the [eFace2Face](https://eface2face.com) site.
 
 * [Plugin entry](http://plugins.cordova.io/#/package/com.eface2face.iosrtc) at the Apache Cordova Plugins Registry.
 * [Public Google Group](https://groups.google.com/forum/?hl=es#!forum/cordova-plugin-iosrtc) for questions and discussions about *cordova-plugin-iosrtc*.
