@@ -1,5 +1,5 @@
 /*
- * cordova-plugin-iosrtc v1.2.6
+ * cordova-plugin-iosrtc v1.2.7
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015 Iñaki Baz Castillo at eFace2Face, inc. (https://eface2face.com)
  * License MIT
@@ -255,6 +255,7 @@ MediaStream.create = function (dataFromEvent) {
 	stream.blobId = blobId;
 	stream.audioTracks = {};
 	stream.videoTracks = {};
+	stream.connected = false;
 
 	for (trackId in dataFromEvent.audioTracks) {
 		if (dataFromEvent.audioTracks.hasOwnProperty(trackId)) {
@@ -425,6 +426,22 @@ MediaStream.prototype.stop = function () {
  */
 
 
+MediaStream.prototype.emitConnected = function () {
+	debug('emitConnected()');
+
+	var self = this;
+
+	if (this.connected) {
+		return;
+	}
+	this.connected = true;
+
+	setTimeout(function () {
+		self.dispatchEvent(new Event('connected'));
+	});
+};
+
+
 function addListenerForTrackEnded(track) {
 	var self = this;
 
@@ -512,6 +529,7 @@ function onEvent(data) {
 			event.track = track;
 
 			this.dispatchEvent(event);
+
 			// Also emit 'update' for the MediaStreamRenderer.
 			this.dispatchEvent(new Event('update'));
 			break;
@@ -610,11 +628,35 @@ MediaStreamRenderer.prototype.render = function (stream) {
 	exec(null, null, 'iosrtcPlugin', 'MediaStreamRenderer_render', [this.id, stream.id]);
 
 	// Subscribe to 'update' event so we call native mediaStreamChangedrefresh() on it.
-	this.stream.addEventListener('update', function () {
+	stream.addEventListener('update', function () {
+		if (self.stream !== stream) {
+			return;
+		}
+
 		debug('MediaStream emits "update", calling native mediaStreamChanged()');
 
 		exec(null, null, 'iosrtcPlugin', 'MediaStreamRenderer_mediaStreamChanged', [self.id]);
 	});
+
+	if (stream.connected) {
+		emitVideoEvents();
+	// Otherwise subscribe to 'connected' event to emulate video elements events.
+	} else {
+		stream.addEventListener('connected', function () {
+			if (self.stream !== stream) {
+				return;
+			}
+
+			emitVideoEvents();
+		});
+	}
+
+	function emitVideoEvents() {
+		self.element.dispatchEvent(new Event('loadedmetadata'));
+		self.element.dispatchEvent(new Event('loadeddata'));
+		self.element.dispatchEvent(new Event('canplay'));
+		self.element.dispatchEvent(new Event('canplaythrough'));
+	}
 };
 
 
@@ -672,7 +714,7 @@ MediaStreamRenderer.prototype.refresh = function () {
 		elementLeft, elementTop, elementWidth, elementHeight
 	);
 
-	// mirrored
+	// mirrored (detect "-webkit-transform: scaleX(-1);" or equivalent)
 	if (window.getComputedStyle(this.element).transform === 'matrix(-1, 0, 0, 1, 0, 0)' ||
 		window.getComputedStyle(this.element)['-webkit-transform'] === 'matrix(-1, 0, 0, 1, 0, 0)') {
 		mirrored = true;
@@ -854,25 +896,26 @@ function MediaStreamTrack(dataFromEvent) {
 	this._enabled = dataFromEvent.enabled;
 	this._ended = false;
 
-	// Setters.
-	Object.defineProperty(this, 'enabled', {
-		get: function () {
-			return self._enabled;
-		},
-		set: function (value) {
-			debug('enabled = %s', !!value);
-
-			self._enabled = !!value;
-			exec(null, null, 'iosrtcPlugin', 'MediaStreamTrack_setEnabled', [self.id, self._enabled]);
-		}
-	});
-
 	function onResultOK(data) {
 		onEvent.call(self, data);
 	}
 
 	exec(onResultOK, null, 'iosrtcPlugin', 'MediaStreamTrack_setListener', [this.id]);
 }
+
+
+// Setters.
+Object.defineProperty(MediaStreamTrack.prototype, 'enabled', {
+	get: function () {
+		return this._enabled;
+	},
+	set: function (value) {
+		debug('enabled = %s', !!value);
+
+		this._enabled = !!value;
+		exec(null, null, 'iosrtcPlugin', 'MediaStreamTrack_setEnabled', [this.id, this._enabled]);
+	}
+});
 
 
 MediaStreamTrack.prototype.stop = function () {
@@ -959,18 +1002,6 @@ function RTCDataChannel(peerConnection, label, options, dataFromEvent) {
 	// Make this an EventTarget.
 	EventTarget.call(this);
 
-	// Just 'arraybuffer' binaryType is implemented in Chromium.
-	Object.defineProperty(this, 'binaryType', {
-		get: function () {
-			return 'arraybuffer';
-		},
-		set: function (type) {
-			if (type !== 'arraybuffer') {
-				throw new Error('just "arraybuffer" is implemented for binaryType');
-			}
-		}
-	});
-
 	// Created via pc.createDataChannel().
 	if (!dataFromEvent) {
 		debug('new() | [label:%o, options:%o]', label, options);
@@ -1046,6 +1077,19 @@ function RTCDataChannel(peerConnection, label, options, dataFromEvent) {
 		}
 	}
 }
+
+
+// Just 'arraybuffer' binaryType is implemented in Chromium.
+Object.defineProperty(RTCDataChannel.prototype, 'binaryType', {
+	get: function () {
+		return 'arraybuffer';
+	},
+	set: function (type) {
+		if (type !== 'arraybuffer') {
+			throw new Error('just "arraybuffer" is implemented for binaryType');
+		}
+	}
+});
 
 
 RTCDataChannel.prototype.send = function (data) {
@@ -1817,7 +1861,8 @@ function onEvent(data) {
 	var type = data.type,
 		event = new Event(type),
 		stream,
-		dataChannel;
+		dataChannel,
+		id;
 
 	debug('onEvent() | [type:%s, data:%o]', type, data);
 
@@ -1832,6 +1877,15 @@ function onEvent(data) {
 
 		case 'iceconnectionstatechange':
 			this.iceConnectionState = data.iceConnectionState;
+
+			// Emit "connected" on remote streams if ICE connected.
+			if (data.iceConnectionState === 'connected') {
+				for (id in this.remoteStreams) {
+					if (this.remoteStreams.hasOwnProperty(id)) {
+						this.remoteStreams[id].emitConnected();
+					}
+				}
+			}
 			break;
 
 		case 'icecandidate':
@@ -1855,13 +1909,20 @@ function onEvent(data) {
 		case 'addstream':
 			stream = MediaStream.create(data.stream);
 			event.stream = stream;
+
 			// Append to the remote streams.
 			this.remoteStreams[stream.id] = stream;
+
+			// Emit "connected" on the stream if ICE connected.
+			if (this.iceConnectionState === 'connected' || this.iceConnectionState === 'completed') {
+				stream.emitConnected();
+			}
 			break;
 
 		case 'removestream':
 			stream = this.remoteStreams[data.streamId];
 			event.stream = stream;
+
 			// Remove from the remote streams.
 			delete this.remoteStreams[stream.id];
 			break;
@@ -2082,7 +2143,13 @@ function getUserMedia(constraints) {
 
 	function onResultOK(data) {
 		debug('getUserMedia() | success');
-		callback(MediaStream.create(data.stream));
+
+		var stream = MediaStream.create(data.stream);
+
+		callback(stream);
+
+		// Emit "connected" on the stream.
+		stream.emitConnected();
 	}
 
 	function onResultError(error) {
