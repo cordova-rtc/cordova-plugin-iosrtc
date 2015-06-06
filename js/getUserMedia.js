@@ -119,7 +119,13 @@ function getUserMedia(constraints) {
 
 	function onResultOK(data) {
 		debug('getUserMedia() | success');
-		callback(MediaStream.create(data.stream));
+
+		var stream = MediaStream.create(data.stream);
+
+		callback(stream);
+
+		// Emit "connected" on the stream.
+		stream.emitConnected();
 	}
 
 	function onResultError(error) {

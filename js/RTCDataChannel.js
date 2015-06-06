@@ -24,18 +24,6 @@ function RTCDataChannel(peerConnection, label, options, dataFromEvent) {
 	// Make this an EventTarget.
 	EventTarget.call(this);
 
-	// Just 'arraybuffer' binaryType is implemented in Chromium.
-	Object.defineProperty(this, 'binaryType', {
-		get: function () {
-			return 'arraybuffer';
-		},
-		set: function (type) {
-			if (type !== 'arraybuffer') {
-				throw new Error('just "arraybuffer" is implemented for binaryType');
-			}
-		}
-	});
-
 	// Created via pc.createDataChannel().
 	if (!dataFromEvent) {
 		debug('new() | [label:%o, options:%o]', label, options);
@@ -111,6 +99,19 @@ function RTCDataChannel(peerConnection, label, options, dataFromEvent) {
 		}
 	}
 }
+
+
+// Just 'arraybuffer' binaryType is implemented in Chromium.
+Object.defineProperty(RTCDataChannel.prototype, 'binaryType', {
+	get: function () {
+		return 'arraybuffer';
+	},
+	set: function (type) {
+		if (type !== 'arraybuffer') {
+			throw new Error('just "arraybuffer" is implemented for binaryType');
+		}
+	}
+});
 
 
 RTCDataChannel.prototype.send = function (data) {

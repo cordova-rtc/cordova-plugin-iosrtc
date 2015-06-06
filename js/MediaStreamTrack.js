@@ -38,25 +38,26 @@ function MediaStreamTrack(dataFromEvent) {
 	this._enabled = dataFromEvent.enabled;
 	this._ended = false;
 
-	// Setters.
-	Object.defineProperty(this, 'enabled', {
-		get: function () {
-			return self._enabled;
-		},
-		set: function (value) {
-			debug('enabled = %s', !!value);
-
-			self._enabled = !!value;
-			exec(null, null, 'iosrtcPlugin', 'MediaStreamTrack_setEnabled', [self.id, self._enabled]);
-		}
-	});
-
 	function onResultOK(data) {
 		onEvent.call(self, data);
 	}
 
 	exec(onResultOK, null, 'iosrtcPlugin', 'MediaStreamTrack_setListener', [this.id]);
 }
+
+
+// Setters.
+Object.defineProperty(MediaStreamTrack.prototype, 'enabled', {
+	get: function () {
+		return this._enabled;
+	},
+	set: function (value) {
+		debug('enabled = %s', !!value);
+
+		this._enabled = !!value;
+		exec(null, null, 'iosrtcPlugin', 'MediaStreamTrack_setEnabled', [this.id, this._enabled]);
+	}
+});
 
 
 MediaStreamTrack.prototype.stop = function () {

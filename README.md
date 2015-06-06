@@ -80,6 +80,10 @@ And that's all. Now you have `window.RTCPeerConnection`, `navigator.getUserMedia
 
 **R:** In modern versions of Android the *WebView* component is based on the Chromium open source project which already includes WebRTC ([more info](https://developer.chrome.com/multidevice/webview/overview)). For older versions of Android the [CrossWalk](https://crosswalk-project.org) project provides new *WebView* versions with WebRTC support as well.
 
+**Q:** What about [HTML5 video events](https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Media_events)? Can I rely on `video.oncanplay`?
+
+**R:** I see what you mean. As there is no real video attached to the `<video>` element, media events are artificially emitted by the plugin. The following events are emitted when the `MediaStream` attached to a video element is ready to render video: `onloadedmetadata`, `onloadeddata`, `oncanplay`, `oncanplaythrough`. So yes, you can rely on them.
+
 
 ## Documentation
 
@@ -88,11 +92,19 @@ Read the full [documentation](https://github.com/eface2face/cordova-plugin-iosrt
 
 ## Known Issues
 
+
 ### iOS Safari and crash on WebSocket events
 
 Don't call plugin methods within WebSocket events (`onopen`, `onmessage`, etc). There is an issue in iOS Safari (see [issue #12](https://github.com/eface2face/cordova-plugin-iosrtc/issues/12)). Instead run a `setTimeout()` within the WebSocket event if you need to call plugin methods on it.
 
-Or better, just load the provided [ios-websocket-hack.js](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/extra/ios-websocket-hack.js) script into your Cordova iOS app.
+Or better, just load the provided [ios-websocket-hack.js](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/extra/ios-websocket-hack.js) script into your Cordova iOS app and you are done.
+
+
+### HTML5 video API and events
+
+As explained above, there is no real media source attached to the `<video>` element so [HTML5 video events](https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Media_events) are artificially emitted by the plugin on behalf of the video element.
+
+However some properties such as `readyState` and methods such as `play()`, `pause()`, etc do not work as expected (again, there is no real audio/video attached to the `<video>` element). In order to pause a video just set `enabled = false` on the associated `MediaStreamTrack`.
 
 
 ## Author

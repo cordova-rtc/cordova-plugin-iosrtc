@@ -65,11 +65,35 @@ MediaStreamRenderer.prototype.render = function (stream) {
 	exec(null, null, 'iosrtcPlugin', 'MediaStreamRenderer_render', [this.id, stream.id]);
 
 	// Subscribe to 'update' event so we call native mediaStreamChangedrefresh() on it.
-	this.stream.addEventListener('update', function () {
+	stream.addEventListener('update', function () {
+		if (self.stream !== stream) {
+			return;
+		}
+
 		debug('MediaStream emits "update", calling native mediaStreamChanged()');
 
 		exec(null, null, 'iosrtcPlugin', 'MediaStreamRenderer_mediaStreamChanged', [self.id]);
 	});
+
+	if (stream.connected) {
+		emitVideoEvents();
+	// Otherwise subscribe to 'connected' event to emulate video elements events.
+	} else {
+		stream.addEventListener('connected', function () {
+			if (self.stream !== stream) {
+				return;
+			}
+
+			emitVideoEvents();
+		});
+	}
+
+	function emitVideoEvents() {
+		self.element.dispatchEvent(new Event('loadedmetadata'));
+		self.element.dispatchEvent(new Event('loadeddata'));
+		self.element.dispatchEvent(new Event('canplay'));
+		self.element.dispatchEvent(new Event('canplaythrough'));
+	}
 };
 
 
@@ -127,7 +151,7 @@ MediaStreamRenderer.prototype.refresh = function () {
 		elementLeft, elementTop, elementWidth, elementHeight
 	);
 
-	// mirrored
+	// mirrored (detect "-webkit-transform: scaleX(-1);" or equivalent)
 	if (window.getComputedStyle(this.element).transform === 'matrix(-1, 0, 0, 1, 0, 0)' ||
 		window.getComputedStyle(this.element)['-webkit-transform'] === 'matrix(-1, 0, 0, 1, 0, 0)') {
 		mirrored = true;

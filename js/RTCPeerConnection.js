@@ -642,7 +642,8 @@ function onEvent(data) {
 	var type = data.type,
 		event = new Event(type),
 		stream,
-		dataChannel;
+		dataChannel,
+		id;
 
 	debug('onEvent() | [type:%s, data:%o]', type, data);
 
@@ -657,6 +658,15 @@ function onEvent(data) {
 
 		case 'iceconnectionstatechange':
 			this.iceConnectionState = data.iceConnectionState;
+
+			// Emit "connected" on remote streams if ICE connected.
+			if (data.iceConnectionState === 'connected') {
+				for (id in this.remoteStreams) {
+					if (this.remoteStreams.hasOwnProperty(id)) {
+						this.remoteStreams[id].emitConnected();
+					}
+				}
+			}
 			break;
 
 		case 'icecandidate':
@@ -680,13 +690,20 @@ function onEvent(data) {
 		case 'addstream':
 			stream = MediaStream.create(data.stream);
 			event.stream = stream;
+
 			// Append to the remote streams.
 			this.remoteStreams[stream.id] = stream;
+
+			// Emit "connected" on the stream if ICE connected.
+			if (this.iceConnectionState === 'connected' || this.iceConnectionState === 'completed') {
+				stream.emitConnected();
+			}
 			break;
 
 		case 'removestream':
 			stream = this.remoteStreams[data.streamId];
 			event.stream = stream;
+
 			// Remove from the remote streams.
 			delete this.remoteStreams[stream.id];
 			break;

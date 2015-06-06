@@ -67,6 +67,7 @@ MediaStream.create = function (dataFromEvent) {
 	stream.blobId = blobId;
 	stream.audioTracks = {};
 	stream.videoTracks = {};
+	stream.connected = false;
 
 	for (trackId in dataFromEvent.audioTracks) {
 		if (dataFromEvent.audioTracks.hasOwnProperty(trackId)) {
@@ -237,6 +238,22 @@ MediaStream.prototype.stop = function () {
  */
 
 
+MediaStream.prototype.emitConnected = function () {
+	debug('emitConnected()');
+
+	var self = this;
+
+	if (this.connected) {
+		return;
+	}
+	this.connected = true;
+
+	setTimeout(function () {
+		self.dispatchEvent(new Event('connected'));
+	});
+};
+
+
 function addListenerForTrackEnded(track) {
 	var self = this;
 
@@ -324,6 +341,7 @@ function onEvent(data) {
 			event.track = track;
 
 			this.dispatchEvent(event);
+
 			// Also emit 'update' for the MediaStreamRenderer.
 			this.dispatchEvent(new Event('update'));
 			break;
