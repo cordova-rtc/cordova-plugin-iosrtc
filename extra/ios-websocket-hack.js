@@ -231,6 +231,12 @@
 	};
 
 	FakeWebSocket.prototype.close = function (code, reason) {
-		this.ws.close(code, reason);
+		if (!code && !reason) {
+			this.ws.close();
+		} else if (code && !reason) {
+			this.ws.close(code);
+		} else {
+			this.ws.close(code, reason);
+		}
 	};
 })();
