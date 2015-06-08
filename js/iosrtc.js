@@ -97,14 +97,20 @@ function selectAudioOutput(output) {
 
 
 function registerGlobals() {
+	if (!global.navigator) {
+		global.navigator = {};
+	}
+
 	if (!navigator.mediaDevices) {
 		navigator.mediaDevices = {};
 	}
 
 	navigator.getUserMedia                  = require('./getUserMedia');
+	navigator.webkitGetUserMedia            = require('./getUserMedia');
 	navigator.mediaDevices.getUserMedia     = require('./getUserMedia');
 	navigator.mediaDevices.enumerateDevices = require('./getMediaDevices');
 	window.RTCPeerConnection                = require('./RTCPeerConnection');
+	window.webkitRTCPeerConnection          = require('./RTCPeerConnection');
 	window.RTCSessionDescription            = require('./RTCSessionDescription');
 	window.RTCIceCandidate                  = require('./RTCIceCandidate');
 	window.MediaStreamTrack                 = require('./MediaStreamTrack');

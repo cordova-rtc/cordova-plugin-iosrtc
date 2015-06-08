@@ -130,9 +130,11 @@ Select the audio output device. Given `output` argument must be "earpiece" or "s
 By calling this method the JavaScript global namespace gets "polluted" with the following additions:
 
 * `navigator.getUserMedia`
+* `navigator.webkitGetUserMedia`
 * `navigator.mediaDevices.getUserMedia`
 * `navigator.mediaDevices.enumerateDevices`
 * `window.RTCPeerConnection`
+* `window.webkitRTCPeerConnection`
 * `window.RTCSessionDescription`
 * `window.RTCIceCandidate`
 * `window.MediaStreamTrack`
