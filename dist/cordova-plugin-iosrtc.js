@@ -1,5 +1,5 @@
 /*
- * cordova-plugin-iosrtc v1.2.7
+ * cordova-plugin-iosrtc v1.2.8
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015 Iñaki Baz Castillo at eFace2Face, inc. (https://eface2face.com)
  * License MIT
@@ -2164,6 +2164,7 @@ function getUserMedia(constraints) {
 }
 
 },{"./Errors":1,"./MediaStream":4,"cordova/exec":undefined,"debug":16}],13:[function(require,module,exports){
+(function (global){
 /**
  * Variables.
  */
@@ -2263,14 +2264,20 @@ function selectAudioOutput(output) {
 
 
 function registerGlobals() {
+	if (!global.navigator) {
+		global.navigator = {};
+	}
+
 	if (!navigator.mediaDevices) {
 		navigator.mediaDevices = {};
 	}
 
 	navigator.getUserMedia                  = require('./getUserMedia');
+	navigator.webkitGetUserMedia            = require('./getUserMedia');
 	navigator.mediaDevices.getUserMedia     = require('./getUserMedia');
 	navigator.mediaDevices.enumerateDevices = require('./getMediaDevices');
 	window.RTCPeerConnection                = require('./RTCPeerConnection');
+	window.webkitRTCPeerConnection          = require('./RTCPeerConnection');
 	window.RTCSessionDescription            = require('./RTCSessionDescription');
 	window.RTCIceCandidate                  = require('./RTCIceCandidate');
 	window.MediaStreamTrack                 = require('./MediaStreamTrack');
@@ -2282,6 +2289,7 @@ function dump() {
 }
 
 
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./MediaStream":4,"./MediaStreamTrack":6,"./RTCIceCandidate":8,"./RTCPeerConnection":9,"./RTCSessionDescription":10,"./getMediaDevices":11,"./getUserMedia":12,"./rtcninjaPlugin":14,"./videoElementsHandler":15,"cordova/exec":undefined,"debug":16,"domready":19}],14:[function(require,module,exports){
 /**
  * Expose the rtcninjaPlugin object.
