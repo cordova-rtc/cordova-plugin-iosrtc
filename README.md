@@ -102,6 +102,11 @@ And that's all. Now you have `window.RTCPeerConnection`, `navigator.getUserMedia
 Read the full [documentation](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/docs/index.md) in the *docs* folder.
 
 
+## Demo application
+
+Check our [iOSRTCApp](https://github.com/eface2face/iOSRTCApp) (Google's [AppRTC](https://apprtc.appspot.com/) adapted to Cordova iOS with pure HTML5/JavaScript and *cordova-plugin-iosrtc*).
+
+
 ## Who Uses It
 
 [People and companies](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/WHO_USES_IT.md) using *cordova-plugin-iosrtc*.
