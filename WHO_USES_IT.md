@@ -5,11 +5,11 @@ Below a list of people and companies using *cordova-plugin-iostc*. If you or you
 
 ### [eFace2Face](https://eface2face.com)
 
-![eFace2Face](https://eface2face.com/img/logo_eface2face.jpg)
+![eFace2Face](https://raw.githubusercontent.com/eface2face/cordova-plugin-iosrtc/master/art/eface2face.jpg)
 
 *The world's only complete web-based video calling and e-sign solution*
 
-At eFace2Face we use **cordova-plugin-iosrtc** for the iOS version of our application, becoming a web/mobile/tablet HTML5 hybrid solution.
+At [eFace2Face](https://eface2face.com) we use **cordova-plugin-iosrtc** for the iOS version of our application, becoming a web/mobile/tablet HTML5 hybrid solution.
 
 
 
