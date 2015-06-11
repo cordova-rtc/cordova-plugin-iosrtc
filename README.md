@@ -102,6 +102,13 @@ And that's all. Now you have `window.RTCPeerConnection`, `navigator.getUserMedia
 Read the full [documentation](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/docs/index.md) in the *docs* folder.
 
 
+## Who Uses It
+
+[People and companies](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/WHO_USES_IT.md) using *cordova-plugin-iosrtc*.
+
+If you are using the plugin we would love to [heard back from you](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/WHO_USES_IT.md)!
+
+
 ## Known Issues
 
 
