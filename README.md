@@ -117,21 +117,21 @@ If you are using the plugin we would love to [heard back from you](https://githu
 ## Known Issues
 
 
-### iOS Safari and crash on WebSocket events
+#### iOS Safari and crash on WebSocket events
 
 Don't call plugin methods within WebSocket events (`onopen`, `onmessage`, etc). There is an issue in iOS Safari (see [issue #12](https://github.com/eface2face/cordova-plugin-iosrtc/issues/12)). Instead run a `setTimeout()` within the WebSocket event if you need to call plugin methods on it.
 
 Or better, just load the provided [ios-websocket-hack.js](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/extra/ios-websocket-hack.js) script into your Cordova iOS app and you are done.
 
 
-### HTML5 video API and events
+#### HTML5 video API and events
 
 As explained above, there is no real media source attached to the `<video>` element so [HTML5 video events](https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Media_events) are artificially emitted by the plugin on behalf of the video element.
 
 However some properties such as `readyState` and methods such as `play()`, `pause()`, etc do not work as expected (again, there is no real audio/video attached to the `<video>` element). In order to pause a video just set `enabled = false` on the associated `MediaStreamTrack`.
 
 
-### Changelog
+## Changelog
 
 (since version 1.2.8)
 
