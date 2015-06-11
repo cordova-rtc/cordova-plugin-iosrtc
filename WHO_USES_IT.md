@@ -5,7 +5,7 @@ If your company is using *cordova-plugin-iosrtc* we would love to heard back fro
 Below a list of companies using *cordova-plugin-iostc*:
 
 
-### ![eFace2Face]](https://eface2face.com)
+### [eFace2Face](https://eface2face.com)
 
 ![eface2face-picture](https://raw.githubusercontent.com/eface2face/cordova-plugin-iosrtc/master/art/eface2face-picture.jpg)
 
