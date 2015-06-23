@@ -117,6 +117,8 @@ function registerGlobals() {
 	window.MediaStream                      = require('./MediaStream');
 	window.webkitMediaStream                = require('./MediaStream');
 	window.MediaStreamTrack                 = require('./MediaStreamTrack');
+	window.MediaStream                      = require('./MediaStream');
+	window.webkitMediaStream                = require('./MediaStream');
 }
 
 
