@@ -114,6 +114,8 @@ function registerGlobals() {
 	window.RTCSessionDescription            = require('./RTCSessionDescription');
 	window.RTCIceCandidate                  = require('./RTCIceCandidate');
 	window.MediaStreamTrack                 = require('./MediaStreamTrack');
+	window.MediaStream                      = require('./MediaStream');
+	window.webkitMediaStream                = require('./MediaStream');
 }
 
 
