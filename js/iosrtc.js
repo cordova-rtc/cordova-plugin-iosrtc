@@ -33,6 +33,7 @@ module.exports = {
 	RTCPeerConnection:     require('./RTCPeerConnection'),
 	RTCSessionDescription: require('./RTCSessionDescription'),
 	RTCIceCandidate:       require('./RTCIceCandidate'),
+	MediaStream:           require('./MediaStream'),
 	MediaStreamTrack:      require('./MediaStreamTrack'),
 
 	// Expose a function to refresh current videos rendering a MediaStream.
@@ -113,6 +114,8 @@ function registerGlobals() {
 	window.webkitRTCPeerConnection          = require('./RTCPeerConnection');
 	window.RTCSessionDescription            = require('./RTCSessionDescription');
 	window.RTCIceCandidate                  = require('./RTCIceCandidate');
+	window.MediaStream                      = require('./MediaStream');
+	window.webkitMediaStream                = require('./MediaStream');
 	window.MediaStreamTrack                 = require('./MediaStreamTrack');
 }
 

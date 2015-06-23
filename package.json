@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-iosrtc",
-  "version": "1.2.8",
+  "version": "1.2.9",
   "description": "Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs",
   "author": "Iñaki Baz Castillo at eFace2Face, inc. (https://eface2face.com)",
   "license": "MIT",
@@ -23,13 +23,13 @@
   "dependencies": {
     "debug": "^2.2.0",
     "domready": "^1.0.8",
-    "gulp-header": "^1.2.2",
     "random-number": "0.0.6"
   },
   "devDependencies": {
-    "browserify": "^10.2.1",
+    "browserify": "^10.2.4",
     "gulp": "git+https://github.com/gulpjs/gulp.git#4.0",
     "gulp-filelog": "^0.4.1",
+    "gulp-header": "^1.2.2",
     "gulp-jscs": "^1.6.0",
     "gulp-jscs-stylish": "^1.1.0",
     "gulp-jshint": "^1.11.0",
