@@ -12,7 +12,6 @@ Check the [release announcement](https://eface2face.com/blog/cordova-plugin-iosr
 
 **Resources:**
 
-* [Plugin entry](http://plugins.cordova.io/#/package/cordova-plugin-iosrtc) at the *Apache Cordova Plugins Registry*.
 * [NPM package](https://www.npmjs.com/package/cordova-plugin-iosrtc).
 * [Public Google Group](https://groups.google.com/forum/?hl=es#!forum/cordova-plugin-iosrtc) for questions and discussions about *cordova-plugin-iosrtc*.
 * [Bug Tracker](https://github.com/eface2face/cordova-plugin-iosrtc/issues) for reporting issues and requesting new features (please don't use the bug tracker for questions or problems, use the Google Group instead).
