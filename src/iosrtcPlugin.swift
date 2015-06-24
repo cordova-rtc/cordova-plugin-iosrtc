@@ -17,7 +17,7 @@ class iosrtcPlugin : CDVPlugin {
 	// pluginMediaStreamRenderers' dictionary.
 	var pluginMediaStreamRenderers: [Int : PluginMediaStreamRenderer] = [:]
 	// Dispatch queue for serial operations in all the PluginRTCPeerConnections.
-	let queue = dispatch_queue_create("com.eface2face.iosrtc.rtcpeerconnection", DISPATCH_QUEUE_SERIAL)
+	let queue = dispatch_queue_create("cordova-plugin-iosrtc", DISPATCH_QUEUE_SERIAL)
 
 
 	// This is just called if <param name="onload" value="true" /> in plugin.xml.

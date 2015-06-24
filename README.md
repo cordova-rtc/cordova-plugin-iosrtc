@@ -12,11 +12,10 @@ Check the [release announcement](https://eface2face.com/blog/cordova-plugin-iosr
 
 **Resources:**
 
-* [Plugin entry](http://plugins.cordova.io/#/package/com.eface2face.iosrtc) at the Apache Cordova Plugins Registry.
+* [Plugin entry](http://plugins.cordova.io/#/package/cordova-plugin-iosrtc) at the *Apache Cordova Plugins Registry*.
+* [NPM package](https://www.npmjs.com/package/cordova-plugin-iosrtc).
 * [Public Google Group](https://groups.google.com/forum/?hl=es#!forum/cordova-plugin-iosrtc) for questions and discussions about *cordova-plugin-iosrtc*.
 * [Bug Tracker](https://github.com/eface2face/cordova-plugin-iosrtc/issues) for reporting issues and requesting new features (please don't use the bug tracker for questions or problems, use the Google Group instead).
-
-*IMPORTANT:* Ensure you check the proper documentation according to the exact version of the *cordova-plugin-iosrtc* plugin you have installed. On GitHub go to the top of this page and select the appropriate *tag* within the "branch"/"tag" selector and make it match the plugin version.
 
 
 ## Installation
@@ -24,13 +23,15 @@ Check the [release announcement](https://eface2face.com/blog/cordova-plugin-iosr
 Within your Cordova project:
 
 ```bash
-$ cordova plugin add com.eface2face.iosrtc
+$ cordova plugin add cordova-plugin-iosrtc
 ```
+
+(or add it into a `<plugin>` entry in the `config.xml` of your app).
 
 
 ## Building
 
-If you just use the `cordova-cli` to manage and build your Cordova project then you are done with the usual commans (`cordova build ios`, etc). Anyhow check the [Bridging Header](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/docs/Building.md#bridging-header) documentation if you use more Swift plugins in your app.
+If you just use the `cordova-cli` to manage and build your Cordova project then you are done with the usual commans (`cordova build ios`, etc). Anyhow check the [Bridging Header](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/docs/Building.md#bridging-header) documentation if you use more Swift plugins in your Cordova app.
 
 If you build your Cordova application using Xcode then some steps must be done as explained in the [documentation](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/docs/Building.md).
 
@@ -134,6 +135,10 @@ However some properties such as `readyState` and methods such as `play()`, `paus
 ## Changelog
 
 (since version 1.2.8)
+
+#### Version 1.3.0
+
+* Plugin moved to [NPM](https://www.npmjs.com/package/cordova-plugin-iosrtc) registry and plugin ID renamed to *cordova-plugin-iosrtc*.
 
 #### Version 1.2.8
 

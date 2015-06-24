@@ -23,7 +23,7 @@ When adding the `ios` platform to a Cordova project a Xcode project is automatic
 * Set "iOS Deployment Target" to `7.0` or higher within your project settings.
 * Set "Deployment Target" to `7.0` or higher within the project target settings.
 * Within the project "Build Settings" add an entry to the "Runpath Search Paths" setting with value `@executable_path/Frameworks`.
-* Within the project "Build Settings" set "Objective-C Bridging Header" to `PROJECT_NAME/Plugins/com.eface2face.iosrtc/cordova-plugin-iosrtc-Bridging-Header.h` (read more about the "Bridging Header" below).
+* Within the project "Build Settings" set "Objective-C Bridging Header" to `PROJECT_NAME/Plugins/cordova-plugin-iosrtc/cordova-plugin-iosrtc-Bridging-Header.h` (read more about the "Bridging Header" below).
 
 
 ## Bridging Header
@@ -40,7 +40,7 @@ It may happen that your Cordova application uses more than a single plugin coded
 // cordova-plugin-apple-watch "Apple Watch"
 #import "Watch-Bridge.h"
 
-// com.eface2face.iosrtc "ordova-plugin-iosrtc"
+// cordova-plugin-iosrtc
 #import "cordova-plugin-iosrtc-Bridging-Header.h"
 ```
 
