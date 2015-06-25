@@ -6,7 +6,8 @@ import AVFoundation
 class PluginMediaStreamRenderer : RTCEAGLVideoViewDelegate {
 	var webView: UIWebView
 	var eventListener: (data: NSDictionary) -> Void
-	var videoTrackView: RTCEAGLVideoView
+	var elementView: UIView
+	var videoView: RTCEAGLVideoView
 	var pluginMediaStream: PluginMediaStream?
 	var rtcAudioTrack: RTCAudioTrack?
 	var rtcVideoTrack: RTCVideoTrack?
@@ -20,21 +21,27 @@ class PluginMediaStreamRenderer : RTCEAGLVideoViewDelegate {
 
 		self.webView = webView
 		self.eventListener = eventListener
-		self.videoTrackView = RTCEAGLVideoView()
+		self.elementView = RTCEAGLVideoView()
+		self.videoView = RTCEAGLVideoView()
 
-		self.videoTrackView.userInteractionEnabled = false
-		self.videoTrackView.hidden = true
-		self.videoTrackView.backgroundColor = UIColor.blackColor()
+		self.webView.addSubview(self.elementView)
+		self.webView.bringSubviewToFront(self.elementView)
 
-		self.webView.addSubview(self.videoTrackView)
-		self.webView.bringSubviewToFront(self.videoTrackView)
+		self.elementView.userInteractionEnabled = false
+		self.elementView.hidden = true
+		self.elementView.backgroundColor = UIColor.blackColor()
+		self.elementView.clipsToBounds = true
+		self.elementView.addSubview(self.videoView)
+		self.elementView.bringSubviewToFront(self.videoView)
+
+		self.videoView.userInteractionEnabled = false
 	}
 
 
 	func run() {
 		NSLog("PluginMediaStreamRenderer#run()")
 
-		self.videoTrackView.delegate = self
+		self.videoView.delegate = self
 	}
 
 
@@ -60,7 +67,7 @@ class PluginMediaStreamRenderer : RTCEAGLVideoViewDelegate {
 		}
 
 		if self.rtcVideoTrack != nil {
-			self.rtcVideoTrack!.addRenderer(self.videoTrackView)
+			self.rtcVideoTrack!.addRenderer(self.videoView)
 		}
 	}
 
@@ -100,64 +107,79 @@ class PluginMediaStreamRenderer : RTCEAGLVideoViewDelegate {
 			oldRtcVideoTrack!.label != self.rtcVideoTrack!.label {
 			NSLog("PluginMediaStreamRenderer#mediaStreamChanged() | has a new video track")
 
-			oldRtcVideoTrack!.removeRenderer(self.videoTrackView)
-			self.rtcVideoTrack!.addRenderer(self.videoTrackView)
+			oldRtcVideoTrack!.removeRenderer(self.videoView)
+			self.rtcVideoTrack!.addRenderer(self.videoView)
 		}
 
 		// Did not have video but now it has.
 		else if oldRtcVideoTrack == nil && self.rtcVideoTrack != nil {
 			NSLog("PluginMediaStreamRenderer#mediaStreamChanged() | video track added")
 
-			self.rtcVideoTrack!.addRenderer(self.videoTrackView)
+			self.rtcVideoTrack!.addRenderer(self.videoView)
 		}
 
 		// Had video but now it has not.
 		else if oldRtcVideoTrack != nil && self.rtcVideoTrack == nil {
 			NSLog("PluginMediaStreamRenderer#mediaStreamChanged() | video track removed")
 
-			oldRtcVideoTrack!.removeRenderer(self.videoTrackView)
+			oldRtcVideoTrack!.removeRenderer(self.videoView)
 		}
 	}
 
 
 	func refresh(
-		left: Float,
-		top: Float,
-		width: Float,
-		height: Float,
+		elementLeft: Float,
+		elementTop: Float,
+		elementWidth: Float,
+		elementHeight: Float,
+		videoViewWidth: Float,
+		videoViewHeight: Float,
 		visible: Bool,
 		opacity: Float,
 		zIndex: Float,
 		mirrored: Bool
 	) {
-		NSLog("PluginMediaStreamRenderer#refresh() [left:\(left), top:\(top), width:\(width), height:\(height), visible:\(visible), opacity:\(opacity), zIndex:\(zIndex), mirrored:\(mirrored)]")
 
-		if width == 0 || height == 0 {
+		NSLog("PluginMediaStreamRenderer#refresh() [elementLeft:\(elementLeft), elementTop:\(elementTop), elementWidth:\(elementWidth), elementHeight:\(elementHeight), videoViewWidth:\(videoViewWidth), videoViewHeight:\(videoViewHeight), visible:\(visible), opacity:\(opacity), zIndex:\(zIndex), mirrored:\(mirrored)]")
+
+		var videoViewLeft: Float
+		var videoViewTop: Float
+
+		if elementWidth == 0 || elementHeight == 0 {
 			return
 		}
 
-		self.videoTrackView.frame = CGRectMake(
-			CGFloat(left),
-			CGFloat(top),
-			CGFloat(width),
-			CGFloat(height)
+		self.elementView.frame = CGRectMake(
+			CGFloat(elementLeft),
+			CGFloat(elementTop),
+			CGFloat(elementWidth),
+			CGFloat(elementHeight)
+		)
+
+		videoViewLeft = (elementWidth - videoViewWidth) / 2
+		videoViewTop = (elementHeight - videoViewHeight) / 2
+
+		self.videoView.frame = CGRectMake(
+			CGFloat(videoViewLeft),
+			CGFloat(videoViewTop),
+			CGFloat(videoViewWidth),
+			CGFloat(videoViewHeight)
 		)
 
 		if visible {
-			self.videoTrackView.hidden = false
+			self.elementView.hidden = false
 		} else {
-			self.videoTrackView.hidden = true
+			self.elementView.hidden = true
 		}
+
+		self.elementView.alpha = CGFloat(opacity)
+		self.elementView.layer.zPosition = CGFloat(zIndex)
 
 		if !mirrored {
-			// self.videoTrackView.transform = CGAffineTransformMakeScale(1.0, 1.0);
-			self.videoTrackView.transform = CGAffineTransformIdentity;
+			self.elementView.transform = CGAffineTransformIdentity
 		} else {
-			self.videoTrackView.transform = CGAffineTransformMakeScale(-1.0, 1.0);
+			self.elementView.transform = CGAffineTransformMakeScale(-1.0, 1.0)
 		}
-
-		self.videoTrackView.alpha = CGFloat(opacity)
-		self.videoTrackView.layer.zPosition = CGFloat(zIndex)
 	}
 
 
@@ -165,8 +187,7 @@ class PluginMediaStreamRenderer : RTCEAGLVideoViewDelegate {
 		NSLog("PluginMediaStreamRenderer#close()")
 
 		self.reset()
-
-		self.videoTrackView.removeFromSuperview()
+		self.elementView.removeFromSuperview()
 	}
 
 
@@ -179,7 +200,7 @@ class PluginMediaStreamRenderer : RTCEAGLVideoViewDelegate {
 		NSLog("PluginMediaStreamRenderer#reset()")
 
 		if self.rtcVideoTrack != nil {
-			self.rtcVideoTrack!.removeRenderer(self.videoTrackView)
+			self.rtcVideoTrack!.removeRenderer(self.videoView)
 		}
 
 		self.pluginMediaStream = nil

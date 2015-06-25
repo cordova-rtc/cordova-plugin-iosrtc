@@ -38,9 +38,6 @@ function MediaStreamRenderer(element) {
 	this.element_added_style_width = undefined;
 	this.element_added_style_height = undefined;
 
-	// Set black background.
-	this.element.style.backgroundColor = '#000';
-
 	function onResultOK(data) {
 		onEvent.call(self, data);
 	}
@@ -125,14 +122,13 @@ MediaStreamRenderer.prototype.refresh = function () {
 		elementTop = elementPositionAndSize.top,
 		elementWidth = elementPositionAndSize.width,
 		elementHeight = elementPositionAndSize.height,
-		videoViewLeft = elementLeft,
-		videoViewTop = elementTop,
 		videoViewWidth = elementWidth,
 		videoViewHeight = elementHeight,
 		visible,
 		opacity,
 		zIndex,
-		mirrored = false;
+		mirrored,
+		objectFit;
 
 	// visible
 	if (window.getComputedStyle(this.element).visibility === 'hidden') {
@@ -147,15 +143,16 @@ MediaStreamRenderer.prototype.refresh = function () {
 	// zIndex
 	zIndex = parseFloat(window.getComputedStyle(this.element).zIndex) || parseFloat(this.element.style.zIndex) || 0;
 
-	debug('refresh() | video element: [left:%s, top:%s, width:%s, height:%s]',
-		elementLeft, elementTop, elementWidth, elementHeight
-	);
-
 	// mirrored (detect "-webkit-transform: scaleX(-1);" or equivalent)
 	if (window.getComputedStyle(this.element).transform === 'matrix(-1, 0, 0, 1, 0, 0)' ||
 		window.getComputedStyle(this.element)['-webkit-transform'] === 'matrix(-1, 0, 0, 1, 0, 0)') {
 		mirrored = true;
+	} else {
+		mirrored = false;
 	}
+
+	// objectFit ('contain' is set as default value)
+	objectFit = window.getComputedStyle(this.element).objectFit || 'contain';
 
 	/**
 	 * No video yet, so just update the UIView with the element settings.
@@ -220,26 +217,71 @@ MediaStreamRenderer.prototype.refresh = function () {
 
 	elementRatio = elementWidth / elementHeight;
 
-	// The element has higher or equal width/height ratio than the video.
-	if (elementRatio >= videoRatio) {
-		videoViewHeight = elementHeight;
-		videoViewWidth = videoViewHeight * videoRatio;
-		videoViewLeft = elementLeft + ((elementWidth - videoViewWidth) / 2);
-	// The element has lower width/height ratio than the video.
-	} else if (elementRatio < videoRatio) {
-		videoViewWidth = elementWidth;
-		videoViewHeight = videoViewWidth / videoRatio;
-		videoViewTop = elementTop + ((elementHeight - videoViewHeight) / 2);
+	switch (objectFit) {
+		case 'cover':
+			// The element has higher or equal width/height ratio than the video.
+			if (elementRatio >= videoRatio) {
+				videoViewWidth = elementWidth;
+				videoViewHeight = videoViewWidth / videoRatio;
+			// The element has lower width/height ratio than the video.
+			} else if (elementRatio < videoRatio) {
+				videoViewHeight = elementHeight;
+				videoViewWidth = videoViewHeight * videoRatio;
+			}
+			break;
+
+		case 'fill':
+			videoViewHeight = elementHeight;
+			videoViewWidth = elementWidth;
+			break;
+
+		case 'none':
+			videoViewHeight = this.videoHeight;
+			videoViewWidth = this.videoWidth;
+			break;
+
+		case 'scale-down':
+			// Same as 'none'.
+			if (this.videoWidth <= elementWidth && this.videoHeight <= elementHeight) {
+				videoViewHeight = this.videoHeight;
+				videoViewWidth = this.videoWidth;
+			// Same as 'contain'.
+			} else {
+				// The element has higher or equal width/height ratio than the video.
+				if (elementRatio >= videoRatio) {
+					videoViewHeight = elementHeight;
+					videoViewWidth = videoViewHeight * videoRatio;
+				// The element has lower width/height ratio than the video.
+				} else if (elementRatio < videoRatio) {
+					videoViewWidth = elementWidth;
+					videoViewHeight = videoViewWidth / videoRatio;
+				}
+			}
+			break;
+
+		// 'contain'.
+		default:
+			objectFit = 'contain';
+			// The element has higher or equal width/height ratio than the video.
+			if (elementRatio >= videoRatio) {
+				videoViewHeight = elementHeight;
+				videoViewWidth = videoViewHeight * videoRatio;
+			// The element has lower width/height ratio than the video.
+			} else if (elementRatio < videoRatio) {
+				videoViewWidth = elementWidth;
+				videoViewHeight = videoViewWidth / videoRatio;
+			}
+			break;
 	}
 
 	nativeRefresh.call(this);
 
 	function nativeRefresh() {
-		debug('refresh() | videoView: [left:%s, top:%s, width:%s, height:%s, visible:%s, opacity:%s, zIndex:%s, mirrored:%s]',
-			videoViewLeft, videoViewTop, videoViewWidth, videoViewHeight, visible, opacity, zIndex, mirrored);
+		debug('refresh() | [elementLeft:%s, elementTop:%s, elementWidth:%s, elementHeight:%s, videoViewWidth:%s, videoViewHeight:%s, visible:%s, opacity:%s, zIndex:%s, mirrored:%s, objectFit:%s]',
+			elementLeft, elementTop, elementWidth, elementHeight, videoViewWidth, videoViewHeight, visible, opacity, zIndex, mirrored, objectFit);
 
 		exec(null, null, 'iosrtcPlugin', 'MediaStreamRenderer_refresh', [
-			this.id, videoViewLeft, videoViewTop, videoViewWidth, videoViewHeight, visible, opacity, zIndex, mirrored
+			this.id, elementLeft, elementTop, elementWidth, elementHeight, videoViewWidth, videoViewHeight, visible, opacity, zIndex, mirrored
 		]);
 	}
 };

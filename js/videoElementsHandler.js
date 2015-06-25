@@ -200,7 +200,7 @@ function observeVideo(video) {
 	// Intercept video 'error' events if it's due to the attached MediaStream.
 	video.addEventListener('error', function (event) {
 		if (video.error.code === global.MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED && BLOB_URI_REGEX.test(video.src)) {
-			debug('stopping "error" event for video element');
+			debug('stopping "error" event propagation for video element');
 
 			event.stopImmediatePropagation();
 		}

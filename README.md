@@ -78,7 +78,7 @@ And that's all. Now you have `window.RTCPeerConnection`, `navigator.getUserMedia
 
 **Q:** What about `<video>` elements and `video.src = URL.createObjectURL(stream)`? do I need custom HTML tags or functions to display WebRTC videos?
 
-**R:** No. Just use an HTML video element as usual, really. The plugin will properly place a native `UIView` layer on top of it by respecting its properties such as the CSS `display`, `opacity`, `visibility`, `z-index` and also horizontal mirror effect with `-webkit-transform: scaleX(-1);` or equivalent.
+**R:** No. Just use an HTML video element as usual, really. The plugin will properly place a native `UIView` layer on top of it by respecting its properties such as the CSS `display`, `opacity`, `visibility`, `z-index`, `object-fit` and also horizontal mirror effect with `-webkit-transform: scaleX(-1);` or equivalent.
 
 **Q:** Can I place HTML elements (buttons and so on) on top of active `<video>` elements?
 
@@ -134,6 +134,14 @@ However some properties such as `readyState` and methods such as `play()`, `paus
 ## Changelog
 
 (since version 1.2.8)
+
+#### Version 1.3.2
+
+* CSS [object-fit](https://css-tricks.com/almanac/properties/o/object-fit/) property implemented in `<video>` elements ([issue #23](https://github.com/eface2face/cordova-plugin-iosrtc/issues/23)).
+
+#### Version 1.3.1
+
+* Stop "error" event propagation in `<video>` element when attaching a `MediaStream` to it ([issue #22](https://github.com/eface2face/cordova-plugin-iosrtc/issues/22)).
 
 #### Version 1.3.0
 
