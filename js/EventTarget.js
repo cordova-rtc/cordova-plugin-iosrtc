@@ -76,16 +76,27 @@ function EventTarget() {
 			throw new Error('first argument must be an instance of Event');
 		}
 
-		type = event.type;
+		if (event._dispatched) {
+			throw new Error('Event already dispatched');
+		}
+		event._dispatched = true;
 
+		// Force the event to be cancelable.
+		event.cancelable = true;
+		event.target = this;
+
+		// Override stopImmediatePropagation() function.
+		event.stopImmediatePropagation = function () {
+			stopImmediatePropagation = true;
+		};
+
+		type = event.type;
 		listenersType = (listeners[type] || []);
 
 		dummyListener = this['on' + type];
 		if (typeof dummyListener === 'function') {
 			listenersType.push(dummyListener);
 		}
-
-		event.target = this;
 
 		for (i = 0; !!(listener = listenersType[i]); i++) {
 			if (stopImmediatePropagation) {
