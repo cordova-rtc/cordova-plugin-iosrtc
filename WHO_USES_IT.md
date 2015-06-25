@@ -13,10 +13,11 @@ Below a list of companies using *cordova-plugin-iostc*:
 
 At [eFace2Face](https://eface2face.com) we use **cordova-plugin-iosrtc** for the iOS version of our application, becoming a web/mobile/tablet HTML5 hybrid solution.
 
+
 ### [OpenTokJS Cordova Plugin](https://github.com/aoberoi/cordova-plugin-opentokjs)
 
 ![opentok-logo](https://static.opentok.com/img/press/logo_opentok_registered.png)
 
-*[OpenTok](https://tokbox.com/platform) lets you weave real time communications with live video, audio and data messaging into your application*
+*[OpenTok](https://tokbox.com/platform) lets you weave real time communications with live video, audio and data messaging into your application.*
 
 This is a community supported, open source project for enabling developers to use the OpenTok platform in mobile apps using just web technologies.
