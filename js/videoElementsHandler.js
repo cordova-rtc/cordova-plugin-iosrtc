@@ -18,6 +18,9 @@ var debug = require('debug')('iosrtc:videoElementsHandler'),
 	// RegExp for MediaStream blobId.
 	MEDIASTREAM_ID_REGEXP = new RegExp(/^MediaStream_/),
 
+	// RegExp for Blob URI.
+	BLOB_URI_REGEX = new RegExp(/^blob:/),
+
 	// Dictionary of MediaStreamRenderers (provided via module argument).
 	// - key: MediaStreamRenderer id.
 	// - value: MediaStreamRenderer.
@@ -193,6 +196,15 @@ function observeVideo(video) {
 		// TODO: Add srcObject, mozSrcObject
 		attributeFilter: ['src']
 	});
+
+	// Intercept video 'error' events if it's due to the attached MediaStream.
+	video.addEventListener('error', function (event) {
+		if (video.error.code === global.MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED && BLOB_URI_REGEX.test(video.src)) {
+			debug('stopping "error" event for video element');
+
+			event.stopImmediatePropagation();
+		}
+	});
 }
 
 
@@ -215,7 +227,7 @@ function handleVideo(video) {
 			var mediaStreamBlobId = reader.result;
 
 			// The retrieved URL does not point to a MediaStream.
-			if (!mediaStreamBlobId || typeof mediaStreamBlobId !== 'string' || !mediaStreamBlobId.match(MEDIASTREAM_ID_REGEXP)) {
+			if (!mediaStreamBlobId || typeof mediaStreamBlobId !== 'string' || !MEDIASTREAM_ID_REGEXP.test(mediaStreamBlobId)) {
 				// If this video element was previously handling a MediaStreamRenderer, release it.
 				releaseMediaStreamRenderer(video);
 

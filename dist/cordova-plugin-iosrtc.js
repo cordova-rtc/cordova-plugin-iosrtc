@@ -128,16 +128,27 @@ function EventTarget() {
 			throw new Error('first argument must be an instance of Event');
 		}
 
-		type = event.type;
+		if (event._dispatched) {
+			throw new Error('Event already dispatched');
+		}
+		event._dispatched = true;
 
+		// Force the event to be cancelable.
+		event.cancelable = true;
+		event.target = this;
+
+		// Override stopImmediatePropagation() function.
+		event.stopImmediatePropagation = function () {
+			stopImmediatePropagation = true;
+		};
+
+		type = event.type;
 		listenersType = (listeners[type] || []);
 
 		dummyListener = this['on' + type];
 		if (typeof dummyListener === 'function') {
 			listenersType.push(dummyListener);
 		}
-
-		event.target = this;
 
 		for (i = 0; !!(listener = listenersType[i]); i++) {
 			if (stopImmediatePropagation) {
@@ -2325,6 +2336,7 @@ function attachMediaStream(element, stream) {
 }
 
 },{"./MediaStreamTrack":6,"./RTCIceCandidate":8,"./RTCPeerConnection":9,"./RTCSessionDescription":10,"./getMediaDevices":11,"./getUserMedia":12}],15:[function(require,module,exports){
+(function (global){
 /**
  * Expose a function that must be called when the library is loaded.
  */
@@ -2344,6 +2356,9 @@ var debug = require('debug')('iosrtc:videoElementsHandler'),
 
 	// RegExp for MediaStream blobId.
 	MEDIASTREAM_ID_REGEXP = new RegExp(/^MediaStream_/),
+
+	// RegExp for Blob URI.
+	BLOB_URI_REGEX = new RegExp(/^blob:/),
 
 	// Dictionary of MediaStreamRenderers (provided via module argument).
 	// - key: MediaStreamRenderer id.
@@ -2520,6 +2535,15 @@ function observeVideo(video) {
 		// TODO: Add srcObject, mozSrcObject
 		attributeFilter: ['src']
 	});
+
+	// Intercept video 'error' events if it's due to the attached MediaStream.
+	video.addEventListener('error', function (event) {
+		if (video.error.code === global.MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED && BLOB_URI_REGEX.test(video.src)) {
+			debug('stopping "error" event for video element');
+
+			event.stopImmediatePropagation();
+		}
+	});
 }
 
 
@@ -2542,7 +2566,7 @@ function handleVideo(video) {
 			var mediaStreamBlobId = reader.result;
 
 			// The retrieved URL does not point to a MediaStream.
-			if (!mediaStreamBlobId || typeof mediaStreamBlobId !== 'string' || !mediaStreamBlobId.match(MEDIASTREAM_ID_REGEXP)) {
+			if (!mediaStreamBlobId || typeof mediaStreamBlobId !== 'string' || !MEDIASTREAM_ID_REGEXP.test(mediaStreamBlobId)) {
 				// If this video element was previously handling a MediaStreamRenderer, release it.
 				releaseMediaStreamRenderer(video);
 
@@ -2590,6 +2614,7 @@ function releaseMediaStreamRenderer(video) {
 	}
 }
 
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./MediaStreamRenderer":5,"debug":16}],16:[function(require,module,exports){
 
 /**
