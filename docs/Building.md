@@ -30,7 +30,7 @@ When adding the `ios` platform to a Cordova project a Xcode project is automatic
 
 The plugin is coded in Swift language but it makes use of the Cordova Objective-C headers and the [Google's WebRTC Objective-C wrapper](https://chromium.googlesource.com/external/webrtc/+/master/talk/app/webrtc/objc/) so a [Bridging Header](https://developer.apple.com/library/prerelease/ios/documentation/Swift/Conceptual/BuildingCocoaApps/MixandMatch.html) is required.
 
-When building the Cordova app with the `cordova-cli` the plugin automatically adds its [Bridging Header](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/src/cordova-plugin-iosrtc-Bridging-Header.h) to the project via a [hook](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/hooks/add_swift_support.js). When using Xcode the steps above must be manually performed.
+When building the Cordova app with the `cordova-cli` the plugin automatically adds its [Bridging Header](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/src/cordova-plugin-iosrtc-Bridging-Header.h) to the project via a [hook](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/hooks/add-swift-support.js). When using Xcode the steps above must be manually performed.
 
 It may happen that your Cordova application uses more than a single plugin coded in Swift, each of them requiring its own Bridging Header file. Unfortunately just a single Bridging Header can be set in a Xcode project. The solution is to create a "Unified-Bridging-Header.h" file within your project and include all the Bridging Header files required by the plugins in there. For example:
 
