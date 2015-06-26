@@ -30,7 +30,7 @@ $ cordova plugin add cordova-plugin-iosrtc
 
 ## Building
 
-This code needs [Swift](https://developer.apple.com/swift/) support, so some steps are needed to get your project working with the plugin. They are explained in the [documentation](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/docs/Building.md), please check it.
+This plugin needs [Swift](https://developer.apple.com/swift/) support so some steps are needed to get your project working with it. These steps are explained in the [Building](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/docs/Building.md) documentation, please check it.
 
 
 ## Usage
