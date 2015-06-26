@@ -688,6 +688,7 @@ class iosrtcPlugin : CDVPlugin {
 		let opacity = command.argumentAtIndex(8) as! Float
 		let zIndex = command.argumentAtIndex(9) as! Float
 		let mirrored = command.argumentAtIndex(10) as! Bool
+		let clip = command.argumentAtIndex(11) as! Bool
 		let pluginMediaStreamRenderer = self.pluginMediaStreamRenderers[id]
 
 		if pluginMediaStreamRenderer == nil {
@@ -704,7 +705,8 @@ class iosrtcPlugin : CDVPlugin {
 			visible: visible,
 			opacity: opacity,
 			zIndex: zIndex,
-			mirrored: mirrored
+			mirrored: mirrored,
+			clip: clip
 		)
 	}
 

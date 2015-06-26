@@ -4,7 +4,7 @@
 
 **Yet another WebRTC SDK for iOS?**
 
-Absolutely **not**. This plugin exposes the WebRTC W3C API for Cordova iOS apps (you know there is no WebRTC on iOS, right?), which means no need to learn "yet another WebRTC API" and no need to use a specific service/product/provider. 
+Absolutely **not**. This plugin exposes the WebRTC W3C API for Cordova iOS apps (you know there is no WebRTC in iOS, right?), which means no need to learn "yet another WebRTC API" and no need to use a specific service/product/provider. 
 
 **Why?**
 
@@ -78,11 +78,11 @@ And that's all. Now you have `window.RTCPeerConnection`, `navigator.getUserMedia
 
 **Q:** What about `<video>` elements and `video.src = URL.createObjectURL(stream)`? do I need custom HTML tags or functions to display WebRTC videos?
 
-**R:** No. Just use an HTML video element as usual, really. The plugin will properly place a native `UIView` layer on top of it by respecting its properties such as the CSS `display`, `opacity`, `visibility`, `z-index`, `object-fit` and also horizontal mirror effect with `-webkit-transform: scaleX(-1);` or equivalent.
+**R:** No. Just use an HTML video element as usual, really. The plugin will properly place a native *UIView* layer on top of it by respecting its properties such as the CSS `display`, `opacity`, `visibility`, `z-index`, `object-fit` and also horizontal mirror effect with `-webkit-transform: scaleX(-1);` or equivalent.
 
 **Q:** Can I place HTML elements (buttons and so on) on top of active `<video>` elements?
 
-**R:** Unfortunately not. The native `UIView` rendering the video stream is placed on top of the HTML view. :(
+**R:** Unfortunately not. The native *UIView* rendering the video stream is placed on top of the HTML view. :(
 
 **Q:** What about [HTML5 video events](https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Media_events)? Can I rely on `video.oncanplay`?
 
@@ -134,6 +134,10 @@ However some properties such as `readyState` and methods such as `play()`, `paus
 ## Changelog
 
 (since version 1.2.8)
+
+#### Version 1.3.3
+
+* CSS `object-fit: none` properly implemented (don't clip the video).
 
 #### Version 1.3.2
 

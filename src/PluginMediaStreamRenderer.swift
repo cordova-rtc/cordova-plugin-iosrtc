@@ -30,7 +30,6 @@ class PluginMediaStreamRenderer : RTCEAGLVideoViewDelegate {
 		self.elementView.userInteractionEnabled = false
 		self.elementView.hidden = true
 		self.elementView.backgroundColor = UIColor.blackColor()
-		self.elementView.clipsToBounds = true
 		self.elementView.addSubview(self.videoView)
 		self.elementView.bringSubviewToFront(self.videoView)
 
@@ -137,10 +136,11 @@ class PluginMediaStreamRenderer : RTCEAGLVideoViewDelegate {
 		visible: Bool,
 		opacity: Float,
 		zIndex: Float,
-		mirrored: Bool
+		mirrored: Bool,
+		clip: Bool
 	) {
 
-		NSLog("PluginMediaStreamRenderer#refresh() [elementLeft:\(elementLeft), elementTop:\(elementTop), elementWidth:\(elementWidth), elementHeight:\(elementHeight), videoViewWidth:\(videoViewWidth), videoViewHeight:\(videoViewHeight), visible:\(visible), opacity:\(opacity), zIndex:\(zIndex), mirrored:\(mirrored)]")
+		NSLog("PluginMediaStreamRenderer#refresh() [elementLeft:\(elementLeft), elementTop:\(elementTop), elementWidth:\(elementWidth), elementHeight:\(elementHeight), videoViewWidth:\(videoViewWidth), videoViewHeight:\(videoViewHeight), visible:\(visible), opacity:\(opacity), zIndex:\(zIndex), mirrored:\(mirrored), clip:\(clip)]")
 
 		var videoViewLeft: Float
 		var videoViewTop: Float
@@ -179,6 +179,12 @@ class PluginMediaStreamRenderer : RTCEAGLVideoViewDelegate {
 			self.elementView.transform = CGAffineTransformIdentity
 		} else {
 			self.elementView.transform = CGAffineTransformMakeScale(-1.0, 1.0)
+		}
+
+		if (clip) {
+			self.elementView.clipsToBounds = true
+		} else {
+			self.elementView.clipsToBounds = false
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * cordova-plugin-iosrtc v1.3.2
+ * cordova-plugin-iosrtc v1.3.3
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015 Iñaki Baz Castillo at eFace2Face, inc. (https://eface2face.com)
  * License MIT
@@ -702,7 +702,8 @@ MediaStreamRenderer.prototype.refresh = function () {
 		opacity,
 		zIndex,
 		mirrored,
-		objectFit;
+		objectFit,
+		clip;
 
 	// visible
 	if (window.getComputedStyle(this.element).visibility === 'hidden') {
@@ -727,6 +728,13 @@ MediaStreamRenderer.prototype.refresh = function () {
 
 	// objectFit ('contain' is set as default value)
 	objectFit = window.getComputedStyle(this.element).objectFit || 'contain';
+
+	// clip
+	if (objectFit === 'none') {
+		clip = false;
+	} else {
+		clip = true;
+	}
 
 	/**
 	 * No video yet, so just update the UIView with the element settings.
@@ -851,11 +859,11 @@ MediaStreamRenderer.prototype.refresh = function () {
 	nativeRefresh.call(this);
 
 	function nativeRefresh() {
-		debug('refresh() | [elementLeft:%s, elementTop:%s, elementWidth:%s, elementHeight:%s, videoViewWidth:%s, videoViewHeight:%s, visible:%s, opacity:%s, zIndex:%s, mirrored:%s, objectFit:%s]',
-			elementLeft, elementTop, elementWidth, elementHeight, videoViewWidth, videoViewHeight, visible, opacity, zIndex, mirrored, objectFit);
+		debug('refresh() | [elementLeft:%s, elementTop:%s, elementWidth:%s, elementHeight:%s, videoViewWidth:%s, videoViewHeight:%s, visible:%s, opacity:%s, zIndex:%s, mirrored:%s, objectFit:%s, clip:%s]',
+			elementLeft, elementTop, elementWidth, elementHeight, videoViewWidth, videoViewHeight, visible, opacity, zIndex, mirrored, objectFit, clip);
 
 		exec(null, null, 'iosrtcPlugin', 'MediaStreamRenderer_refresh', [
-			this.id, elementLeft, elementTop, elementWidth, elementHeight, videoViewWidth, videoViewHeight, visible, opacity, zIndex, mirrored
+			this.id, elementLeft, elementTop, elementWidth, elementHeight, videoViewWidth, videoViewHeight, visible, opacity, zIndex, mirrored, clip
 		]);
 	}
 };

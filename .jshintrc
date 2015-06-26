@@ -15,7 +15,7 @@
 	"maxparams": 6,
 	"maxdepth": 4,
 	"maxstatements": false,
-	"maxlen": 200,
+	"maxlen": 210,
 
 	"browser": true,
 	"browserify": true,
