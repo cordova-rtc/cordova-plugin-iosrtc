@@ -126,19 +126,18 @@ class PluginMediaStreamRenderer : RTCEAGLVideoViewDelegate {
 	}
 
 
-	func refresh(
-		elementLeft: Float,
-		elementTop: Float,
-		elementWidth: Float,
-		elementHeight: Float,
-		videoViewWidth: Float,
-		videoViewHeight: Float,
-		visible: Bool,
-		opacity: Float,
-		zIndex: Float,
-		mirrored: Bool,
-		clip: Bool
-	) {
+	func refresh(data: NSDictionary) {
+		let elementLeft = data.objectForKey("elementLeft") as? Float ?? 0
+		let elementTop = data.objectForKey("elementTop") as? Float ?? 0
+		let elementWidth = data.objectForKey("elementWidth") as? Float ?? 0
+		let elementHeight = data.objectForKey("elementHeight") as? Float ?? 0
+		let videoViewWidth = data.objectForKey("videoViewWidth") as? Float ?? 0
+		let videoViewHeight = data.objectForKey("videoViewHeight") as? Float ?? 0
+		let visible = data.objectForKey("visible") as? Bool ?? true
+		let opacity = data.objectForKey("opacity") as? Float ?? 1
+		let zIndex = data.objectForKey("zIndex") as? Float ?? 0
+		let mirrored = data.objectForKey("mirrored") as? Bool ?? false
+		let clip = data.objectForKey("clip") as? Bool ?? true
 
 		NSLog("PluginMediaStreamRenderer#refresh() [elementLeft:\(elementLeft), elementTop:\(elementTop), elementWidth:\(elementWidth), elementHeight:\(elementHeight), videoViewWidth:\(videoViewWidth), videoViewHeight:\(videoViewHeight), visible:\(visible), opacity:\(opacity), zIndex:\(zIndex), mirrored:\(mirrored), clip:\(clip)]")
 
