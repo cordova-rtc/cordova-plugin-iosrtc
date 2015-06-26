@@ -1,33 +1,39 @@
 # Building
 
-A an iOS Cordova application including the *cordova-plugin-iosrtc* plugin can be built using the [cordova-cli](https://cordova.apache.org/docs/en/edge/guide_cli_index.md.html#The%20Command-Line%20Interface) or Xcode. We've published [this "hook"](../extra/hooks/iosrtc-swift-support.js) to automate the the fixes in both generated projects. You should follow these steps:
-- Put it under "after_platform_add" folder and give it execute permission:
+A an iOS Cordova application including the *cordova-plugin-iosrtc* can be built using the [cordova-cli](https://cordova.apache.org/docs/en/edge/guide_cli_index.md.html#The%20Command-Line%20Interface) or Xcode. We've published [this "hook"](../extra/hooks/iosrtc-swift-support.js) to automate the fixes in both generated projects. You should follow these steps in your Cordova app:
+
+- Put it under "hooks/" folder (or wherever you prefer) and give it execute permission:
 ```bash
-chmod +x hooks/after_platform_add/iosrtc-swift-support.js
+$ chmod +x hooks/iosrtc-swift-support.js
 ```
 - Add these lines to you "config.xml" file:
 ```xml
 <platform name="ios">
-	<hook type="after_platform_add" src="hooks/after_platform_add/iosrtc_swift-support.js" />
+	<hook type="after_platform_add" src="hooks/iosrtc-swift-support.js" />
 </platform>
 ```
-- Remove the iOS platform and ad it again:
+- Make sure you have the NPM [xcode](https://www.npmjs.com/package/xcode) package installed (locally or globally):
 ```bash
-cordova platform remove ios
-cordova platform add ios
+$ npm install -g xcode
 ```
-- Now you have the two options:
- - Open the XCode project and click run.
- - Build the application as usual:
+- Remove the iOS platform and add it again:
 ```bash
-cordova build ios
+$ cordova platform remove ios
+$ cordova platform add ios
+```
+- You have two options right now:
+ - Open the Xcode project and compile your application.
+ - Build the application as usual using the Cordova CLI:
+```bash
+$ cordova build ios
 ```
 
 *NOTE:* Xcode >= 6.3 is required due to Swift language.
 
 
 ## Bridging Header
-The plugin is coded in Swift language but it makes use of the Cordova Objective-C headers and the [Google's WebRTC Objective-C wrapper](https://chromium.googlesource.com/external/webrtc/+/master/talk/app/webrtc/objc/) so a [Bridging Header](https://developer.apple.com/library/prerelease/ios/documentation/Swift/Conceptual/BuildingCocoaApps/MixandMatch.html) is required. When building (using the provided hook) our [Bridging Header](../src/cordova-plugin-iosrtc-Bridging-Header.h) is automatically adds its to the project.
+
+The plugin is coded in Swift language but it makes use of the Cordova Objective-C headers and the [Google's WebRTC Objective-C wrapper](https://chromium.googlesource.com/external/webrtc/+/master/talk/app/webrtc/objc/) so a [Bridging Header](https://developer.apple.com/library/prerelease/ios/documentation/Swift/Conceptual/BuildingCocoaApps/MixandMatch.html) is required. When building (using the provided hook above) our [Bridging Header](../src/cordova-plugin-iosrtc-Bridging-Header.h) file is automatically added into your Cordova project.
 
 It may happen that your Cordova application uses more than a single plugin coded in Swift, each of them requiring its own Bridging Header file. Unfortunately just a single Bridging Header can be set in a Xcode project. The solution is to create a "Unified-Bridging-Header.h" file within your project and include all the Bridging Header files required by the plugins in there. For example:
 
@@ -45,6 +51,7 @@ And then set `Unified-Bridging-Header.h` as the value of the "Objective-C Bridgi
 
 
 ## Xcode
+
 If you still prefer to do it manually open it with Xcode and follow these steps:
 - Set "iOS Deployment Target" to `7.0` or higher within your project settings.
 - Set "Deployment Target" to `7.0` or higher within the project target settings.
