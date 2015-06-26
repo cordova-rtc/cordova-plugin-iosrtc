@@ -292,14 +292,18 @@ function provideMediaStreamRenderer(video, mediaStreamBlobId) {
 
 
 function releaseMediaStreamRenderer(video) {
-	var mediaStreamRenderer = mediaStreamRenderers[video._iosrtcMediaStreamRendererId];
+	if (!video._iosrtcMediaStreamRendererId) {
+		return;
+	}
 
-	delete video._iosrtcMediaStreamRendererId;
+	var mediaStreamRenderer = mediaStreamRenderers[video._iosrtcMediaStreamRendererId];
 
 	if (mediaStreamRenderer) {
 		delete mediaStreamRenderers[video._iosrtcMediaStreamRendererId];
 		mediaStreamRenderer.close();
 	}
+
+	delete video._iosrtcMediaStreamRendererId;
 
 	// Remove overrided <video> properties.
 	delete video.videoWidth;
