@@ -123,4 +123,3 @@ function registerGlobals() {
 function dump() {
 	exec(null, null, 'iosrtcPlugin', 'dump', []);
 }
-
