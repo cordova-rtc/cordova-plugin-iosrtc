@@ -30,9 +30,7 @@ $ cordova plugin add cordova-plugin-iosrtc
 
 ## Building
 
-If you just use the `cordova-cli` to manage and build your Cordova project then you are done with the usual commans (`cordova build ios`, etc). Anyhow check the [Bridging Header](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/docs/Building.md#bridging-header) documentation if you use more Swift plugins in your Cordova app.
-
-If you build your Cordova application using Xcode then some steps must be done as explained in the [documentation](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/docs/Building.md).
+This code needs [Swift](https://developer.apple.com/swift/) support, so some steps are needed to get your project working with the plugin. They are explained in the [documentation](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/docs/Building.md), please check it.
 
 
 ## Usage
