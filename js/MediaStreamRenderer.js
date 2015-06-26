@@ -30,11 +30,12 @@ function MediaStreamRenderer(element) {
 	// Public atributes.
 	this.element = element;
 	this.stream = undefined;
+	this.videoWidth = undefined;
+	this.videoHeight = undefined;
+	this.connected = false;
 
 	// Private attributes.
 	this.id = randomNumber();
-	this.videoWidth = undefined;
-	this.videoHeight = undefined;
 	this.element_added_style_width = undefined;
 	this.element_added_style_height = undefined;
 
@@ -73,7 +74,7 @@ MediaStreamRenderer.prototype.render = function (stream) {
 	});
 
 	if (stream.connected) {
-		emitVideoEvents();
+		connected();
 	// Otherwise subscribe to 'connected' event to emulate video elements events.
 	} else {
 		stream.addEventListener('connected', function () {
@@ -81,11 +82,14 @@ MediaStreamRenderer.prototype.render = function (stream) {
 				return;
 			}
 
-			emitVideoEvents();
+			connected();
 		});
 	}
 
-	function emitVideoEvents() {
+	function connected() {
+		self.connected = true;
+
+		// Emit video events.
 		self.element.dispatchEvent(new Event('loadedmetadata'));
 		self.element.dispatchEvent(new Event('loadeddata'));
 		self.element.dispatchEvent(new Event('canplay'));

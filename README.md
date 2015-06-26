@@ -88,6 +88,10 @@ And that's all. Now you have `window.RTCPeerConnection`, `navigator.getUserMedia
 
 **R:** I see what you mean. As there is no real video attached to the `<video>` element, media events are artificially emitted by the plugin. The following events are emitted when the `MediaStream` attached to a video element is ready to render video: `onloadedmetadata`, `onloadeddata`, `oncanplay`, `oncanplaythrough`. So yes, you can rely on them.
 
+**Q:** Can I read `<video>` properties such as `readyState`, `videoWidth`, etc?
+
+Again, there is no real video attached to the `<video>` element so some peroperties are artificially set by the plugin. These are `readyState`, `videoWidth` and `videoHeight`.
+
 **Q:** Do I need to call special methods to release/free native WebRTC objects? How are they garbage collected?
 
 **R:** Good question. An `RTCPeerConnection` is released when `close()` is called on it, a `MediaStream` is released when all its tracks end, and other elements are garbage collected when no longer needed. Basically the same behavior as in a WebRTC capable browser.
@@ -124,16 +128,20 @@ Don't call plugin methods within WebSocket events (`onopen`, `onmessage`, etc). 
 Or better, just load the provided [ios-websocket-hack.js](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/extra/ios-websocket-hack.js) script into your Cordova iOS app and you are done.
 
 
-#### HTML5 video API and events
+#### HTML5 video API
 
-As explained above, there is no real media source attached to the `<video>` element so [HTML5 video events](https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Media_events) are artificially emitted by the plugin on behalf of the video element.
+As explained above, there is no real media source attached to the `<video>` element so some [HTML5 video events](https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Media_events) and properties are artificially emitted/set by the plugin on behalf of the video element.
 
-However some properties such as `readyState` and methods such as `play()`, `pause()`, etc do not work as expected (again, there is no real audio/video attached to the `<video>` element). In order to pause a video just set `enabled = false` on the associated `MediaStreamTrack`.
+Methods such as `play()`, `pause()` are not implemented. In order to pause a video just set `enabled = false` on the associated `MediaStreamTrack`.
 
 
 ## Changelog
 
 (since version 1.2.8)
+
+#### Version 1.X.Y (not released yet)
+
+* Implemented some `<video>` properties such as `readyState`, `videoWidth` and `videoHeight` ([issue #25](https://github.com/eface2face/cordova-plugin-iosrtc/issues/25)).
 
 #### Version 1.3.3
 

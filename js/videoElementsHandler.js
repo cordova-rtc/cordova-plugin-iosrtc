@@ -261,6 +261,33 @@ function provideMediaStreamRenderer(video, mediaStreamBlobId) {
 		mediaStreamRenderers[mediaStreamRenderer.id] = mediaStreamRenderer;
 		video._iosrtcMediaStreamRendererId = mediaStreamRenderer.id;
 	}
+
+	// Override some <video> properties.
+	// NOTE: This is a terrible hack but it works.
+	Object.defineProperties(video, {
+		videoWidth: {
+			configurable: true,
+			get: function () {
+				return mediaStreamRenderer.videoWidth || 0;
+			}
+		},
+		videoHeight: {
+			configurable: true,
+			get: function () {
+				return mediaStreamRenderer.videoHeight || 0;
+			}
+		},
+		readyState: {
+			configurable: true,
+			get: function () {
+				if (mediaStreamRenderer.connected) {
+					return video.HAVE_ENOUGH_DATA;
+				} else {
+					return video.HAVE_NOTHING;
+				}
+			}
+		}
+	});
 }
 
 
@@ -273,4 +300,9 @@ function releaseMediaStreamRenderer(video) {
 		delete mediaStreamRenderers[video._iosrtcMediaStreamRendererId];
 		mediaStreamRenderer.close();
 	}
+
+	// Remove overrided <video> properties.
+	delete video.videoWidth;
+	delete video.videoHeight;
+	delete video.readyState;
 }
