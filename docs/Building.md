@@ -16,10 +16,15 @@ $ cordova build ios
 
 ## Build with Xcode
 
-Xcode >= 6.3 is required due to Swift language.
+*NOTE:* Xcode >= 6.3 is required due to Swift language.
 
-When adding the `ios` platform to a Cordova project a Xcode project is automatically generated at `platforms/ios/PROJECT_NAME.xcodeproj/`. Open it with Xcode and follow these steps:
-
+When adding the `ios` platform to a Cordova project a Xcode project is automatically generated at `platforms/ios/PROJECT_NAME.xcodeproj/`. But we need to introduce some changes to get our project correctly compiled on this IDE. We've published [this Cordova "hook"](extra/ios_add_iosrtc_bridging.js) to automate this process:
+* Put it under "after_platform_add" folder and give it execute permission: `chmod +x hooks/after_platform_add/ios_add_iosrtc_bridging.js`
+* Remove the iOS platform: `cordova platform remove ios`
+* Add it again: `cordova platform add ios`
+* Open the XCode project and click run
+ 
+If you still prefer to do it manually open it with Xcode and follow these steps:
 * Set "iOS Deployment Target" to `7.0` or higher within your project settings.
 * Set "Deployment Target" to `7.0` or higher within the project target settings.
 * Within the project "Build Settings" add an entry to the "Runpath Search Paths" setting with value `@executable_path/Frameworks`.
