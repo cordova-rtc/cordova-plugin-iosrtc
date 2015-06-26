@@ -10,8 +10,8 @@
 	<keywords>webrtc, ios</keywords>
 
 	<info>
-		This Cordova plugin enables use of the JavaScript WebRTC API (as defined by the W3C) in iOS devices.
-		Learn more at https://github.com/eface2face/cordova-plugin-iosrtc
+		cordova-plugin-iosrtc enables use of the JavaScript WebRTC APIs (as defined by the W3C) in iOS devices.
+		Learn more at: https://github.com/eface2face/cordova-plugin-iosrtc
 	</info>
 
 	<engines>
