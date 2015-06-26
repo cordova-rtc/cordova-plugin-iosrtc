@@ -292,12 +292,24 @@ MediaStreamRenderer.prototype.refresh = function () {
 	nativeRefresh.call(this);
 
 	function nativeRefresh() {
-		debug('refresh() | [elementLeft:%s, elementTop:%s, elementWidth:%s, elementHeight:%s, videoViewWidth:%s, videoViewHeight:%s, visible:%s, opacity:%s, zIndex:%s, mirrored:%s, objectFit:%s, clip:%s]',
-			elementLeft, elementTop, elementWidth, elementHeight, videoViewWidth, videoViewHeight, visible, opacity, zIndex, mirrored, objectFit, clip);
+		var data = {
+			elementLeft: elementLeft,
+			elementTop: elementTop,
+			elementWidth: elementWidth,
+			elementHeight: elementHeight,
+			videoViewWidth: videoViewWidth,
+			videoViewHeight: videoViewHeight,
+			visible: visible,
+			opacity: opacity,
+			zIndex: zIndex,
+			mirrored: mirrored,
+			objectFit: objectFit,
+			clip: clip
+		};
 
-		exec(null, null, 'iosrtcPlugin', 'MediaStreamRenderer_refresh', [
-			this.id, elementLeft, elementTop, elementWidth, elementHeight, videoViewWidth, videoViewHeight, visible, opacity, zIndex, mirrored, clip
-		]);
+		debug('refresh() | [data:%o]', data);
+
+		exec(null, null, 'iosrtcPlugin', 'MediaStreamRenderer_refresh', [this.id, data]);
 	}
 };
 

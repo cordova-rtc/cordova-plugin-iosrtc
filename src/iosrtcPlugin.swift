@@ -678,17 +678,7 @@ class iosrtcPlugin : CDVPlugin {
 		NSLog("iosrtcPlugin#MediaStreamRenderer_refresh()")
 
 		let id = command.argumentAtIndex(0) as! Int
-		let elementLeft = command.argumentAtIndex(1) as! Float
-		let elementTop = command.argumentAtIndex(2) as! Float
-		let elementWidth = command.argumentAtIndex(3) as! Float
-		let elementHeight = command.argumentAtIndex(4) as! Float
-		let videoViewWidth = command.argumentAtIndex(5) as! Float
-		let videoViewHeight = command.argumentAtIndex(6) as! Float
-		let visible = command.argumentAtIndex(7) as! Bool
-		let opacity = command.argumentAtIndex(8) as! Float
-		let zIndex = command.argumentAtIndex(9) as! Float
-		let mirrored = command.argumentAtIndex(10) as! Bool
-		let clip = command.argumentAtIndex(11) as! Bool
+		let data = command.argumentAtIndex(1) as! NSDictionary
 		let pluginMediaStreamRenderer = self.pluginMediaStreamRenderers[id]
 
 		if pluginMediaStreamRenderer == nil {
@@ -696,18 +686,7 @@ class iosrtcPlugin : CDVPlugin {
 			return;
 		}
 
-		pluginMediaStreamRenderer!.refresh(elementLeft,
-			elementTop: elementTop,
-			elementWidth: elementWidth,
-			elementHeight: elementHeight,
-			videoViewWidth: videoViewWidth,
-			videoViewHeight: videoViewHeight,
-			visible: visible,
-			opacity: opacity,
-			zIndex: zIndex,
-			mirrored: mirrored,
-			clip: clip
-		)
+		pluginMediaStreamRenderer!.refresh(data)
 	}
 
 
