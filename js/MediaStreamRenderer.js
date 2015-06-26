@@ -116,6 +116,7 @@ MediaStreamRenderer.prototype.refresh = function () {
 	}
 
 	var elementPositionAndSize = getElementPositionAndSize.call(this),
+		computedStyle,
 		videoRatio,
 		elementRatio,
 		elementLeft = elementPositionAndSize.left,
@@ -131,29 +132,31 @@ MediaStreamRenderer.prototype.refresh = function () {
 		objectFit,
 		clip;
 
+	computedStyle = window.getComputedStyle(this.element);
+
 	// visible
-	if (window.getComputedStyle(this.element).visibility === 'hidden') {
+	if (computedStyle.visibility === 'hidden') {
 		visible = false;
 	} else {
 		visible = !!this.element.offsetHeight;  // Returns 0 if element or any parent is hidden.
 	}
 
 	// opacity
-	opacity = parseFloat(window.getComputedStyle(this.element).opacity);
+	opacity = parseFloat(computedStyle.opacity);
 
 	// zIndex
-	zIndex = parseFloat(window.getComputedStyle(this.element).zIndex) || parseFloat(this.element.style.zIndex) || 0;
+	zIndex = parseFloat(computedStyle.zIndex) || parseFloat(this.element.style.zIndex) || 0;
 
 	// mirrored (detect "-webkit-transform: scaleX(-1);" or equivalent)
-	if (window.getComputedStyle(this.element).transform === 'matrix(-1, 0, 0, 1, 0, 0)' ||
-		window.getComputedStyle(this.element)['-webkit-transform'] === 'matrix(-1, 0, 0, 1, 0, 0)') {
+	if (computedStyle.transform === 'matrix(-1, 0, 0, 1, 0, 0)' ||
+		computedStyle['-webkit-transform'] === 'matrix(-1, 0, 0, 1, 0, 0)') {
 		mirrored = true;
 	} else {
 		mirrored = false;
 	}
 
 	// objectFit ('contain' is set as default value)
-	objectFit = window.getComputedStyle(this.element).objectFit || 'contain';
+	objectFit = computedStyle.objectFit || 'contain';
 
 	// clip
 	if (objectFit === 'none') {
