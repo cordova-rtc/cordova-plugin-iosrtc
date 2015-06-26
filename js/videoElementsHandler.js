@@ -262,6 +262,15 @@ function provideMediaStreamRenderer(video, mediaStreamBlobId) {
 		video._iosrtcMediaStreamRendererId = mediaStreamRenderer.id;
 	}
 
+	// Close the MediaStreamRenderer of this video if it emits "close" event.
+	mediaStreamRenderer.addEventListener('close', function () {
+		if (mediaStreamRenderers[video._iosrtcMediaStreamRendererId] !== mediaStreamRenderer) {
+			return;
+		}
+
+		releaseMediaStreamRenderer(video);
+	});
+
 	// Override some <video> properties.
 	// NOTE: This is a terrible hack but it works.
 	Object.defineProperties(video, {
@@ -280,7 +289,7 @@ function provideMediaStreamRenderer(video, mediaStreamBlobId) {
 		readyState: {
 			configurable: true,
 			get: function () {
-				if (mediaStreamRenderer.connected) {
+				if (mediaStreamRenderer && mediaStreamRenderer.stream && mediaStreamRenderer.stream.connected) {
 					return video.HAVE_ENOUGH_DATA;
 				} else {
 					return video.HAVE_NOTHING;

@@ -32,7 +32,6 @@ function MediaStreamRenderer(element) {
 	this.stream = undefined;
 	this.videoWidth = undefined;
 	this.videoHeight = undefined;
-	this.connected = false;
 
 	// Private attributes.
 	this.id = randomNumber();
@@ -71,6 +70,18 @@ MediaStreamRenderer.prototype.render = function (stream) {
 		exec(null, null, 'iosrtcPlugin', 'MediaStreamRenderer_mediaStreamChanged', [self.id]);
 	});
 
+	// Subscribe to 'inactive' event and emit "close" so the video element can react.
+	stream.addEventListener('inactive', function () {
+		if (self.stream !== stream) {
+			return;
+		}
+
+		debug('MediaStream emits "inactive", emiting "close" and closing this MediaStreamRenderer');
+
+		self.dispatchEvent(new Event('close'));
+		self.close();
+	});
+
 	if (stream.connected) {
 		connected();
 	// Otherwise subscribe to 'connected' event to emulate video elements events.
@@ -85,8 +96,6 @@ MediaStreamRenderer.prototype.render = function (stream) {
 	}
 
 	function connected() {
-		self.connected = true;
-
 		// Emit video events.
 		self.element.dispatchEvent(new Event('loadedmetadata'));
 		self.element.dispatchEvent(new Event('loadeddata'));
@@ -264,6 +273,9 @@ MediaStreamRenderer.prototype.refresh = function () {
 MediaStreamRenderer.prototype.close = function () {
 	debug('close()');
 
+	if (!this.stream) {
+		return;
+	}
 	this.stream = undefined;
 
 	exec(null, null, 'iosrtcPlugin', 'MediaStreamRenderer_close', [this.id]);
