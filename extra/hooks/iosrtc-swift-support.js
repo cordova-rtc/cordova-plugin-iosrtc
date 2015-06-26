@@ -63,19 +63,21 @@ module.exports = function (context) {
 
 		return;
 	}
+	console.log('".pbxproj" project file found: ' + xcodeProjectPath);
 	if (!fs.existsSync(xcconfigPath)) {
 		console.log('ERROR: An error occured searching the project file at: "' + xcconfigPath + '"');
 
 		return;
 	}
-	console.log('XCode project file found: ' + xcodeProjectPath);
+	console.log('".xcconfig" project file found: ' + xcconfigPath);
 	xcodeProject = xcode.project(xcodeProjectPath);
 
-	// Printing info about the tasks to do
-	console.log('Fixing issues in the generated project file (project.pbxproj):');
+	// Showing info about the tasks to do
+	console.log('Fixing issues in the generated project files:');
 	console.log('- "iOS Deployment Target" and "Deployment Target" to: ' + BUILD_VERSION_XCODE);
 	console.log('- "Runpath Search Paths" to: ' + RUNPATH_SEARCH_PATHS_XCODE);
 	console.log('- "Objective-C Bridging Header" to: ' + swiftBridgingHeadXcode);
+
 
 	// Massaging the files
 
@@ -89,8 +91,7 @@ module.exports = function (context) {
 	console.log('File correctly fixed: ' + xcconfigPath);
 
 	// "project.pbxproj"
-
-	// Parsing the file
+	// Parsing it
 	xcodeProject.parse(function (error) {
 		var configurations, buildSettings;
 

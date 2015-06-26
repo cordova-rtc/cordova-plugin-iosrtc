@@ -23,8 +23,6 @@
 	</js-module>
 
 	<platform name="ios">
-		<hook type="after_plugin_install" src="hooks/add-swift-support.js" />
-
 		<config-file target="config.xml" parent="/*">
 			<feature name="iosrtcPlugin">
 				<param name="ios-package" value="iosrtcPlugin" />
