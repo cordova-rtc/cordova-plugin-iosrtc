@@ -1,5 +1,5 @@
 /*
- * cordova-plugin-iosrtc v1.4.0
+ * cordova-plugin-iosrtc v1.4.1
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015 Iñaki Baz Castillo at eFace2Face, inc. (https://eface2face.com)
  * License MIT
@@ -606,7 +606,6 @@ function MediaStreamRenderer(element) {
 	this.stream = undefined;
 	this.videoWidth = undefined;
 	this.videoHeight = undefined;
-	this.connected = false;
 
 	// Private attributes.
 	this.id = randomNumber();
@@ -645,6 +644,18 @@ MediaStreamRenderer.prototype.render = function (stream) {
 		exec(null, null, 'iosrtcPlugin', 'MediaStreamRenderer_mediaStreamChanged', [self.id]);
 	});
 
+	// Subscribe to 'inactive' event and emit "close" so the video element can react.
+	stream.addEventListener('inactive', function () {
+		if (self.stream !== stream) {
+			return;
+		}
+
+		debug('MediaStream emits "inactive", emiting "close" and closing this MediaStreamRenderer');
+
+		self.dispatchEvent(new Event('close'));
+		self.close();
+	});
+
 	if (stream.connected) {
 		connected();
 	// Otherwise subscribe to 'connected' event to emulate video elements events.
@@ -659,8 +670,6 @@ MediaStreamRenderer.prototype.render = function (stream) {
 	}
 
 	function connected() {
-		self.connected = true;
-
 		// Emit video events.
 		self.element.dispatchEvent(new Event('loadedmetadata'));
 		self.element.dispatchEvent(new Event('loadeddata'));
@@ -838,6 +847,9 @@ MediaStreamRenderer.prototype.refresh = function () {
 MediaStreamRenderer.prototype.close = function () {
 	debug('close()');
 
+	if (!this.stream) {
+		return;
+	}
 	this.stream = undefined;
 
 	exec(null, null, 'iosrtcPlugin', 'MediaStreamRenderer_close', [this.id]);
@@ -2616,6 +2628,15 @@ function provideMediaStreamRenderer(video, mediaStreamBlobId) {
 		video._iosrtcMediaStreamRendererId = mediaStreamRenderer.id;
 	}
 
+	// Close the MediaStreamRenderer of this video if it emits "close" event.
+	mediaStreamRenderer.addEventListener('close', function () {
+		if (mediaStreamRenderers[video._iosrtcMediaStreamRendererId] !== mediaStreamRenderer) {
+			return;
+		}
+
+		releaseMediaStreamRenderer(video);
+	});
+
 	// Override some <video> properties.
 	// NOTE: This is a terrible hack but it works.
 	Object.defineProperties(video, {
@@ -2634,7 +2655,7 @@ function provideMediaStreamRenderer(video, mediaStreamBlobId) {
 		readyState: {
 			configurable: true,
 			get: function () {
-				if (mediaStreamRenderer.connected) {
+				if (mediaStreamRenderer && mediaStreamRenderer.stream && mediaStreamRenderer.stream.connected) {
 					return video.HAVE_ENOUGH_DATA;
 				} else {
 					return video.HAVE_NOTHING;
