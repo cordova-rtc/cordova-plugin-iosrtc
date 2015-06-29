@@ -32,12 +32,9 @@ function MediaStreamRenderer(element) {
 	this.stream = undefined;
 	this.videoWidth = undefined;
 	this.videoHeight = undefined;
-	this.connected = false;
 
 	// Private attributes.
 	this.id = randomNumber();
-	this.element_added_style_width = undefined;
-	this.element_added_style_height = undefined;
 
 	function onResultOK(data) {
 		onEvent.call(self, data);
@@ -73,6 +70,18 @@ MediaStreamRenderer.prototype.render = function (stream) {
 		exec(null, null, 'iosrtcPlugin', 'MediaStreamRenderer_mediaStreamChanged', [self.id]);
 	});
 
+	// Subscribe to 'inactive' event and emit "close" so the video element can react.
+	stream.addEventListener('inactive', function () {
+		if (self.stream !== stream) {
+			return;
+		}
+
+		debug('MediaStream emits "inactive", emiting "close" and closing this MediaStreamRenderer');
+
+		self.dispatchEvent(new Event('close'));
+		self.close();
+	});
+
 	if (stream.connected) {
 		connected();
 	// Otherwise subscribe to 'connected' event to emulate video elements events.
@@ -87,8 +96,6 @@ MediaStreamRenderer.prototype.render = function (stream) {
 	}
 
 	function connected() {
-		self.connected = true;
-
 		// Emit video events.
 		self.element.dispatchEvent(new Event('loadedmetadata'));
 		self.element.dispatchEvent(new Event('loadeddata'));
@@ -100,24 +107,6 @@ MediaStreamRenderer.prototype.render = function (stream) {
 
 MediaStreamRenderer.prototype.refresh = function () {
 	debug('refresh()');
-
-	/**
-	 * First remove "width" and "height" from the inline style in the element if
-	 * previously added by this function.
-	 */
-
-	if (this.element_added_style_width && this.element.style.width) {
-		debug('refresh() | removing element style width previously added by this function');
-
-		this.element.style.width = '';
-		this.element_added_style_width = undefined;
-	}
-	if (this.element_added_style_height && this.element.style.height) {
-		debug('refresh() | removing element style height previously added by this function');
-
-		this.element.style.height = '';
-		this.element_added_style_height = undefined;
-	}
 
 	var elementPositionAndSize = getElementPositionAndSize.call(this),
 		computedStyle,
@@ -186,44 +175,11 @@ MediaStreamRenderer.prototype.refresh = function () {
 	 * Element has no width and/or no height.
 	 */
 
-	if (!elementWidth && !elementHeight) {
-		debug('refresh() | video element has 0 width and 0 height');
+	if (!elementWidth || !elementHeight) {
+		debug('refresh() | video element has 0 width and/or 0 height');
 
-		if (!this.element.style.width) {
-			elementWidth = this.videoWidth;
-			this.element.style.width = elementWidth + 'px';
-			this.element_added_style_width = this.element.style.width;
-		} else {
-			elementWidth = parseInt(this.element.style.width);
-		}
-
-		if (!this.element.style.height) {
-			elementHeight = this.videoHeight;
-			this.element.style.height = elementHeight + 'px';
-			this.element_added_style_height = this.element.style.height;
-		} else {
-			elementHeight = parseInt(this.element.style.height);
-		}
-	} else if (!elementWidth) {
-		debug('refresh() | video element has 0 width');
-
-		if (!this.element.style.width) {
-			elementWidth = elementHeight * videoRatio;
-			this.element.style.width = elementWidth + 'px';
-			this.element_added_style_width = this.element.style.width;
-		} else {
-			elementWidth = parseInt(this.element.style.width);
-		}
-	} else if (!elementHeight) {
-		debug('refresh() | video element has 0 height');
-
-		if (!this.element.style.height) {
-			elementHeight = elementWidth / videoRatio;
-			this.element.style.height = elementHeight + 'px';
-			this.element_added_style_height = this.element.style.height;
-		} else {
-			elementHeight = parseInt(this.element.style.height);
-		}
+		nativeRefresh.call(this);
+		return;
 	}
 
 	/**
@@ -317,6 +273,9 @@ MediaStreamRenderer.prototype.refresh = function () {
 MediaStreamRenderer.prototype.close = function () {
 	debug('close()');
 
+	if (!this.stream) {
+		return;
+	}
 	this.stream = undefined;
 
 	exec(null, null, 'iosrtcPlugin', 'MediaStreamRenderer_close', [this.id]);

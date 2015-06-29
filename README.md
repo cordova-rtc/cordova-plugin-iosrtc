@@ -30,7 +30,7 @@ $ cordova plugin add cordova-plugin-iosrtc
 
 ## Building
 
-This code needs [Swift](https://developer.apple.com/swift/) support, so some steps are needed to get your project working with the plugin. They are explained in the [documentation](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/docs/Building.md), please check it.
+This plugin needs [Swift](https://developer.apple.com/swift/) support so some steps are needed to get your project working with it. These steps are explained in the [Building](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/docs/Building.md) documentation, please check it.
 
 
 ## Usage
@@ -137,9 +137,14 @@ Methods such as `play()`, `pause()` are not implemented. In order to pause a vid
 
 (since version 1.2.8)
 
-#### Version 1.X.Y (not released yet)
+#### Version 1.4.1
+
+* Release `MediaStreamRenderer` and revert `<video>` properties when the attached `MediaStream` emits "inactive" ([issue #27](https://github.com/eface2face/cordova-plugin-iosrtc/issues/27)).
+
+#### Version 1.4.0
 
 * Implemented some `<video>` properties such as `readyState`, `videoWidth` and `videoHeight` ([issue #25](https://github.com/eface2face/cordova-plugin-iosrtc/issues/25)).
+* Building simplified for both Cordova CLI and Xcode by providing a single ["hook"]((https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/extra/hooks/iosrtc-swift-support.js) the user must add into his Cordova application (check the [Building](Building.md) documentation for further details).
 
 #### Version 1.3.3
 

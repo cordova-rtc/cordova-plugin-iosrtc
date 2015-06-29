@@ -1,5 +1,5 @@
 /*
- * cordova-plugin-iosrtc v1.3.3
+ * cordova-plugin-iosrtc v1.4.1
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015 Iñaki Baz Castillo at eFace2Face, inc. (https://eface2face.com)
  * License MIT
@@ -604,13 +604,11 @@ function MediaStreamRenderer(element) {
 	// Public atributes.
 	this.element = element;
 	this.stream = undefined;
+	this.videoWidth = undefined;
+	this.videoHeight = undefined;
 
 	// Private attributes.
 	this.id = randomNumber();
-	this.videoWidth = undefined;
-	this.videoHeight = undefined;
-	this.element_added_style_width = undefined;
-	this.element_added_style_height = undefined;
 
 	function onResultOK(data) {
 		onEvent.call(self, data);
@@ -646,8 +644,20 @@ MediaStreamRenderer.prototype.render = function (stream) {
 		exec(null, null, 'iosrtcPlugin', 'MediaStreamRenderer_mediaStreamChanged', [self.id]);
 	});
 
+	// Subscribe to 'inactive' event and emit "close" so the video element can react.
+	stream.addEventListener('inactive', function () {
+		if (self.stream !== stream) {
+			return;
+		}
+
+		debug('MediaStream emits "inactive", emiting "close" and closing this MediaStreamRenderer');
+
+		self.dispatchEvent(new Event('close'));
+		self.close();
+	});
+
 	if (stream.connected) {
-		emitVideoEvents();
+		connected();
 	// Otherwise subscribe to 'connected' event to emulate video elements events.
 	} else {
 		stream.addEventListener('connected', function () {
@@ -655,11 +665,12 @@ MediaStreamRenderer.prototype.render = function (stream) {
 				return;
 			}
 
-			emitVideoEvents();
+			connected();
 		});
 	}
 
-	function emitVideoEvents() {
+	function connected() {
+		// Emit video events.
 		self.element.dispatchEvent(new Event('loadedmetadata'));
 		self.element.dispatchEvent(new Event('loadeddata'));
 		self.element.dispatchEvent(new Event('canplay'));
@@ -671,25 +682,8 @@ MediaStreamRenderer.prototype.render = function (stream) {
 MediaStreamRenderer.prototype.refresh = function () {
 	debug('refresh()');
 
-	/**
-	 * First remove "width" and "height" from the inline style in the element if
-	 * previously added by this function.
-	 */
-
-	if (this.element_added_style_width && this.element.style.width) {
-		debug('refresh() | removing element style width previously added by this function');
-
-		this.element.style.width = '';
-		this.element_added_style_width = undefined;
-	}
-	if (this.element_added_style_height && this.element.style.height) {
-		debug('refresh() | removing element style height previously added by this function');
-
-		this.element.style.height = '';
-		this.element_added_style_height = undefined;
-	}
-
 	var elementPositionAndSize = getElementPositionAndSize.call(this),
+		computedStyle,
 		videoRatio,
 		elementRatio,
 		elementLeft = elementPositionAndSize.left,
@@ -705,29 +699,31 @@ MediaStreamRenderer.prototype.refresh = function () {
 		objectFit,
 		clip;
 
+	computedStyle = window.getComputedStyle(this.element);
+
 	// visible
-	if (window.getComputedStyle(this.element).visibility === 'hidden') {
+	if (computedStyle.visibility === 'hidden') {
 		visible = false;
 	} else {
 		visible = !!this.element.offsetHeight;  // Returns 0 if element or any parent is hidden.
 	}
 
 	// opacity
-	opacity = parseFloat(window.getComputedStyle(this.element).opacity);
+	opacity = parseFloat(computedStyle.opacity);
 
 	// zIndex
-	zIndex = parseFloat(window.getComputedStyle(this.element).zIndex) || parseFloat(this.element.style.zIndex) || 0;
+	zIndex = parseFloat(computedStyle.zIndex) || parseFloat(this.element.style.zIndex) || 0;
 
 	// mirrored (detect "-webkit-transform: scaleX(-1);" or equivalent)
-	if (window.getComputedStyle(this.element).transform === 'matrix(-1, 0, 0, 1, 0, 0)' ||
-		window.getComputedStyle(this.element)['-webkit-transform'] === 'matrix(-1, 0, 0, 1, 0, 0)') {
+	if (computedStyle.transform === 'matrix(-1, 0, 0, 1, 0, 0)' ||
+		computedStyle['-webkit-transform'] === 'matrix(-1, 0, 0, 1, 0, 0)') {
 		mirrored = true;
 	} else {
 		mirrored = false;
 	}
 
 	// objectFit ('contain' is set as default value)
-	objectFit = window.getComputedStyle(this.element).objectFit || 'contain';
+	objectFit = computedStyle.objectFit || 'contain';
 
 	// clip
 	if (objectFit === 'none') {
@@ -753,44 +749,11 @@ MediaStreamRenderer.prototype.refresh = function () {
 	 * Element has no width and/or no height.
 	 */
 
-	if (!elementWidth && !elementHeight) {
-		debug('refresh() | video element has 0 width and 0 height');
+	if (!elementWidth || !elementHeight) {
+		debug('refresh() | video element has 0 width and/or 0 height');
 
-		if (!this.element.style.width) {
-			elementWidth = this.videoWidth;
-			this.element.style.width = elementWidth + 'px';
-			this.element_added_style_width = this.element.style.width;
-		} else {
-			elementWidth = parseInt(this.element.style.width);
-		}
-
-		if (!this.element.style.height) {
-			elementHeight = this.videoHeight;
-			this.element.style.height = elementHeight + 'px';
-			this.element_added_style_height = this.element.style.height;
-		} else {
-			elementHeight = parseInt(this.element.style.height);
-		}
-	} else if (!elementWidth) {
-		debug('refresh() | video element has 0 width');
-
-		if (!this.element.style.width) {
-			elementWidth = elementHeight * videoRatio;
-			this.element.style.width = elementWidth + 'px';
-			this.element_added_style_width = this.element.style.width;
-		} else {
-			elementWidth = parseInt(this.element.style.width);
-		}
-	} else if (!elementHeight) {
-		debug('refresh() | video element has 0 height');
-
-		if (!this.element.style.height) {
-			elementHeight = elementWidth / videoRatio;
-			this.element.style.height = elementHeight + 'px';
-			this.element_added_style_height = this.element.style.height;
-		} else {
-			elementHeight = parseInt(this.element.style.height);
-		}
+		nativeRefresh.call(this);
+		return;
 	}
 
 	/**
@@ -859,12 +822,24 @@ MediaStreamRenderer.prototype.refresh = function () {
 	nativeRefresh.call(this);
 
 	function nativeRefresh() {
-		debug('refresh() | [elementLeft:%s, elementTop:%s, elementWidth:%s, elementHeight:%s, videoViewWidth:%s, videoViewHeight:%s, visible:%s, opacity:%s, zIndex:%s, mirrored:%s, objectFit:%s, clip:%s]',
-			elementLeft, elementTop, elementWidth, elementHeight, videoViewWidth, videoViewHeight, visible, opacity, zIndex, mirrored, objectFit, clip);
+		var data = {
+			elementLeft: elementLeft,
+			elementTop: elementTop,
+			elementWidth: elementWidth,
+			elementHeight: elementHeight,
+			videoViewWidth: videoViewWidth,
+			videoViewHeight: videoViewHeight,
+			visible: visible,
+			opacity: opacity,
+			zIndex: zIndex,
+			mirrored: mirrored,
+			objectFit: objectFit,
+			clip: clip
+		};
 
-		exec(null, null, 'iosrtcPlugin', 'MediaStreamRenderer_refresh', [
-			this.id, elementLeft, elementTop, elementWidth, elementHeight, videoViewWidth, videoViewHeight, visible, opacity, zIndex, mirrored, clip
-		]);
+		debug('refresh() | [data:%o]', data);
+
+		exec(null, null, 'iosrtcPlugin', 'MediaStreamRenderer_refresh', [this.id, data]);
 	}
 };
 
@@ -872,6 +847,9 @@ MediaStreamRenderer.prototype.refresh = function () {
 MediaStreamRenderer.prototype.close = function () {
 	debug('close()');
 
+	if (!this.stream) {
+		return;
+	}
 	this.stream = undefined;
 
 	exec(null, null, 'iosrtcPlugin', 'MediaStreamRenderer_close', [this.id]);
@@ -2352,7 +2330,6 @@ function dump() {
 	exec(null, null, 'iosrtcPlugin', 'dump', []);
 }
 
-
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./MediaStream":4,"./MediaStreamTrack":6,"./RTCIceCandidate":8,"./RTCPeerConnection":9,"./RTCSessionDescription":10,"./getMediaDevices":11,"./getUserMedia":12,"./rtcninjaPlugin":14,"./videoElementsHandler":15,"cordova/exec":undefined,"debug":16,"domready":19}],14:[function(require,module,exports){
 /**
@@ -2650,18 +2627,63 @@ function provideMediaStreamRenderer(video, mediaStreamBlobId) {
 		mediaStreamRenderers[mediaStreamRenderer.id] = mediaStreamRenderer;
 		video._iosrtcMediaStreamRendererId = mediaStreamRenderer.id;
 	}
+
+	// Close the MediaStreamRenderer of this video if it emits "close" event.
+	mediaStreamRenderer.addEventListener('close', function () {
+		if (mediaStreamRenderers[video._iosrtcMediaStreamRendererId] !== mediaStreamRenderer) {
+			return;
+		}
+
+		releaseMediaStreamRenderer(video);
+	});
+
+	// Override some <video> properties.
+	// NOTE: This is a terrible hack but it works.
+	Object.defineProperties(video, {
+		videoWidth: {
+			configurable: true,
+			get: function () {
+				return mediaStreamRenderer.videoWidth || 0;
+			}
+		},
+		videoHeight: {
+			configurable: true,
+			get: function () {
+				return mediaStreamRenderer.videoHeight || 0;
+			}
+		},
+		readyState: {
+			configurable: true,
+			get: function () {
+				if (mediaStreamRenderer && mediaStreamRenderer.stream && mediaStreamRenderer.stream.connected) {
+					return video.HAVE_ENOUGH_DATA;
+				} else {
+					return video.HAVE_NOTHING;
+				}
+			}
+		}
+	});
 }
 
 
 function releaseMediaStreamRenderer(video) {
-	var mediaStreamRenderer = mediaStreamRenderers[video._iosrtcMediaStreamRendererId];
+	if (!video._iosrtcMediaStreamRendererId) {
+		return;
+	}
 
-	delete video._iosrtcMediaStreamRendererId;
+	var mediaStreamRenderer = mediaStreamRenderers[video._iosrtcMediaStreamRendererId];
 
 	if (mediaStreamRenderer) {
 		delete mediaStreamRenderers[video._iosrtcMediaStreamRendererId];
 		mediaStreamRenderer.close();
 	}
+
+	delete video._iosrtcMediaStreamRendererId;
+
+	// Remove overrided <video> properties.
+	delete video.videoWidth;
+	delete video.videoHeight;
+	delete video.readyState;
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})

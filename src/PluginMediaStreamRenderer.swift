@@ -131,8 +131,8 @@ class PluginMediaStreamRenderer : RTCEAGLVideoViewDelegate {
 		let elementTop = data.objectForKey("elementTop") as? Float ?? 0
 		let elementWidth = data.objectForKey("elementWidth") as? Float ?? 0
 		let elementHeight = data.objectForKey("elementHeight") as? Float ?? 0
-		let videoViewWidth = data.objectForKey("videoViewWidth") as? Float ?? 0
-		let videoViewHeight = data.objectForKey("videoViewHeight") as? Float ?? 0
+		var videoViewWidth = data.objectForKey("videoViewWidth") as? Float ?? 0
+		var videoViewHeight = data.objectForKey("videoViewHeight") as? Float ?? 0
 		let visible = data.objectForKey("visible") as? Bool ?? true
 		let opacity = data.objectForKey("opacity") as? Float ?? 1
 		let zIndex = data.objectForKey("zIndex") as? Float ?? 0
@@ -141,12 +141,8 @@ class PluginMediaStreamRenderer : RTCEAGLVideoViewDelegate {
 
 		NSLog("PluginMediaStreamRenderer#refresh() [elementLeft:\(elementLeft), elementTop:\(elementTop), elementWidth:\(elementWidth), elementHeight:\(elementHeight), videoViewWidth:\(videoViewWidth), videoViewHeight:\(videoViewHeight), visible:\(visible), opacity:\(opacity), zIndex:\(zIndex), mirrored:\(mirrored), clip:\(clip)]")
 
-		var videoViewLeft: Float
-		var videoViewTop: Float
-
-		if elementWidth == 0 || elementHeight == 0 {
-			return
-		}
+		var videoViewLeft: Float = (elementWidth - videoViewWidth) / 2
+		var videoViewTop: Float = (elementHeight - videoViewHeight) / 2
 
 		self.elementView.frame = CGRectMake(
 			CGFloat(elementLeft),
@@ -155,8 +151,14 @@ class PluginMediaStreamRenderer : RTCEAGLVideoViewDelegate {
 			CGFloat(elementHeight)
 		)
 
-		videoViewLeft = (elementWidth - videoViewWidth) / 2
-		videoViewTop = (elementHeight - videoViewHeight) / 2
+		// NOTE: Avoid a zero-size UIView for the video (the library complains).
+		if (videoViewWidth == 0 || videoViewHeight == 0) {
+			videoViewWidth = 1
+			videoViewHeight = 1
+			self.videoView.hidden = true
+		} else {
+			self.videoView.hidden = false
+		}
 
 		self.videoView.frame = CGRectMake(
 			CGFloat(videoViewLeft),

@@ -59,13 +59,13 @@ module.exports = function (context) {
 
 	// Checking if the project files are in the right place
 	if (!fs.existsSync(xcodeProjectPath)) {
-		console.log('ERROR: An error occured searching the project file at: "' + xcodeProjectPath + '"');
+		console.error('ERROR: An error occured searching the project file at: "' + xcodeProjectPath + '"');
 
 		return;
 	}
 	console.log('".pbxproj" project file found: ' + xcodeProjectPath);
 	if (!fs.existsSync(xcconfigPath)) {
-		console.log('ERROR: An error occured searching the project file at: "' + xcconfigPath + '"');
+		console.error('ERROR: An error occured searching the project file at: "' + xcconfigPath + '"');
 
 		return;
 	}
@@ -96,7 +96,7 @@ module.exports = function (context) {
 		var configurations, buildSettings;
 
 		if (error) {
-			console.log('ERROR: An error occured during the parse of the project file');
+			console.error('ERROR: An error occured during the parse of the project file');
 		} else {
 			configurations = nonComments(xcodeProject.pbxXCBuildConfigurationSection());
 			// Adding or changing the parameters we need
