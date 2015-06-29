@@ -32,6 +32,8 @@ $ cordova plugin add cordova-plugin-iosrtc
 
 This plugin needs [Swift](https://developer.apple.com/swift/) support so some steps are needed to get your project working with it. These steps are explained in the [Building](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/docs/Building.md) documentation, please check it.
 
+**IMPORTANT:** It seems that the incoming [Swift 2.0](https://developer.apple.com/swift/blog/?id=29) (included in the next OS X [El Capitan](https://developer.apple.com/osx/pre-release/)) requires code changes for the plugin to compile. It will be addressed in [issue #28](https://github.com/eface2face/cordova-plugin-iosrtc/issues/28).
+
 
 ## Usage
 
