@@ -171,7 +171,7 @@ cordova.plugins.iosrtc.debug.enable('iosrtc*');
 
 A plugin interface for [rtcninja](https://github.com/eface2face/rtcninja.js/). 
 
-Usage (assuming that [Cordova Device Plugin](http://plugins.cordova.io/#/package/org.apache.cordova.device) is installed):
+Usage (assuming that [cordova-plugin-device](https://www.npmjs.com/package/cordova-plugin-device) is installed):
 
 ```javascript
 // Just for Cordova apps.
