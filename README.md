@@ -30,7 +30,7 @@ $ cordova plugin add cordova-plugin-iosrtc
 
 ## Building
 
-This plugin needs [Swift](https://developer.apple.com/swift/) support so some steps are needed to get your project working with it. These steps are explained in the [Building](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/docs/Building.md) documentation, please check it.
+This plugin needs [Swift](https://developer.apple.com/swift/) support so some steps are needed to get your project working with it. These steps are explained in the [Building](docs/Building.md) documentation, please check it.
 
 **IMPORTANT:** It seems that the incoming [Swift 2.0](https://developer.apple.com/swift/blog/?id=29) (included in the next OS X [El Capitan](https://developer.apple.com/osx/pre-release/)) requires code changes for the plugin to compile. It will be addressed in [issue #28](https://github.com/eface2face/cordova-plugin-iosrtc/issues/28).
 
@@ -103,7 +103,7 @@ Again, there is no real video attached to the `<video>` element so some peropert
 
 ## Documentation
 
-Read the full [documentation](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/docs/index.md) in the *docs* folder.
+Read the full [documentation](docs/index.md) in the *docs* folder.
 
 
 ## Demo application
@@ -113,9 +113,9 @@ Check our [iOSRTCApp](https://github.com/eface2face/iOSRTCApp) (Google's [AppRTC
 
 ## Who Uses It
 
-[People and companies](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/WHO_USES_IT.md) using *cordova-plugin-iosrtc*.
+[People and companies](WHO_USES_IT.md) using *cordova-plugin-iosrtc*.
 
-If you are using the plugin we would love to [heard back from you](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/WHO_USES_IT.md)!
+If you are using the plugin we would love to [heard back from you](WHO_USES_IT.md)!
 
 
 ## Known Issues
@@ -125,7 +125,7 @@ If you are using the plugin we would love to [heard back from you](https://githu
 
 Don't call plugin methods within WebSocket events (`onopen`, `onmessage`, etc). There is an issue in iOS Safari (see [issue #12](https://github.com/eface2face/cordova-plugin-iosrtc/issues/12)). Instead run a `setTimeout()` within the WebSocket event if you need to call plugin methods on it.
 
-Or better, just load the provided [ios-websocket-hack.js](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/extra/ios-websocket-hack.js) script into your Cordova iOS app and you are done.
+Or better, just load the provided [ios-websocket-hack.js](extra/ios-websocket-hack.js) script into your Cordova iOS app and you are done.
 
 
 #### HTML5 video API
@@ -146,7 +146,7 @@ Methods such as `play()`, `pause()` are not implemented. In order to pause a vid
 #### Version 1.4.0
 
 * Implemented some `<video>` properties such as `readyState`, `videoWidth` and `videoHeight` ([issue #25](https://github.com/eface2face/cordova-plugin-iosrtc/issues/25)).
-* Building simplified for both Cordova CLI and Xcode by providing a single ["hook"](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/extra/hooks/iosrtc-swift-support.js) the user must add into his Cordova application (check the [Building](Building.md) documentation for further details).
+* Building simplified for both Cordova CLI and Xcode by providing a single ["hook"](extra/hooks/iosrtc-swift-support.js) the user must add into his Cordova application (check the [Building](docs/Building.md) documentation for further details).
 
 #### Version 1.3.3
 
