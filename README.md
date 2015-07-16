@@ -146,7 +146,7 @@ Methods such as `play()`, `pause()` are not implemented. In order to pause a vid
 #### Version 1.4.0
 
 * Implemented some `<video>` properties such as `readyState`, `videoWidth` and `videoHeight` ([issue #25](https://github.com/eface2face/cordova-plugin-iosrtc/issues/25)).
-* Building simplified for both Cordova CLI and Xcode by providing a single ["hook"]((https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/extra/hooks/iosrtc-swift-support.js) the user must add into his Cordova application (check the [Building](Building.md) documentation for further details).
+* Building simplified for both Cordova CLI and Xcode by providing a single ["hook"](https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/extra/hooks/iosrtc-swift-support.js) the user must add into his Cordova application (check the [Building](Building.md) documentation for further details).
 
 #### Version 1.3.3
 
