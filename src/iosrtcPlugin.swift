@@ -2,21 +2,21 @@ import Foundation
 import AVFoundation
 
 
-@objc(iosrtcPlugin)  // This class must be accesible from ObjetiveC.
+@objc(iosrtcPlugin)  // This class must be accesible from Objective-C.
 class iosrtcPlugin : CDVPlugin {
 	// RTCPeerConnectionFactory single instance.
 	var rtcPeerConnectionFactory: RTCPeerConnectionFactory
 	// Single PluginGetUserMedia instance.
 	var pluginGetUserMedia: PluginGetUserMedia;
-	// pluginRTCPeerConnections' dictionary.
+	// PluginRTCPeerConnection dictionary.
 	var pluginRTCPeerConnections: [Int : PluginRTCPeerConnection] = [:]
-	// pluginMediaStreams' dictionary.
+	// PluginMediaStream dictionary.
 	var pluginMediaStreams: [String : PluginMediaStream] = [:]
-	// pluginMediaStreamTracks' dictionary.
+	// PluginMediaStreamTrack dictionary.
 	var pluginMediaStreamTracks: [String : PluginMediaStreamTrack] = [:]
-	// pluginMediaStreamRenderers' dictionary.
+	// PluginMediaStreamRenderer dictionary.
 	var pluginMediaStreamRenderers: [Int : PluginMediaStreamRenderer] = [:]
-	// Dispatch queue for serial operations in all the PluginRTCPeerConnections.
+	// Dispatch queue for serial operations.
 	let queue = dispatch_queue_create("cordova-plugin-iosrtc", DISPATCH_QUEUE_SERIAL)
 
 
@@ -24,7 +24,7 @@ class iosrtcPlugin : CDVPlugin {
 	override init(webView: UIWebView) {
 		NSLog("iosrtcPlugin#init()")
 
-		// Initialize SSL stuff.
+		// Initialize DTLS stuff.
 		RTCPeerConnectionFactory.initializeSSL()
 
 		// Create a RTCPeerConnectionFactory.
@@ -810,7 +810,7 @@ class iosrtcPlugin : CDVPlugin {
 			return;
 		}
 
-		// Store its pluginMediaStreamTracks into the dictionary.
+		// Store its PluginMediaStreamTracks' into the dictionary.
 		for (id, track) in pluginMediaStream.audioTracks {
 			if self.pluginMediaStreamTracks[id] == nil {
 				self.pluginMediaStreamTracks[id] = track

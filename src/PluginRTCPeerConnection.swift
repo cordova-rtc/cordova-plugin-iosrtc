@@ -6,7 +6,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 	var rtcPeerConnection: RTCPeerConnection!
 	var pluginRTCPeerConnectionConfig: PluginRTCPeerConnectionConfig
 	var pluginRTCPeerConnectionConstraints: PluginRTCPeerConnectionConstraints
-	// pluginRTCDataChannels' dictionary.
+	// PluginRTCDataChannel dictionary.
 	var pluginRTCDataChannels: [Int : PluginRTCDataChannel] = [:]
 	var eventListener: (data: NSDictionary) -> Void
 	var eventListenerForAddStream: (pluginMediaStream: PluginMediaStream) -> Void

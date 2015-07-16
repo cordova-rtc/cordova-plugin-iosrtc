@@ -20,9 +20,9 @@
 	// Store a reference of the native WebSocket class.
 	var NativeWebSocket = window.WebSocket;
 
-
-	// Override native WebSocket.
+	// Override native WebSocket and also expose the native one.
 	window.WebSocket = FakeWebSocket;
+	window.NativeWebSocket = NativeWebSocket;
 
 
 	// Fake WebSocket class that ill override the native one.

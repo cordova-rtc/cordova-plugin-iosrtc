@@ -2,7 +2,7 @@ import Foundation
 import AVFoundation
 
 
-@objc(PluginMediaStreamRenderer)
+@objc(PluginMediaStreamRenderer)  // Needed.
 class PluginMediaStreamRenderer : RTCEAGLVideoViewDelegate {
 	var webView: UIWebView
 	var eventListener: (data: NSDictionary) -> Void
