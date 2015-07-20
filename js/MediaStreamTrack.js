@@ -16,7 +16,7 @@ var
 	debug = require('debug')('iosrtc:MediaStreamTrack'),
 	exec = require('cordova/exec'),
 	getMediaDevices = require('./getMediaDevices'),
-	EventTarget = require('./EventTarget');
+	EventTarget = require('yaeti').EventTarget;
 
 
 function MediaStreamTrack(dataFromEvent) {

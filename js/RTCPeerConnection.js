@@ -12,7 +12,7 @@ var
 	debugerror = require('debug')('iosrtc:ERROR:RTCPeerConnection'),
 	exec = require('cordova/exec'),
 	randomNumber = require('random-number').generator({min: 10000, max: 99999, integer: true}),
-	EventTarget = require('./EventTarget'),
+	EventTarget = require('yaeti').EventTarget,
 	RTCSessionDescription = require('./RTCSessionDescription'),
 	RTCIceCandidate = require('./RTCIceCandidate'),
 	RTCDataChannel = require('./RTCDataChannel'),

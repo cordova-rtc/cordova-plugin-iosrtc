@@ -15,8 +15,8 @@ var MediaStream = module.exports = window.Blob,
  */
 	debug = require('debug')('iosrtc:MediaStream'),
 	exec = require('cordova/exec'),
+	EventTarget = require('yaeti').EventTarget,
 	MediaStreamTrack = require('./MediaStreamTrack'),
-	EventTarget = require('./EventTarget'),
 
 
 /**

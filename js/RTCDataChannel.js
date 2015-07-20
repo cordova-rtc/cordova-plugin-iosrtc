@@ -12,7 +12,7 @@ var
 	debugerror = require('debug')('iosrtc:ERROR:RTCDataChannel'),
 	exec = require('cordova/exec'),
 	randomNumber = require('random-number').generator({min: 10000, max: 99999, integer: true}),
-	EventTarget = require('./EventTarget');
+	EventTarget = require('yaeti').EventTarget;
 
 
 debugerror.log = console.warn.bind(console);

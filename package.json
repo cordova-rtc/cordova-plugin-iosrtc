@@ -6,7 +6,6 @@
   "license": "MIT",
   "keywords": [
     "ecosystem:cordova",
-    "cordova-ios",
     "webrtc",
     "ios"
   ],
@@ -22,10 +21,11 @@
   "dependencies": {
     "debug": "^2.2.0",
     "domready": "^1.0.8",
-    "random-number": "0.0.6"
+    "random-number": "^0.0.6",
+    "yaeti": "^0.0.1"
   },
   "devDependencies": {
-    "browserify": "^10.2.4",
+    "browserify": "^11.0.0",
     "gulp": "git+https://github.com/gulpjs/gulp.git#4.0",
     "gulp-filelog": "^0.4.1",
     "gulp-header": "^1.2.2",
