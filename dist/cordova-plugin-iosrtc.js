@@ -1,5 +1,5 @@
 /*
- * cordova-plugin-iosrtc v1.4.2
+ * cordova-plugin-iosrtc v1.4.3
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015 Iñaki Baz Castillo at eFace2Face, inc. (https://eface2face.com)
  * License MIT
@@ -149,17 +149,19 @@ MediaStream.create = function (dataFromEvent) {
 	stream.label = dataFromEvent.id;  // Backwards compatibility.
 	stream.active = true;
 
-	// Private attributes.
-	stream.blobId = blobId;
-	stream.audioTracks = {};
-	stream.videoTracks = {};
+	// Public but internal attributes.
 	stream.connected = false;
+
+	// Private attributes.
+	stream._blobId = blobId;
+	stream._audioTracks = {};
+	stream._videoTracks = {};
 
 	for (trackId in dataFromEvent.audioTracks) {
 		if (dataFromEvent.audioTracks.hasOwnProperty(trackId)) {
 			track = new MediaStreamTrack(dataFromEvent.audioTracks[trackId]);
 
-			stream.audioTracks[track.id] = track;
+			stream._audioTracks[track.id] = track;
 
 			addListenerForTrackEnded.call(stream, track);
 		}
@@ -169,7 +171,7 @@ MediaStream.create = function (dataFromEvent) {
 		if (dataFromEvent.videoTracks.hasOwnProperty(trackId)) {
 			track = new MediaStreamTrack(dataFromEvent.videoTracks[trackId]);
 
-			stream.videoTracks[track.id] = track;
+			stream._videoTracks[track.id] = track;
 
 			addListenerForTrackEnded.call(stream, track);
 		}
@@ -191,9 +193,9 @@ MediaStream.prototype.getAudioTracks = function () {
 	var tracks = [],
 		id;
 
-	for (id in this.audioTracks) {
-		if (this.audioTracks.hasOwnProperty(id)) {
-			tracks.push(this.audioTracks[id]);
+	for (id in this._audioTracks) {
+		if (this._audioTracks.hasOwnProperty(id)) {
+			tracks.push(this._audioTracks[id]);
 		}
 	}
 
@@ -207,9 +209,9 @@ MediaStream.prototype.getVideoTracks = function () {
 	var tracks = [],
 		id;
 
-	for (id in this.videoTracks) {
-		if (this.videoTracks.hasOwnProperty(id)) {
-			tracks.push(this.videoTracks[id]);
+	for (id in this._videoTracks) {
+		if (this._videoTracks.hasOwnProperty(id)) {
+			tracks.push(this._videoTracks[id]);
 		}
 	}
 
@@ -223,15 +225,15 @@ MediaStream.prototype.getTracks = function () {
 	var tracks = [],
 		id;
 
-	for (id in this.audioTracks) {
-		if (this.audioTracks.hasOwnProperty(id)) {
-			tracks.push(this.audioTracks[id]);
+	for (id in this._audioTracks) {
+		if (this._audioTracks.hasOwnProperty(id)) {
+			tracks.push(this._audioTracks[id]);
 		}
 	}
 
-	for (id in this.videoTracks) {
-		if (this.videoTracks.hasOwnProperty(id)) {
-			tracks.push(this.videoTracks[id]);
+	for (id in this._videoTracks) {
+		if (this._videoTracks.hasOwnProperty(id)) {
+			tracks.push(this._videoTracks[id]);
 		}
 	}
 
@@ -242,7 +244,7 @@ MediaStream.prototype.getTracks = function () {
 MediaStream.prototype.getTrackById = function (id) {
 	debug('getTrackById()');
 
-	return this.audioTracks[id] || this.videoTracks[id] || null;
+	return this._audioTracks[id] || this._videoTracks[id] || null;
 };
 
 
@@ -253,14 +255,14 @@ MediaStream.prototype.addTrack = function (track) {
 		throw new Error('argument must be an instance of MediaStreamTrack');
 	}
 
-	if (this.audioTracks[track.id] || this.videoTracks[track.id]) {
+	if (this._audioTracks[track.id] || this._videoTracks[track.id]) {
 		return;
 	}
 
 	if (track.kind === 'audio') {
-		this.audioTracks[track.id] = track;
+		this._audioTracks[track.id] = track;
 	} else if (track.kind === 'video') {
-		this.videoTracks[track.id] = track;
+		this._videoTracks[track.id] = track;
 	} else {
 		throw new Error('unknown kind attribute: ' + track.kind);
 	}
@@ -278,14 +280,14 @@ MediaStream.prototype.removeTrack = function (track) {
 		throw new Error('argument must be an instance of MediaStreamTrack');
 	}
 
-	if (!this.audioTracks[track.id] && !this.videoTracks[track.id]) {
+	if (!this._audioTracks[track.id] && !this._videoTracks[track.id]) {
 		return;
 	}
 
 	if (track.kind === 'audio') {
-		delete this.audioTracks[track.id];
+		delete this._audioTracks[track.id];
 	} else if (track.kind === 'video') {
-		delete this.videoTracks[track.id];
+		delete this._videoTracks[track.id];
 	} else {
 		throw new Error('unknown kind attribute: ' + track.kind);
 	}
@@ -302,15 +304,15 @@ MediaStream.prototype.stop = function () {
 
 	var trackId;
 
-	for (trackId in this.audioTracks) {
-		if (this.audioTracks.hasOwnProperty(trackId)) {
-			this.audioTracks[trackId].stop();
+	for (trackId in this._audioTracks) {
+		if (this._audioTracks.hasOwnProperty(trackId)) {
+			this._audioTracks[trackId].stop();
 		}
 	}
 
-	for (trackId in this.videoTracks) {
-		if (this.videoTracks.hasOwnProperty(trackId)) {
-			this.videoTracks[trackId].stop();
+	for (trackId in this._videoTracks) {
+		if (this._videoTracks.hasOwnProperty(trackId)) {
+			this._videoTracks[trackId].stop();
 		}
 	}
 };
@@ -344,9 +346,9 @@ function addListenerForTrackEnded(track) {
 	var self = this;
 
 	track.addEventListener('ended', function () {
-		if (track.kind === 'audio' && !self.audioTracks[track.id]) {
+		if (track.kind === 'audio' && !self._audioTracks[track.id]) {
 			return;
-		} else if (track.kind === 'video' && !self.videoTracks[track.id]) {
+		} else if (track.kind === 'video' && !self._videoTracks[track.id]) {
 			return;
 		}
 
@@ -367,24 +369,24 @@ function checkActive() {
 		return;
 	}
 
-	if (Object.keys(this.audioTracks).length === 0 && Object.keys(this.videoTracks).length === 0) {
+	if (Object.keys(this._audioTracks).length === 0 && Object.keys(this._videoTracks).length === 0) {
 		debug('no tracks, releasing MediaStream');
 
 		release();
 		return;
 	}
 
-	for (trackId in this.audioTracks) {
-		if (this.audioTracks.hasOwnProperty(trackId)) {
-			if (this.audioTracks[trackId].readyState !== 'ended') {
+	for (trackId in this._audioTracks) {
+		if (this._audioTracks.hasOwnProperty(trackId)) {
+			if (this._audioTracks[trackId].readyState !== 'ended') {
 				return;
 			}
 		}
 	}
 
-	for (trackId in this.videoTracks) {
-		if (this.videoTracks.hasOwnProperty(trackId)) {
-			if (this.videoTracks[trackId].readyState !== 'ended') {
+	for (trackId in this._videoTracks) {
+		if (this._videoTracks.hasOwnProperty(trackId)) {
+			if (this._videoTracks[trackId].readyState !== 'ended') {
 				return;
 			}
 		}
@@ -398,7 +400,7 @@ function checkActive() {
 		self.dispatchEvent(new Event('inactive'));
 
 		// Remove the stream from the dictionary.
-		delete mediaStreams[self.blobId];
+		delete mediaStreams[self._blobId];
 
 		exec(null, null, 'iosrtcPlugin', 'MediaStream_release', [self.id]);
 	}
@@ -417,9 +419,9 @@ function onEvent(data) {
 			track = new MediaStreamTrack(data.track);
 
 			if (track.kind === 'audio') {
-				this.audioTracks[track.id] = track;
+				this._audioTracks[track.id] = track;
 			} else if (track.kind === 'video') {
-				this.videoTracks[track.id] = track;
+				this._videoTracks[track.id] = track;
 			}
 			addListenerForTrackEnded.call(this, track);
 
@@ -434,11 +436,11 @@ function onEvent(data) {
 
 		case 'removetrack':
 			if (data.track.kind === 'audio') {
-				track = this.audioTracks[data.track.id];
-				delete this.audioTracks[data.track.id];
+				track = this._audioTracks[data.track.id];
+				delete this._audioTracks[data.track.id];
 			} else if (data.track.kind === 'video') {
-				track = this.videoTracks[data.track.id];
-				delete this.videoTracks[data.track.id];
+				track = this._videoTracks[data.track.id];
+				delete this._videoTracks[data.track.id];
 			}
 
 			if (!track) {
