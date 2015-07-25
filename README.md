@@ -139,6 +139,14 @@ Methods such as `play()`, `pause()` are not implemented. In order to pause a vid
 
 (since version 1.2.8)
 
+#### Version 1.4.3
+
+* Make private properties more private ([issue #34](https://github.com/eface2face/cordova-plugin-iosrtc/issues/34)).
+
+#### Version 1.4.2
+
+* Use [yaeti](https://github.com/ibc/yaeti) module as `EventTarget` shim.
+
 #### Version 1.4.1
 
 * Release `MediaStreamRenderer` and revert `<video>` properties when the attached `MediaStream` emits "inactive" ([issue #27](https://github.com/eface2face/cordova-plugin-iosrtc/issues/27)).
