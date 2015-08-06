@@ -21,14 +21,14 @@ class PluginMediaStream : NSObject, RTCMediaStreamDelegate {
 		self.id = rtcMediaStream.label  // Old API uses "label" instead of "id".
 
 		for track: RTCMediaStreamTrack in (self.rtcMediaStream.audioTracks as! Array<RTCMediaStreamTrack>) {
-			var pluginMediaStreamTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: track)
+			let pluginMediaStreamTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: track)
 
 			pluginMediaStreamTrack.run()
 			self.audioTracks[pluginMediaStreamTrack.id] = pluginMediaStreamTrack
 		}
 
 		for track: RTCMediaStreamTrack in (self.rtcMediaStream.videoTracks as! Array<RTCMediaStreamTrack>) {
-			var pluginMediaStreamTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: track)
+			let pluginMediaStreamTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: track)
 
 			pluginMediaStreamTrack.run()
 			self.videoTracks[pluginMediaStreamTrack.id] = pluginMediaStreamTrack
@@ -44,7 +44,7 @@ class PluginMediaStream : NSObject, RTCMediaStreamDelegate {
 
 
 	func getJSON() -> NSDictionary {
-		var json: NSMutableDictionary = [
+		let json: NSMutableDictionary = [
 			"id": self.id,
 			"audioTracks": NSMutableDictionary(),
 			"videoTracks": NSMutableDictionary()
@@ -140,7 +140,7 @@ class PluginMediaStream : NSObject, RTCMediaStreamDelegate {
 	func OnAddAudioTrack(rtcMediaStream: RTCMediaStream!, track: RTCMediaStreamTrack!) {
 		NSLog("PluginMediaStream | OnAddAudioTrack [label:\(track.label)]")
 
-		var pluginMediaStreamTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: track)
+		let pluginMediaStreamTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: track)
 
 		pluginMediaStreamTrack.run()
 		self.audioTracks[pluginMediaStreamTrack.id] = pluginMediaStreamTrack
@@ -159,7 +159,7 @@ class PluginMediaStream : NSObject, RTCMediaStreamDelegate {
 	func OnAddVideoTrack(rtcMediaStream: RTCMediaStream!, track: RTCMediaStreamTrack!) {
 		NSLog("PluginMediaStream | OnAddVideoTrack [label:\(track.label)]")
 
-		var pluginMediaStreamTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: track)
+		let pluginMediaStreamTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: track)
 
 		pluginMediaStreamTrack.run()
 		self.videoTracks[pluginMediaStreamTrack.id] = pluginMediaStreamTrack

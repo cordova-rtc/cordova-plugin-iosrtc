@@ -21,7 +21,7 @@ class PluginMediaStreamRenderer : RTCEAGLVideoViewDelegate {
 
 		self.webView = webView
 		self.eventListener = eventListener
-		self.elementView = RTCEAGLVideoView()
+		self.elementView = UIView()
 		self.videoView = RTCEAGLVideoView()
 
 		self.webView.addSubview(self.elementView)
@@ -78,7 +78,7 @@ class PluginMediaStreamRenderer : RTCEAGLVideoViewDelegate {
 			return
 		}
 
-		var oldRtcVideoTrack: RTCVideoTrack? = self.rtcVideoTrack
+		let oldRtcVideoTrack: RTCVideoTrack? = self.rtcVideoTrack
 
 		self.rtcAudioTrack = nil
 		self.rtcVideoTrack = nil
@@ -141,8 +141,8 @@ class PluginMediaStreamRenderer : RTCEAGLVideoViewDelegate {
 
 		NSLog("PluginMediaStreamRenderer#refresh() [elementLeft:\(elementLeft), elementTop:\(elementTop), elementWidth:\(elementWidth), elementHeight:\(elementHeight), videoViewWidth:\(videoViewWidth), videoViewHeight:\(videoViewHeight), visible:\(visible), opacity:\(opacity), zIndex:\(zIndex), mirrored:\(mirrored), clip:\(clip)]")
 
-		var videoViewLeft: Float = (elementWidth - videoViewWidth) / 2
-		var videoViewTop: Float = (elementHeight - videoViewHeight) / 2
+		let videoViewLeft: Float = (elementWidth - videoViewWidth) / 2
+		let videoViewTop: Float = (elementHeight - videoViewHeight) / 2
 
 		self.elementView.frame = CGRectMake(
 			CGFloat(elementLeft),
@@ -152,7 +152,7 @@ class PluginMediaStreamRenderer : RTCEAGLVideoViewDelegate {
 		)
 
 		// NOTE: Avoid a zero-size UIView for the video (the library complains).
-		if (videoViewWidth == 0 || videoViewHeight == 0) {
+		if videoViewWidth == 0 || videoViewHeight == 0 {
 			videoViewWidth = 1
 			videoViewHeight = 1
 			self.videoView.hidden = true
@@ -182,7 +182,7 @@ class PluginMediaStreamRenderer : RTCEAGLVideoViewDelegate {
 			self.elementView.transform = CGAffineTransformMakeScale(-1.0, 1.0)
 		}
 
-		if (clip) {
+		if clip {
 			self.elementView.clipsToBounds = true
 		} else {
 			self.elementView.clipsToBounds = false

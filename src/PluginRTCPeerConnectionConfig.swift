@@ -8,16 +8,16 @@ class PluginRTCPeerConnectionConfig {
 	init(pcConfig: NSDictionary?) {
 		NSLog("PluginRTCPeerConnectionConfig#init()")
 
-		var iceServers = pcConfig?.objectForKey("iceServers") as? [NSDictionary]
+		let iceServers = pcConfig?.objectForKey("iceServers") as? [NSDictionary]
 
 		if iceServers == nil {
 			return
 		}
 
 		for iceServer: NSDictionary in iceServers! {
-			var url = iceServer.objectForKey("url") as? String
-			var username = iceServer.objectForKey("username") as? String ?? ""
-			var password = iceServer.objectForKey("credential") as? String ?? ""
+			let url = iceServer.objectForKey("url") as? String
+			let username = iceServer.objectForKey("username") as? String ?? ""
+			let password = iceServer.objectForKey("credential") as? String ?? ""
 
 			if (url != nil) {
 				NSLog("PluginRTCPeerConnectionConfig#init() | adding ICE server [url:\(url!), username:\(username), password:\(password)]")

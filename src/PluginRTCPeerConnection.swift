@@ -208,7 +208,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 		let sdpMLineIndex = candidate.objectForKey("sdpMLineIndex") as? Int ?? 0
 		let candidate = candidate.objectForKey("candidate") as? String ?? ""
 
-		var result: Bool = self.rtcPeerConnection.addICECandidate(RTCICECandidate(
+		let result: Bool = self.rtcPeerConnection.addICECandidate(RTCICECandidate(
 			mid: sdpMid,
 			index: sdpMLineIndex,
 			sdp: candidate

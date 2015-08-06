@@ -13,7 +13,7 @@ class PluginGetMediaDevices {
 
 		let devices = AVCaptureDevice.devices() as! Array<AVCaptureDevice>
 
-		var json: NSMutableDictionary = [
+		let json: NSMutableDictionary = [
 			"devices": NSMutableDictionary()
 		]
 

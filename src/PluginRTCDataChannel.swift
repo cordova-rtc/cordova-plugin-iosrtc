@@ -129,12 +129,12 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 	) {
 		NSLog("PluginRTCDataChannel#sendString()")
 
-		var buffer = RTCDataBuffer(
+		let buffer = RTCDataBuffer(
 			data: (data.dataUsingEncoding(NSUTF8StringEncoding))!,
 			isBinary: false
 		)
 
-		var result = self.rtcDataChannel!.sendData(buffer)
+		let result = self.rtcDataChannel!.sendData(buffer)
 		if result == true {
 			callback(data: [
 				"bufferedAmount": self.rtcDataChannel!.bufferedAmount
@@ -151,12 +151,12 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 	) {
 		NSLog("PluginRTCDataChannel#sendBinary()")
 
-		var buffer = RTCDataBuffer(
+		let buffer = RTCDataBuffer(
 			data: data,
 			isBinary: true
 		)
 
-		var result = self.rtcDataChannel!.sendData(buffer)
+		let result = self.rtcDataChannel!.sendData(buffer)
 		if result == true {
 			callback(data: [
 				"bufferedAmount": self.rtcDataChannel!.bufferedAmount
