@@ -19,19 +19,26 @@ class PluginMediaStreamRenderer : RTCEAGLVideoViewDelegate {
 	) {
 		NSLog("PluginMediaStreamRenderer#init()")
 
+		// The browser HTML view.
 		self.webView = webView
 		self.eventListener = eventListener
+		// The video element view.
 		self.elementView = UIView()
+		// The effective video view in which the the video stream is shown.
+		// It's placed over the elementView.
 		self.videoView = RTCEAGLVideoView()
 
 		self.webView.addSubview(self.elementView)
 		self.webView.bringSubviewToFront(self.elementView)
+		// TODO: TEST
+		// self.webView.sendSubviewToBack(self.elementView)
+		// self.webView.backgroundColor = UIColor.clearColor()
 
 		self.elementView.userInteractionEnabled = false
 		self.elementView.hidden = true
 		self.elementView.backgroundColor = UIColor.blackColor()
 		self.elementView.addSubview(self.videoView)
-		self.elementView.bringSubviewToFront(self.videoView)
+		self.elementView.layer.masksToBounds = true
 
 		self.videoView.userInteractionEnabled = false
 	}
@@ -138,8 +145,9 @@ class PluginMediaStreamRenderer : RTCEAGLVideoViewDelegate {
 		let zIndex = data.objectForKey("zIndex") as? Float ?? 0
 		let mirrored = data.objectForKey("mirrored") as? Bool ?? false
 		let clip = data.objectForKey("clip") as? Bool ?? true
+		var borderRadius = data.objectForKey("borderRadius") as? Float ?? 0
 
-		NSLog("PluginMediaStreamRenderer#refresh() [elementLeft:\(elementLeft), elementTop:\(elementTop), elementWidth:\(elementWidth), elementHeight:\(elementHeight), videoViewWidth:\(videoViewWidth), videoViewHeight:\(videoViewHeight), visible:\(visible), opacity:\(opacity), zIndex:\(zIndex), mirrored:\(mirrored), clip:\(clip)]")
+		NSLog("PluginMediaStreamRenderer#refresh() [elementLeft:\(elementLeft), elementTop:\(elementTop), elementWidth:\(elementWidth), elementHeight:\(elementHeight), videoViewWidth:\(videoViewWidth), videoViewHeight:\(videoViewHeight), visible:\(visible), opacity:\(opacity), zIndex:\(zIndex), mirrored:\(mirrored), clip:\(clip), borderRadius:\(borderRadius)]")
 
 		let videoViewLeft: Float = (elementWidth - videoViewWidth) / 2
 		let videoViewTop: Float = (elementHeight - videoViewHeight) / 2
@@ -187,6 +195,8 @@ class PluginMediaStreamRenderer : RTCEAGLVideoViewDelegate {
 		} else {
 			self.elementView.clipsToBounds = false
 		}
+
+		self.elementView.layer.cornerRadius = CGFloat(borderRadius)
 	}
 
 

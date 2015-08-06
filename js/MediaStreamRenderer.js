@@ -123,7 +123,8 @@ MediaStreamRenderer.prototype.refresh = function () {
 		zIndex,
 		mirrored,
 		objectFit,
-		clip;
+		clip,
+		borderRadius;
 
 	computedStyle = window.getComputedStyle(this.element);
 
@@ -156,6 +157,12 @@ MediaStreamRenderer.prototype.refresh = function () {
 		clip = false;
 	} else {
 		clip = true;
+	}
+
+	// borderRadius
+	borderRadius = parseFloat(computedStyle.borderRadius);
+	if (/%$/.test(borderRadius)) {
+		borderRadius = Math.min(elementHeight, elementWidth) * borderRadius;
 	}
 
 	/**
@@ -260,7 +267,8 @@ MediaStreamRenderer.prototype.refresh = function () {
 			zIndex: zIndex,
 			mirrored: mirrored,
 			objectFit: objectFit,
-			clip: clip
+			clip: clip,
+			borderRadius: borderRadius
 		};
 
 		debug('refresh() | [data:%o]', data);

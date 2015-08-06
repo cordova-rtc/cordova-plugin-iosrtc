@@ -1,5 +1,5 @@
 /*
- * cordova-plugin-iosrtc v1.4.3
+ * cordova-plugin-iosrtc v1.4.4
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015 Iñaki Baz Castillo at eFace2Face, inc. (https://eface2face.com)
  * License MIT
@@ -586,7 +586,8 @@ MediaStreamRenderer.prototype.refresh = function () {
 		zIndex,
 		mirrored,
 		objectFit,
-		clip;
+		clip,
+		borderRadius;
 
 	computedStyle = window.getComputedStyle(this.element);
 
@@ -619,6 +620,12 @@ MediaStreamRenderer.prototype.refresh = function () {
 		clip = false;
 	} else {
 		clip = true;
+	}
+
+	// borderRadius
+	borderRadius = parseFloat(computedStyle.borderRadius);
+	if (/%$/.test(borderRadius)) {
+		borderRadius = Math.min(elementHeight, elementWidth) * borderRadius;
 	}
 
 	/**
@@ -723,7 +730,8 @@ MediaStreamRenderer.prototype.refresh = function () {
 			zIndex: zIndex,
 			mirrored: mirrored,
 			objectFit: objectFit,
-			clip: clip
+			clip: clip,
+			borderRadius: borderRadius
 		};
 
 		debug('refresh() | [data:%o]', data);
