@@ -19,8 +19,7 @@ var
  */
 	debug = require('debug')('iosrtc'),
 	exec = require('cordova/exec'),
-	domready = require('domready'),
-	videoElementsHandler = require('./videoElementsHandler');
+	domready = require('domready');
 
 
 /**
@@ -64,7 +63,7 @@ domready(function () {
 function observeVideos() {
 	// Let the MediaStream class and the videoElementsHandler share same MediaStreams container.
 	require('./MediaStream').setMediaStreams(mediaStreams);
-	videoElementsHandler(mediaStreams, mediaStreamRenderers);
+	require('./videoElementsHandler')(mediaStreams, mediaStreamRenderers);
 }
 
 
