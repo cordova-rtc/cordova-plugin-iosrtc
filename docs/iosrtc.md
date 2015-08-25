@@ -132,6 +132,32 @@ When calling this method, the height/width, opacity, visibility and z-index of a
 Call this method when the position or size of a video element changes.
 
 
+### `iosrtc.observeVideo(video)`
+
+Tell the plugin that it must monitor the given HTML5 video element.
+
+*NOTE:* This method should just be used for those `<video>` elements not yet inserted into the DOM in which the app want to attach a `MediaStream`. If the video element is already placed into the DOM at the time a `MediaStream` is attached to it then calling this method is not needed at all.
+
+```javascript
+peerconnection.addEventListener('addstream', function (event) {
+  // Create a video element in memory (not yet in the DOM).
+  var video = document.createElement('video');
+
+  // Tell the plugin to monitor it.
+  cordova.plugins.iosrtc.observeVideo(video);
+
+  // Attach the MediaStream to it.
+  video.src = URL.createObjectURL(event.stream);
+
+  // When the stream is ready to be rendered then append the video
+  // element to the DOM.
+  video.addEventListener('canplay', function () {
+    document.getElementById('videoContainer').appendChild(video);
+  });
+});
+```
+
+
 ### `iosrtc.selectAudioOutput(output)`
 
 Select the audio output device. Given `output` argument must be "earpiece" or "speaker".

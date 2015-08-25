@@ -59,7 +59,7 @@ MediaStreamRenderer.prototype.render = function (stream) {
 
 	exec(null, null, 'iosrtcPlugin', 'MediaStreamRenderer_render', [this.id, stream.id]);
 
-	// Subscribe to 'update' event so we call native mediaStreamChangedrefresh() on it.
+	// Subscribe to 'update' event so we call native mediaStreamChanged() on it.
 	stream.addEventListener('update', function () {
 		if (self.stream !== stream) {
 			return;
