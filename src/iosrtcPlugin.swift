@@ -82,6 +82,9 @@ class iosrtcPlugin : CDVPlugin {
 		// Store the pluginRTCPeerConnection into the dictionary.
 		self.pluginRTCPeerConnections[pcId] = pluginRTCPeerConnection
 
+	        //enable idle timer
+	        UIApplication.sharedApplication().idleTimerDisabled = true
+
 		// Run it.
 		pluginRTCPeerConnection.run()
 	}
@@ -348,6 +351,10 @@ class iosrtcPlugin : CDVPlugin {
 		dispatch_async(self.queue) {
 			pluginRTCPeerConnection!.close()
 		}
+		
+		        
+	        //enable idle timer
+	        UIApplication.sharedApplication().idleTimerDisabled = false
 
 		// Remove the pluginRTCPeerConnection from the dictionary.
 		self.pluginRTCPeerConnections[pcId] = nil
