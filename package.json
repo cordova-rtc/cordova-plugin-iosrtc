@@ -25,14 +25,14 @@
     "yaeti": "^0.0.4"
   },
   "devDependencies": {
-    "browserify": "^11.0.0",
+    "browserify": "^11.0.1",
     "gulp": "git+https://github.com/gulpjs/gulp.git#4.0",
     "gulp-filelog": "^0.4.1",
-    "gulp-header": "^1.2.2",
-    "gulp-jscs": "^1.6.0",
-    "gulp-jscs-stylish": "^1.1.0",
+    "gulp-header": "^1.7.1",
+    "gulp-jscs": "^2.0.0",
+    "gulp-jscs-stylish": "^1.1.2",
     "gulp-jshint": "^1.11.2",
-    "jshint-stylish": "~1.0.2",
+    "jshint-stylish": "~2.0.1",
     "vinyl-source-stream": "^1.1.0"
   },
   "cordova": {
