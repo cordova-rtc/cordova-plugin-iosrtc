@@ -1,5 +1,5 @@
 /*
- * cordova-plugin-iosrtc v1.4.4
+ * cordova-plugin-iosrtc v1.4.5-pre
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015 Iñaki Baz Castillo at eFace2Face, inc. (https://eface2face.com)
  * License MIT
@@ -522,7 +522,7 @@ MediaStreamRenderer.prototype.render = function (stream) {
 
 	exec(null, null, 'iosrtcPlugin', 'MediaStreamRenderer_render', [this.id, stream.id]);
 
-	// Subscribe to 'update' event so we call native mediaStreamChangedrefresh() on it.
+	// Subscribe to 'update' event so we call native mediaStreamChanged() on it.
 	stream.addEventListener('update', function () {
 		if (self.stream !== stream) {
 			return;
@@ -2120,9 +2120,19 @@ var
 /**
  * Dependencies.
  */
-	debug = require('debug')('iosrtc'),
-	exec = require('cordova/exec'),
-	domready = require('domready');
+	debug                  = require('debug')('iosrtc'),
+	exec                   = require('cordova/exec'),
+	domready               = require('domready'),
+
+	getUserMedia           = require('./getUserMedia'),
+	getMediaDevices        = require('./getMediaDevices'),
+	RTCPeerConnection      = require('./RTCPeerConnection'),
+	RTCSessionDescription  = require('./RTCSessionDescription'),
+	RTCIceCandidate        = require('./RTCIceCandidate'),
+	MediaStream            = require('./MediaStream'),
+	MediaStreamTrack       = require('./MediaStreamTrack'),
+	videoElementsHandler   = require('./videoElementsHandler'),
+	rtcninjaPlugin         = require('./rtcninjaPlugin');
 
 
 /**
@@ -2130,16 +2140,19 @@ var
  */
 module.exports = {
 	// Expose WebRTC classes and functions.
-	getUserMedia:          require('./getUserMedia'),
-	getMediaDevices:       require('./getMediaDevices'),
-	RTCPeerConnection:     require('./RTCPeerConnection'),
-	RTCSessionDescription: require('./RTCSessionDescription'),
-	RTCIceCandidate:       require('./RTCIceCandidate'),
-	MediaStream:           require('./MediaStream'),
-	MediaStreamTrack:      require('./MediaStreamTrack'),
+	getUserMedia:          getUserMedia,
+	getMediaDevices:       getMediaDevices,
+	RTCPeerConnection:     RTCPeerConnection,
+	RTCSessionDescription: RTCSessionDescription,
+	RTCIceCandidate:       RTCIceCandidate,
+	MediaStream:           MediaStream,
+	MediaStreamTrack:      MediaStreamTrack,
 
 	// Expose a function to refresh current videos rendering a MediaStream.
 	refreshVideos:         refreshVideos,
+
+	// Expose a function to handle a video not yet inserted in the DOM.
+	observeVideo:          videoElementsHandler.observeVideo,
 
 	// Select audio output (earpiece or speaker).
 	selectAudioOutput:     selectAudioOutput,
@@ -2148,7 +2161,7 @@ module.exports = {
 	registerGlobals:       registerGlobals,
 
 	// Expose the rtcninjaPlugin module.
-	rtcninjaPlugin:        require('./rtcninjaPlugin'),
+	rtcninjaPlugin:        rtcninjaPlugin,
 
 	// Expose the debug module.
 	debug:                 require('debug'),
@@ -2159,15 +2172,10 @@ module.exports = {
 
 
 domready(function () {
-	observeVideos();
-});
-
-
-function observeVideos() {
 	// Let the MediaStream class and the videoElementsHandler share same MediaStreams container.
-	require('./MediaStream').setMediaStreams(mediaStreams);
-	require('./videoElementsHandler')(mediaStreams, mediaStreamRenderers);
-}
+	MediaStream.setMediaStreams(mediaStreams);
+	videoElementsHandler(mediaStreams, mediaStreamRenderers);
+});
 
 
 function refreshVideos() {
@@ -2208,17 +2216,17 @@ function registerGlobals() {
 		navigator.mediaDevices = {};
 	}
 
-	navigator.getUserMedia                  = require('./getUserMedia');
-	navigator.webkitGetUserMedia            = require('./getUserMedia');
-	navigator.mediaDevices.getUserMedia     = require('./getUserMedia');
-	navigator.mediaDevices.enumerateDevices = require('./getMediaDevices');
-	window.RTCPeerConnection                = require('./RTCPeerConnection');
-	window.webkitRTCPeerConnection          = require('./RTCPeerConnection');
-	window.RTCSessionDescription            = require('./RTCSessionDescription');
-	window.RTCIceCandidate                  = require('./RTCIceCandidate');
-	window.MediaStream                      = require('./MediaStream');
-	window.webkitMediaStream                = require('./MediaStream');
-	window.MediaStreamTrack                 = require('./MediaStreamTrack');
+	navigator.getUserMedia                  = getUserMedia;
+	navigator.webkitGetUserMedia            = getUserMedia;
+	navigator.mediaDevices.getUserMedia     = getUserMedia;
+	navigator.mediaDevices.enumerateDevices = getMediaDevices;
+	window.RTCPeerConnection                = RTCPeerConnection;
+	window.webkitRTCPeerConnection          = RTCPeerConnection;
+	window.RTCSessionDescription            = RTCSessionDescription;
+	window.RTCIceCandidate                  = RTCIceCandidate;
+	window.MediaStream                      = MediaStream;
+	window.webkitMediaStream                = MediaStream;
+	window.MediaStreamTrack                 = MediaStreamTrack;
 }
 
 
@@ -2262,8 +2270,10 @@ function attachMediaStream(element, stream) {
 (function (global){
 /**
  * Expose a function that must be called when the library is loaded.
+ * And also a helper function.
  */
 module.exports = videoElementsHandler;
+module.exports.observeVideo = observeVideo;
 
 
 /**
@@ -2425,14 +2435,12 @@ function videoElementsHandler(_mediaStreams, _mediaStreamRenderers) {
 }
 
 
-/**
- * Private API.
- */
-
 function observeVideo(video) {
-	debug('observeVideo() | [class:"%s", src:%s]', video.className, video.src);
+	debug('observeVideo()');
 
-	if (video.src) {
+	// If the video already has a src property but is not yet handled by the plugin
+	// then handle it now.
+	if (video.src && !video._iosrtcMediaStreamRendererId) {
 		handleVideo(video);
 	}
 
@@ -2469,6 +2477,10 @@ function observeVideo(video) {
 	});
 }
 
+
+/**
+ * Private API.
+ */
 
 function handleVideo(video) {
 	var xhr = new XMLHttpRequest();

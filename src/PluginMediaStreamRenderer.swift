@@ -30,9 +30,6 @@ class PluginMediaStreamRenderer : RTCEAGLVideoViewDelegate {
 
 		self.webView.addSubview(self.elementView)
 		self.webView.bringSubviewToFront(self.elementView)
-		// TODO: TEST
-		// self.webView.sendSubviewToBack(self.elementView)
-		// self.webView.backgroundColor = UIColor.clearColor()
 
 		self.elementView.userInteractionEnabled = false
 		self.elementView.hidden = true

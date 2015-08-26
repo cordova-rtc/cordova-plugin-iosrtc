@@ -1,7 +1,9 @@
 /**
  * Expose a function that must be called when the library is loaded.
+ * And also a helper function.
  */
 module.exports = videoElementsHandler;
+module.exports.observeVideo = observeVideo;
 
 
 /**
@@ -163,14 +165,12 @@ function videoElementsHandler(_mediaStreams, _mediaStreamRenderers) {
 }
 
 
-/**
- * Private API.
- */
-
 function observeVideo(video) {
-	debug('observeVideo() | [class:"%s", src:%s]', video.className, video.src);
+	debug('observeVideo()');
 
-	if (video.src) {
+	// If the video already has a src property but is not yet handled by the plugin
+	// then handle it now.
+	if (video.src && !video._iosrtcMediaStreamRendererId) {
 		handleVideo(video);
 	}
 
@@ -207,6 +207,10 @@ function observeVideo(video) {
 	});
 }
 
+
+/**
+ * Private API.
+ */
 
 function handleVideo(video) {
 	var xhr = new XMLHttpRequest();
