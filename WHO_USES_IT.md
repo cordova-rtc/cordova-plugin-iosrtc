@@ -21,3 +21,12 @@ At [eFace2Face](https://eface2face.com) we use **cordova-plugin-iosrtc** for the
 *[OpenTok](https://tokbox.com/platform) lets you weave real time communications with live video, audio and data messaging into your application.*
 
 This is a community supported, open source project for enabling developers to use the OpenTok platform in mobile apps using just web technologies.
+
+
+### [ApiRTC](http://apirtc.com)
+
+![apirtc-logo](https://avatars3.githubusercontent.com/u/7846822?v=3&s=200)
+
+*Communication enabler for Web applications.*
+
+[ApiRTC](http://apirtc.com) use WebRTC technology to add real-time communication to your websites & applications.
