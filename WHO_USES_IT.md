@@ -36,4 +36,4 @@ This is a community supported, open source project for enabling developers to us
 
 ![apirtc-logo](http://gallery.iliad.fr/d/1103-3/logo_free.jpg)
 
-[Free]((https://assistance.free.fr/facetofree/) (french major ISP) use WebRTC technology to provide video support for our customers on iPhone & iPad.
+[Free](https://assistance.free.fr/facetofree/) (french major ISP) use WebRTC technology to provide video support for our customers on iPhone & iPad.
