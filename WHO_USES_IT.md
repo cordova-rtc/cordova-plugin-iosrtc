@@ -30,3 +30,10 @@ This is a community supported, open source project for enabling developers to us
 *Communication enabler for Web applications.*
 
 [ApiRTC](http://apirtc.com) use WebRTC technology to add real-time communication to your websites & applications.
+
+### [Free](https://assistance.free.fr/facetofree/)
+
+![free-logo](http://free.fr/assistance/img/logo.png)
+
+[Free](https://assistance.free.fr/facetofree/) (french major ISP) use WebRTC technology to provide video support for our customers on iPhone & iPad.
+
