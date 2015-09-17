@@ -24,7 +24,7 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 		self.eventListener = eventListener
 		self.eventListenerForBinaryMessage = eventListenerForBinaryMessage
 
-		var rtcDataChannelInit = RTCDataChannelInit()
+		let rtcDataChannelInit = RTCDataChannelInit()
 
 		if options?.objectForKey("ordered") != nil {
 			rtcDataChannelInit.isOrdered = options!.objectForKey("ordered") as! Bool
@@ -75,7 +75,7 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 				"protocol": self.rtcDataChannel!.`protocol`,
 				"negotiated": self.rtcDataChannel!.isNegotiated,
 				"id": self.rtcDataChannel!.streamId,
-				"readyState": PluginRTCTypes.dataChannelStates[self.rtcDataChannel!.state.value] as String!,
+				"readyState": PluginRTCTypes.dataChannelStates[self.rtcDataChannel!.state.rawValue] as String!,
 				"bufferedAmount": self.rtcDataChannel!.bufferedAmount
 			]
 		])
@@ -180,7 +180,7 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 
 
 	func channelDidChangeState(channel: RTCDataChannel!) {
-		let state_str = PluginRTCTypes.dataChannelStates[self.rtcDataChannel!.state.value] as String!
+		let state_str = PluginRTCTypes.dataChannelStates[self.rtcDataChannel!.state.rawValue] as String!
 
 		NSLog("PluginRTCDataChannel | state changed [state:\(state_str)]")
 

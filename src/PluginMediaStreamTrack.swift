@@ -32,7 +32,7 @@ class PluginMediaStreamTrack : NSObject, RTCMediaStreamTrackDelegate {
 			"kind": self.kind,
 			"label": self.rtcMediaStreamTrack.label,
 			"enabled": self.rtcMediaStreamTrack.isEnabled() ? true : false,
-			"readyState": PluginRTCTypes.mediaStreamTrackStates[self.rtcMediaStreamTrack.state().value] as String!
+			"readyState": PluginRTCTypes.mediaStreamTrackStates[self.rtcMediaStreamTrack.state().rawValue] as String!
 		]
 	}
 
@@ -81,7 +81,7 @@ class PluginMediaStreamTrack : NSObject, RTCMediaStreamTrackDelegate {
 
 
 	func mediaStreamTrackDidChange(rtcMediaStreamTrack: RTCMediaStreamTrack!) {
-		let state_str = PluginRTCTypes.mediaStreamTrackStates[self.rtcMediaStreamTrack.state().value] as String!
+		let state_str = PluginRTCTypes.mediaStreamTrackStates[self.rtcMediaStreamTrack.state().rawValue] as String!
 
 		NSLog("PluginMediaStreamTrack | state changed [state:\(state_str), enabled:\(self.rtcMediaStreamTrack.isEnabled() ? true : false)]")
 
@@ -92,7 +92,7 @@ class PluginMediaStreamTrack : NSObject, RTCMediaStreamTrackDelegate {
 				"enabled": self.rtcMediaStreamTrack.isEnabled() ? true : false
 			])
 
-			if self.rtcMediaStreamTrack.state().value == RTCTrackStateEnded.value {
+			if self.rtcMediaStreamTrack.state().rawValue == RTCTrackStateEnded.rawValue {
 				self.eventListenerForEnded!()
 			}
 		} else {

@@ -2,8 +2,7 @@ import Foundation
 import AVFoundation
 
 
-@objc(PluginMediaStreamRenderer)  // Needed.
-class PluginMediaStreamRenderer : RTCEAGLVideoViewDelegate {
+class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 	var webView: UIWebView
 	var eventListener: (data: NSDictionary) -> Void
 	var elementView: UIView
@@ -58,13 +57,13 @@ class PluginMediaStreamRenderer : RTCEAGLVideoViewDelegate {
 		self.pluginMediaStream = pluginMediaStream
 
 		// Take the first audio track.
-		for (id, track) in pluginMediaStream.audioTracks {
+		for (_, track) in pluginMediaStream.audioTracks {
 			self.rtcAudioTrack = track.rtcMediaStreamTrack as? RTCAudioTrack
 			break
 		}
 
 		// Take the first video track.
-		for (id, track) in pluginMediaStream.videoTracks {
+		for (_, track) in pluginMediaStream.videoTracks {
 			self.rtcVideoTrack = track.rtcMediaStreamTrack as? RTCVideoTrack
 			break
 		}
@@ -88,13 +87,13 @@ class PluginMediaStreamRenderer : RTCEAGLVideoViewDelegate {
 		self.rtcVideoTrack = nil
 
 		// Take the first audio track.
-		for (id, track) in self.pluginMediaStream!.audioTracks {
+		for (_, track) in self.pluginMediaStream!.audioTracks {
 			self.rtcAudioTrack = track.rtcMediaStreamTrack as? RTCAudioTrack
 			break
 		}
 
 		// Take the first video track.
-		for (id, track) in pluginMediaStream!.videoTracks {
+		for (_, track) in pluginMediaStream!.videoTracks {
 			self.rtcVideoTrack = track.rtcMediaStreamTrack as? RTCVideoTrack
 			break
 		}
@@ -142,7 +141,7 @@ class PluginMediaStreamRenderer : RTCEAGLVideoViewDelegate {
 		let zIndex = data.objectForKey("zIndex") as? Float ?? 0
 		let mirrored = data.objectForKey("mirrored") as? Bool ?? false
 		let clip = data.objectForKey("clip") as? Bool ?? true
-		var borderRadius = data.objectForKey("borderRadius") as? Float ?? 0
+		let borderRadius = data.objectForKey("borderRadius") as? Float ?? 0
 
 		NSLog("PluginMediaStreamRenderer#refresh() [elementLeft:\(elementLeft), elementTop:\(elementTop), elementWidth:\(elementWidth), elementHeight:\(elementHeight), videoViewWidth:\(videoViewWidth), videoViewHeight:\(videoViewHeight), visible:\(visible), opacity:\(opacity), zIndex:\(zIndex), mirrored:\(mirrored), clip:\(clip), borderRadius:\(borderRadius)]")
 

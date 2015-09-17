@@ -2,7 +2,7 @@ import Foundation
 import AVFoundation
 
 
-@objc(iosrtcPlugin)  // This class must be accesible from Objective-C.
+@objc(iosrtcPlugin) // This class must be accesible from Objective-C.
 class iosrtcPlugin : CDVPlugin {
 	// RTCPeerConnectionFactory single instance.
 	var rtcPeerConnectionFactory: RTCPeerConnectionFactory
@@ -621,7 +621,7 @@ class iosrtcPlugin : CDVPlugin {
 		let pluginMediaStreamRenderer = PluginMediaStreamRenderer(
 			webView: self.webView!,
 			eventListener: { (data: NSDictionary) -> Void in
-				var result = CDVPluginResult(status: CDVCommandStatus_OK, messageAsDictionary: data as [NSObject : AnyObject])
+				let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAsDictionary: data as [NSObject : AnyObject])
 
 				// Allow more callbacks.
 				result.setKeepCallbackAsBool(true);
@@ -747,37 +747,33 @@ class iosrtcPlugin : CDVPlugin {
 	func selectAudioOutputEarpiece(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#selectAudioOutputEarpiece()")
 
-		var error: NSError?
-
-		AVAudioSession.sharedInstance().overrideOutputAudioPort(AVAudioSessionPortOverride.None, error: &error);
-
-		if error != nil {
-			NSLog("iosrtcPlugin#selectAudioOutputEarpiece() | ERROR: \(error!.localizedDescription)")
-		}
+		do {
+			try AVAudioSession.sharedInstance().overrideOutputAudioPort(AVAudioSessionPortOverride.None)
+		} catch {
+            NSLog("iosrtcPlugin#selectAudioOutputEarpiece() | ERROR \(error)")
+        };
 	}
 
 
 	func selectAudioOutputSpeaker(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#selectAudioOutputSpeaker()")
 
-		var error: NSError?
-
-		AVAudioSession.sharedInstance().overrideOutputAudioPort(AVAudioSessionPortOverride.Speaker, error: &error);
-
-		if error != nil {
-			NSLog("iosrtcPlugin#selectAudioOutputSpeaker() | ERROR: \(error!.localizedDescription)")
-		}
+		do {
+			try AVAudioSession.sharedInstance().overrideOutputAudioPort(AVAudioSessionPortOverride.Speaker)
+		} catch {
+            NSLog("iosrtcPlugin#selectAudioOutputSpeaker() | ERROR \(error)")
+		};
 	}
 
 
 	func dump(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#dump()")
 
-		for (id, pluginRTCPeerConnection) in self.pluginRTCPeerConnections {
+		for (id, _) in self.pluginRTCPeerConnections {
 			NSLog("- PluginRTCPeerConnection [id:\(id)]")
 		}
 
-		for (id, pluginMediaStream) in self.pluginMediaStreams {
+		for (_, pluginMediaStream) in self.pluginMediaStreams {
 			NSLog("- PluginMediaStream \(pluginMediaStream.rtcMediaStream.description)")
 		}
 
@@ -785,7 +781,7 @@ class iosrtcPlugin : CDVPlugin {
 			NSLog("- PluginMediaStreamTrack [id:\(id), kind:\(pluginMediaStreamTrack.kind)]")
 		}
 
-		for (id, pluginMediaStreamRenderer) in self.pluginMediaStreamRenderers {
+		for (id, _) in self.pluginMediaStreamRenderers {
 			NSLog("- PluginMediaStreamRenderer [id:\(id)]")
 		}
 	}
@@ -798,7 +794,7 @@ class iosrtcPlugin : CDVPlugin {
 
 	private func emit(callbackId: String, result: CDVPluginResult) {
 		dispatch_async(dispatch_get_main_queue()) {
-			self.commandDelegate.sendPluginResult(result, callbackId: callbackId)
+			self.commandDelegate!.sendPluginResult(result, callbackId: callbackId)
 		}
 	}
 
