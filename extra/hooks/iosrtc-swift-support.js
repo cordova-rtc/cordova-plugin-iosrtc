@@ -5,17 +5,17 @@
 // This hook automates this:
 // https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/docs/Building.md
 
-var fs = require("fs"),
+var
+	fs = require("fs"),
 	path = require("path"),
 	xcode = require('xcode'),
 
-	BUILD_VERSION = '8.2',
+	BUILD_VERSION = '7.0',
 	BUILD_VERSION_XCODE = '"' + BUILD_VERSION + '"',
 	RUNPATH_SEARCH_PATHS = '@executable_path/Frameworks',
 	RUNPATH_SEARCH_PATHS_XCODE = '"' + RUNPATH_SEARCH_PATHS + '"',
 	ENABLE_BITCODE = 'NO',
 	ENABLE_BITCODE_XCODE = '"' + ENABLE_BITCODE + '"',
-
 	BRIDGING_HEADER_END = '/Plugins/cordova-plugin-iosrtc/cordova-plugin-iosrtc-Bridging-Header.h',
 	COMMENT_KEY = /_comment$/;
 
@@ -24,7 +24,8 @@ var fs = require("fs"),
 
 // Returns the project name
 function getProjectName(protoPath) {
-	var cordovaConfigPath = path.join(protoPath, 'config.xml'),
+	var
+		cordovaConfigPath = path.join(protoPath, 'config.xml'),
 		content = fs.readFileSync(cordovaConfigPath, 'utf-8');
 
 	return /<name>([\s\S]*)<\/name>/mi.exec(content)[1].trim();
@@ -32,7 +33,8 @@ function getProjectName(protoPath) {
 
 // Drops the comments
 function nonComments(obj) {
-	var keys = Object.keys(obj),
+	var
+		keys = Object.keys(obj),
 		newObj = {},
 		i = 0;
 
@@ -49,7 +51,8 @@ function nonComments(obj) {
 // Starting here
 
 module.exports = function (context) {
-	var projectRoot = context.opts.projectRoot,
+	var
+		projectRoot = context.opts.projectRoot,
 		projectName = getProjectName(projectRoot),
 		xcconfigPath = path.join(projectRoot, '/platforms/ios/cordova/build.xcconfig'),
 		xcodeProjectName = projectName + '.xcodeproj',
@@ -61,25 +64,27 @@ module.exports = function (context) {
 
 	// Checking if the project files are in the right place
 	if (!fs.existsSync(xcodeProjectPath)) {
-		console.error('ERROR: An error occured searching the project file at: "' + xcodeProjectPath + '"');
+		debugerror('an error occurred searching the project file at: "' + xcodeProjectPath + '"');
 
 		return;
 	}
-	console.log('".pbxproj" project file found: ' + xcodeProjectPath);
+	debug('".pbxproj" project file found: ' + xcodeProjectPath);
+
 	if (!fs.existsSync(xcconfigPath)) {
-		console.error('ERROR: An error occured searching the project file at: "' + xcconfigPath + '"');
+		debugerror('an error occurred searching the project file at: "' + xcconfigPath + '"');
 
 		return;
 	}
-	console.log('".xcconfig" project file found: ' + xcconfigPath);
+	debug('".xcconfig" project file found: ' + xcconfigPath);
+
 	xcodeProject = xcode.project(xcodeProjectPath);
 
 	// Showing info about the tasks to do
-	console.log('Fixing issues in the generated project files:');
-	console.log('- "iOS Deployment Target" and "Deployment Target" to: ' + BUILD_VERSION_XCODE);
-	console.log('- "Runpath Search Paths" to: ' + RUNPATH_SEARCH_PATHS_XCODE);
-	console.log('- "Objective-C Bridging Header" to: ' + swiftBridgingHeadXcode);
-	console.log('- "ENABLE_BITCODE" set to: ' + ENABLE_BITCODE_XCODE);
+	debug('fixing issues in the generated project files:');
+	debug('- "iOS Deployment Target" and "Deployment Target" to: ' + BUILD_VERSION_XCODE);
+	debug('- "Runpath Search Paths" to: ' + RUNPATH_SEARCH_PATHS_XCODE);
+	debug('- "Objective-C Bridging Header" to: ' + swiftBridgingHeadXcode);
+	debug('- "ENABLE_BITCODE" set to: ' + ENABLE_BITCODE_XCODE);
 
 
 	// Massaging the files
@@ -92,7 +97,7 @@ module.exports = function (context) {
 	// NOTE: Not needed
 	// swiftOptions.push('EMBEDDED_CONTENT_CONTAINS_SWIFT = YES');
 	fs.appendFileSync(xcconfigPath, swiftOptions.join('\n'));
-	console.log('File correctly fixed: ' + xcconfigPath);
+	debug('file correctly fixed: ' + xcconfigPath);
 
 	// "project.pbxproj"
 	// Parsing it
@@ -100,22 +105,34 @@ module.exports = function (context) {
 		var configurations, buildSettings;
 
 		if (error) {
-			console.error('ERROR: An error occured during the parse of the project file');
-		} else {
-			configurations = nonComments(xcodeProject.pbxXCBuildConfigurationSection());
-			// Adding or changing the parameters we need
-			Object.keys(configurations).forEach(function (config) {
-				buildSettings = configurations[config].buildSettings;
-				buildSettings.LD_RUNPATH_SEARCH_PATHS = RUNPATH_SEARCH_PATHS_XCODE;
-				buildSettings.SWIFT_OBJC_BRIDGING_HEADER = swiftBridgingHeadXcode;
-				buildSettings.IPHONEOS_DEPLOYMENT_TARGET = BUILD_VERSION_XCODE;
-				buildSettings.ENABLE_BITCODE = ENABLE_BITCODE_XCODE;
-			});
+			debugerror('an error occurred during the parsing of the project file');
 
-			// Writing the file again
-			fs.writeFileSync(xcodeProjectPath, xcodeProject.writeSync(), 'utf-8');
-			console.log('File correctly fixed: ' + xcodeProjectPath);
+			return;
 		}
-	});
 
+
+		configurations = nonComments(xcodeProject.pbxXCBuildConfigurationSection());
+		// Adding or changing the parameters we need
+		Object.keys(configurations).forEach(function (config) {
+			buildSettings = configurations[config].buildSettings;
+			buildSettings.LD_RUNPATH_SEARCH_PATHS = RUNPATH_SEARCH_PATHS_XCODE;
+			buildSettings.SWIFT_OBJC_BRIDGING_HEADER = swiftBridgingHeadXcode;
+			buildSettings.IPHONEOS_DEPLOYMENT_TARGET = BUILD_VERSION_XCODE;
+			buildSettings.ENABLE_BITCODE = ENABLE_BITCODE_XCODE;
+		});
+
+		// Writing the file again
+		fs.writeFileSync(xcodeProjectPath, xcodeProject.writeSync(), 'utf-8');
+		debug('file correctly fixed: ' + xcodeProjectPath);
+	});
 };
+
+
+function debug(msg) {
+	console.log('iosrtc-swift-support.js [INFO] ' + msg);
+}
+
+
+function debugerror(msg) {
+	console.error('iosrtc-swift-support.js [ERROR] ' + msg);
+}
