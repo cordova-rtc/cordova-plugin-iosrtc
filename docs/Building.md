@@ -1,34 +1,34 @@
 # Building
 
-An iOS Cordova application including the *cordova-plugin-iosrtc* plugin can be built using the [cordova-cli](https://cordova.apache.org/docs/en/edge/guide_cli_index.md.html#The%20Command-Line%20Interface) or Xcode. We've published [this "hook"](../extra/hooks/iosrtc-swift-support.js) to automate the the fixes in both generated projects. You should follow these steps:
+An iOS Cordova application including the *cordova-plugin-iosrtc* plugin can be built using the [cordova-cli](https://cordova.apache.org/docs/en/edge/guide_cli_index.md.html#The%20Command-Line%20Interface) or Xcode.
 
-- Put it under "hooks/" folder (or wherever you prefer) and give it execute permission:
+The plugin provides a ["hook"](../extra/hooks/iosrtc-swift-support.js) to automate required modifications in both *cordova-cli* and Xcode generated projects. These steps must be followed:
+
+* Put the hook script under the "hooks/" folder of your Cordova project (or wherever you prefer) and give it execute permission:
 ```bash
 $ chmod +x hooks/iosrtc-swift-support.js
 ```
-- Add these lines to you "config.xml" file:
+* Add these lines to you "config.xml" file:
 ```xml
 <platform name="ios">
 	<hook type="after_platform_add" src="hooks/iosrtc-swift-support.js" />
 </platform>
 ```
-- Make sure you have the NPM [xcode](https://www.npmjs.com/package/xcode) package installed (locally or globally):
+* Make sure you have the NPM [xcode](https://www.npmjs.com/package/xcode) package installed (locally or globally):
 ```bash
 $ npm install -g xcode
 ```
-- Remove the iOS platform and add it again:
+* Remove the iOS platform and add it again:
 ```bash
 $ cordova platform remove ios
 $ cordova platform add ios
 ```
-- You have two options right now:
- - Open the Xcode project and compile your application.
- - Build the application as usual using the Cordova CLI:
+* You have two options right now:
+  * Open the Xcode project and compile your application.
+  * Build the application as usual using the Cordova CLI:
 ```bash
 $ cordova build ios
 ```
-
-*NOTE:* Xcode >= 7.0 is required due to the use of Swift 2.0.
 
 
 ## Bridging Header
@@ -58,4 +58,4 @@ If you still prefer to do it manually open it with Xcode and follow these steps:
 - Set "Deployment Target" to `7.0` or higher within the project target settings.
 - Within the project "Build Settings" add an entry to the "Runpath Search Paths" setting with value `@executable_path/Frameworks`.
 - Within the project "Build Settings" set "Objective-C Bridging Header" to `PROJECT_NAME/Plugins/cordova-plugin-iosrtc/cordova-plugin-iosrtc-Bridging-Header.h` (read more about the "Bridging Header" above).
-- Within the project "Build Settings" set "Enable Bitcode" to "No". (this will be addressed soon)
+- Within the project "Build Settings" set "Enable Bitcode" to "No" (this will be addressed soon).
