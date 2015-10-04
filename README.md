@@ -139,6 +139,11 @@ Methods such as `play()`, `pause()` are not implemented. In order to pause a vid
 
 (since version 1.2.8)
 
+#### Version 2.0.0
+
+* Swift 2.0 is here! Credits to @saghul for his [Pull Request](https://github.com/eface2face/cordova-plugin-iosrtc/pull/70).
+* `extra/hooks/iosrtc-swift-support.js`: Set `BUILD_VERSION` to 7.0.
+
 #### Version 1.4.5
 
 * Add `cordova.plugins.iosrtc.observeVideo(video)` API for the plugin to handle `<video>` elements not yet in the DOM ([issue #49](https://github.com/eface2face/cordova-plugin-iosrtc/issues/49)).
