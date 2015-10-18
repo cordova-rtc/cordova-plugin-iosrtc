@@ -25,7 +25,7 @@ class PluginGetUserMedia {
 		let	videoRequested = constraints.objectForKey("video") as? Bool ?? false
 		let	videoDeviceId = constraints.objectForKey("videoDeviceId") as? String
 
-		let rtcMediaStream: RTCMediaStream = self.rtcPeerConnectionFactory.mediaStreamWithLabel(NSUUID().UUIDString)
+		var rtcMediaStream: RTCMediaStream
 		var pluginMediaStream: PluginMediaStream?
 		var rtcAudioTrack: RTCAudioTrack?
 		var rtcVideoTrack: RTCVideoTrack?
@@ -35,6 +35,8 @@ class PluginGetUserMedia {
 
 		if videoRequested == true {
 			switch AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeVideo) {
+			case AVAuthorizationStatus.NotDetermined:
+				NSLog("PluginGetUserMedia#call() | video authorization: not determined")
 			case AVAuthorizationStatus.Authorized:
 				NSLog("PluginGetUserMedia#call() | video authorization: authorized")
 			case AVAuthorizationStatus.Denied:
@@ -45,10 +47,29 @@ class PluginGetUserMedia {
 				NSLog("PluginGetUserMedia#call() | video authorization: restricted")
 				errback(error: "video restricted")
 				return
-			case AVAuthorizationStatus.NotDetermined:
-				NSLog("PluginGetUserMedia#call() | video authorization: not determined")
 			}
+		}
 
+		if audioRequested == true {
+			switch AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeAudio) {
+			case AVAuthorizationStatus.NotDetermined:
+				NSLog("PluginGetUserMedia#call() | audio authorization: not determined")
+			case AVAuthorizationStatus.Authorized:
+				NSLog("PluginGetUserMedia#call() | audio authorization: authorized")
+			case AVAuthorizationStatus.Denied:
+				NSLog("PluginGetUserMedia#call() | audio authorization: denied")
+				errback(error: "audio denied")
+				return
+			case AVAuthorizationStatus.Restricted:
+				NSLog("PluginGetUserMedia#call() | audio authorization: restricted")
+				errback(error: "audio restricted")
+				return
+			}
+		}
+
+		rtcMediaStream = self.rtcPeerConnectionFactory.mediaStreamWithLabel(NSUUID().UUIDString)
+
+		if videoRequested == true {
 			// No specific video device requested.
 			if videoDeviceId == nil {
 				NSLog("PluginGetUserMedia#call() | video requested (device not specified)")
@@ -96,21 +117,6 @@ class PluginGetUserMedia {
 		}
 
 		if audioRequested == true {
-			switch AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeAudio) {
-			case AVAuthorizationStatus.Authorized:
-				NSLog("PluginGetUserMedia#call() | audio authorization: authorized")
-			case AVAuthorizationStatus.Denied:
-				NSLog("PluginGetUserMedia#call() | audio authorization: denied")
-				errback(error: "audio denied")
-				return
-			case AVAuthorizationStatus.Restricted:
-				NSLog("PluginGetUserMedia#call() | audio authorization: restricted")
-				errback(error: "audio restricted")
-				return
-			case AVAuthorizationStatus.NotDetermined:
-				NSLog("PluginGetUserMedia#call() | audio authorization: not determined")
-			}
-
 			NSLog("PluginGetUserMedia#call() | audio requested")
 
 			rtcAudioTrack = self.rtcPeerConnectionFactory.audioTrackWithID(NSUUID().UUIDString)

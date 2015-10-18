@@ -139,6 +139,10 @@ Methods such as `play()`, `pause()` are not implemented. In order to pause a vid
 
 (since version 1.2.8)
 
+#### Version 2.0.1
+
+* Don't crash if user or iOS settings deny access lo local audio/video devices ([issue #73](https://github.com/eface2face/cordova-plugin-iosrtc/issues/73)).
+
 #### Version 2.0.0
 
 * Swift 2.0 is here! Credits to @saghul for his [Pull Request](https://github.com/eface2face/cordova-plugin-iosrtc/pull/70).
