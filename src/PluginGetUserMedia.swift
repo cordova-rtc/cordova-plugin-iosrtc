@@ -39,8 +39,12 @@ class PluginGetUserMedia {
 				NSLog("PluginGetUserMedia#call() | video authorization: authorized")
 			case AVAuthorizationStatus.Denied:
 				NSLog("PluginGetUserMedia#call() | video authorization: denied")
+				errback(error: "video denied")
+				return
 			case AVAuthorizationStatus.Restricted:
 				NSLog("PluginGetUserMedia#call() | video authorization: restricted")
+				errback(error: "video restricted")
+				return
 			case AVAuthorizationStatus.NotDetermined:
 				NSLog("PluginGetUserMedia#call() | video authorization: not determined")
 			}
@@ -97,8 +101,12 @@ class PluginGetUserMedia {
 				NSLog("PluginGetUserMedia#call() | audio authorization: authorized")
 			case AVAuthorizationStatus.Denied:
 				NSLog("PluginGetUserMedia#call() | audio authorization: denied")
+				errback(error: "audio denied")
+				return
 			case AVAuthorizationStatus.Restricted:
 				NSLog("PluginGetUserMedia#call() | audio authorization: restricted")
+				errback(error: "audio restricted")
+				return
 			case AVAuthorizationStatus.NotDetermined:
 				NSLog("PluginGetUserMedia#call() | audio authorization: not determined")
 			}
