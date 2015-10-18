@@ -3199,13 +3199,6 @@ module.exports = global.Event;
 module.exports = _EventTarget;
 
 
-var
-	/**
-	 * Dependencies.
-	 */
-	_Event = require('./Event');
-
-
 function _EventTarget() {
 	// Do nothing if called for a native EventTarget object..
 	if (typeof this.addEventListener === 'function') {
@@ -3218,6 +3211,15 @@ function _EventTarget() {
 	this.removeEventListener = _removeEventListener;
 	this.dispatchEvent = _dispatchEvent;
 }
+
+
+Object.defineProperties(_EventTarget.prototype, {
+	listeners: {
+		get: function () {
+			return this._listeners;
+		}
+	}
+});
 
 
 function _addEventListener(type, newListener) {
@@ -3276,12 +3278,12 @@ function _dispatchEvent(event) {
 		stopImmediatePropagation = false,
 		i, listener;
 
-	if (!(event instanceof _Event)) {
-		throw new Error('first argument must be an instance of Event');
+	if (!event || typeof event.type !== 'string') {
+		throw new Error('`event` must have a valid `type` property');
 	}
 
 	if (event._dispatched) {
-		throw new Error('Event already dispatched');
+		throw new Error('event already dispatched');
 	}
 	event._dispatched = true;
 
@@ -3313,5 +3315,5 @@ function _dispatchEvent(event) {
 	return !event.defaultPrevented;
 }
 
-},{"./Event":21}]},{},[12])(12)
+},{}]},{},[12])(12)
 });
