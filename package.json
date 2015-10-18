@@ -25,12 +25,12 @@
     "yaeti": "^0.0.4"
   },
   "devDependencies": {
-    "browserify": "^11.0.1",
+    "browserify": "^11.2.0",
     "gulp": "git+https://github.com/gulpjs/gulp.git#4.0",
     "gulp-filelog": "^0.4.1",
     "gulp-header": "^1.7.1",
-    "gulp-jscs": "^2.0.0",
-    "gulp-jscs-stylish": "^1.1.2",
+    "gulp-jscs": "^3.0.1",
+    "gulp-jscs-stylish": "^1.2.1",
     "gulp-jshint": "^1.11.2",
     "jshint-stylish": "~2.0.1",
     "vinyl-source-stream": "^1.1.0"

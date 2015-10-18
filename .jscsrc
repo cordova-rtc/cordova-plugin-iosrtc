@@ -2,5 +2,6 @@
 	"preset": "crockford",
 	"validateIndentation": "\t",
 	"disallowKeywords": ["with"],
-	"disallowDanglingUnderscores": null
+	"disallowDanglingUnderscores": null,
+	"requireVarDeclFirst": null
 }
