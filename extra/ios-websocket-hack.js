@@ -33,14 +33,6 @@
 			listeners = {};
 
 
-		// Create a native WebSocket instance.
-		if (protocols) {
-			this.ws = new NativeWebSocket(url, protocols);
-		} else {
-			this.ws = new NativeWebSocket(url);
-		}
-
-
 		// WebSocket is an EventTarget as per W3C spec.
 
 		this.addEventListener = function (type, newListener) {
@@ -131,32 +123,40 @@
 			}
 		};
 
+		setTimeout(function () {
+			// Create a native WebSocket instance.
+			if (protocols) {
+				self.ws = new NativeWebSocket(url, protocols);
+			} else {
+				self.ws = new NativeWebSocket(url);
+			}
 
-		// Set the native WebSocket events.
+			// Set the native WebSocket events.
 
-		this.ws.onopen = function (event) {
-			setTimeout(function () {
-				self.dispatchEvent(event);
-			});
-		};
+			self.ws.onopen = function (event) {
+				setTimeout(function () {
+					self.dispatchEvent(event);
+				});
+			};
 
-		this.ws.onerror = function (event) {
-			setTimeout(function () {
-				self.dispatchEvent(event);
-			});
-		};
+			self.ws.onerror = function (event) {
+				setTimeout(function () {
+					self.dispatchEvent(event);
+				});
+			};
 
-		this.ws.onclose = function (event) {
-			setTimeout(function () {
-				self.dispatchEvent(event);
-			});
-		};
+			self.ws.onclose = function (event) {
+				setTimeout(function () {
+					self.dispatchEvent(event);
+				});
+			};
 
-		this.ws.onmessage = function (event) {
-			setTimeout(function () {
-				self.dispatchEvent(event);
-			});
-		};
+			self.ws.onmessage = function (event) {
+				setTimeout(function () {
+					self.dispatchEvent(event);
+				});
+			};
+		});
 	}
 
 
