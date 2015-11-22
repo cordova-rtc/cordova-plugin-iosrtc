@@ -9,6 +9,7 @@ Supported CSS properties are:
 * `display`
 * `opacity`
 * `visibility`
+* `padding`
 * `z-index`: Useful to place a video on top of another video.
 * [`object-fit`](https://developer.mozilla.org/en-US/docs/Web/CSS/object-fit)
 * `-webkit-transform: scaleX(-1)`: Useful for horizontal mirror effect.

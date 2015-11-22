@@ -579,17 +579,38 @@ MediaStreamRenderer.prototype.refresh = function () {
 		elementTop = elementPositionAndSize.top,
 		elementWidth = elementPositionAndSize.width,
 		elementHeight = elementPositionAndSize.height,
-		videoViewWidth = elementWidth,
-		videoViewHeight = elementHeight,
+		videoViewWidth,
+		videoViewHeight,
 		visible,
 		opacity,
 		zIndex,
 		mirrored,
 		objectFit,
 		clip,
-		borderRadius;
+		borderRadius,
+		paddingTop,
+		paddingBottom,
+		paddingLeft,
+		paddingRight;
 
 	computedStyle = window.getComputedStyle(this.element);
+
+	// get padding values
+	paddingTop = parseInt(computedStyle.paddingTop)|0;
+	paddingBottom = parseInt(computedStyle.paddingBottom)|0;
+	paddingLeft = parseInt(computedStyle.paddingLeft)|0;
+	paddingRight = parseInt(computedStyle.paddingRight)|0;
+
+	// fix position according to padding
+	elementLeft += paddingLeft;
+	elementTop += paddingTop;
+
+	// fix width and height according to padding
+	elementWidth -= (paddingLeft + paddingRight);
+	elementHeight -= (paddingTop + paddingBottom);
+
+	videoViewWidth = elementWidth;
+	videoViewHeight = elementHeight;
 
 	// visible
 	if (computedStyle.visibility === 'hidden') {
