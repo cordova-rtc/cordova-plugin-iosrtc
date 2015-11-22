@@ -139,6 +139,12 @@ Methods such as `play()`, `pause()` are not implemented. In order to pause a vid
 
 (since version 1.2.8)
 
+
+#### Version 2.0.2
+
+* Enable CSS padding (thanks to @saghul) ([pull request #89](https://github.com/eface2face/cordova-plugin-iosrtc/issues/89)).
+
+
 #### Version 2.0.1
 
 * Don't crash if user or iOS settings deny access lo local audio/video devices ([issue #73](https://github.com/eface2face/cordova-plugin-iosrtc/issues/73)).
