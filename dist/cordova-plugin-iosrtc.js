@@ -1,5 +1,5 @@
 /*
- * cordova-plugin-iosrtc v2.0.1
+ * cordova-plugin-iosrtc v2.0.2
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015 Iñaki Baz Castillo at eFace2Face, inc. (https://eface2face.com)
  * License MIT
@@ -596,10 +596,10 @@ MediaStreamRenderer.prototype.refresh = function () {
 	computedStyle = window.getComputedStyle(this.element);
 
 	// get padding values
-	paddingTop = parseInt(computedStyle.paddingTop)|0;
-	paddingBottom = parseInt(computedStyle.paddingBottom)|0;
-	paddingLeft = parseInt(computedStyle.paddingLeft)|0;
-	paddingRight = parseInt(computedStyle.paddingRight)|0;
+	paddingTop = parseInt(computedStyle.paddingTop) | 0;
+	paddingBottom = parseInt(computedStyle.paddingBottom) | 0;
+	paddingLeft = parseInt(computedStyle.paddingLeft) | 0;
+	paddingRight = parseInt(computedStyle.paddingRight) | 0;
 
 	// fix position according to padding
 	elementLeft += paddingLeft;
