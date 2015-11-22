@@ -133,10 +133,10 @@ MediaStreamRenderer.prototype.refresh = function () {
 	computedStyle = window.getComputedStyle(this.element);
 
 	// get padding values
-	paddingTop = parseInt(computedStyle.paddingTop)|0;
-	paddingBottom = parseInt(computedStyle.paddingBottom)|0;
-	paddingLeft = parseInt(computedStyle.paddingLeft)|0;
-	paddingRight = parseInt(computedStyle.paddingRight)|0;
+	paddingTop = parseInt(computedStyle.paddingTop) | 0;
+	paddingBottom = parseInt(computedStyle.paddingBottom) | 0;
+	paddingLeft = parseInt(computedStyle.paddingLeft) | 0;
+	paddingRight = parseInt(computedStyle.paddingRight) | 0;
 
 	// fix position according to padding
 	elementLeft += paddingLeft;
