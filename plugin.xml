@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
 		id="cordova-plugin-iosrtc"
-		version="2.0.2">
+		version="2.1.0-pre">
 
 	<name>iosrtc</name>
 	<description>Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs</description>
@@ -31,13 +31,16 @@
 		</config-file>
 
 		<!-- WebRTC ObjetiveC headers -->
+		<header-file src="src/webrtc-headers/RTCAVFoundationVideoSource.h" />
 		<header-file src="src/webrtc-headers/RTCAudioSource.h" />
 		<header-file src="src/webrtc-headers/RTCAudioTrack.h" />
 		<header-file src="src/webrtc-headers/RTCDataChannel.h" />
 		<header-file src="src/webrtc-headers/RTCEAGLVideoView.h" />
+		<header-file src="src/webrtc-headers/RTCFileLogger.h" />
 		<header-file src="src/webrtc-headers/RTCI420Frame.h" />
 		<header-file src="src/webrtc-headers/RTCICECandidate.h" />
 		<header-file src="src/webrtc-headers/RTCICEServer.h" />
+		<header-file src="src/webrtc-headers/RTCLogging.h" />
 		<header-file src="src/webrtc-headers/RTCMediaConstraints.h" />
 		<header-file src="src/webrtc-headers/RTCMediaSource.h" />
 		<header-file src="src/webrtc-headers/RTCMediaStream.h" />
@@ -48,6 +51,7 @@
 		<header-file src="src/webrtc-headers/RTCPeerConnection.h" />
 		<header-file src="src/webrtc-headers/RTCPeerConnectionDelegate.h" />
 		<header-file src="src/webrtc-headers/RTCPeerConnectionFactory.h" />
+		<header-file src="src/webrtc-headers/RTCPeerConnectionInterface.h" />
 		<header-file src="src/webrtc-headers/RTCSessionDescription.h" />
 		<header-file src="src/webrtc-headers/RTCSessionDescriptionDelegate.h" />
 		<header-file src="src/webrtc-headers/RTCStatsDelegate.h" />

@@ -1,10 +1,19 @@
 # Building
 
+
+### Requirements
+
+* This plugin needs [Swift 2.0](https://developer.apple.com/swift/) so Xcode >= 7.0 is required.
+* The currently bundled *libwebrtc* does not contain bitcode, so you need to disable it in your Xcode project settings.
+
+
+### Building Steps
+
 An iOS Cordova application including the *cordova-plugin-iosrtc* plugin can be built using the [cordova-cli](https://cordova.apache.org/docs/en/edge/guide_cli_index.md.html#The%20Command-Line%20Interface) or Xcode.
 
-The plugin provides a ["hook"](../extra/hooks/iosrtc-swift-support.js) to automate required modifications in both *cordova-cli* and Xcode generated projects. These steps must be followed:
+The plugin provides a ["hook"](../extra/hooks/iosrtc-swift-support.js) to automate required modifications in both *cordova-cli* and Xcode generated projects.
 
-* Put the hook script under the "hooks/" folder of your Cordova project (or wherever you prefer) and give it execute permission:
+* Put the hook script under the "hooks/" folder of your Cordova project (or wherever you prefer) and give it execution permission:
 ```bash
 $ chmod +x hooks/iosrtc-swift-support.js
 ```
@@ -31,7 +40,7 @@ $ cordova build ios
 ```
 
 
-## Bridging Header
+#### Bridging Header
 
 The plugin is coded in Swift language but it makes use of the Cordova Objective-C headers and the [Google's WebRTC Objective-C wrapper](https://chromium.googlesource.com/external/webrtc/+/master/talk/app/webrtc/objc/) so a [Bridging Header](https://developer.apple.com/library/prerelease/ios/documentation/Swift/Conceptual/BuildingCocoaApps/MixandMatch.html) is required. When building (using the provided hook above) our [Bridging Header](../src/cordova-plugin-iosrtc-Bridging-Header.h) file is automatically added into your Cordova project.
 
@@ -50,12 +59,12 @@ It may happen that your Cordova application uses more than a single plugin coded
 And then set `Unified-Bridging-Header.h` as the value of the "Objective-C Bridging Header" build setting in your Xcode project. For more information check this [issue](https://github.com/eface2face/cordova-plugin-iosrtc/issues/9).
 
 
-## Xcode
+#### Xcode
 
 If you still prefer to do it manually open it with Xcode and follow these steps:
 
-- Set "iOS Deployment Target" to `7.0` or higher within your project settings.
-- Set "Deployment Target" to `7.0` or higher within the project target settings.
-- Within the project "Build Settings" add an entry to the "Runpath Search Paths" setting with value `@executable_path/Frameworks`.
-- Within the project "Build Settings" set "Objective-C Bridging Header" to `PROJECT_NAME/Plugins/cordova-plugin-iosrtc/cordova-plugin-iosrtc-Bridging-Header.h` (read more about the "Bridging Header" above).
-- Within the project "Build Settings" set "Enable Bitcode" to "No" (this will be addressed soon).
+* Set "iOS Deployment Target" to `7.0` or higher within your project settings.
+* Set "Deployment Target" to `7.0` or higher within the project target settings.
+* Within the project "Build Settings" add an entry to the "Runpath Search Paths" setting with value `@executable_path/Frameworks`.
+* Within the project "Build Settings" set "Objective-C Bridging Header" to `PROJECT_NAME/Plugins/cordova-plugin-iosrtc/cordova-plugin-iosrtc-Bridging-Header.h` (read more about the "Bridging Header" above).
+* Within the project "Build Settings" set "Enable Bitcode" to "No".

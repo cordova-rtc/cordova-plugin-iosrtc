@@ -30,9 +30,8 @@ $ cordova plugin add cordova-plugin-iosrtc
 
 ## Building
 
-This plugin needs [Swift 2.0](https://developer.apple.com/swift/) support so some steps are needed to get your project working with it. These steps are explained in the [Building](docs/Building.md) documentation, please check it.
-
-**IMPORTANT:** The currently bundled libWebRTC does not contain bitcode, so you'll need to disable it in your Xcode project settings.
+* [Building](docs/Building.md): Guidelines for building a Cordova iOS application including the *cordova-plugin-iosrtc* plugin.
+* [Building `libwebrtc`](docs/BuildingLibWebRTC.md): Guidelines for building Google's *libwebrtc* with modifications needed by the *cordova-plugin-iosrtc* plugin.
 
 
 ## Usage
