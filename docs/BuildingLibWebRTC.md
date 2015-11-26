@@ -39,16 +39,6 @@ $ patch -p1 < PATH_TO_CORDOVA_PLUGIN_IOSRTC/extra/libwebrtc-objc-iosrtc.patch
 ```
 
 
-### Remove iOS native H264 encoder/decoder
-
-(see issue #92 for details, help welcome!)
-
-Edit `ios/webrtc/src/webrtc/modules/video_coding/codecs/h264/include/h264.h` by removing the line 21:
-```c
-#define WEBRTC_VIDEO_TOOLBOX_SUPPORTED 1  // <-- remove this line
-```
-
-
 ### Build *libwebrtc*
 
 * Go back to the `webrtc-build-scripts` root folder and build *libwebrtc*:
