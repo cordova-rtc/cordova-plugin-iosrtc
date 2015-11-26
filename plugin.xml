@@ -95,6 +95,7 @@
 		<framework src="libc++.dylib" />
 		<framework src="libstdc++.dylib" />
 		<framework src="libsqlite3.0.dylib" />
+		<framework src="VideoToolbox.framework" />
 
 		<!-- WebRTC static library -->
 		<source-file src="lib/libWebRTC-LATEST-Universal-Release.a" framework="true" />
