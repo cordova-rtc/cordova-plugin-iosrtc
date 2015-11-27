@@ -139,6 +139,12 @@ Methods such as `play()`, `pause()` are not implemented. In order to pause a vid
 (since version 1.2.8)
 
 
+#### Version 2.1.0
+
+* Update *libwebrtc* to latest revision (rev 10800).
+* Enble iOS native H264 codec.
+
+
 #### Version 2.0.2
 
 * Enable CSS padding (thanks to @saghul) ([pull request #89](https://github.com/eface2face/cordova-plugin-iosrtc/issues/89)).
