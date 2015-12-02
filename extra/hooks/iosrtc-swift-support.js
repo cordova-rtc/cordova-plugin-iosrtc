@@ -57,6 +57,7 @@ module.exports = function (context) {
 		xcconfigPath = path.join(projectRoot, '/platforms/ios/cordova/build.xcconfig'),
 		xcodeProjectName = projectName + '.xcodeproj',
 		xcodeProjectPath = path.join(projectRoot, 'platforms', 'ios', xcodeProjectName, 'project.pbxproj'),
+		MainViewControllerPath = path.join(projectRoot, 'platforms', 'ios', projectName, 'Classes', 'MainViewController.m'),
 		swiftBridgingHead = projectName + BRIDGING_HEADER_END,
 		swiftBridgingHeadXcode = '"' + swiftBridgingHead + '"',
 		swiftOptions = [''], // <-- begin to file appending AFTER initial newline
@@ -98,6 +99,13 @@ module.exports = function (context) {
 	// swiftOptions.push('EMBEDDED_CONTENT_CONTAINS_SWIFT = YES');
 	fs.appendFileSync(xcconfigPath, swiftOptions.join('\n'));
 	debug('file correctly fixed: ' + xcconfigPath);
+
+	var result = fs.readFileSync(MainViewControllerPath, 'utf8')
+	var rep ='theWebView.backgroundColor = [UIColor blackColor];';
+	result = result.replace('theWebView.backgroundColor = [UIColor blackColor];', 'theWebView.opaque = NO;');
+  fs.writeFileSync(MainViewControllerPath, result, 'utf8');
+	debug('MainViewController.m correctly fixed: ' + xcconfigPath);
+
 
 	// "project.pbxproj"
 	// Parsing it
