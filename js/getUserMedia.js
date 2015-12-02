@@ -21,6 +21,10 @@ function isPositiveInteger(number) {
 	return typeof number === 'number' && number >= 0 && number % 1 === 0;
 }
 
+function isPositiveFloat(number) {
+	return typeof number === 'number' && number >= 0;
+}
+
 
 function getUserMedia(constraints) {
 	debug('[original constraints:%o]', constraints);
@@ -77,6 +81,10 @@ function getUserMedia(constraints) {
 	//  	width: {
 	//  		min: 400,
 	//  		max: 600
+	//  	},
+	//  	frameRate: {
+	//  		min: 1.0,
+	//  		max: 60.0
 	//  	}
 	//  }
 	// });
@@ -88,7 +96,7 @@ function getUserMedia(constraints) {
 			newConstraints.videoDeviceId = constraints.video.deviceId;
 		}
 
-		// Get requested min/max width/height.
+		// Get requested min/max width.
 		if (typeof constraints.video.width === 'object') {
 			if (isPositiveInteger(constraints.video.width.min)) {
 				newConstraints.videoMinWidth = constraints.video.width.min;
@@ -97,6 +105,7 @@ function getUserMedia(constraints) {
 				newConstraints.videoMaxWidth = constraints.video.width.max;
 			}
 		}
+		// Get requested min/max height.
 		if (typeof constraints.video.height === 'object') {
 			if (isPositiveInteger(constraints.video.height.min)) {
 				newConstraints.videoMinHeight = constraints.video.height.min;
@@ -104,6 +113,18 @@ function getUserMedia(constraints) {
 			if (isPositiveInteger(constraints.video.height.max)) {
 				newConstraints.videoMaxHeight = constraints.video.height.max;
 			}
+		}
+		// Get requested min/max frame rate.
+		if (typeof constraints.video.frameRate === 'object') {
+			if (isPositiveFloat(constraints.video.frameRate.min)) {
+				newConstraints.videoMinFrameRate = constraints.video.frameRate.min;
+			}
+			if (isPositiveFloat(constraints.video.frameRate.max)) {
+				newConstraints.videoMaxFrameRate = constraints.video.frameRate.max;
+			}
+		} else if (isPositiveFloat(constraints.video.frameRate)) {
+			newConstraints.videoMinFrameRate = constraints.video.frameRate;
+			newConstraints.videoMaxFrameRate = constraints.video.frameRate;
 		}
 	}
 

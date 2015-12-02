@@ -28,6 +28,8 @@ class PluginGetUserMedia {
 		let	videoMaxWidth = constraints.objectForKey("videoMaxWidth") as? Int ?? 0
 		let	videoMinHeight = constraints.objectForKey("videoMinHeight") as? Int ?? 0
 		let	videoMaxHeight = constraints.objectForKey("videoMaxHeight") as? Int ?? 0
+		let	videoMinFrameRate = constraints.objectForKey("videoMinFrameRate") as? Float ?? 0.0
+		let	videoMaxFrameRate = constraints.objectForKey("videoMaxFrameRate") as? Float ?? 0.0
 
 		var rtcMediaStream: RTCMediaStream
 		var pluginMediaStream: PluginMediaStream?
@@ -126,6 +128,14 @@ class PluginGetUserMedia {
 			if videoMaxHeight > 0 {
 				NSLog("PluginGetUserMedia#call() | adding media constraint [maxHeight:\(videoMaxHeight)]")
 				mandatoryConstraints.append(RTCPair(key: "maxHeight", value: String(videoMaxHeight)))
+			}
+			if videoMinFrameRate > 0 {
+				NSLog("PluginGetUserMedia#call() | adding media constraint [videoMinFrameRate:\(videoMinFrameRate)]")
+				mandatoryConstraints.append(RTCPair(key: "minFrameRate", value: String(videoMinFrameRate)))
+			}
+			if videoMaxFrameRate > 0 {
+				NSLog("PluginGetUserMedia#call() | adding media constraint [videoMaxFrameRate:\(videoMaxFrameRate)]")
+				mandatoryConstraints.append(RTCPair(key: "maxFrameRate", value: String(videoMaxFrameRate)))
 			}
 
 			constraints = RTCMediaConstraints(

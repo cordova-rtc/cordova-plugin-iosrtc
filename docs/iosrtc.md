@@ -41,6 +41,9 @@ Constraints can be applied to the local video by using the latest W3C specificat
 * `video.width.max`
 * `video.height.min`
 * `video.height.max`
+* `video.frameRate`
+* `video.frameRate.min`
+* `video.frameRate.max`
 
 ```javascript
 cordova.plugins.iosrtc.getUserMedia({
@@ -50,6 +53,10 @@ cordova.plugins.iosrtc.getUserMedia({
     width: {
       min: 320,
       max: 640
+    },
+    frameRate: {
+      min: 1.0,
+      max: 60.0
     }
   }
 });
