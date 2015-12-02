@@ -32,15 +32,25 @@ Implementation of the  `getUserMedia()` function as specified by the [W3C Media 
 
 The function allows both the old/deprecated callbacks based syntax and the new one based on Promises (depending on the number and type of the given arguments).
 
-*NOTE:* In iOS devices there is a single audio input (mic) and two video inputs (camera). If the given constraints include "video" the device chosen by default is the front camera. However the back camera can be chosen by passing an "optional" or "mandatory" constraint to the function:
+*NOTE:* In iOS devices there are a single audio input (mic) and two video inputs (camera). If the given constraints do not include "video.deviceId" the device chosen by default is the front camera.
+
+Constraints can be applied to the local video by using the latest W3C specification. Currently just the following constraints are supported:
+
+* `video.deviceId`
+* `video.width.min`
+* `video.width.max`
+* `video.height.min`
+* `video.height.max`
 
 ```javascript
 cordova.plugins.iosrtc.getUserMedia({
   audio: true,
   video: {
-    optional: [
-      { sourceId: 'com.apple.avfoundation.avcapturedevice.built-in_video:1' }
-    ]
+    deviceId: 'com.apple.avfoundation.avcapturedevice.built-in_video:1',
+    width: {
+      min: 320,
+      max: 640
+    }
   }
 });
 ```
@@ -52,7 +62,7 @@ cordova.plugins.iosrtc.getUserMedia({
 * Rich constraints.
 
 
-### `iosrtc.getMediaDevices()`
+### `iosrtc.enumerateDevices()`
 
 Implementation of the  `enumerateDevices()` function as specified in the [W3C Media Capture and Streams draft](http://w3c.github.io/mediacapture-main/#enumerating-devices).
 
@@ -67,7 +77,7 @@ The success callback is called with a list of `MediaDeviceInfo` objects as defin
 * `id` (same as `deviceId`, deprecated)
 * `facing` (always an empty string, deprecated)
 
-*NOTE:* The `deviceId` or `id` field is the value to be used in the `sourceId` field of `getUserMedia()` above to choose a specific device.
+*NOTE:* The `deviceId` or `id` field is the value to be used in the `deviceId` field of `getUserMedia()` above to choose a specific device.
 
 
 ### `iosrtc.RTCPeerConnection`
@@ -111,7 +121,7 @@ Exposes the  `MediaStream` class as defined in the [spec](http://w3c.github.io/m
 
 Exposes the `MediaStreamTrack` class as defined by the [spec](http://w3c.github.io/mediacapture-main/#mediastreamtrack).
 
-*NOTE:* The only reason to make this class public is to expose the deprecated `MediaStreamTrack.getSources()` class function, which is an "alias" to the `getMediaDevices()` function described above.
+*NOTE:* The only reason to make this class public is to expose the deprecated `MediaStreamTrack.getSources()` class function, which is an "alias" to the `enumerateDevices()` function described above.
 
 *TODO:*
 

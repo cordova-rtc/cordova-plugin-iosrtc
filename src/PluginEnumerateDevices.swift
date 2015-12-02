@@ -7,9 +7,9 @@ import AVFoundation
  */
 
 
-class PluginGetMediaDevices {
+class PluginEnumerateDevices {
 	class func call(callback: (data: NSDictionary) -> Void) {
-		NSLog("PluginGetMediaDevices#call()")
+		NSLog("PluginEnumerateDevices#call()")
 
 		let devices = AVCaptureDevice.devices() as! Array<AVCaptureDevice>
 

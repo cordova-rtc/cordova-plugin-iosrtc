@@ -15,7 +15,7 @@ module.exports = MediaStreamTrack;
 var
 	debug = require('debug')('iosrtc:MediaStreamTrack'),
 	exec = require('cordova/exec'),
-	getMediaDevices = require('./getMediaDevices'),
+	enumerateDevices = require('./enumerateDevices'),
 	EventTarget = require('yaeti').EventTarget;
 
 
@@ -82,7 +82,7 @@ MediaStreamTrack.prototype.stop = function () {
 MediaStreamTrack.getSources = function () {
 	debug('getSources()');
 
-	return getMediaDevices.apply(this, arguments);
+	return enumerateDevices.apply(this, arguments);
 };
 
 

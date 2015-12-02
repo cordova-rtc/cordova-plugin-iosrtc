@@ -139,6 +139,12 @@ Methods such as `play()`, `pause()` are not implemented. In order to pause a vid
 (since version 1.2.8)
 
 
+#### Version 2.2.0
+
+* Move from `getMediaDevices()` to `enumerateDevices()`.
+* Implement video constraints in `getUserMedia()`: `deviceId`, `width.min`, `width.max`, `height.min` and `height.max`).
+
+
 #### Version 2.1.0
 
 * Update *libwebrtc* to latest revision (rev 10800).

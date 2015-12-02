@@ -22,7 +22,7 @@ var
 	domready               = require('domready'),
 
 	getUserMedia           = require('./getUserMedia'),
-	getMediaDevices        = require('./getMediaDevices'),
+	enumerateDevices       = require('./enumerateDevices'),
 	RTCPeerConnection      = require('./RTCPeerConnection'),
 	RTCSessionDescription  = require('./RTCSessionDescription'),
 	RTCIceCandidate        = require('./RTCIceCandidate'),
@@ -38,7 +38,8 @@ var
 module.exports = {
 	// Expose WebRTC classes and functions.
 	getUserMedia:          getUserMedia,
-	getMediaDevices:       getMediaDevices,
+	enumerateDevices:      enumerateDevices,
+	getMediaDevices:       enumerateDevices,  // TMP
 	RTCPeerConnection:     RTCPeerConnection,
 	RTCSessionDescription: RTCSessionDescription,
 	RTCIceCandidate:       RTCIceCandidate,
@@ -116,7 +117,7 @@ function registerGlobals() {
 	navigator.getUserMedia                  = getUserMedia;
 	navigator.webkitGetUserMedia            = getUserMedia;
 	navigator.mediaDevices.getUserMedia     = getUserMedia;
-	navigator.mediaDevices.enumerateDevices = getMediaDevices;
+	navigator.mediaDevices.enumerateDevices = enumerateDevices;
 	window.RTCPeerConnection                = RTCPeerConnection;
 	window.webkitRTCPeerConnection          = RTCPeerConnection;
 	window.RTCSessionDescription            = RTCSessionDescription;

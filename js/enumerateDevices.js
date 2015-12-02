@@ -1,19 +1,19 @@
 /**
- * Expose the getMediaDevices function.
+ * Expose the enumerateDevices function.
  */
-module.exports = getMediaDevices;
+module.exports = enumerateDevices;
 
 
 /**
  * Dependencies.
  */
 var
-	debug = require('debug')('iosrtc:getMediaDevices'),
+	debug = require('debug')('iosrtc:enumerateDevices'),
 	exec = require('cordova/exec'),
 	MediaDeviceInfo = require('./MediaDeviceInfo');
 
 
-function getMediaDevices() {
+function enumerateDevices() {
 	debug('');
 
 	var isPromise,
@@ -29,20 +29,20 @@ function getMediaDevices() {
 	if (isPromise) {
 		return new Promise(function (resolve) {
 			function onResultOK(data) {
-				debug('getMediaDevices() | success');
+				debug('enumerateDevices() | success');
 				resolve(getMediaDeviceInfos(data.devices));
 			}
 
-			exec(onResultOK, null, 'iosrtcPlugin', 'getMediaDevices', []);
+			exec(onResultOK, null, 'iosrtcPlugin', 'enumerateDevices', []);
 		});
 	}
 
 	function onResultOK(data) {
-		debug('getMediaDevices() | success');
+		debug('enumerateDevices() | success');
 		callback(getMediaDeviceInfos(data.devices));
 	}
 
-	exec(onResultOK, null, 'iosrtcPlugin', 'getMediaDevices', []);
+	exec(onResultOK, null, 'iosrtcPlugin', 'enumerateDevices', []);
 }
 
 

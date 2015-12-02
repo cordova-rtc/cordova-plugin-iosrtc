@@ -729,11 +729,11 @@ class iosrtcPlugin : CDVPlugin {
 	}
 
 
-	func getMediaDevices(command: CDVInvokedUrlCommand) {
-		NSLog("iosrtcPlugin#getMediaDevices()")
+	func enumerateDevices(command: CDVInvokedUrlCommand) {
+		NSLog("iosrtcPlugin#enumerateDevices()")
 
 		dispatch_async(self.queue) {
-			PluginGetMediaDevices.call(
+			PluginEnumerateDevices.call(
 				{ (data: NSDictionary) -> Void in
 					self.emit(command.callbackId,
 						result: CDVPluginResult(status: CDVCommandStatus_OK, messageAsDictionary: data as [NSObject : AnyObject])

@@ -14,20 +14,22 @@ var
 	MediaStream = require('./MediaStream'),
 	Errors = require('./Errors');
 
-
 debugerror.log = console.warn.bind(console);
 
 
-function getUserMedia(constraints) {
-	debug('[constraints:%o]', constraints);
+function isPositiveInteger(number) {
+	return typeof number === 'number' && number >= 0 && number % 1 === 0;
+}
 
-	var isPromise,
+
+function getUserMedia(constraints) {
+	debug('[original constraints:%o]', constraints);
+
+	var
+		isPromise,
 		callback, errback,
 		audioRequested = false,
 		videoRequested = false,
-		videoOptionalConstraints,
-		videoMandatoryConstraints,
-		videoDeviceId,
 		newConstraints = {
 			audio: false,
 			video: false
@@ -47,11 +49,11 @@ function getUserMedia(constraints) {
 	) {
 		if (isPromise) {
 			return new Promise(function (resolve, reject) {
-				reject(new Errors.MediaStreamError('constraints must be an object with at least "audio" or "video" boolean fields'));
+				reject(new Errors.MediaStreamError('constraints must be an object with at least "audio" or "video" keys'));
 			});
 		} else {
 			if (typeof errback === 'function') {
-				errback(new Errors.MediaStreamError('constraints must be an object with at least "audio" or "video" boolean fields'));
+				errback(new Errors.MediaStreamError('constraints must be an object with at least "audio" or "video" keys'));
 			}
 			return;
 		}
@@ -71,35 +73,41 @@ function getUserMedia(constraints) {
 	// getUserMedia({
 	//  audio: true,
 	//  video: {
-	//  	optional: [
-	//  		{ sourceId: 'qwe-asd-zxc-123' }
-	//  	]
+	//  	deviceId: 'qwer-asdf-zxcv',
+	//  	width: {
+	//  		min: 400,
+	//  		max: 600
+	//  	}
 	//  }
 	// });
 
-	if (videoRequested && Array.isArray(constraints.video.optional)) {
-		videoOptionalConstraints = constraints.video.optional;
+	// Get video constraints
+	if (videoRequested) {
+		// Get requested video deviceId.
+		if (typeof constraints.video.deviceId === 'string') {
+			newConstraints.videoDeviceId = constraints.video.deviceId;
+		}
 
-		if (videoOptionalConstraints[0]) {
-			videoDeviceId = videoOptionalConstraints[0].sourceId;
-
-			if (typeof videoDeviceId === 'string') {
-				newConstraints.videoDeviceId = videoDeviceId;
+		// Get requested min/max width/height.
+		if (typeof constraints.video.width === 'object') {
+			if (isPositiveInteger(constraints.video.width.min)) {
+				newConstraints.videoMinWidth = constraints.video.width.min;
+			}
+			if (isPositiveInteger(constraints.video.width.max)) {
+				newConstraints.videoMaxWidth = constraints.video.width.max;
+			}
+		}
+		if (typeof constraints.video.height === 'object') {
+			if (isPositiveInteger(constraints.video.height.min)) {
+				newConstraints.videoMinHeight = constraints.video.height.min;
+			}
+			if (isPositiveInteger(constraints.video.height.max)) {
+				newConstraints.videoMaxHeight = constraints.video.height.max;
 			}
 		}
 	}
 
-	if (videoRequested && Array.isArray(constraints.video.mandatory)) {
-		videoMandatoryConstraints = constraints.video.mandatory;
-
-		if (videoMandatoryConstraints[0]) {
-			videoDeviceId = videoMandatoryConstraints[0].sourceId;
-
-			if (typeof videoDeviceId === 'string') {
-				newConstraints.videoDeviceId = videoDeviceId;
-			}
-		}
-	}
+	debug('[computed constraints:%o]', newConstraints);
 
 	if (isPromise) {
 		return new Promise(function (resolve, reject) {

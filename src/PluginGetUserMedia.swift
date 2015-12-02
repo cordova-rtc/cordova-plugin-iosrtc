@@ -24,6 +24,10 @@ class PluginGetUserMedia {
 		let	audioRequested = constraints.objectForKey("audio") as? Bool ?? false
 		let	videoRequested = constraints.objectForKey("video") as? Bool ?? false
 		let	videoDeviceId = constraints.objectForKey("videoDeviceId") as? String
+		let	videoMinWidth = constraints.objectForKey("videoMinWidth") as? Int ?? 0
+		let	videoMaxWidth = constraints.objectForKey("videoMaxWidth") as? Int ?? 0
+		let	videoMinHeight = constraints.objectForKey("videoMinHeight") as? Int ?? 0
+		let	videoMaxHeight = constraints.objectForKey("videoMaxHeight") as? Int ?? 0
 
 		var rtcMediaStream: RTCMediaStream
 		var pluginMediaStream: PluginMediaStream?
@@ -32,6 +36,8 @@ class PluginGetUserMedia {
 		var rtcVideoCapturer: RTCVideoCapturer?
 		var rtcVideoSource: RTCVideoSource?
 		var videoDevice: AVCaptureDevice?
+		var mandatoryConstraints: [RTCPair] = []
+		var constraints: RTCMediaConstraints
 
 		if videoRequested == true {
 			switch AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeVideo) {
@@ -105,8 +111,30 @@ class PluginGetUserMedia {
 
 			rtcVideoCapturer = RTCVideoCapturer(deviceName: videoDevice!.localizedName)
 
+			if videoMinWidth > 0 {
+				NSLog("PluginGetUserMedia#call() | adding media constraint [minWidth:\(videoMinWidth)]")
+				mandatoryConstraints.append(RTCPair(key: "minWidth", value: String(videoMinWidth)))
+			}
+			if videoMaxWidth > 0 {
+				NSLog("PluginGetUserMedia#call() | adding media constraint [maxWidth:\(videoMaxWidth)]")
+				mandatoryConstraints.append(RTCPair(key: "maxWidth", value: String(videoMaxWidth)))
+			}
+			if videoMinHeight > 0 {
+				NSLog("PluginGetUserMedia#call() | adding media constraint [minHeight:\(videoMinHeight)]")
+				mandatoryConstraints.append(RTCPair(key: "minHeight", value: String(videoMinHeight)))
+			}
+			if videoMaxHeight > 0 {
+				NSLog("PluginGetUserMedia#call() | adding media constraint [maxHeight:\(videoMaxHeight)]")
+				mandatoryConstraints.append(RTCPair(key: "maxHeight", value: String(videoMaxHeight)))
+			}
+
+			constraints = RTCMediaConstraints(
+				mandatoryConstraints: mandatoryConstraints,
+				optionalConstraints: []
+			)
+
 			rtcVideoSource = self.rtcPeerConnectionFactory.videoSourceWithCapturer(rtcVideoCapturer,
-				constraints: RTCMediaConstraints()
+				constraints: constraints
 			)
 
 			rtcVideoTrack = self.rtcPeerConnectionFactory.videoTrackWithID(NSUUID().UUIDString,

@@ -12,11 +12,12 @@ module.exports = {
 
 	interface: {
 		getUserMedia:          require('./getUserMedia'),
+		enumerateDevices:      require('./enumerateDevices'),
+		getMediaDevices:       require('./enumerateDevices'),  // TMP
 		RTCPeerConnection:     require('./RTCPeerConnection'),
 		RTCSessionDescription: require('./RTCSessionDescription'),
 		RTCIceCandidate:       require('./RTCIceCandidate'),
 		MediaStreamTrack:      require('./MediaStreamTrack'),
-		getMediaDevices:       require('./getMediaDevices'),
 		attachMediaStream:     attachMediaStream,
 		canRenegotiate:        true
 	}
