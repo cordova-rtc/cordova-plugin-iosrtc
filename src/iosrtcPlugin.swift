@@ -5,9 +5,9 @@ import AVFoundation
 @objc(iosrtcPlugin) // This class must be accesible from Objective-C.
 class iosrtcPlugin : CDVPlugin {
 	// RTCPeerConnectionFactory single instance.
-	var rtcPeerConnectionFactory: RTCPeerConnectionFactory
+	var rtcPeerConnectionFactory: RTCPeerConnectionFactory!
 	// Single PluginGetUserMedia instance.
-	var pluginGetUserMedia: PluginGetUserMedia;
+	var pluginGetUserMedia: PluginGetUserMedia!
 	// PluginRTCPeerConnection dictionary.
 	var pluginRTCPeerConnections: [Int : PluginRTCPeerConnection] = [:]
 	// PluginMediaStream dictionary.
@@ -21,8 +21,8 @@ class iosrtcPlugin : CDVPlugin {
 
 
 	// This is just called if <param name="onload" value="true" /> in plugin.xml.
-	override init(webView: UIWebView) {
-		NSLog("iosrtcPlugin#init()")
+	override func pluginInitialize() {
+		NSLog("iosrtcPlugin#pluginInitialize()")
 
 		// Initialize DTLS stuff.
 		RTCPeerConnectionFactory.initializeSSL()
@@ -34,8 +34,6 @@ class iosrtcPlugin : CDVPlugin {
 		self.pluginGetUserMedia = PluginGetUserMedia(
 			rtcPeerConnectionFactory: rtcPeerConnectionFactory
 		)
-
-		super.init(webView: webView)
 	}
 
 
