@@ -6,8 +6,8 @@ var gulp = require('gulp'),
 	stylish = require('gulp-jscs-stylish'),
 	browserify = require('browserify'),
 	vinyl_source_stream = require('vinyl-source-stream'),
+	vinyl_buffer = require('vinyl-buffer'),
 	jshint = require('gulp-jshint'),
-	filelog = require('gulp-filelog'),
 	header = require('gulp-header'),
 	path = require('path'),
 	fs = require('fs'),
@@ -31,7 +31,6 @@ gulp.task('lint', function () {
 	var src = ['gulpfile.js', 'js/**/*.js', 'hooks/**/*.js', 'extra/**/*.js'];
 
 	return gulp.src(src)
-		.pipe(filelog('lint'))
 		.pipe(jshint('.jshintrc'))  // Enforce good practics.
 		.pipe(jscs('.jscsrc'))  // Enforce style guide.
 		.pipe(stylish.combineWithHintResults())
@@ -47,7 +46,7 @@ gulp.task('browserify', function () {
 		.exclude('cordova/exec')  // Exclude require('cordova/exec').
 		.bundle()
 		.pipe(vinyl_source_stream(PKG.name + '.js'))
-		.pipe(filelog('browserify'))
+		.pipe(vinyl_buffer())
 		.pipe(header(banner, banner_options))
 		.pipe(gulp.dest('dist/'));
 });
