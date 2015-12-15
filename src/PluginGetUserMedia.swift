@@ -147,6 +147,15 @@ class PluginGetUserMedia {
 				constraints: constraints
 			)
 
+			// If videoSource state is "ended" it means that constraints were not satisfied so
+			// invoke the given errback
+			if (rtcVideoSource!.state == RTCSourceStateEnded) {
+				NSLog("PluginGetUserMedia() | rtcVideoSource.state is 'ended', constraints not satisfied")
+
+				errback(error: "constraints not satisfied")
+				return
+			}
+
 			rtcVideoTrack = self.rtcPeerConnectionFactory.videoTrackWithID(NSUUID().UUIDString,
 				source: rtcVideoSource
 			)

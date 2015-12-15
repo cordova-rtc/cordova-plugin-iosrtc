@@ -10,7 +10,7 @@ Absolutely **not**. This plugin exposes the WebRTC W3C API for Cordova iOS apps 
 
 Check the [release announcement](https://eface2face.com/blog/cordova-plugin-iosrtc.html) at the [eFace2Face](https://eface2face.com) site.
 
-**Resources:**
+**Resources**
 
 * [NPM package](https://www.npmjs.com/package/cordova-plugin-iosrtc).
 * [Public Google Group](https://groups.google.com/forum/#!forum/cordova-plugin-iosrtc) for questions and discussions about *cordova-plugin-iosrtc*.
@@ -105,9 +105,11 @@ Again, there is no real video attached to the `<video>` element so some peropert
 Read the full [documentation](docs/index.md) in the *docs* folder.
 
 
-## Demo application
+## Demo Application
 
 Check our [iOSRTCApp](https://github.com/eface2face/iOSRTCApp) (Google's [AppRTC](https://apprtc.appspot.com/) adapted to Cordova iOS with pure HTML5/JavaScript and *cordova-plugin-iosrtc*).
+
+*NOTE:* The demo app is currently unmaintained and it may just fail.
 
 
 ## Who Uses It
@@ -137,10 +139,16 @@ Methods such as `play()`, `pause()` are not implemented. In order to pause a vid
 ## Changelog
 
 
+#### Version 2.2.1
+
+* `getUserMedia()`: Fire `errback` if given video constraints are not satisfied.
+
+
 #### Version 2.2.0
 
 * Move from `getMediaDevices()` to `enumerateDevices()`.
 * Implement video constraints in `getUserMedia()`: `deviceId`, `width.min`, `width.max`, `height.min`, `height.max`, `frameRate`, `frameRate.min`, `frameRate.max`).
+* Update deps and build on Node >= 4.
 
 
 #### Version 2.1.0
