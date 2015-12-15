@@ -139,6 +139,11 @@ Methods such as `play()`, `pause()` are not implemented. In order to pause a vid
 ## Changelog
 
 
+#### Version 2.2.1
+
+* `getUserMedia()`: Fire `errback` if given video constraints are not satisfied.
+
+
 #### Version 2.2.0
 
 * Move from `getMediaDevices()` to `enumerateDevices()`.
