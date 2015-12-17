@@ -139,6 +139,10 @@ Methods such as `play()`, `pause()` are not implemented. In order to pause a vid
 ## Changelog
 
 
+#### Version 2.2.2
+
+* Update `libwebrtc` to revision 11063 so `MediaStream` events (`onaddtrack` and `onremovetrack`) work again ([issue #95](https://github.com/eface2face/cordova-plugin-iosrtc/issues/95)).
+
 #### Version 2.2.1
 
 * `getUserMedia()`: Fire `errback` if given video constraints are not satisfied.
@@ -168,7 +172,7 @@ Methods such as `play()`, `pause()` are not implemented. In order to pause a vid
 
 #### Version 2.0.0
 
-* Swift 2.0 is here! Credits to @saghul for his [Pull Request](https://github.com/eface2face/cordova-plugin-iosrtc/pull/70).
+* Swift 2.0 is here! Credits to @saghul for his [pull request](https://github.com/eface2face/cordova-plugin-iosrtc/pull/70).
 * `extra/hooks/iosrtc-swift-support.js`: Set `BUILD_VERSION` to 7.0.
 
 #### Version 1.4.5
