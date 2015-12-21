@@ -3,7 +3,7 @@ import AVFoundation
 
 
 class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
-	var webView: UIWebView
+	var webView: UIView
 	var eventListener: (data: NSDictionary) -> Void
 	var elementView: UIView
 	var videoView: RTCEAGLVideoView
@@ -13,7 +13,7 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 
 
 	init(
-		webView: UIWebView,
+		webView: UIView,
 		eventListener: (data: NSDictionary) -> Void
 	) {
 		NSLog("PluginMediaStreamRenderer#init()")
