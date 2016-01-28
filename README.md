@@ -139,6 +139,10 @@ Methods such as `play()`, `pause()` are not implemented. In order to pause a vid
 ## Changelog
 
 
+#### Version 2.2.3 (*not yet released*)
+
+* Update [yaeti](https://www.npmjs.com/package/yaeti) dependency ([issue #123](https://github.com/eface2face/cordova-plugin-iosrtc/issues/123)).
+
 #### Version 2.2.2
 
 * Update `libwebrtc` to revision 11063 so `MediaStream` events (`onaddtrack` and `onremovetrack`) work again ([issue #95](https://github.com/eface2face/cordova-plugin-iosrtc/issues/95)).
