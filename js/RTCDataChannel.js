@@ -28,8 +28,8 @@ function RTCDataChannel(peerConnection, label, options, dataFromEvent) {
 	if (!dataFromEvent) {
 		debug('new() | [label:%o, options:%o]', label, options);
 
-		if (!label || typeof label !== 'string') {
-			throw new Error('label argument required');
+		if (typeof label !== 'string') {
+			label = '';
 		}
 
 		options = options || {};

@@ -141,6 +141,8 @@ Methods such as `play()`, `pause()` are not implemented. In order to pause a vid
 
 #### Version 2.2.3 (*not yet released*)
 
+* `RTCDataChannel`: Allow empty `label` ([issue #124](https://github.com/eface2face/cordova-plugin-iosrtc/issues/124)).
+
 * Update [yaeti](https://www.npmjs.com/package/yaeti) dependency ([issue #123](https://github.com/eface2face/cordova-plugin-iosrtc/issues/123)).
 
 #### Version 2.2.2
