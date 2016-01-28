@@ -22,7 +22,7 @@
     "debug": "^2.2.0",
     "domready": "^1.0.8",
     "random-number": "^0.0.6",
-    "yaeti": "^0.0.4"
+    "yaeti": "^0.0.5"
   },
   "devDependencies": {
     "browserify": "^12.0.1",
