@@ -550,7 +550,7 @@ class iosrtcPlugin : CDVPlugin {
 		NSLog("iosrtcPlugin#MediaStreamTrack_setListener()")
 
 		let id = command.argumentAtIndex(0) as! String
-		let pluginMediaStreamTrack = self.pluginMediaStreamTracks[id]
+		weak var pluginMediaStreamTrack = self.pluginMediaStreamTracks[id]
 
 		if pluginMediaStreamTrack == nil {
 			NSLog("iosrtcPlugin#MediaStreamTrack_setListener() | ERROR: pluginMediaStreamTrack with id=\(id) does not exist")
