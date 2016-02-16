@@ -114,6 +114,7 @@ var debug = require('debug')('iosrtc:videoElementsHandler'),
 
 				// If this video element was previously handling a MediaStreamRenderer, release it.
 				releaseMediaStreamRenderer(node);
+				delete node._iosrtcVideoHandled;
 			} else {
 				for (j = 0; j < node.childNodes.length; j++) {
 					childNode = node.childNodes.item(j);
