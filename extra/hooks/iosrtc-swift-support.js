@@ -10,7 +10,7 @@ var
 	path = require("path"),
 	xcode = require('xcode'),
 
-	BUILD_VERSION = '7.0',
+	BUILD_VERSION = '9.2',
 	BUILD_VERSION_XCODE = '"' + BUILD_VERSION + '"',
 	RUNPATH_SEARCH_PATHS = '@executable_path/Frameworks',
 	RUNPATH_SEARCH_PATHS_XCODE = '"' + RUNPATH_SEARCH_PATHS + '"',
