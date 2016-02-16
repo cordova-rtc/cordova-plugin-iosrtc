@@ -36,6 +36,11 @@ class PluginMediaStream : NSObject, RTCMediaStreamDelegate {
 	}
 
 
+	deinit {
+		NSLog("PluginMediaStream#deinit()")
+	}
+
+
 	func run() {
 		NSLog("PluginMediaStream#run()")
 

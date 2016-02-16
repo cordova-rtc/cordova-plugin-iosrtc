@@ -13,6 +13,11 @@ class PluginGetUserMedia {
 	}
 
 
+	deinit {
+		NSLog("PluginGetUserMedia#deinit()")
+	}
+
+
 	func call(
 		constraints: NSDictionary,
 		callback: (data: NSDictionary) -> Void,

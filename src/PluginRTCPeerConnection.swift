@@ -36,6 +36,11 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 	}
 
 
+	deinit {
+		NSLog("PluginRTCPeerConnection#deinit()")
+	}
+
+
 	func run() {
 		NSLog("PluginRTCPeerConnection#run()")
 
