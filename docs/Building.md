@@ -1,12 +1,6 @@
 # Building
 
 
-### Requirements
-
-* This plugin needs [Swift 2.0](https://developer.apple.com/swift/) so Xcode >= 7.0 is required.
-* The currently bundled *libwebrtc* does not contain bitcode, so you need to disable it in your Xcode project settings.
-
-
 ### Building Steps
 
 An iOS Cordova application including the *cordova-plugin-iosrtc* plugin can be built using the [cordova-cli](https://cordova.apache.org/docs/en/edge/guide_cli_index.md.html#The%20Command-Line%20Interface) or Xcode.
