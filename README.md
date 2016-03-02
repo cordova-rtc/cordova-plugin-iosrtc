@@ -2,6 +2,12 @@
 
 [Cordova](http://cordova.apache.org/) iOS plugin exposing the full [WebRTC W3C JavaScript APIs](http://www.w3.org/TR/webrtc/).
 
+
+* [Public Google Group (mailing list)](https://groups.google.com/forum/#!forum/cordova-plugin-iosrtc) for questions and discussions about *cordova-plugin-iosrtc*.
+* [Bug Tracker](https://github.com/eface2face/cordova-plugin-iosrtc/issues) for reporting issues and requesting new features (**please** don't use the bug tracker for questions or problems, use the mailing list instead).
+* [NPM package](https://www.npmjs.com/package/cordova-plugin-iosrtc).
+
+
 **Yet another WebRTC SDK for iOS?**
 
 Absolutely **not**. This plugin exposes the WebRTC W3C API for Cordova iOS apps (you know there is no WebRTC in iOS, right?), which means no need to learn "yet another WebRTC API" and no need to use a specific service/product/provider. 
@@ -9,12 +15,6 @@ Absolutely **not**. This plugin exposes the WebRTC W3C API for Cordova iOS apps 
 **Why?**
 
 Check the [release announcement](https://eface2face.com/blog/cordova-plugin-iosrtc.html) at the [eFace2Face](https://eface2face.com) site.
-
-**Resources**
-
-* [NPM package](https://www.npmjs.com/package/cordova-plugin-iosrtc).
-* [Public Google Group](https://groups.google.com/forum/#!forum/cordova-plugin-iosrtc) for questions and discussions about *cordova-plugin-iosrtc*.
-* [Bug Tracker](https://github.com/eface2face/cordova-plugin-iosrtc/issues) for reporting issues and requesting new features (please don't use the bug tracker for questions or problems, use the Google Group instead).
 
 
 ## Requirements
