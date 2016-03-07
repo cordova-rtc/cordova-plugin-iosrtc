@@ -221,12 +221,14 @@ MediaStream.prototype.stop = function () {
 	for (trackId in this._audioTracks) {
 		if (this._audioTracks.hasOwnProperty(trackId)) {
 			this._audioTracks[trackId].stop();
+			this._audioTracks[trackId].enabled = false;
 		}
 	}
 
 	for (trackId in this._videoTracks) {
 		if (this._videoTracks.hasOwnProperty(trackId)) {
 			this._videoTracks[trackId].stop();
+			this._videoTracks[trackId].enabled = false;
 		}
 	}
 };
