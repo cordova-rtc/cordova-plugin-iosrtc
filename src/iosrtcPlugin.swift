@@ -598,7 +598,7 @@ class iosrtcPlugin : CDVPlugin {
 		NSLog("iosrtcPlugin#MediaStreamTrack_stop()")
 
 		let id = command.argumentAtIndex(0) as! String
-		weak var pluginMediaStreamTrack = self.pluginMediaStreamTracks[id]
+		let pluginMediaStreamTrack = self.pluginMediaStreamTracks[id]
 
 		if pluginMediaStreamTrack == nil {
 			NSLog("iosrtcPlugin#MediaStreamTrack_stop() | ERROR: pluginMediaStreamTrack with id=\(id) does not exist")
@@ -692,7 +692,7 @@ class iosrtcPlugin : CDVPlugin {
 		NSLog("iosrtcPlugin#MediaStreamRenderer_close()")
 
 		let id = command.argumentAtIndex(0) as! Int
-		weak var pluginMediaStreamRenderer = self.pluginMediaStreamRenderers[id]
+		let pluginMediaStreamRenderer = self.pluginMediaStreamRenderers[id]
 
 		if pluginMediaStreamRenderer == nil {
 			NSLog("iosrtcPlugin#MediaStreamRenderer_close() | ERROR: pluginMediaStreamRenderer with id=\(id) does not exist")
