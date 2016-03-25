@@ -463,6 +463,10 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 
 		NSLog("PluginRTCPeerConnection | oniceconnectionstatechange [iceConnectionState:\(state_str)]")
 
+		if state_str == "disconnected" {
+			self.close()
+		}
+
 		self.eventListener(data: [
 			"type": "iceconnectionstatechange",
 			"iceConnectionState": state_str
