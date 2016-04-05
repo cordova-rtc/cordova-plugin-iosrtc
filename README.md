@@ -149,6 +149,13 @@ Methods such as `play()`, `pause()` are not implemented. In order to pause a vid
 ## Changelog
 
 
+#### Version 2.2.4
+
+* Fix crash ([issue #144](https://github.com/eface2face/cordova-plugin-iosrtc/issues/144)).
+
+* Update NPM dependencies.
+
+
 #### Version 2.2.3
 
 * Enable iOS native H.264 encoder/decoder.
