@@ -32,6 +32,11 @@ class PluginRTCPeerConnectionConfig {
 	}
 
 
+	deinit {
+		NSLog("PluginRTCPeerConnectionConfig#deinit()")
+	}
+
+
 	func getIceServers() -> [RTCICEServer] {
 		NSLog("PluginRTCPeerConnectionConfig#getIceServers()")
 

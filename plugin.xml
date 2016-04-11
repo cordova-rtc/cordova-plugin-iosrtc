@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
 		id="cordova-plugin-iosrtc"
-		version="2.2.2">
+		version="2.2.4">
 
 	<name>iosrtc</name>
 	<description>Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs</description>
@@ -18,10 +18,6 @@
 		<engine name="cordova-ios" version=">=3.8.0" />
 	</engines>
 
-	<js-module src="dist/cordova-plugin-iosrtc.js" name="Plugin">
-		<clobbers target="cordova.plugins.iosrtc" />
-	</js-module>
-
 	<platform name="ios">
 		<config-file target="config.xml" parent="/*">
 			<feature name="iosrtcPlugin">
@@ -29,6 +25,10 @@
 				<param name="onload" value="true" />
 			</feature>
 		</config-file>
+
+		<js-module src="dist/cordova-plugin-iosrtc.js" name="Plugin">
+			<clobbers target="cordova.plugins.iosrtc" />
+		</js-module>
 
 		<!-- WebRTC ObjetiveC headers -->
 		<header-file src="src/webrtc-headers/RTCAVFoundationVideoSource.h" />

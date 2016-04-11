@@ -95,7 +95,7 @@ class iosrtcPlugin : CDVPlugin {
 			options = command.argumentAtIndex(1) as? NSDictionary
 		}
 
-		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
+		weak var pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
 
 		if pluginRTCPeerConnection == nil {
 			NSLog("iosrtcPlugin#RTCPeerConnection_createOffer() | ERROR: pluginRTCPeerConnection with pcId=\(pcId) does not exist")
@@ -129,7 +129,7 @@ class iosrtcPlugin : CDVPlugin {
 			options = command.argumentAtIndex(1) as? NSDictionary
 		}
 
-		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
+		weak var pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
 
 		if pluginRTCPeerConnection == nil {
 			NSLog("iosrtcPlugin#RTCPeerConnection_createAnswer() | ERROR: pluginRTCPeerConnection with pcId=\(pcId) does not exist")
@@ -158,7 +158,7 @@ class iosrtcPlugin : CDVPlugin {
 
 		let pcId = command.argumentAtIndex(0) as! Int
 		let desc = command.argumentAtIndex(1) as! NSDictionary
-		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
+		weak var pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
 
 		if pluginRTCPeerConnection == nil {
 			NSLog("iosrtcPlugin#RTCPeerConnection_setLocalDescription() | ERROR: pluginRTCPeerConnection with pcId=\(pcId) does not exist")
@@ -187,7 +187,7 @@ class iosrtcPlugin : CDVPlugin {
 
 		let pcId = command.argumentAtIndex(0) as! Int
 		let desc = command.argumentAtIndex(1) as! NSDictionary
-		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
+		weak var pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
 
 		if pluginRTCPeerConnection == nil {
 			NSLog("iosrtcPlugin#RTCPeerConnection_setRemoteDescription() | ERROR: pluginRTCPeerConnection with pcId=\(pcId) does not exist")
@@ -216,7 +216,7 @@ class iosrtcPlugin : CDVPlugin {
 
 		let pcId = command.argumentAtIndex(0) as! Int
 		let candidate = command.argumentAtIndex(1) as! NSDictionary
-		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
+		weak var pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
 
 		if pluginRTCPeerConnection == nil {
 			NSLog("iosrtcPlugin#RTCPeerConnection_addIceCandidate() | ERROR: pluginRTCPeerConnection with pcId=\(pcId) does not exist")
@@ -245,8 +245,8 @@ class iosrtcPlugin : CDVPlugin {
 
 		let pcId = command.argumentAtIndex(0) as! Int
 		let streamId = command.argumentAtIndex(1) as! String
-		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
-		let pluginMediaStream = self.pluginMediaStreams[streamId]
+		weak var pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
+		weak var pluginMediaStream = self.pluginMediaStreams[streamId]
 
 		if pluginRTCPeerConnection == nil {
 			NSLog("iosrtcPlugin#RTCPeerConnection_addStream() | ERROR: pluginRTCPeerConnection with pcId=\(pcId) does not exist")
@@ -271,8 +271,8 @@ class iosrtcPlugin : CDVPlugin {
 
 		let pcId = command.argumentAtIndex(0) as! Int
 		let streamId = command.argumentAtIndex(1) as! String
-		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
-		let pluginMediaStream = self.pluginMediaStreams[streamId]
+		weak var pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
+		weak var pluginMediaStream = self.pluginMediaStreams[streamId]
 
 		if pluginRTCPeerConnection == nil {
 			NSLog("iosrtcPlugin#RTCPeerConnection_removeStream() | pluginRTCPeerConnection with pcId=\(pcId) does not exist")
@@ -302,7 +302,7 @@ class iosrtcPlugin : CDVPlugin {
 			options = command.argumentAtIndex(3) as? NSDictionary
 		}
 
-		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
+		weak var pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
 
 		if pluginRTCPeerConnection == nil {
 			NSLog("iosrtcPlugin#RTCPeerConnection_createDataChannel() | ERROR: pluginRTCPeerConnection with pcId=\(pcId) does not exist")
@@ -374,7 +374,7 @@ class iosrtcPlugin : CDVPlugin {
 		NSLog("iosrtcPlugin#RTCPeerConnection_close()")
 
 		let pcId = command.argumentAtIndex(0) as! Int
-		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
+		weak var pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
 
 		if pluginRTCPeerConnection == nil {
 			NSLog("iosrtcPlugin#RTCPeerConnection_close() | ERROR: pluginRTCPeerConnection with pcId=\(pcId) does not exist")
@@ -395,7 +395,7 @@ class iosrtcPlugin : CDVPlugin {
 
 		let pcId = command.argumentAtIndex(0) as! Int
 		let dcId = command.argumentAtIndex(1) as! Int
-		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
+		weak var pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
 
 		if pluginRTCPeerConnection == nil {
 			NSLog("iosrtcPlugin#RTCPeerConnection_RTCDataChannel_setListener() | ERROR: pluginRTCPeerConnection with pcId=\(pcId) does not exist")
@@ -429,7 +429,7 @@ class iosrtcPlugin : CDVPlugin {
 		let pcId = command.argumentAtIndex(0) as! Int
 		let dcId = command.argumentAtIndex(1) as! Int
 		let data = command.argumentAtIndex(2) as! String
-		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
+		weak var pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
 
 		if pluginRTCPeerConnection == nil {
 			NSLog("iosrtcPlugin#RTCPeerConnection_RTCDataChannel_sendString() | ERROR: pluginRTCPeerConnection with pcId=\(pcId) does not exist")
@@ -455,7 +455,7 @@ class iosrtcPlugin : CDVPlugin {
 		let pcId = command.argumentAtIndex(0) as! Int
 		let dcId = command.argumentAtIndex(1) as! Int
 		let data = command.argumentAtIndex(2) as! NSData
-		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
+		weak var pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
 
 		if pluginRTCPeerConnection == nil {
 			NSLog("iosrtcPlugin#RTCPeerConnection_RTCDataChannel_sendBinary() | ERROR: pluginRTCPeerConnection with pcId=\(pcId) does not exist")
@@ -480,7 +480,7 @@ class iosrtcPlugin : CDVPlugin {
 
 		let pcId = command.argumentAtIndex(0) as! Int
 		let dcId = command.argumentAtIndex(1) as! Int
-		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
+		weak var pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
 
 		if pluginRTCPeerConnection == nil {
 			NSLog("iosrtcPlugin#RTCPeerConnection_RTCDataChannel_close() | ERROR: pluginRTCPeerConnection with pcId=\(pcId) does not exist")
@@ -497,7 +497,7 @@ class iosrtcPlugin : CDVPlugin {
 		NSLog("iosrtcPlugin#MediaStream_setListener()")
 
 		let id = command.argumentAtIndex(0) as! String
-		let pluginMediaStream = self.pluginMediaStreams[id]
+		weak var pluginMediaStream = self.pluginMediaStreams[id]
 
 		if pluginMediaStream == nil {
 			NSLog("iosrtcPlugin#MediaStream_setListener() | ERROR: pluginMediaStream with id=\(id) does not exist")
@@ -526,8 +526,8 @@ class iosrtcPlugin : CDVPlugin {
 
 		let id = command.argumentAtIndex(0) as! String
 		let trackId = command.argumentAtIndex(1) as! String
-		let pluginMediaStream = self.pluginMediaStreams[id]
-		let pluginMediaStreamTrack = self.pluginMediaStreamTracks[trackId]
+		weak var pluginMediaStream = self.pluginMediaStreams[id]
+		weak var pluginMediaStreamTrack = self.pluginMediaStreamTracks[trackId]
 
 		if pluginMediaStream == nil {
 			NSLog("iosrtcPlugin#MediaStream_addTrack() | ERROR: pluginMediaStream with id=\(id) does not exist")
@@ -550,8 +550,8 @@ class iosrtcPlugin : CDVPlugin {
 
 		let id = command.argumentAtIndex(0) as! String
 		let trackId = command.argumentAtIndex(1) as! String
-		let pluginMediaStream = self.pluginMediaStreams[id]
-		let pluginMediaStreamTrack = self.pluginMediaStreamTracks[trackId]
+		weak var pluginMediaStream = self.pluginMediaStreams[id]
+		weak var pluginMediaStreamTrack = self.pluginMediaStreamTracks[trackId]
 
 		if pluginMediaStream == nil {
 			NSLog("iosrtcPlugin#MediaStream_removeTrack() | ERROR: pluginMediaStream with id=\(id) does not exist")
@@ -573,7 +573,7 @@ class iosrtcPlugin : CDVPlugin {
 		NSLog("iosrtcPlugin#MediaStream_release()")
 
 		let id = command.argumentAtIndex(0) as! String
-		let pluginMediaStream = self.pluginMediaStreams[id]
+		weak var pluginMediaStream = self.pluginMediaStreams[id]
 
 		if pluginMediaStream == nil {
 			NSLog("iosrtcPlugin#MediaStream_release() | ERROR: pluginMediaStream with id=\(id) does not exist")
@@ -588,7 +588,7 @@ class iosrtcPlugin : CDVPlugin {
 		NSLog("iosrtcPlugin#MediaStreamTrack_setListener()")
 
 		let id = command.argumentAtIndex(0) as! String
-		let pluginMediaStreamTrack = self.pluginMediaStreamTracks[id]
+		weak var pluginMediaStreamTrack = self.pluginMediaStreamTracks[id]
 
 		if pluginMediaStreamTrack == nil {
 			NSLog("iosrtcPlugin#MediaStreamTrack_setListener() | ERROR: pluginMediaStreamTrack with id=\(id) does not exist")
@@ -619,7 +619,7 @@ class iosrtcPlugin : CDVPlugin {
 
 		let id = command.argumentAtIndex(0) as! String
 		let value = command.argumentAtIndex(1) as! Bool
-		let pluginMediaStreamTrack = self.pluginMediaStreamTracks[id]
+		weak var pluginMediaStreamTrack = self.pluginMediaStreamTracks[id]
 
 		if pluginMediaStreamTrack == nil {
 			NSLog("iosrtcPlugin#MediaStreamTrack_setEnabled() | ERROR: pluginMediaStreamTrack with id=\(id) does not exist")
@@ -678,8 +678,8 @@ class iosrtcPlugin : CDVPlugin {
 
 		let id = command.argumentAtIndex(0) as! Int
 		let streamId = command.argumentAtIndex(1) as! String
-		let pluginMediaStreamRenderer = self.pluginMediaStreamRenderers[id]
-		let pluginMediaStream = self.pluginMediaStreams[streamId]
+		weak var pluginMediaStreamRenderer = self.pluginMediaStreamRenderers[id]
+		weak var pluginMediaStream = self.pluginMediaStreams[streamId]
 
 		if pluginMediaStreamRenderer == nil {
 			NSLog("iosrtcPlugin#MediaStreamRenderer_render() | ERROR: pluginMediaStreamRenderer with id=\(id) does not exist")
@@ -699,7 +699,7 @@ class iosrtcPlugin : CDVPlugin {
 		NSLog("iosrtcPlugin#MediaStreamRenderer_mediaStreamChanged()")
 
 		let id = command.argumentAtIndex(0) as! Int
-		let pluginMediaStreamRenderer = self.pluginMediaStreamRenderers[id]
+		weak var pluginMediaStreamRenderer = self.pluginMediaStreamRenderers[id]
 
 		if pluginMediaStreamRenderer == nil {
 			NSLog("iosrtcPlugin#MediaStreamRenderer_mediaStreamChanged() | ERROR: pluginMediaStreamRenderer with id=\(id) does not exist")
@@ -715,7 +715,7 @@ class iosrtcPlugin : CDVPlugin {
 
 		let id = command.argumentAtIndex(0) as! Int
 		let data = command.argumentAtIndex(1) as! NSDictionary
-		let pluginMediaStreamRenderer = self.pluginMediaStreamRenderers[id]
+		weak var pluginMediaStreamRenderer = self.pluginMediaStreamRenderers[id]
 
 		if pluginMediaStreamRenderer == nil {
 			NSLog("iosrtcPlugin#MediaStreamRenderer_refresh() | ERROR: pluginMediaStreamRenderer with id=\(id) does not exist")
@@ -786,8 +786,8 @@ class iosrtcPlugin : CDVPlugin {
 		do {
 			try AVAudioSession.sharedInstance().overrideOutputAudioPort(AVAudioSessionPortOverride.None)
 		} catch {
-            NSLog("iosrtcPlugin#selectAudioOutputEarpiece() | ERROR \(error)")
-        };
+			NSLog("iosrtcPlugin#selectAudioOutputEarpiece() | ERROR \(error)")
+		};
 	}
 
 
@@ -797,7 +797,7 @@ class iosrtcPlugin : CDVPlugin {
 		do {
 			try AVAudioSession.sharedInstance().overrideOutputAudioPort(AVAudioSessionPortOverride.Speaker)
 		} catch {
-            NSLog("iosrtcPlugin#selectAudioOutputSpeaker() | ERROR \(error)")
+			NSLog("iosrtcPlugin#selectAudioOutputSpeaker() | ERROR \(error)")
 		};
 	}
 

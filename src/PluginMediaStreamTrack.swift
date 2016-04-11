@@ -19,6 +19,11 @@ class PluginMediaStreamTrack : NSObject, RTCMediaStreamTrackDelegate {
 	}
 
 
+	deinit {
+		NSLog("PluginMediaStreamTrack#deinit()")
+	}
+
+
 	func run() {
 		NSLog("PluginMediaStreamTrack#run() [kind:\(self.kind), id:\(self.id)]")
 

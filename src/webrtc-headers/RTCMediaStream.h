@@ -45,7 +45,6 @@
 
 @end
 
-
 // RTCMediaStream is an ObjectiveC wrapper for MediaStreamInterface.
 @interface RTCMediaStream : NSObject
 

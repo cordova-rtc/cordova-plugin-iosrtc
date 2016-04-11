@@ -13,6 +13,11 @@ class PluginGetUserMedia {
 	}
 
 
+	deinit {
+		NSLog("PluginGetUserMedia#deinit()")
+	}
+
+
 	func call(
 		constraints: NSDictionary,
 		callback: (data: NSDictionary) -> Void,
@@ -148,7 +153,7 @@ class PluginGetUserMedia {
 			)
 
 			// If videoSource state is "ended" it means that constraints were not satisfied so
-			// invoke the given errback
+			// invoke the given errback.
 			if (rtcVideoSource!.state == RTCSourceStateEnded) {
 				NSLog("PluginGetUserMedia() | rtcVideoSource.state is 'ended', constraints not satisfied")
 

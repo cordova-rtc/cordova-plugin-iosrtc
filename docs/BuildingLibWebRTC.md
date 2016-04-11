@@ -20,7 +20,7 @@ $ get_webrtc
 
 * Set a specific *libwebrtc* version:
 ```bash
-$ update2Revision 11063
+$ update2Revision 11797
 ```
 
 
@@ -35,27 +35,28 @@ Since we live in the present we need those two events to properly implement the 
 * Apply the patch provided at `extra/libwebrtc-objc-iosrtc.patch` into the Objective-C source code of *libwebrtc*:
 ```bash
 $ cd ios/webrtc/src/talk/app/webrtc/objc
-$ patch -p1 < PATH_TO_CORDOVA_PLUGIN_IOSRTC/extra/libwebrtc-objc-iosrtc.patch
+$ patch -p1 < $PATH_TO_CORDOVA_PLUGIN_IOSRTC/extra/libwebrtc-objc-iosrtc.patch
 ```
+
+* If desired, enable native H264 support by setting `'use_objc_h264%': 1` in `webrtc-build-scripts/ios/webrtc/src/webrtc/build/common.gypi`.
 
 
 ### Build *libwebrtc*
 
 * Go back to the `webrtc-build-scripts` root folder and build *libwebrtc*:
 ```bash
-$ cd ../../../../../../../
 $ build_webrtc
 ```
 
 * Copy the *libwebrtc* Objective-C headers to *cordova-plugin-iosrtc*:
 ```bash
-$ rm -f PATH_TO_CORDOVA_PLUGIN_IOSRTC/src/webrtc-headers/*
-$ cp ios/webrtc/src/talk/app/webrtc/objc/public/* PATH_TO_CORDOVA_PLUGIN_IOSRTC/src/webrtc-headers/
+$ rm -f $PATH_TO_CORDOVA_PLUGIN_IOSRTC/src/webrtc-headers/*
+$ cp ios/webrtc/src/talk/app/webrtc/objc/public/* $PATH_TO_CORDOVA_PLUGIN_IOSRTC/src/webrtc-headers/
 ```
 
 * Copy the *libwebrtc* static library to *cordova-plugin-iosrtc*:
 ```bash
-$ rm -f PATH_TO_CORDOVA_PLUGIN_IOSRTC/lib/*
-$ cp ios/webrtc/libWebRTC-LATEST-Universal-Release.a PATH_TO_CORDOVA_PLUGIN_IOSRTC/lib/
+$ rm -f $PATH_TO_CORDOVA_PLUGIN_IOSRTC/lib/*
+$ cp ios/webrtc/libWebRTC-LATEST-Universal-Release.a $PATH_TO_CORDOVA_PLUGIN_IOSRTC/lib/
 ```
 

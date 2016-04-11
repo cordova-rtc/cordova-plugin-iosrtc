@@ -36,6 +36,11 @@ class PluginMediaStream : NSObject, RTCMediaStreamDelegate {
 	}
 
 
+	deinit {
+		NSLog("PluginMediaStream#deinit()")
+	}
+
+
 	func run() {
 		NSLog("PluginMediaStream#run()")
 
@@ -129,12 +134,9 @@ class PluginMediaStream : NSObject, RTCMediaStreamDelegate {
 	}
 
 
-	// TODO: API methods
-
-
-		/**
-		 * Methods inherited from RTCMediaStreamDelegate.
-		 */
+	/**
+	 * Methods inherited from RTCMediaStreamDelegate.
+	 */
 
 
 	func OnAddAudioTrack(rtcMediaStream: RTCMediaStream!, track: RTCMediaStreamTrack!) {

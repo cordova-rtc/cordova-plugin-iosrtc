@@ -41,6 +41,11 @@ class PluginRTCPeerConnectionConstraints {
 	}
 
 
+	deinit {
+		NSLog("PluginRTCPeerConnectionConstraints#deinit()")
+	}
+
+
 	func getConstraints() -> RTCMediaConstraints {
 		NSLog("PluginRTCPeerConnectionConstraints#getConstraints()")
 

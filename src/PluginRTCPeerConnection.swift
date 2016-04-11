@@ -36,6 +36,11 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 	}
 
 
+	deinit {
+		NSLog("PluginRTCPeerConnection#deinit()")
+	}
+
+
 	func run() {
 		NSLog("PluginRTCPeerConnection#run()")
 
@@ -295,7 +300,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 	) {
 		NSLog("PluginRTCPeerConnection#RTCDataChannel_setListener()")
 
-		let pluginRTCDataChannel = self.pluginRTCDataChannels[dcId]
+		weak var pluginRTCDataChannel = self.pluginRTCDataChannels[dcId]
 
 		if pluginRTCDataChannel == nil {
 			return;
@@ -347,7 +352,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 			return
 		}
 
-		let pluginRTCDataChannel = self.pluginRTCDataChannels[dcId]
+		weak var pluginRTCDataChannel = self.pluginRTCDataChannels[dcId]
 
 		if pluginRTCDataChannel == nil {
 			return;
@@ -368,7 +373,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 			return
 		}
 
-		let pluginRTCDataChannel = self.pluginRTCDataChannels[dcId]
+		weak var pluginRTCDataChannel = self.pluginRTCDataChannels[dcId]
 
 		if pluginRTCDataChannel == nil {
 			return;
@@ -385,7 +390,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 			return
 		}
 
-		let pluginRTCDataChannel = self.pluginRTCDataChannels[dcId]
+		weak var pluginRTCDataChannel = self.pluginRTCDataChannels[dcId]
 
 		if pluginRTCDataChannel == nil {
 			return;
@@ -487,6 +492,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 		NSLog("PluginRTCPeerConnection | onaddstream")
 
 		let pluginMediaStream = PluginMediaStream(rtcMediaStream: rtcMediaStream)
+
 		pluginMediaStream.run()
 
 		// Let the plugin store it in its dictionary.

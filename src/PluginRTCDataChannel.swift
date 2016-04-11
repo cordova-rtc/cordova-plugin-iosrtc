@@ -82,6 +82,11 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 	}
 
 
+	deinit {
+		NSLog("PluginRTCDataChannel#deinit()")
+	}
+
+
 	/**
 	 * Constructor for pc.ondatachannel event.
 	 */

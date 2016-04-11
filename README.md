@@ -2,6 +2,12 @@
 
 [Cordova](http://cordova.apache.org/) iOS plugin exposing the full [WebRTC W3C JavaScript APIs](http://www.w3.org/TR/webrtc/).
 
+
+* [Public Google Group (mailing list)](https://groups.google.com/forum/#!forum/cordova-plugin-iosrtc) for questions and discussions about *cordova-plugin-iosrtc*.
+* [Bug Tracker](https://github.com/eface2face/cordova-plugin-iosrtc/issues) for reporting issues and requesting new features (**please** don't use the bug tracker for questions or problems, use the mailing list instead).
+* [NPM package](https://www.npmjs.com/package/cordova-plugin-iosrtc).
+
+
 **Yet another WebRTC SDK for iOS?**
 
 Absolutely **not**. This plugin exposes the WebRTC W3C API for Cordova iOS apps (you know there is no WebRTC in iOS, right?), which means no need to learn "yet another WebRTC API" and no need to use a specific service/product/provider. 
@@ -10,11 +16,15 @@ Absolutely **not**. This plugin exposes the WebRTC W3C API for Cordova iOS apps 
 
 Check the [release announcement](https://eface2face.com/blog/cordova-plugin-iosrtc.html) at the [eFace2Face](https://eface2face.com) site.
 
-**Resources**
 
-* [NPM package](https://www.npmjs.com/package/cordova-plugin-iosrtc).
-* [Public Google Group](https://groups.google.com/forum/#!forum/cordova-plugin-iosrtc) for questions and discussions about *cordova-plugin-iosrtc*.
-* [Bug Tracker](https://github.com/eface2face/cordova-plugin-iosrtc/issues) for reporting issues and requesting new features (please don't use the bug tracker for questions or problems, use the Google Group instead).
+## Requirements
+
+In order to make this Cordova plugin run into a iOS application some requirements must be satisfied in both development computer and target devices:
+
+* Xcode >= 7.2.1
+* iOS >= 9 (run on lower versions at your own risk, but don't open issues)
+* `cordova-ios` 3.9.X (don't attempt to use 4.X)
+* No bitcode (built-in *libwebrtc* does not contain bitcode so you need to disable it in your Xcode project settings)
 
 
 ## Installation
@@ -138,6 +148,25 @@ Methods such as `play()`, `pause()` are not implemented. In order to pause a vid
 
 ## Changelog
 
+
+#### Version 2.2.4
+
+* Fix crash ([issue #144](https://github.com/eface2face/cordova-plugin-iosrtc/issues/144)).
+
+* Update NPM dependencies.
+
+
+#### Version 2.2.3
+
+* Enable iOS native H.264 encoder/decoder.
+
+* `RTCDataChannel`: Allow empty `label` ([issue #124](https://github.com/eface2face/cordova-plugin-iosrtc/issues/124)).
+
+* Update [yaeti](https://www.npmjs.com/package/yaeti) dependency ([issue #123](https://github.com/eface2face/cordova-plugin-iosrtc/issues/123)).
+
+* Fix retain on `pluginMediaStreamTrack` does not allow camera/mic to be freed ([PR #126](https://github.com/eface2face/cordova-plugin-iosrtc/pull/126)). Credits to @oNaiPs.
+
+* Allow a handled video element to be removed from the DOM and added again later ([PR #127](https://github.com/eface2face/cordova-plugin-iosrtc/pull/127)). Credits to @oNaiPs.
 
 #### Version 2.2.2
 
