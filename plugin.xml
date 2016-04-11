@@ -19,6 +19,7 @@
 	</engines>
 
 	<platform name="ios">
+		<hook type="after_prepare" src="extra/hooks/iosrtc-swift-support.js" />
 		<config-file target="config.xml" parent="/*">
 			<feature name="iosrtcPlugin">
 				<param name="ios-package" value="iosrtcPlugin" />
