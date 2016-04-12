@@ -13,30 +13,39 @@ class PluginRTCPeerConnectionConstraints {
 			return
 		}
 
-		var	offerToReceiveAudio = pcConstraints?.objectForKey("offerToReceiveAudio") as? Bool
-		var	offerToReceiveVideo = pcConstraints?.objectForKey("offerToReceiveVideo") as? Bool
+		var mandatoryPairArray:[RTCPair] = []
+		var optionalPairArray:[RTCPair] = []
 
-		if offerToReceiveAudio == nil && offerToReceiveVideo == nil {
-			self.constraints = RTCMediaConstraints()
-			return
+		let mandatoryConstraints = pcConstraints?.objectForKey("mandatory") as? NSDictionary
+		let optionalConstraints = pcConstraints?.objectForKey("optional") as? NSDictionary
+
+		if mandatoryConstraints != nil {
+			for (key, value) in mandatoryConstraints! {
+				var finalValue: String;
+				if value is Bool {
+					finalValue = value as! Bool ? "true" : "false"
+				} else {
+					finalValue = value as! String
+				}
+				mandatoryPairArray.append(RTCPair(key: key as! String, value: finalValue))
+			}
 		}
 
-		if offerToReceiveAudio == nil {
-			offerToReceiveAudio = false
+		if optionalConstraints != nil {
+			for (key, value) in optionalConstraints! {
+				var finalValue: String;
+				if value is Bool {
+					finalValue = value as! Bool ? "true" : "false"
+				} else {
+					finalValue = value as! String
+				}
+				optionalPairArray.append(RTCPair(key: key as! String, value: finalValue))
+			}
 		}
-
-		if offerToReceiveVideo == nil {
-			offerToReceiveVideo = false
-		}
-
-		NSLog("PluginRTCPeerConnectionConstraints#init() | [offerToReceiveAudio:\(offerToReceiveAudio!) | offerToReceiveVideo:\(offerToReceiveVideo!)]")
 
 		self.constraints = RTCMediaConstraints(
-			mandatoryConstraints: [
-				RTCPair(key: "OfferToReceiveAudio", value: offerToReceiveAudio == true ? "true" : "false"),
-				RTCPair(key: "OfferToReceiveVideo", value: offerToReceiveVideo == true ? "true" : "false")
-			],
-			optionalConstraints: []
+			mandatoryConstraints: mandatoryPairArray,
+			optionalConstraints: optionalPairArray
 		)
 	}
 

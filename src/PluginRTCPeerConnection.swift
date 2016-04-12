@@ -1,7 +1,7 @@
 import Foundation
 
 
-class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionDescriptionDelegate {
+class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionDescriptionDelegate, RTCStatsDelegate {
 	var rtcPeerConnectionFactory: RTCPeerConnectionFactory
 	var rtcPeerConnection: RTCPeerConnection!
 	var pluginRTCPeerConnectionConfig: PluginRTCPeerConnectionConfig
@@ -15,7 +15,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 	var onCreateDescriptionFailureCallback: ((error: NSError) -> Void)!
 	var onSetDescriptionSuccessCallback: (() -> Void)!
 	var onSetDescriptionFailureCallback: ((error: NSError) -> Void)!
-
+    var onGetStatsCallback: ((array: NSArray) -> Void)!
 
 	init(
 		rtcPeerConnectionFactory: RTCPeerConnectionFactory,
@@ -312,6 +312,23 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 		)
 	}
 
+	func getStats(
+        pluginMediaStreamTrack: PluginMediaStreamTrack?,
+        callback: (data: NSArray) -> Void,
+        errback: (error: NSError) -> Void
+        ) {
+            NSLog("PluginRTCPeerConnection#getStats()")
+
+            self.onGetStatsCallback = { (array: NSArray) -> Void in
+                callback(data: array)
+            }
+
+            if !self.rtcPeerConnection.getStatsWithDelegate(self,
+                mediaStreamTrack: pluginMediaStreamTrack?.rtcMediaStreamTrack,
+                statsOutputLevel: RTCStatsOutputLevelStandard) {
+                    errback(error: NSError(domain: "Cannot get peer connection stats.", code: -1, userInfo: nil))
+            }
+    }
 
 	func close() {
 		NSLog("PluginRTCPeerConnection#close()")
@@ -569,4 +586,27 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 			self.onSetDescriptionFailureCallback(error: error)
 		}
 	}
+
+    /**
+     * Methods inherited from RTCStatsDelegate
+     */
+
+    func peerConnection(peerConnection: RTCPeerConnection!,
+        didGetStats stats: [AnyObject]!) {
+
+            var jsStats = [NSDictionary]()
+
+            for stat in stats as NSArray {
+                var jsValues = Dictionary<String,String>()
+
+                for pair in stat.values as! [RTCPair] {
+                    jsValues[pair.key] = pair.value;
+                }
+
+                jsStats.append(["reportId": stat.reportId, "type": stat.type, "timestamp": stat.timestamp, "values": jsValues]);
+
+            }
+
+        self.onGetStatsCallback(array: jsStats);
+    }
 }
