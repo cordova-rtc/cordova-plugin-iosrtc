@@ -17,12 +17,18 @@ class iosrtcPlugin : CDVPlugin {
 	// PluginMediaStreamRenderer dictionary.
 	var pluginMediaStreamRenderers: [Int : PluginMediaStreamRenderer] = [:]
 	// Dispatch queue for serial operations.
-	let queue = dispatch_queue_create("cordova-plugin-iosrtc", DISPATCH_QUEUE_SERIAL)
+	var queue = dispatch_queue_create("cordova-plugin-iosrtc", DISPATCH_QUEUE_SERIAL)
 
 
 	// This is just called if <param name="onload" value="true" /> in plugin.xml.
 	override func pluginInitialize() {
 		NSLog("iosrtcPlugin#pluginInitialize()")
+
+		pluginMediaStreams = [:]
+		pluginMediaStreamTracks = [:]
+		pluginMediaStreamRenderers = [:]
+		queue = dispatch_queue_create("cordova-plugin-iosrtc", DISPATCH_QUEUE_SERIAL)
+		pluginRTCPeerConnections = [:]
 
 		// Initialize DTLS stuff.
 		RTCPeerConnectionFactory.initializeSSL()
