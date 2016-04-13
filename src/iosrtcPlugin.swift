@@ -9,15 +9,15 @@ class iosrtcPlugin : CDVPlugin {
 	// Single PluginGetUserMedia instance.
 	var pluginGetUserMedia: PluginGetUserMedia!
 	// PluginRTCPeerConnection dictionary.
-	var pluginRTCPeerConnections: [Int : PluginRTCPeerConnection] = [:]
+	var pluginRTCPeerConnections: [Int : PluginRTCPeerConnection]!
 	// PluginMediaStream dictionary.
-	var pluginMediaStreams: [String : PluginMediaStream] = [:]
+	var pluginMediaStreams: [String : PluginMediaStream]!
 	// PluginMediaStreamTrack dictionary.
-	var pluginMediaStreamTracks: [String : PluginMediaStreamTrack] = [:]
+	var pluginMediaStreamTracks: [String : PluginMediaStreamTrack]!
 	// PluginMediaStreamRenderer dictionary.
-	var pluginMediaStreamRenderers: [Int : PluginMediaStreamRenderer] = [:]
+	var pluginMediaStreamRenderers: [Int : PluginMediaStreamRenderer]!
 	// Dispatch queue for serial operations.
-	var queue = dispatch_queue_create("cordova-plugin-iosrtc", DISPATCH_QUEUE_SERIAL)
+    var queue: dispatch_queue_t!
 
 
 	// This is just called if <param name="onload" value="true" /> in plugin.xml.
