@@ -17,7 +17,7 @@ class iosrtcPlugin : CDVPlugin {
 	// PluginMediaStreamRenderer dictionary.
 	var pluginMediaStreamRenderers: [Int : PluginMediaStreamRenderer]!
 	// Dispatch queue for serial operations.
-    var queue: dispatch_queue_t!
+	var queue: dispatch_queue_t!
 
 
 	// This is just called if <param name="onload" value="true" /> in plugin.xml.
