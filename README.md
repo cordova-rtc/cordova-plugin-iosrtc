@@ -23,7 +23,7 @@ In order to make this Cordova plugin run into a iOS application some requirement
 
 * Xcode >= 7.2.1
 * iOS >= 9 (run on lower versions at your own risk, but don't open issues)
-* `cordova-ios` 3.9.X (don't attempt to use 4.X)
+* `cordova-ios` 4.X
 * No bitcode (built-in *libwebrtc* does not contain bitcode so you need to disable it in your Xcode project settings)
 
 
