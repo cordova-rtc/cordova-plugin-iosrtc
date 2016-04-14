@@ -342,7 +342,7 @@ class iosrtcPlugin : CDVPlugin {
 		NSLog("iosrtcPlugin#RTCPeerConnection_close()")
 
 		let pcId = command.argumentAtIndex(0) as! Int
-		weak var pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
+		var pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
 
 		if pluginRTCPeerConnection == nil {
 			NSLog("iosrtcPlugin#RTCPeerConnection_close() | ERROR: pluginRTCPeerConnection with pcId=%@ does not exist", String(pcId))
@@ -351,6 +351,7 @@ class iosrtcPlugin : CDVPlugin {
 
 		dispatch_async(self.queue) {
 			pluginRTCPeerConnection!.close()
+			pluginRTCPeerConnection = nil
 		}
 
 		// Remove the pluginRTCPeerConnection from the dictionary.
