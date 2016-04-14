@@ -66,7 +66,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 		let pluginRTCPeerConnectionConstraints = PluginRTCPeerConnectionConstraints(pcConstraints: options)
 
 		self.onCreateDescriptionSuccessCallback = { (rtcSessionDescription: RTCSessionDescription) -> Void in
-			NSLog("PluginRTCPeerConnection#createOffer() | success callback [type:\(rtcSessionDescription.type)]")
+			NSLog("PluginRTCPeerConnection#createOffer() | success callback")
 
 			let data = [
 				"type": rtcSessionDescription.type,
@@ -77,7 +77,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 		}
 
 		self.onCreateDescriptionFailureCallback = { (error: NSError) -> Void in
-			NSLog("PluginRTCPeerConnection#createOffer() | failure callback: \(error)")
+			NSLog("PluginRTCPeerConnection#createOffer() | failure callback: %@", String(error))
 
 			errback(error: error)
 		}
@@ -101,7 +101,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 		let pluginRTCPeerConnectionConstraints = PluginRTCPeerConnectionConstraints(pcConstraints: options)
 
 		self.onCreateDescriptionSuccessCallback = { (rtcSessionDescription: RTCSessionDescription) -> Void in
-			NSLog("PluginRTCPeerConnection#createAnswer() | success callback [type:\(rtcSessionDescription.type)]")
+			NSLog("PluginRTCPeerConnection#createAnswer() | success callback")
 
 			let data = [
 				"type": rtcSessionDescription.type,
@@ -112,7 +112,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 		}
 
 		self.onCreateDescriptionFailureCallback = { (error: NSError) -> Void in
-			NSLog("PluginRTCPeerConnection#createAnswer() | failure callback: \(error)")
+			NSLog("PluginRTCPeerConnection#createAnswer() | failure callback: %@", String(error))
 
 			errback(error: error)
 		}
@@ -149,7 +149,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 		}
 
 		self.onSetDescriptionFailureCallback = { (error: NSError) -> Void in
-			NSLog("PluginRTCPeerConnection#setLocalDescription() | failure callback: \(error)")
+			NSLog("PluginRTCPeerConnection#setLocalDescription() | failure callback: %@", String(error))
 
 			errback(error: error)
 		}
@@ -187,7 +187,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 		}
 
 		self.onSetDescriptionFailureCallback = { (error: NSError) -> Void in
-			NSLog("PluginRTCPeerConnection#setRemoteDescription() | failure callback: \(error)")
+			NSLog("PluginRTCPeerConnection#setRemoteDescription() | failure callback: %@", String(error))
 
 			errback(error: error)
 		}
@@ -395,7 +395,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 		signalingStateChanged newState: RTCSignalingState) {
 		let state_str = PluginRTCTypes.signalingStates[newState.rawValue] as String!
 
-		NSLog("PluginRTCPeerConnection | onsignalingstatechange [signalingState:\(state_str)]")
+		NSLog("PluginRTCPeerConnection | onsignalingstatechange [signalingState:%@]", String(state_str))
 
 		self.eventListener(data: [
 			"type": "signalingstatechange",
@@ -408,7 +408,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 		iceGatheringChanged newState: RTCICEGatheringState) {
 		let state_str = PluginRTCTypes.iceGatheringStates[newState.rawValue] as String!
 
-		NSLog("PluginRTCPeerConnection | onicegatheringstatechange [iceGatheringState:\(state_str)]")
+		NSLog("PluginRTCPeerConnection | onicegatheringstatechange [iceGatheringState:%@]", String(state_str))
 
 		self.eventListener(data: [
 			"type": "icegatheringstatechange",
@@ -436,7 +436,8 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 
 	func peerConnection(peerConnection: RTCPeerConnection!,
 		gotICECandidate candidate: RTCICECandidate!) {
-		NSLog("PluginRTCPeerConnection | onicecandidate [sdpMid:\(candidate.sdpMid), sdpMLineIndex:\(candidate.sdpMLineIndex), candidate:\(candidate.sdp)]")
+		NSLog("PluginRTCPeerConnection | onicecandidate [sdpMid:%@, sdpMLineIndex:%@, candidate:%@]",
+			String(candidate.sdpMid), String(candidate.sdpMLineIndex), String(candidate.sdp))
 
 		if self.rtcPeerConnection.signalingState.rawValue == RTCSignalingClosed.rawValue {
 			return
@@ -461,7 +462,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 		iceConnectionChanged newState: RTCICEConnectionState) {
 		let state_str = PluginRTCTypes.iceConnectionStates[newState.rawValue] as String!
 
-		NSLog("PluginRTCPeerConnection | oniceconnectionstatechange [iceConnectionState:\(state_str)]")
+		NSLog("PluginRTCPeerConnection | oniceconnectionstatechange [iceConnectionState:%@]", String(state_str))
 
 		self.eventListener(data: [
 			"type": "iceconnectionstatechange",

@@ -97,7 +97,7 @@ class PluginGetUserMedia {
 
 			// Video device specified.
 			else {
-				NSLog("PluginGetUserMedia#call() | video requested (specified device id: \(videoDeviceId!))")
+				NSLog("PluginGetUserMedia#call() | video requested (specified device id: '%@')", String(videoDeviceId!))
 
 				for device: AVCaptureDevice in (AVCaptureDevice.devicesWithMediaType(AVMediaTypeVideo) as! Array<AVCaptureDevice>) {
 					if device.uniqueID == videoDeviceId {
@@ -114,32 +114,32 @@ class PluginGetUserMedia {
 				return
 			}
 
-			NSLog("PluginGetUserMedia#call() | chosen video device: \(videoDevice!)")
+			NSLog("PluginGetUserMedia#call() | chosen video device: %@", String(videoDevice!))
 
 			rtcVideoCapturer = RTCVideoCapturer(deviceName: videoDevice!.localizedName)
 
 			if videoMinWidth > 0 {
-				NSLog("PluginGetUserMedia#call() | adding media constraint [minWidth:\(videoMinWidth)]")
+				NSLog("PluginGetUserMedia#call() | adding media constraint [minWidth:%@]", String(videoMinWidth))
 				mandatoryConstraints.append(RTCPair(key: "minWidth", value: String(videoMinWidth)))
 			}
 			if videoMaxWidth > 0 {
-				NSLog("PluginGetUserMedia#call() | adding media constraint [maxWidth:\(videoMaxWidth)]")
+				NSLog("PluginGetUserMedia#call() | adding media constraint [maxWidth:%@]", String(videoMaxWidth))
 				mandatoryConstraints.append(RTCPair(key: "maxWidth", value: String(videoMaxWidth)))
 			}
 			if videoMinHeight > 0 {
-				NSLog("PluginGetUserMedia#call() | adding media constraint [minHeight:\(videoMinHeight)]")
+				NSLog("PluginGetUserMedia#call() | adding media constraint [minHeight:%@]", String(videoMinHeight))
 				mandatoryConstraints.append(RTCPair(key: "minHeight", value: String(videoMinHeight)))
 			}
 			if videoMaxHeight > 0 {
-				NSLog("PluginGetUserMedia#call() | adding media constraint [maxHeight:\(videoMaxHeight)]")
+				NSLog("PluginGetUserMedia#call() | adding media constraint [maxHeight:%@]", String(videoMaxHeight))
 				mandatoryConstraints.append(RTCPair(key: "maxHeight", value: String(videoMaxHeight)))
 			}
 			if videoMinFrameRate > 0 {
-				NSLog("PluginGetUserMedia#call() | adding media constraint [videoMinFrameRate:\(videoMinFrameRate)]")
+				NSLog("PluginGetUserMedia#call() | adding media constraint [videoMinFrameRate:%@]", String(videoMinFrameRate))
 				mandatoryConstraints.append(RTCPair(key: "minFrameRate", value: String(videoMinFrameRate)))
 			}
 			if videoMaxFrameRate > 0 {
-				NSLog("PluginGetUserMedia#call() | adding media constraint [videoMaxFrameRate:\(videoMaxFrameRate)]")
+				NSLog("PluginGetUserMedia#call() | adding media constraint [videoMaxFrameRate:%@]", String(videoMaxFrameRate))
 				mandatoryConstraints.append(RTCPair(key: "maxFrameRate", value: String(videoMaxFrameRate)))
 			}
 

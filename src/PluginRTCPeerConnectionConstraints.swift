@@ -29,7 +29,8 @@ class PluginRTCPeerConnectionConstraints {
 			offerToReceiveVideo = false
 		}
 
-		NSLog("PluginRTCPeerConnectionConstraints#init() | [offerToReceiveAudio:\(offerToReceiveAudio!) | offerToReceiveVideo:\(offerToReceiveVideo!)]")
+		NSLog("PluginRTCPeerConnectionConstraints#init() | [offerToReceiveAudio:%@, offerToReceiveVideo:%@]",
+			String(offerToReceiveAudio!), String(offerToReceiveVideo!))
 
 		self.constraints = RTCMediaConstraints(
 			mandatoryConstraints: [

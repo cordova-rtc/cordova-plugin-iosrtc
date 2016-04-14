@@ -31,7 +31,9 @@ class PluginEnumerateDevices {
 				position = "front"
 			}
 
-			NSLog("- device [uniqueID:'\(device.uniqueID)', localizedName:'\(device.localizedName)', position:\(position), audio:\(hasAudio), video:\(hasVideo), connected:\(device.connected)")
+			NSLog("- device [uniqueID:'%@', localizedName:'%@', position:%@, audio:%@, video:%@, connected:%@]",
+				String(device.uniqueID), String(device.localizedName), String(position),
+				String(hasAudio), String(hasVideo), String(device.connected))
 
 			if device.connected == false || (hasAudio == false && hasVideo == false) {
 				continue
