@@ -149,6 +149,15 @@ Methods such as `play()`, `pause()` are not implemented. In order to pause a vid
 ## Changelog
 
 
+#### Version 2.2.5 (in progress)
+
+* Upgrade to `cordova-ios` 4 ([PR #159](https://github.com/eface2face/cordova-plugin-iosrtc/issues/159) by @apparition47).
+
+* Swift: Use closure syntax for weak and unowned vars ([PR #160](https://github.com/eface2face/cordova-plugin-iosrtc/issues/160) by @oNaiPs).
+
+* Swift: Sanitize arguments given to `NSLog()` ([issue #157](https://github.com/eface2face/cordova-plugin-iosrtc/issues/157)).
+
+
 #### Version 2.2.4
 
 * Fix crash ([issue #144](https://github.com/eface2face/cordova-plugin-iosrtc/issues/144)).
