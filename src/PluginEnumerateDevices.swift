@@ -18,21 +18,21 @@ class PluginEnumerateDevices {
 		]
 
 		for device: AVCaptureDevice in devices {
-			var position: String
+			var facing: String
 			let hasAudio = device.hasMediaType(AVMediaTypeAudio)
 			let hasVideo = device.hasMediaType(AVMediaTypeVideo)
 
 			switch device.position {
 			case AVCaptureDevicePosition.Unspecified:
-				position = "unknown"
+				facing = "unknown"
 			case AVCaptureDevicePosition.Back:
-				position = "back"
+				facing = "back"
 			case AVCaptureDevicePosition.Front:
-				position = "front"
+				facing = "front"
 			}
 
-			NSLog("- device [uniqueID:'%@', localizedName:'%@', position:%@, audio:%@, video:%@, connected:%@]",
-				String(device.uniqueID), String(device.localizedName), String(position),
+			NSLog("- device [uniqueID:'%@', localizedName:'%@', facing:%@, audio:%@, video:%@, connected:%@]",
+				String(device.uniqueID), String(device.localizedName), String(facing),
 				String(hasAudio), String(hasVideo), String(device.connected))
 
 			if device.connected == false || (hasAudio == false && hasVideo == false) {
@@ -41,8 +41,9 @@ class PluginEnumerateDevices {
 
 			(json["devices"] as! NSMutableDictionary)[device.uniqueID] = [
 				"deviceId": device.uniqueID,
-				"kind": hasAudio ? "audio" : "video",
-				"label": device.localizedName
+				"kind": hasAudio ? "audioinput" : "videoinput",
+				"label": device.localizedName,
+				"facing": facing
 			]
 		}
 

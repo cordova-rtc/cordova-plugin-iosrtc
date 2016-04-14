@@ -157,6 +157,8 @@ Methods such as `play()`, `pause()` are not implemented. In order to pause a vid
 
 * Swift: Sanitize arguments given to `NSLog()` ([issue #157](https://github.com/eface2face/cordova-plugin-iosrtc/issues/157)).
 
+* `MediaDeviceInfo`: Add deprecated `facing` property ("front", "back" or "unknown") and update `kind` ("audio"/"video" become "audioinput"/"videoinput") ([issue #155](https://github.com/eface2face/cordova-plugin-iosrtc/issues/155)).
+
 
 #### Version 2.2.4
 
