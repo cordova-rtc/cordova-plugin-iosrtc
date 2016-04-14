@@ -137,7 +137,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 		let sdp = desc.objectForKey("sdp") as? String ?? ""
 		let rtcSessionDescription = RTCSessionDescription(type: type, sdp: sdp)
 
-		self.onSetDescriptionSuccessCallback = { () -> Void in
+		self.onSetDescriptionSuccessCallback = { [unowned self] () -> Void in
 			NSLog("PluginRTCPeerConnection#setLocalDescription() | success callback")
 
 			let data = [
@@ -175,7 +175,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 		let sdp = desc.objectForKey("sdp") as? String ?? ""
 		let rtcSessionDescription = RTCSessionDescription(type: type, sdp: sdp)
 
-		self.onSetDescriptionSuccessCallback = { () -> Void in
+		self.onSetDescriptionSuccessCallback = { [unowned self] () -> Void in
 			NSLog("PluginRTCPeerConnection#setRemoteDescription() | success callback")
 
 			let data = [
@@ -300,7 +300,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 	) {
 		NSLog("PluginRTCPeerConnection#RTCDataChannel_setListener()")
 
-		weak var pluginRTCDataChannel = self.pluginRTCDataChannels[dcId]
+		let pluginRTCDataChannel = self.pluginRTCDataChannels[dcId]
 
 		if pluginRTCDataChannel == nil {
 			return;
@@ -335,7 +335,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 			return
 		}
 
-		weak var pluginRTCDataChannel = self.pluginRTCDataChannels[dcId]
+		let pluginRTCDataChannel = self.pluginRTCDataChannels[dcId]
 
 		if pluginRTCDataChannel == nil {
 			return;
@@ -356,7 +356,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 			return
 		}
 
-		weak var pluginRTCDataChannel = self.pluginRTCDataChannels[dcId]
+		let pluginRTCDataChannel = self.pluginRTCDataChannels[dcId]
 
 		if pluginRTCDataChannel == nil {
 			return;
@@ -373,7 +373,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 			return
 		}
 
-		weak var pluginRTCDataChannel = self.pluginRTCDataChannels[dcId]
+		let pluginRTCDataChannel = self.pluginRTCDataChannels[dcId]
 
 		if pluginRTCDataChannel == nil {
 			return;
