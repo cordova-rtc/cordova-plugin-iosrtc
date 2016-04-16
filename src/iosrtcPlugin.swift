@@ -349,7 +349,7 @@ class iosrtcPlugin : CDVPlugin {
 			return;
 		}
 
-		dispatch_async(self.queue) { [weak pluginRTCPeerConnection, unowned self] in
+		dispatch_async(self.queue) { [weak pluginRTCPeerConnection] in
 			pluginRTCPeerConnection!.close()
 
 			// Remove the pluginRTCPeerConnection from the dictionary.
