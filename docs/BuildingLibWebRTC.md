@@ -20,7 +20,7 @@ $ get_webrtc
 
 * Set a specific *libwebrtc* version:
 ```bash
-$ update2Revision 11797
+$ update2Revision 12558
 ```
 
 

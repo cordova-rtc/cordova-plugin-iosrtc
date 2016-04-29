@@ -34,7 +34,6 @@
 @property(nonatomic, readonly) NSUInteger height;
 @property(nonatomic, readonly) NSUInteger chromaWidth;
 @property(nonatomic, readonly) NSUInteger chromaHeight;
-@property(nonatomic, readonly) NSUInteger chromaSize;
 // These can return NULL if the object is not backed by a buffer.
 @property(nonatomic, readonly) const uint8_t* yPlane;
 @property(nonatomic, readonly) const uint8_t* uPlane;
@@ -43,8 +42,6 @@
 @property(nonatomic, readonly) NSInteger uPitch;
 @property(nonatomic, readonly) NSInteger vPitch;
 
-- (BOOL)makeExclusive;
-
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 // Disallow init and don't add to documentation
 - (id)init __attribute__((
@@ -52,4 +49,3 @@
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 @end
-
