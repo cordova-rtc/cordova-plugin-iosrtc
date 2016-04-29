@@ -32,9 +32,7 @@ struct PluginRTCTypes {
 	]
 
 	static let mediaStreamTrackStates = [
-		RTCTrackStateInitializing.rawValue:      "initializing",
 		RTCTrackStateLive.rawValue:              "live",
-		RTCTrackStateEnded.rawValue:             "ended",
-		RTCTrackStateFailed.rawValue:            "failed"
+		RTCTrackStateEnded.rawValue:             "ended"
 	]
 }

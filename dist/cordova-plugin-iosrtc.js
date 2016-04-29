@@ -1,5 +1,5 @@
 /*
- * cordova-plugin-iosrtc v2.2.4-pre
+ * cordova-plugin-iosrtc v3.0.0
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015-2016 Iñaki Baz Castillo at eFace2Face, inc. (https://eface2face.com)
  * License MIT
@@ -77,6 +77,7 @@ function MediaDeviceInfo(data) {
 		id: {
 			value: data.deviceId
 		},
+		// Deprecated, but useful until there is an alternative
 		facing: {
 			value: ''
 		}
@@ -3352,7 +3353,7 @@ function _dispatchEvent(event) {
 
 	dummyListener = this['on' + type];
 	if (typeof dummyListener === 'function') {
-		listenersType.push(dummyListener);
+		dummyListener.call(this, event);
 	}
 
 	for (i = 0; !!(listener = listenersType[i]); i++) {
