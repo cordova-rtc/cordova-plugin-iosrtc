@@ -149,7 +149,7 @@ Methods such as `play()`, `pause()` are not implemented. In order to pause a vid
 ## Changelog
 
 
-#### Version 3.0.0 (in progress)
+#### Version 3.0.0
 
 * Upgrade to `cordova-ios` 4 ([PR #159](https://github.com/eface2face/cordova-plugin-iosrtc/issues/159) by @apparition47).
 
