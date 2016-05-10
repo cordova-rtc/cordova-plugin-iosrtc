@@ -136,8 +136,12 @@ If you are using the plugin we would love to [heard back from you](WHO_USES_IT.m
 
 Don't call plugin methods within WebSocket events (`onopen`, `onmessage`, etc). There is an issue in iOS Safari (see [issue #12](https://github.com/eface2face/cordova-plugin-iosrtc/issues/12)). Instead run a `setTimeout()` within the WebSocket event if you need to call plugin methods on it.
 
-Or better, just load the provided [ios-websocket-hack.js](extra/ios-websocket-hack.js) script into your Cordova iOS app and you are done.
+Or better yet, include the provided [ios-websocket-hack.js](extra/ios-websocket-hack.js) in your app and load into your `index.html` as follows:
 
+```
+<script src="cordova.js"></script>
+<script src="ios-websocket-hack.min.js"></script>
+```
 
 #### HTML5 video API
 
