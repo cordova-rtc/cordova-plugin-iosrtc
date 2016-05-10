@@ -17,6 +17,9 @@
 
 
 (function () {
+	// run on iOS Cordova only
+	if (!(window.cordova && window.cordova.platformId === 'ios')) return;
+
 	// Store a reference of the native WebSocket class.
 	var NativeWebSocket = window.WebSocket;
 
