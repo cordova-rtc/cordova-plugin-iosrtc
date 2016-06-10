@@ -27,9 +27,6 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		// It's placed over the elementView.
 		self.videoView = RTCEAGLVideoView()
 
-		self.webView.addSubview(self.elementView)
-		self.webView.bringSubviewToFront(self.elementView)
-
 		self.elementView.userInteractionEnabled = false
 		self.elementView.hidden = true
 		self.elementView.backgroundColor = UIColor.blackColor()
@@ -37,6 +34,9 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		self.elementView.layer.masksToBounds = true
 
 		self.videoView.userInteractionEnabled = false
+
+		// Place the video element view inside the WebView's superview
+		self.webView.superview?.addSubview(self.elementView)
 	}
 
 
@@ -187,6 +187,11 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 
 		self.elementView.alpha = CGFloat(opacity)
 		self.elementView.layer.zPosition = CGFloat(zIndex)
+
+                // if the zIndex is 0 (the default) bring the view to the top, last one wins
+                if zIndex == 0 {
+			self.webView.superview?.bringSubviewToFront(self.elementView)
+                }
 
 		if !mirrored {
 			self.elementView.transform = CGAffineTransformIdentity
