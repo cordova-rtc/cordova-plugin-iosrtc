@@ -13,3 +13,7 @@ Supported CSS properties are:
 * `z-index`: Useful to place a video on top of another video.
 * [`object-fit`](https://developer.mozilla.org/en-US/docs/Web/CSS/object-fit)
 * `-webkit-transform: scaleX(-1)`: Useful for horizontal mirror effect.
+
+**Note**: if the specified z-index is < 0 (that, is, the video elements will be positioned "behind" the web view), you should specify the
+`<body>` `background-color` as `transparent` so the video element will be seen through the web view. This makes it possible to position
+HTML elements on top of the native video elements.

@@ -24,6 +24,10 @@ class iosrtcPlugin : CDVPlugin {
 	override func pluginInitialize() {
 		NSLog("iosrtcPlugin#pluginInitialize()")
 
+                // Make the web view transparent
+		self.webView!.opaque = false
+		self.webView!.backgroundColor = UIColor.clearColor()
+
 		pluginMediaStreams = [:]
 		pluginMediaStreamTracks = [:]
 		pluginMediaStreamRenderers = [:]
