@@ -153,8 +153,10 @@ Methods such as `play()`, `pause()` are not implemented. In order to pause a vid
 ## Changelog
 
 
-#### Version 3.0.1 (not yet released)
+#### Version 3.0.1
 
+* Fix positioning video elements using `z-index` and allow pure HTML on top of `<video>` elements ([PR #179](https://github.com/eface2face/cordova-plugin-iosrtc/issues/179) by @saghul and @1N50MN14).
+ 
 * Improve `ios-websocket-hack.js` ([PR #138](https://github.com/eface2face/cordova-plugin-iosrtc/issues/138) by @apparition47).
 
 
