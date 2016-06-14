@@ -236,6 +236,9 @@
 	};
 
 	FakeWebSocket.prototype.close = function (code, reason) {
+		if (!this.ws) {
+			return;
+		}
 		if (!code && !reason) {
 			this.ws.close();
 		} else if (code && !reason) {
