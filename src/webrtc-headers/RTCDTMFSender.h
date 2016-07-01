@@ -1,6 +1,6 @@
 /*
  * libjingle
- * Copyright 2013 Google Inc.
+ * Copyright 2014 Google Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -27,22 +27,33 @@
 
 #import <Foundation/Foundation.h>
 
-// RTCI420Frame is an ObjectiveC version of cricket::VideoFrame.
-// TODO(nisse): It appears it doesn't support any VideoFrame methods,
-// so let it wrap an webrtc::VideoFrameBuffer instead?
-@interface RTCI420Frame : NSObject
+#import "RTCAudioTrack.h"
 
-@property(nonatomic, readonly) NSUInteger width;
-@property(nonatomic, readonly) NSUInteger height;
-@property(nonatomic, readonly) NSUInteger chromaWidth;
-@property(nonatomic, readonly) NSUInteger chromaHeight;
-// These can return NULL if the object is not backed by a buffer.
-@property(nonatomic, readonly) const uint8_t* yPlane;
-@property(nonatomic, readonly) const uint8_t* uPlane;
-@property(nonatomic, readonly) const uint8_t* vPlane;
-@property(nonatomic, readonly) NSInteger yPitch;
-@property(nonatomic, readonly) NSInteger uPitch;
-@property(nonatomic, readonly) NSInteger vPitch;
+NS_ASSUME_NONNULL_BEGIN
+
+@class RTCDTMFSender;
+// Protocol for receving tone change events.
+@protocol RTCDTMFSenderDelegate<NSObject>
+
+// Called when a DTMF tone is played out.
+- (void)toneChange:(NSString*)tone;
+
+@end
+
+// ObjectiveC wrapper for a DtmfSender object.
+// See webrtc/api/dtmfsenderinterface.h
+@interface RTCDTMFSender : NSObject
+
+@property(nonatomic, readonly) BOOL canInsertDTMF;
+@property(nonatomic, readonly) NSString* toneBuffer;
+@property(nonatomic, readonly) NSInteger duration;
+@property(nonatomic, readonly) NSInteger interToneGap;
+@property(nonatomic, weak) id<RTCDTMFSenderDelegate> delegate;
+// The track associated with this DTMF sender. This property
+// returns a copy of the RTCMediaStreamTrack
+@property(nonatomic, copy, nullable) RTCAudioTrack *track;
+
+- (BOOL)insertDTMF:(NSString*)tones withDuration:(NSInteger)duration andInterToneGap:(NSInteger)interToneGap;
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 // Disallow init and don't add to documentation
@@ -51,3 +62,5 @@
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 @end
+
+NS_ASSUME_NONNULL_END

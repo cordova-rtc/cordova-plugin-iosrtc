@@ -27,9 +27,11 @@
 
 #import "RTCPeerConnectionDelegate.h"
 
+@class RTCAudioTrack;
 @class RTCConfiguration;
 @class RTCDataChannel;
 @class RTCDataChannelInit;
+@class RTCDTMFSender;
 @class RTCICECandidate;
 @class RTCICEServers;
 @class RTCMediaConstraints;
@@ -75,6 +77,9 @@
 // Create a data channel.
 - (RTCDataChannel*)createDataChannelWithLabel:(NSString*)label
                                        config:(RTCDataChannelInit*)config;
+
+// Create a DTMF sender.
+- (RTCDTMFSender*)createDTMFSenderForTrack:(RTCAudioTrack*)audioTrack;
 
 // Create a new offer.
 // Success or failure will be reported via RTCSessionDescriptionDelegate.
