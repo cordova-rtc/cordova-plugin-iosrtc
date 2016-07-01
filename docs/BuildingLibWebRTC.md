@@ -14,7 +14,7 @@ $ cd webrtc-build-scripts
 * Follow the project steps and fetch the *libwebrtc* source code:
 ```bash
 $ source ios/build.sh
-$ WEBRTC_RELEASE=true
+$ export WEBRTC_RELEASE=true
 $ get_webrtc
 ```
 
@@ -34,7 +34,7 @@ Since we live in the present we need those two events to properly implement the 
 
 * Apply the patch provided at `extra/libwebrtc-objc-iosrtc.patch` into the Objective-C source code of *libwebrtc*:
 ```bash
-$ cd ios/webrtc/src/talk/app/webrtc/objc
+$ cd ios/webrtc/src
 $ patch -p1 < $PATH_TO_CORDOVA_PLUGIN_IOSRTC/extra/libwebrtc-objc-iosrtc.patch
 ```
 
