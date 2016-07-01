@@ -1,0 +1,336 @@
+--- a/talk/app/webrtc/legacy_objc_api.gyp
++++ b/talk/app/webrtc/legacy_objc_api.gyp
+@@ -41,6 +41,8 @@
+             'objc/RTCAudioTrack.mm',
+             'objc/RTCDataChannel+Internal.h',
+             'objc/RTCDataChannel.mm',
++            'objc/RTCDTMFSender+Internal.h',
++            'objc/RTCDTMFSender.mm',
+             'objc/RTCEnumConverter.h',
+             'objc/RTCEnumConverter.mm',
+             'objc/RTCI420Frame+Internal.h',
+@@ -84,6 +86,7 @@
+             'objc/public/RTCAudioSource.h',
+             'objc/public/RTCAudioTrack.h',
+             'objc/public/RTCDataChannel.h',
++            'objc/public/RTCDTMFSender.h',
+             'objc/public/RTCFileLogger.h',
+             'objc/public/RTCI420Frame.h',
+             'objc/public/RTCICECandidate.h',
+--- /dev/null
++++ b/talk/app/webrtc/objc/RTCDTMFSender+Internal.h
+@@ -0,0 +1,42 @@
++/*
++ * libjingle
++ * Copyright 2014 Google Inc.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are met:
++ *
++ *  1. Redistributions of source code must retain the above copyright notice,
++ *     this list of conditions and the following disclaimer.
++ *  2. Redistributions in binary form must reproduce the above copyright notice,
++ *     this list of conditions and the following disclaimer in the documentation
++ *     and/or other materials provided with the distribution.
++ *  3. The name of the author may not be used to endorse or promote products
++ *     derived from this software without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
++ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
++ * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
++ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
++ * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
++ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
++ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
++ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ */
++
++#import "RTCDTMFSender.h"
++
++#include "webrtc/api/dtmfsenderinterface.h"
++#include "webrtc/base/scoped_ref_ptr.h"
++
++
++@interface RTCDTMFSender (Internal)
++
++@property(nonatomic, readonly)
++    rtc::scoped_refptr<webrtc::DtmfSenderInterface> dtmfSender;
++
++- (instancetype)initWithDtmfSender:
++        (rtc::scoped_refptr<webrtc::DtmfSenderInterface>)dtmfSender;
++
++@end
+--- /dev/null
++++ b/talk/app/webrtc/objc/RTCDTMFSender.mm
+@@ -0,0 +1,150 @@
++/*
++ * libjingle
++ * Copyright 2014 Google Inc.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are met:
++ *
++ *  1. Redistributions of source code must retain the above copyright notice,
++ *     this list of conditions and the following disclaimer.
++ *  2. Redistributions in binary form must reproduce the above copyright notice,
++ *     this list of conditions and the following disclaimer in the documentation
++ *     and/or other materials provided with the distribution.
++ *  3. The name of the author may not be used to endorse or promote products
++ *     derived from this software without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
++ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
++ * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
++ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
++ * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
++ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
++ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
++ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ */
++
++#if !defined(__has_feature) || !__has_feature(objc_arc)
++#error "This file requires ARC support."
++#endif
++
++#include "RTCDTMFSender.h"
++#include "RTCAudioTrack+Internal.h"
++#include "RTCMediaStreamTrack+Internal.h"
++
++#include <memory>
++
++#include "webrtc/api/dtmfsenderinterface.h"
++
++
++// utilities
++static NSString* NSStringFromStdString(const std::string& stdString) {
++  // std::string may contain null termination character so we construct
++  // using length.
++  return [[NSString alloc] initWithBytes:stdString.data()
++                                  length:stdString.length()
++                                encoding:NSUTF8StringEncoding];
++}
++
++static std::string StdStringFromNSString(NSString* nsString) {
++  NSData* charData = [nsString dataUsingEncoding:NSUTF8StringEncoding];
++  return std::string(reinterpret_cast<const char*>([charData bytes]),
++                     [charData length]);
++}
++
++
++namespace webrtc {
++
++class RTCDTMFSenderObserver : public DtmfSenderObserverInterface {
++ public:
++  RTCDTMFSenderObserver(RTCDTMFSender* sender) { _sender = sender; }
++
++  void OnToneChange(const std::string& tone) override {
++    if (!_sender.delegate) {
++        return;
++    }
++    [_sender.delegate toneChange:NSStringFromStdString(tone)];
++  }
++
++ private:
++  __weak RTCDTMFSender* _sender;
++};
++}
++
++
++@implementation RTCDTMFSender {
++  rtc::scoped_refptr<webrtc::DtmfSenderInterface> _dtmfSender;
++  std::unique_ptr<webrtc::RTCDTMFSenderObserver> _observer;
++  BOOL _isObserverRegistered;
++}
++
++- (void)dealloc {
++  // Handles unregistering the observer properly.
++  self.delegate = nil;
++}
++
++- (NSString*)toneBuffer {
++  return NSStringFromStdString(_dtmfSender->tones());
++}
++
++- (BOOL)canInsertDTMF {
++  return _dtmfSender->CanInsertDtmf();
++}
++
++- (NSInteger)duration {
++  return _dtmfSender->duration();
++}
++
++- (NSInteger)interToneGap {
++  return _dtmfSender->inter_tone_gap();
++}
++
++- (RTCAudioTrack*)track {
++  rtc::scoped_refptr<webrtc::AudioTrackInterface> audioTrack(
++    const_cast<webrtc::AudioTrackInterface*>(_dtmfSender->track()));
++  if (audioTrack) {
++    return [[RTCAudioTrack alloc] initWithMediaTrack:audioTrack];
++  }
++  return nil;
++}
++
++- (void)setDelegate:(id<RTCDTMFSenderDelegate>)delegate {
++  if (_delegate == delegate) {
++    return;
++  }
++  if (_isObserverRegistered) {
++    _dtmfSender->UnregisterObserver();
++    _isObserverRegistered = NO;
++  }
++  _delegate = delegate;
++  if (_delegate) {
++    _dtmfSender->RegisterObserver(_observer.get());
++    _isObserverRegistered = YES;
++  }
++}
++
++- (BOOL)insertDTMF:(NSString*)tones withDuration:(NSInteger)duration andInterToneGap:(NSInteger)interToneGap {
++  return _dtmfSender->InsertDtmf(StdStringFromNSString(tones), duration, interToneGap);
++}
++
++@end
++
++@implementation RTCDTMFSender (Internal)
++
++- (instancetype)initWithDtmfSender:
++                    (rtc::scoped_refptr<webrtc::DtmfSenderInterface>)
++                dtmfSender {
++  NSAssert(dtmfSender != NULL, @"dtmfSender cannot be NULL");
++  if (self = [super init]) {
++    _dtmfSender = dtmfSender;
++    _observer.reset(new webrtc::RTCDTMFSenderObserver(self));
++  }
++  return self;
++}
++
++- (rtc::scoped_refptr<webrtc::DtmfSenderInterface>)dtmfSender {
++  return _dtmfSender;
++}
++
++@end
+--- a/talk/app/webrtc/objc/RTCPeerConnection.mm
++++ b/talk/app/webrtc/objc/RTCPeerConnection.mm
+@@ -31,7 +31,9 @@
+ 
+ #import "RTCPeerConnection+Internal.h"
+ 
++#import "RTCAudioTrack+Internal.h"
+ #import "RTCDataChannel+Internal.h"
++#import "RTCDTMFSender+Internal.h"
+ #import "RTCEnumConverter.h"
+ #import "RTCICECandidate+Internal.h"
+ #import "RTCICEServer+Internal.h"
+@@ -171,6 +173,13 @@ - (RTCDataChannel*)createDataChannelWithLabel:(NSString*)label
+   return [[RTCDataChannel alloc] initWithDataChannel:dataChannel];
+ }
+ 
++- (RTCDTMFSender*)createDTMFSenderForTrack:(RTCAudioTrack*)track {
++  rtc::scoped_refptr<webrtc::DtmfSenderInterface> dtmfSender =
++      self.peerConnection->CreateDtmfSender(track.audioTrack);
++  return dtmfSender ? [[RTCDTMFSender alloc] initWithDtmfSender:dtmfSender]
++                    : nil;
++}
++
+ - (void)createAnswerWithDelegate:(id<RTCSessionDescriptionDelegate>)delegate
+                      constraints:(RTCMediaConstraints*)constraints {
+   rtc::scoped_refptr<webrtc::RTCCreateSessionDescriptionObserver>
+--- /dev/null
++++ b/talk/app/webrtc/objc/public/RTCDTMFSender.h
+@@ -0,0 +1,66 @@
++/*
++ * libjingle
++ * Copyright 2014 Google Inc.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are met:
++ *
++ *  1. Redistributions of source code must retain the above copyright notice,
++ *     this list of conditions and the following disclaimer.
++ *  2. Redistributions in binary form must reproduce the above copyright notice,
++ *     this list of conditions and the following disclaimer in the documentation
++ *     and/or other materials provided with the distribution.
++ *  3. The name of the author may not be used to endorse or promote products
++ *     derived from this software without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
++ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
++ * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
++ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
++ * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
++ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
++ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
++ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ */
++
++#import <Foundation/Foundation.h>
++
++#import "RTCAudioTrack.h"
++
++NS_ASSUME_NONNULL_BEGIN
++
++@class RTCDTMFSender;
++// Protocol for receving tone change events.
++@protocol RTCDTMFSenderDelegate<NSObject>
++
++// Called when a DTMF tone is played out.
++- (void)toneChange:(NSString*)tone;
++
++@end
++
++// ObjectiveC wrapper for a DtmfSender object.
++// See webrtc/api/dtmfsenderinterface.h
++@interface RTCDTMFSender : NSObject
++
++@property(nonatomic, readonly) BOOL canInsertDTMF;
++@property(nonatomic, readonly) NSString* toneBuffer;
++@property(nonatomic, readonly) NSInteger duration;
++@property(nonatomic, readonly) NSInteger interToneGap;
++@property(nonatomic, weak) id<RTCDTMFSenderDelegate> delegate;
++// The track associated with this DTMF sender. This property
++// returns a copy of the RTCMediaStreamTrack
++@property(nonatomic, copy, nullable) RTCAudioTrack *track;
++
++- (BOOL)insertDTMF:(NSString*)tones withDuration:(NSInteger)duration andInterToneGap:(NSInteger)interToneGap;
++
++#ifndef DOXYGEN_SHOULD_SKIP_THIS
++// Disallow init and don't add to documentation
++- (id)init __attribute__((
++    unavailable("init is not a supported initializer for this class.")));
++#endif /* DOXYGEN_SHOULD_SKIP_THIS */
++
++@end
++
++NS_ASSUME_NONNULL_END
+--- a/talk/app/webrtc/objc/public/RTCPeerConnection.h
++++ b/talk/app/webrtc/objc/public/RTCPeerConnection.h
+@@ -27,9 +27,11 @@
+ 
+ #import "RTCPeerConnectionDelegate.h"
+ 
++@class RTCAudioTrack;
+ @class RTCConfiguration;
+ @class RTCDataChannel;
+ @class RTCDataChannelInit;
++@class RTCDTMFSender;
+ @class RTCICECandidate;
+ @class RTCICEServers;
+ @class RTCMediaConstraints;
+@@ -76,6 +78,9 @@
+ - (RTCDataChannel*)createDataChannelWithLabel:(NSString*)label
+                                        config:(RTCDataChannelInit*)config;
+ 
++// Create a DTMF sender.
++- (RTCDTMFSender*)createDTMFSenderForTrack:(RTCAudioTrack*)audioTrack;
++
+ // Create a new offer.
+ // Success or failure will be reported via RTCSessionDescriptionDelegate.
+ - (void)createOfferWithDelegate:(id<RTCSessionDescriptionDelegate>)delegate
