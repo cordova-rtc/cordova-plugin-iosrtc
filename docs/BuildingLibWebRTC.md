@@ -53,7 +53,11 @@ $ patch -p1 < $PATH_TO_CORDOVA_PLUGIN_IOSRTC/extra/libwebrtc-objc-iosrtc-dtmf.pa
 
 ### Misc
 
-* If desired, enable native H264 support by setting `'use_objc_h264%': 1` in `webrtc-build-scripts/ios/webrtc/src/webrtc/build/common.gypi`.
+In order to enable H.264 support and compile libWebRTC properly, apply `libwebrtc-objc-iosrtc-misc.patch`.
+
+```bash
+$ cd ios/webrtc/src
+$ patch -p1 < $PATH_TO_CORDOVA_PLUGIN_IOSRTC/extra/libwebrtc-objc-iosrtc-misc.patch
 
 
 ### Build *libwebrtc*
