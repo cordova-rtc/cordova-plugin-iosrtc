@@ -153,7 +153,9 @@ Methods such as `play()`, `pause()` are not implemented. In order to pause a vid
 ## Changelog
 
 
-#### Version 3.0.2 (not yet published)
+#### Version 3.1.0
+
+* Implement `RTCPeerConnection.createDTMFSender()` ([PR #189](https://github.com/eface2face/cordova-plugin-iosrtc/pull/189) by @saghul).
 
 * Make `ios-websocket-hack.js` more reliable.
 
