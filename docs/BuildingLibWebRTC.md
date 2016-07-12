@@ -14,13 +14,13 @@ $ cd webrtc-build-scripts
 * Follow the project steps and fetch the *libwebrtc* source code:
 ```bash
 $ source ios/build.sh
-$ WEBRTC_RELEASE=true
+$ export WEBRTC_RELEASE=true
 $ get_webrtc
 ```
 
 * Set a specific *libwebrtc* version:
 ```bash
-$ update2Revision 12558
+$ update2Revision 13311
 ```
 
 
@@ -34,11 +34,30 @@ Since we live in the present we need those two events to properly implement the 
 
 * Apply the patch provided at `extra/libwebrtc-objc-iosrtc.patch` into the Objective-C source code of *libwebrtc*:
 ```bash
-$ cd ios/webrtc/src/talk/app/webrtc/objc
+$ cd ios/webrtc/src
 $ patch -p1 < $PATH_TO_CORDOVA_PLUGIN_IOSRTC/extra/libwebrtc-objc-iosrtc.patch
 ```
 
-* If desired, enable native H264 support by setting `'use_objc_h264%': 1` in `webrtc-build-scripts/ios/webrtc/src/webrtc/build/common.gypi`.
+
+### Apply `libwebrtc-objc-iosrtc-dtmf.patch`
+
+Google's *libwebrtc* Objective-C wrapper does not implement a `RTCPeerConnection.createDTMF` function, which makes it impossible to send DTMF from the Objective-C wrapper, and in turn this plugin. Google [will not implement this](https://bugs.chromium.org/p/webrtc/issues/detail?id=4180)
+because a new API was devised. Since we need to use this today, **AG Projects** created this patch exposing an API analogous to that on the C++ layer.
+
+* Apply the patch provided at `extra/libwebrtc-objc-iosrtc-dtmf.patch` into the Objective-C source code of *libwebrtc*:
+```bash
+$ cd ios/webrtc/src
+$ patch -p1 < $PATH_TO_CORDOVA_PLUGIN_IOSRTC/extra/libwebrtc-objc-iosrtc-dtmf.patch
+```
+
+
+### Misc
+
+In order to enable H.264 support and compile libWebRTC properly, apply `libwebrtc-objc-iosrtc-misc.patch`.
+
+```bash
+$ cd ios/webrtc/src
+$ patch -p1 < $PATH_TO_CORDOVA_PLUGIN_IOSRTC/extra/libwebrtc-objc-iosrtc-misc.patch
 
 
 ### Build *libwebrtc*

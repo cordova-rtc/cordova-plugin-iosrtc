@@ -16,6 +16,7 @@ var
 	RTCSessionDescription = require('./RTCSessionDescription'),
 	RTCIceCandidate = require('./RTCIceCandidate'),
 	RTCDataChannel = require('./RTCDataChannel'),
+	RTCDTMFSender = require('./RTCDTMFSender'),
 	MediaStream = require('./MediaStream'),
 	Errors = require('./Errors');
 
@@ -582,6 +583,17 @@ RTCPeerConnection.prototype.createDataChannel = function (label, options) {
 	debug('createDataChannel() [label:%s, options:%o]', label, options);
 
 	return new RTCDataChannel(this, label, options);
+};
+
+
+RTCPeerConnection.prototype.createDTMFSender = function (track) {
+	if (isClosed.call(this)) {
+		throw new Errors.InvalidStateError('peerconnection is closed');
+	}
+
+	debug('createDTMFSender() [track:%o]', track);
+
+	return new RTCDTMFSender(this, track);
 };
 
 

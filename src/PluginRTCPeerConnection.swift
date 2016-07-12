@@ -8,6 +8,8 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 	var pluginRTCPeerConnectionConstraints: PluginRTCPeerConnectionConstraints
 	// PluginRTCDataChannel dictionary.
 	var pluginRTCDataChannels: [Int : PluginRTCDataChannel] = [:]
+	// PluginRTCDTMFSender dictionary.
+	var pluginRTCDTMFSenders: [Int : PluginRTCDTMFSender] = [:]
 	var eventListener: (data: NSDictionary) -> Void
 	var eventListenerForAddStream: (pluginMediaStream: PluginMediaStream) -> Void
 	var eventListenerForRemoveStream: (id: String) -> Void
@@ -38,6 +40,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 
 	deinit {
 		NSLog("PluginRTCPeerConnection#deinit()")
+		self.pluginRTCDTMFSenders = [:]
 	}
 
 
@@ -313,6 +316,31 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 	}
 
 
+	func createDTMFSender(
+		dsId: Int,
+		track: PluginMediaStreamTrack,
+		eventListener: (data: NSDictionary) -> Void
+	) {
+		NSLog("PluginRTCPeerConnection#createDTMFSender()")
+
+		if self.rtcPeerConnection.signalingState.rawValue == RTCSignalingClosed.rawValue {
+			return
+		}
+
+		let pluginRTCDTMFSender = PluginRTCDTMFSender(
+			rtcPeerConnection: rtcPeerConnection,
+			track: track.rtcMediaStreamTrack,
+			eventListener: eventListener
+		)
+
+		// Store the pluginRTCDTMFSender into the dictionary.
+		self.pluginRTCDTMFSenders[dsId] = pluginRTCDTMFSender
+
+		// Run it.
+		pluginRTCDTMFSender.run()
+	}
+
+
 	func close() {
 		NSLog("PluginRTCPeerConnection#close()")
 
@@ -383,6 +411,27 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 
 		// Remove the pluginRTCDataChannel from the dictionary.
 		self.pluginRTCDataChannels[dcId] = nil
+	}
+
+
+	func RTCDTMFSender_insertDTMF(
+		dsId: Int,
+		tones: String,
+		duration: Int,
+		interToneGap: Int
+	) {
+		NSLog("PluginRTCPeerConnection#RTCDTMFSender_insertDTMF()")
+
+		if self.rtcPeerConnection.signalingState.rawValue == RTCSignalingClosed.rawValue {
+			return
+		}
+
+		let pluginRTCDTMFSender = self.pluginRTCDTMFSenders[dsId]
+		if pluginRTCDTMFSender == nil {
+			return
+		}
+
+		pluginRTCDTMFSender!.insertDTMF(tones, duration: duration, interToneGap: interToneGap)
 	}
 
 

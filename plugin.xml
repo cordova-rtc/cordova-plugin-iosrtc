@@ -35,6 +35,7 @@
 		<header-file src="src/webrtc-headers/RTCAudioSource.h" />
 		<header-file src="src/webrtc-headers/RTCAudioTrack.h" />
 		<header-file src="src/webrtc-headers/RTCDataChannel.h" />
+		<header-file src="src/webrtc-headers/RTCDTMFSender.h" />
 		<header-file src="src/webrtc-headers/RTCEAGLVideoView.h" />
 		<header-file src="src/webrtc-headers/RTCFileLogger.h" />
 		<header-file src="src/webrtc-headers/RTCI420Frame.h" />
@@ -72,6 +73,7 @@
 		<source-file src="src/PluginRTCPeerConnectionConfig.swift" />
 		<source-file src="src/PluginRTCPeerConnectionConstraints.swift" />
 		<source-file src="src/PluginRTCDataChannel.swift" />
+		<source-file src="src/PluginRTCDTMFSender.swift" />
 		<source-file src="src/PluginMediaStream.swift" />
 		<source-file src="src/PluginMediaStreamTrack.swift" />
 		<source-file src="src/PluginGetUserMedia.swift" />
