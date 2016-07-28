@@ -59,6 +59,7 @@ function RTCDataChannel(peerConnection, label, options, dataFromEvent) {
 		this.id = options.hasOwnProperty('id') ? Number(options.id) : undefined;
 		this.readyState = 'connecting';
 		this.bufferedAmount = 0;
+		this.bufferedAmountLowThreshold = 0;
 
 		// Private attributes.
 		this.peerConnection = peerConnection;
@@ -79,6 +80,7 @@ function RTCDataChannel(peerConnection, label, options, dataFromEvent) {
 		this.id = dataFromEvent.id;
 		this.readyState = dataFromEvent.readyState;
 		this.bufferedAmount = dataFromEvent.bufferedAmount;
+		this.bufferedAmountLowThreshold = dataFromEvent.bufferedAmountLowThreshold;
 
 		// Private attributes.
 		this.peerConnection = peerConnection;
@@ -125,16 +127,10 @@ RTCDataChannel.prototype.send = function (data) {
 		return;
 	}
 
-	var self = this;
-
-	function onResultOK(data) {
-		self.bufferedAmount = data.bufferedAmount;
-	}
-
 	if (typeof data === 'string' || data instanceof String) {
-		exec(onResultOK, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendString', [this.peerConnection.pcId, this.dcId, data]);
+		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendString', [this.peerConnection.pcId, this.dcId, data]);
 	} else if (window.ArrayBuffer && data instanceof window.ArrayBuffer) {
-		exec(onResultOK, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendBinary', [this.peerConnection.pcId, this.dcId, data]);
+		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendBinary', [this.peerConnection.pcId, this.dcId, data]);
 	} else if (
 		(window.Int8Array && data instanceof window.Int8Array) ||
 		(window.Uint8Array && data instanceof window.Uint8Array) ||
@@ -147,7 +143,7 @@ RTCDataChannel.prototype.send = function (data) {
 		(window.Float64Array && data instanceof window.Float64Array) ||
 		(window.DataView && data instanceof window.DataView)
 	) {
-		exec(onResultOK, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendBinary', [this.peerConnection.pcId, this.dcId, data.buffer]);
+		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendBinary', [this.peerConnection.pcId, this.dcId, data.buffer]);
 	} else {
 		throw new Error('invalid data type');
 	}
@@ -217,6 +213,17 @@ function onEvent(data) {
 			event = new Event('message');
 			event.data = data.message;
 			this.dispatchEvent(event);
+			break;
+
+		case 'bufferedamount':
+			this.bufferedAmount = data.bufferedAmount;
+
+			if (this.bufferedAmountLowThreshold > 0 && this.bufferedAmountLowThreshold > this.bufferedAmount) {
+				event = new Event('bufferedamountlow');
+				event.bufferedAmount = this.bufferedAmount;
+				this.dispatchEvent(event);
+			}
+
 			break;
 	}
 }

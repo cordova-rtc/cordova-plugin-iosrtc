@@ -101,6 +101,12 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 		NSLog("PluginRTCDataChannel#run()")
 
 		self.rtcDataChannel!.delegate = self
+
+		//if data channel is created after there is a connection,
+		// we need to dispatch its current state.
+		if (self.rtcDataChannel?.state.rawValue > 0) {
+			channelDidChangeState(self.rtcDataChannel);
+		}
 	}
 
 
@@ -140,11 +146,7 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 		)
 
 		let result = self.rtcDataChannel!.sendData(buffer)
-		if result == true {
-			callback(data: [
-				"bufferedAmount": self.rtcDataChannel!.bufferedAmount
-			])
-		} else {
+		if !result {
 			NSLog("PluginRTCDataChannel#sendString() | RTCDataChannel#sendData() failed")
 		}
 	}
@@ -162,11 +164,7 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 		)
 
 		let result = self.rtcDataChannel!.sendData(buffer)
-		if result == true {
-			callback(data: [
-				"bufferedAmount": self.rtcDataChannel!.bufferedAmount
-			])
-		} else {
+		if !result {
 			NSLog("PluginRTCDataChannel#sendBinary() | RTCDataChannel#sendData() failed")
 		}
 	}
@@ -202,7 +200,7 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 
 
 	func channel(channel: RTCDataChannel!, didReceiveMessageWithBuffer buffer: RTCDataBuffer!) {
-		if buffer.isBinary == false {
+		if !buffer.isBinary {
 			NSLog("PluginRTCDataChannel | utf8 message received")
 
 			if self.eventListener != nil {
@@ -223,9 +221,18 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 		}
 	}
 
+	func channel(channel: RTCDataChannel!, didChangeBufferedAmount amount: UInt) {
+		NSLog("PluginRTCDataChannel | didChangeBufferedAmount %d", amount)
+
+		self.eventListener!(data: [
+			"type": "bufferedamount",
+			"bufferedAmount": amount
+			])
+
+	}
 
 	func emitReceivedMessage(buffer: RTCDataBuffer) {
-		if buffer.isBinary == false {
+		if !buffer.isBinary {
 			let string = NSString(
 				data: buffer.data,
 				encoding: NSUTF8StringEncoding
