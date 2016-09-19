@@ -150,7 +150,7 @@ This happens when the status bar is shown. This can be fixed through disabling t
 
 * at runtime through [cordova-plugin-statusbar](https://github.com/apache/cordova-plugin-statusbar) 
 
-* permanently through editing the project `.plist like 
+* permanently through editing the project `.plist` like 
 ```
   <key>UIViewControllerBasedStatusBarAppearance</key>
   <false/>
