@@ -354,7 +354,9 @@ class iosrtcPlugin : CDVPlugin {
 		}
 
 		dispatch_async(self.queue) { [weak pluginRTCPeerConnection] in
-			pluginRTCPeerConnection!.close()
+		    if pluginRTCPeerConnection != nil {
+			    pluginRTCPeerConnection!.close()
+			}
 
 			// Remove the pluginRTCPeerConnection from the dictionary.
 			self.pluginRTCPeerConnections[pcId] = nil
