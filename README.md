@@ -302,7 +302,7 @@ Iñaki Baz Castillo at [eFace2Face, inc.](https://eface2face.com)
 ### Maintainers
 
 * Iñaki Baz Castillo at [eFace2Face, inc.](https://eface2face.com)
-* Saúl Ibarra Corretgé ([about.me](https://about.me/saghul))
+* Saúl Ibarra Corretgé ([Better Call Saghul](http://bettercallsaghul.com)
 
 
 ## License
