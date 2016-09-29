@@ -12,6 +12,8 @@ var
 
 	BUILD_VERSION = '9.0',
 	BUILD_VERSION_XCODE = '"' + BUILD_VERSION + '"',
+	SWIFT_VERSION = '2.3',
+	SWIFT_VERSION_XCODE = '"' + SWIFT_VERSION + '"',
 	RUNPATH_SEARCH_PATHS = '@executable_path/Frameworks',
 	RUNPATH_SEARCH_PATHS_XCODE = '"' + RUNPATH_SEARCH_PATHS + '"',
 	ENABLE_BITCODE = 'NO',
@@ -85,6 +87,7 @@ module.exports = function (context) {
 	debug('- "Runpath Search Paths" to: ' + RUNPATH_SEARCH_PATHS_XCODE);
 	debug('- "Objective-C Bridging Header" to: ' + swiftBridgingHeadXcode);
 	debug('- "ENABLE_BITCODE" set to: ' + ENABLE_BITCODE_XCODE);
+	debug('- "SWIFT_VERSION" set to: ' + SWIFT_VERSION_XCODE);
 
 
 	// Massaging the files
@@ -119,6 +122,7 @@ module.exports = function (context) {
 			buildSettings.SWIFT_OBJC_BRIDGING_HEADER = swiftBridgingHeadXcode;
 			buildSettings.IPHONEOS_DEPLOYMENT_TARGET = BUILD_VERSION_XCODE;
 			buildSettings.ENABLE_BITCODE = ENABLE_BITCODE_XCODE;
+			buildSettings.SWIFT_VERSION = SWIFT_VERSION_XCODE;
 		});
 
 		// Writing the file again
