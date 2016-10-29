@@ -17,7 +17,7 @@ class iosrtcPlugin : CDVPlugin {
 	// PluginMediaStreamRenderer dictionary.
 	var pluginMediaStreamRenderers: [Int : PluginMediaStreamRenderer]!
 	// Dispatch queue for serial operations.
-	var queue: dispatch_queue_t!
+	var queue: DispatchQueue!
 
 
 	// This is just called if <param name="onload" value="true" /> in plugin.xml.
@@ -25,14 +25,15 @@ class iosrtcPlugin : CDVPlugin {
 		NSLog("iosrtcPlugin#pluginInitialize()")
 
 		// Make the web view transparent
-		self.webView!.opaque = false
-		self.webView!.backgroundColor = UIColor.clearColor()
+		self.webView!.isOpaque = false
+		self.webView!.backgroundColor = UIColor.clear
 
 		pluginMediaStreams = [:]
 		pluginMediaStreamTracks = [:]
 		pluginMediaStreamRenderers = [:]
-		queue = dispatch_queue_create("cordova-plugin-iosrtc", DISPATCH_QUEUE_SERIAL)
-		pluginRTCPeerConnections = [:]
+		//queue = dispatch_queue_create("cordova-plugin-iosrtc", DISPATCH_QUEUE_SERIAL)
+        queue = DispatchQueue(label: "cordova-plugin-iosrtc", attributes: [], target: nil)
+        pluginRTCPeerConnections = [:]
 
 		// Initialize DTLS stuff.
 		RTCPeerConnectionFactory.initializeSSL()
@@ -60,16 +61,16 @@ class iosrtcPlugin : CDVPlugin {
 	func new_RTCPeerConnection(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#new_RTCPeerConnection()")
 
-		let pcId = command.argumentAtIndex(0) as! Int
+		let pcId = command.argument(at: 0) as! Int
 		var pcConfig: NSDictionary?
 		var pcConstraints: NSDictionary?
 
-		if command.argumentAtIndex(1) != nil {
-			pcConfig = command.argumentAtIndex(1) as? NSDictionary
+		if command.argument(at: 1) != nil {
+			pcConfig = command.argument(at: 1) as? NSDictionary
 		}
 
-		if command.argumentAtIndex(2) != nil {
-			pcConstraints = command.argumentAtIndex(2) as? NSDictionary
+		if command.argument(at: 2) != nil {
+			pcConstraints = command.argument(at: 2) as? NSDictionary
 		}
 
 		let pluginRTCPeerConnection = PluginRTCPeerConnection(
@@ -77,11 +78,11 @@ class iosrtcPlugin : CDVPlugin {
 			pcConfig: pcConfig,
 			pcConstraints: pcConstraints,
 			eventListener: { (data: NSDictionary) -> Void in
-				let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAsDictionary: data as [NSObject : AnyObject])
+				let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: data as [NSObject : AnyObject])
 
 				// Allow more callbacks.
-				result.setKeepCallbackAsBool(true);
-				self.emit(command.callbackId, result: result)
+				result?.setKeepCallbackAs(true);
+				self.emit(callbackId: command.callbackId, result: result!)
 			},
 			eventListenerForAddStream: self.saveMediaStream,
 			eventListenerForRemoveStream: self.deleteMediaStream
@@ -98,11 +99,11 @@ class iosrtcPlugin : CDVPlugin {
 	func RTCPeerConnection_createOffer(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_createOffer()")
 
-		let pcId = command.argumentAtIndex(0) as! Int
+		let pcId = command.argument(at: 0) as! Int
 		var options: NSDictionary?
 
-		if command.argumentAtIndex(1) != nil {
-			options = command.argumentAtIndex(1) as? NSDictionary
+		if command.argument(at: 1) != nil {
+			options = command.argument(at: 1) as? NSDictionary
 		}
 
 		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
@@ -111,32 +112,33 @@ class iosrtcPlugin : CDVPlugin {
 			NSLog("iosrtcPlugin#RTCPeerConnection_createOffer() | ERROR: pluginRTCPeerConnection with pcId=%@ does not exist", String(pcId))
 			return;
 		}
-
-		dispatch_async(self.queue) { [weak pluginRTCPeerConnection] in
-			pluginRTCPeerConnection?.createOffer(options,
+        
+        self.queue.async {
+		[weak pluginRTCPeerConnection] in
+			pluginRTCPeerConnection?.createOffer(options: options,
 				callback: { (data: NSDictionary) -> Void in
-					self.emit(command.callbackId,
-						result: CDVPluginResult(status: CDVCommandStatus_OK, messageAsDictionary: data as [NSObject : AnyObject])
+					self.emit(callbackId: command.callbackId,
+						result: CDVPluginResult(status: CDVCommandStatus_OK, messageAs: data as [NSObject : AnyObject])
 					)
 				},
 				errback: { (error: NSError) -> Void in
-					self.emit(command.callbackId,
-						result: CDVPluginResult(status: CDVCommandStatus_ERROR, messageAsString: error.localizedDescription)
+					self.emit(callbackId: command.callbackId,
+						result: CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: error.localizedDescription)
 					)
 				}
 			)
-		}
+        }
 	}
 
 
 	func RTCPeerConnection_createAnswer(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_createAnswer()")
 
-		let pcId = command.argumentAtIndex(0) as! Int
+		let pcId = command.argument(at: 0) as! Int
 		var options: NSDictionary?
 
-		if command.argumentAtIndex(1) != nil {
-			options = command.argumentAtIndex(1) as? NSDictionary
+		if command.argument(at: 1) != nil {
+			options = command.argument(at: 1) as? NSDictionary
 		}
 
 		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
@@ -145,17 +147,17 @@ class iosrtcPlugin : CDVPlugin {
 			NSLog("iosrtcPlugin#RTCPeerConnection_createAnswer() | ERROR: pluginRTCPeerConnection with pcId=%@ does not exist", String(pcId))
 			return;
 		}
-
-		dispatch_async(self.queue) { [weak pluginRTCPeerConnection] in
-			pluginRTCPeerConnection?.createAnswer(options,
+        
+		 self.queue.async { [weak pluginRTCPeerConnection] in
+			pluginRTCPeerConnection?.createAnswer(options: options,
 				callback: { (data: NSDictionary) -> Void in
-					self.emit(command.callbackId,
-						result: CDVPluginResult(status: CDVCommandStatus_OK, messageAsDictionary: data as [NSObject : AnyObject])
+					self.emit(callbackId: command.callbackId,
+						result: CDVPluginResult(status: CDVCommandStatus_OK, messageAs: data as [NSObject : AnyObject])
 					)
 				},
 				errback: { (error: NSError) -> Void in
-					self.emit(command.callbackId,
-						result: CDVPluginResult(status: CDVCommandStatus_ERROR, messageAsString: error.localizedDescription)
+					self.emit(callbackId: command.callbackId,
+						result: CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: error.localizedDescription)
 					)
 				}
 			)
@@ -166,8 +168,8 @@ class iosrtcPlugin : CDVPlugin {
 	func RTCPeerConnection_setLocalDescription(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_setLocalDescription()")
 
-		let pcId = command.argumentAtIndex(0) as! Int
-		let desc = command.argumentAtIndex(1) as! NSDictionary
+		let pcId = command.argument(at: 0) as! Int
+		let desc = command.argument(at: 1) as! NSDictionary
 		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
 
 		if pluginRTCPeerConnection == nil {
@@ -175,16 +177,16 @@ class iosrtcPlugin : CDVPlugin {
 			return;
 		}
 
-		dispatch_async(self.queue) { [weak pluginRTCPeerConnection] in
-			pluginRTCPeerConnection?.setLocalDescription(desc,
+		self.queue.async { [weak pluginRTCPeerConnection] in
+			pluginRTCPeerConnection?.setLocalDescription(desc: desc,
 				callback: { (data: NSDictionary) -> Void in
-					self.emit(command.callbackId,
-						result: CDVPluginResult(status: CDVCommandStatus_OK, messageAsDictionary: data as [NSObject : AnyObject])
+					self.emit(callbackId: command.callbackId,
+						result: CDVPluginResult(status: CDVCommandStatus_OK, messageAs: data as [NSObject : AnyObject])
 					)
 				},
 				errback: { (error: NSError) -> Void in
-					self.emit(command.callbackId,
-						result: CDVPluginResult(status: CDVCommandStatus_ERROR, messageAsString: error.localizedDescription)
+					self.emit(callbackId: command.callbackId,
+						result: CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: error.localizedDescription)
 					)
 				}
 			)
@@ -195,8 +197,8 @@ class iosrtcPlugin : CDVPlugin {
 	func RTCPeerConnection_setRemoteDescription(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_setRemoteDescription()")
 
-		let pcId = command.argumentAtIndex(0) as! Int
-		let desc = command.argumentAtIndex(1) as! NSDictionary
+		let pcId = command.argument(at: 0) as! Int
+		let desc = command.argument(at: 1) as! NSDictionary
 		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
 
 		if pluginRTCPeerConnection == nil {
@@ -204,16 +206,16 @@ class iosrtcPlugin : CDVPlugin {
 			return;
 		}
 
-		dispatch_async(self.queue) { [weak pluginRTCPeerConnection] in
-			pluginRTCPeerConnection?.setRemoteDescription(desc,
+		self.queue.async { [weak pluginRTCPeerConnection] in
+			pluginRTCPeerConnection?.setRemoteDescription(desc: desc,
 				callback: { (data: NSDictionary) -> Void in
-					self.emit(command.callbackId,
-						result: CDVPluginResult(status: CDVCommandStatus_OK, messageAsDictionary: data as [NSObject : AnyObject])
+					self.emit(callbackId: command.callbackId,
+						result: CDVPluginResult(status: CDVCommandStatus_OK, messageAs: data as [NSObject : AnyObject])
 					)
 				},
 				errback: { (error: NSError) -> Void in
-					self.emit(command.callbackId,
-						result: CDVPluginResult(status: CDVCommandStatus_ERROR, messageAsString: error.localizedDescription)
+					self.emit(callbackId: command.callbackId,
+						result: CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: error.localizedDescription)
 					)
 				}
 			)
@@ -224,8 +226,8 @@ class iosrtcPlugin : CDVPlugin {
 	func RTCPeerConnection_addIceCandidate(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_addIceCandidate()")
 
-		let pcId = command.argumentAtIndex(0) as! Int
-		let candidate = command.argumentAtIndex(1) as! NSDictionary
+		let pcId = command.argument(at: 0) as! Int
+		let candidate = command.argument(at: 1) as! NSDictionary
 		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
 
 		if pluginRTCPeerConnection == nil {
@@ -233,15 +235,15 @@ class iosrtcPlugin : CDVPlugin {
 			return;
 		}
 
-		dispatch_async(self.queue) { [weak pluginRTCPeerConnection] in
-			pluginRTCPeerConnection?.addIceCandidate(candidate,
+		self.queue.async { [weak pluginRTCPeerConnection] in
+			pluginRTCPeerConnection?.addIceCandidate(candidate: candidate,
 				callback: { (data: NSDictionary) -> Void in
-					self.emit(command.callbackId,
-						result: CDVPluginResult(status: CDVCommandStatus_OK, messageAsDictionary: data as [NSObject : AnyObject])
+					self.emit(callbackId: command.callbackId,
+						result: CDVPluginResult(status: CDVCommandStatus_OK, messageAs: data as [NSObject : AnyObject])
 					)
 				},
 				errback: { () -> Void in
-					self.emit(command.callbackId,
+					self.emit(callbackId: command.callbackId,
 						result: CDVPluginResult(status: CDVCommandStatus_ERROR)
 					)
 				}
@@ -253,8 +255,8 @@ class iosrtcPlugin : CDVPlugin {
 	func RTCPeerConnection_addStream(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_addStream()")
 
-		let pcId = command.argumentAtIndex(0) as! Int
-		let streamId = command.argumentAtIndex(1) as! String
+		let pcId = command.argument(at: 0) as! Int
+		let streamId = command.argument(at: 1) as! String
 		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
 		let pluginMediaStream = self.pluginMediaStreams[streamId]
 
@@ -268,9 +270,9 @@ class iosrtcPlugin : CDVPlugin {
 			return;
 		}
 
-		dispatch_async(self.queue) { [weak pluginRTCPeerConnection, weak pluginMediaStream] in
-			if pluginRTCPeerConnection?.addStream(pluginMediaStream!) == true {
-				self.saveMediaStream(pluginMediaStream!)
+		self.queue.async { [weak pluginRTCPeerConnection, weak pluginMediaStream] in
+			if pluginRTCPeerConnection?.addStream(pluginMediaStream: pluginMediaStream!) == true {
+				self.saveMediaStream(pluginMediaStream: pluginMediaStream!)
 			}
 		}
 	}
@@ -279,8 +281,8 @@ class iosrtcPlugin : CDVPlugin {
 	func RTCPeerConnection_removeStream(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_removeStream()")
 
-		let pcId = command.argumentAtIndex(0) as! Int
-		let streamId = command.argumentAtIndex(1) as! String
+		let pcId = command.argument(at: 0) as! Int
+		let streamId = command.argument(at: 1) as! String
 		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
 		let pluginMediaStream = self.pluginMediaStreams[streamId]
 
@@ -294,8 +296,8 @@ class iosrtcPlugin : CDVPlugin {
 			return;
 		}
 
-		dispatch_async(self.queue) { [weak pluginRTCPeerConnection, weak pluginMediaStream] in
-			pluginRTCPeerConnection?.removeStream(pluginMediaStream!)
+		self.queue.async { [weak pluginRTCPeerConnection, weak pluginMediaStream] in
+			pluginRTCPeerConnection?.removeStream(pluginMediaStream: pluginMediaStream!)
 		}
 	}
 
@@ -303,13 +305,13 @@ class iosrtcPlugin : CDVPlugin {
 	func RTCPeerConnection_createDataChannel(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_createDataChannel()")
 
-		let pcId = command.argumentAtIndex(0) as! Int
-		let dcId = command.argumentAtIndex(1) as! Int
-		let label = command.argumentAtIndex(2) as! String
+		let pcId = command.argument(at: 0) as! Int
+		let dcId = command.argument(at: 1) as! Int
+		let label = command.argument(at: 2) as! String
 		var options: NSDictionary?
 
-		if command.argumentAtIndex(3) != nil {
-			options = command.argumentAtIndex(3) as? NSDictionary
+		if command.argument(at: 3) != nil {
+			options = command.argument(at: 3) as? NSDictionary
 		}
 
 		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
@@ -319,23 +321,23 @@ class iosrtcPlugin : CDVPlugin {
 			return;
 		}
 
-		dispatch_async(self.queue) { [weak pluginRTCPeerConnection] in
-			pluginRTCPeerConnection?.createDataChannel(dcId,
+		self.queue.async { [weak pluginRTCPeerConnection] in
+			pluginRTCPeerConnection?.createDataChannel(dcId: dcId,
 				label: label,
 				options: options,
 				eventListener: { (data: NSDictionary) -> Void in
-					let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAsDictionary: data as [NSObject : AnyObject])
+					let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: data as [NSObject : AnyObject])
 
 					// Allow more callbacks.
-					result.setKeepCallbackAsBool(true);
-					self.emit(command.callbackId, result: result)
+					result?.setKeepCallbackAs(true);
+					self.emit(callbackId: command.callbackId, result: result!)
 				},
 				eventListenerForBinaryMessage: { (data: NSData) -> Void in
-					let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAsArrayBuffer: data)
+					let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAsArrayBuffer: data as Data!)
 
 					// Allow more callbacks.
-					result.setKeepCallbackAsBool(true);
-					self.emit(command.callbackId, result: result)
+					result?.setKeepCallbackAs(true);
+					self.emit(callbackId: command.callbackId, result: result!)
 				}
 			)
 		}
@@ -345,7 +347,7 @@ class iosrtcPlugin : CDVPlugin {
 	func RTCPeerConnection_close(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_close()")
 
-		let pcId = command.argumentAtIndex(0) as! Int
+		let pcId = command.argument(at: 0) as! Int
 		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
 
 		if pluginRTCPeerConnection == nil {
@@ -353,7 +355,7 @@ class iosrtcPlugin : CDVPlugin {
 			return;
 		}
 
-		dispatch_async(self.queue) { [weak pluginRTCPeerConnection] in
+		self.queue.async { [weak pluginRTCPeerConnection] in
 			if pluginRTCPeerConnection != nil {
 				pluginRTCPeerConnection!.close()
 			}
@@ -367,8 +369,8 @@ class iosrtcPlugin : CDVPlugin {
 	func RTCPeerConnection_RTCDataChannel_setListener(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_RTCDataChannel_setListener()")
 
-		let pcId = command.argumentAtIndex(0) as! Int
-		let dcId = command.argumentAtIndex(1) as! Int
+		let pcId = command.argument(at: 0) as! Int
+		let dcId = command.argument(at: 1) as! Int
 		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
 
 		if pluginRTCPeerConnection == nil {
@@ -376,21 +378,21 @@ class iosrtcPlugin : CDVPlugin {
 			return;
 		}
 
-		dispatch_async(self.queue) { [weak pluginRTCPeerConnection] in
-			pluginRTCPeerConnection?.RTCDataChannel_setListener(dcId,
+		self.queue.async { [weak pluginRTCPeerConnection] in
+			pluginRTCPeerConnection?.RTCDataChannel_setListener(dcId: dcId,
 				eventListener: { (data: NSDictionary) -> Void in
-					let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAsDictionary: data as [NSObject : AnyObject])
+					let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: data as [NSObject : AnyObject])
 
 					// Allow more callbacks.
-					result.setKeepCallbackAsBool(true);
-					self.emit(command.callbackId, result: result)
+					result?.setKeepCallbackAs(true);
+					self.emit(callbackId: command.callbackId, result: result!)
 				},
 				eventListenerForBinaryMessage: { (data: NSData) -> Void in
-					let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAsArrayBuffer: data)
+					let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAsArrayBuffer: data as Data!)
 
 					// Allow more callbacks.
-					result.setKeepCallbackAsBool(true);
-					self.emit(command.callbackId, result: result)
+					result?.setKeepCallbackAs(true);
+					self.emit(callbackId: command.callbackId, result: result!)
 				}
 			)
 		}
@@ -400,9 +402,9 @@ class iosrtcPlugin : CDVPlugin {
 	func RTCPeerConnection_RTCDataChannel_sendString(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_RTCDataChannel_sendString()")
 
-		let pcId = command.argumentAtIndex(0) as! Int
-		let dcId = command.argumentAtIndex(1) as! Int
-		let data = command.argumentAtIndex(2) as! String
+		let pcId = command.argument(at: 0) as! Int
+		let dcId = command.argument(at: 1) as! Int
+		let data = command.argument(at: 2) as! String
 		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
 
 		if pluginRTCPeerConnection == nil {
@@ -410,12 +412,12 @@ class iosrtcPlugin : CDVPlugin {
 			return;
 		}
 
-		dispatch_async(self.queue) { [weak pluginRTCPeerConnection] in
-			pluginRTCPeerConnection?.RTCDataChannel_sendString(dcId,
+		self.queue.async { [weak pluginRTCPeerConnection] in
+			pluginRTCPeerConnection?.RTCDataChannel_sendString(dcId: dcId,
 				data: data,
 				callback: { (data: NSDictionary) -> Void in
-					self.emit(command.callbackId,
-						result: CDVPluginResult(status: CDVCommandStatus_OK, messageAsDictionary: data as [NSObject : AnyObject])
+					self.emit(callbackId: command.callbackId,
+						result: CDVPluginResult(status: CDVCommandStatus_OK, messageAs: data as [NSObject : AnyObject])
 					)
 				}
 			)
@@ -426,9 +428,9 @@ class iosrtcPlugin : CDVPlugin {
 	func RTCPeerConnection_RTCDataChannel_sendBinary(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_RTCDataChannel_sendBinary()")
 
-		let pcId = command.argumentAtIndex(0) as! Int
-		let dcId = command.argumentAtIndex(1) as! Int
-		let data = command.argumentAtIndex(2) as! NSData
+		let pcId = command.argument(at: 0) as! Int
+		let dcId = command.argument(at: 1) as! Int
+		let data = command.argument(at: 2) as! NSData
 		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
 
 		if pluginRTCPeerConnection == nil {
@@ -436,12 +438,12 @@ class iosrtcPlugin : CDVPlugin {
 			return;
 		}
 
-		dispatch_async(self.queue) { [weak pluginRTCPeerConnection] in
-			pluginRTCPeerConnection?.RTCDataChannel_sendBinary(dcId,
+		self.queue.async { [weak pluginRTCPeerConnection] in
+			pluginRTCPeerConnection?.RTCDataChannel_sendBinary(dcId: dcId,
 				data: data,
 				callback: { (data: NSDictionary) -> Void in
-					self.emit(command.callbackId,
-						result: CDVPluginResult(status: CDVCommandStatus_OK, messageAsDictionary: data as [NSObject : AnyObject])
+					self.emit(callbackId: command.callbackId,
+						result: CDVPluginResult(status: CDVCommandStatus_OK, messageAs: data as [NSObject : AnyObject])
 					)
 				}
 			)
@@ -452,8 +454,8 @@ class iosrtcPlugin : CDVPlugin {
 	func RTCPeerConnection_RTCDataChannel_close(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_RTCDataChannel_close()")
 
-		let pcId = command.argumentAtIndex(0) as! Int
-		let dcId = command.argumentAtIndex(1) as! Int
+		let pcId = command.argument(at: 0) as! Int
+		let dcId = command.argument(at: 1) as! Int
 		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
 
 		if pluginRTCPeerConnection == nil {
@@ -461,8 +463,8 @@ class iosrtcPlugin : CDVPlugin {
 			return;
 		}
 
-		dispatch_async(self.queue) { [weak pluginRTCPeerConnection] in
-			pluginRTCPeerConnection?.RTCDataChannel_close(dcId)
+		self.queue.async { [weak pluginRTCPeerConnection] in
+			pluginRTCPeerConnection?.RTCDataChannel_close(dcId: dcId)
 		}
 	}
 
@@ -470,9 +472,9 @@ class iosrtcPlugin : CDVPlugin {
 	func RTCPeerConnection_createDTMFSender(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_createDTMFSender()")
 
-		let pcId = command.argumentAtIndex(0) as! Int
-		let dsId = command.argumentAtIndex(1) as! Int
-		let trackId = command.argumentAtIndex(2) as! String
+		let pcId = command.argument(at: 0) as! Int
+		let dsId = command.argument(at: 1) as! Int
+		let trackId = command.argument(at: 2) as! String
 		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
 		let pluginMediaStreamTrack = self.pluginMediaStreamTracks[trackId]
 
@@ -487,15 +489,15 @@ class iosrtcPlugin : CDVPlugin {
 		}
 
 
-		dispatch_async(self.queue) { [weak pluginRTCPeerConnection] in
-			pluginRTCPeerConnection?.createDTMFSender(dsId,
+		self.queue.async { [weak pluginRTCPeerConnection] in
+			pluginRTCPeerConnection?.createDTMFSender(dsId: dsId,
 				track: pluginMediaStreamTrack!,
 				eventListener: { (data: NSDictionary) -> Void in
-					let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAsDictionary: data as [NSObject : AnyObject])
+					let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: data as [NSObject : AnyObject])
 
 					// Allow more callbacks.
-					result.setKeepCallbackAsBool(true);
-					self.emit(command.callbackId, result: result)
+					result?.setKeepCallbackAs(true);
+					self.emit(callbackId: command.callbackId, result: result!)
 				}
 			)
 		}
@@ -505,11 +507,11 @@ class iosrtcPlugin : CDVPlugin {
 	func RTCPeerConnection_RTCDTMFSender_insertDTMF(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_RTCDTMFSender_insertDTMF()")
 
-		let pcId = command.argumentAtIndex(0) as! Int
-		let dsId = command.argumentAtIndex(1) as! Int
-		let tones = command.argumentAtIndex(2) as! String
-		let duration = command.argumentAtIndex(3) as! Int
-		let interToneGap = command.argumentAtIndex(4) as! Int
+		let pcId = command.argument(at: 0) as! Int
+		let dsId = command.argument(at: 1) as! Int
+		let tones = command.argument(at: 2) as! String
+		let duration = command.argument(at: 3) as! Int
+		let interToneGap = command.argument(at: 4) as! Int
 		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
 
 		if pluginRTCPeerConnection == nil {
@@ -517,8 +519,8 @@ class iosrtcPlugin : CDVPlugin {
 			return;
 		}
 
-		dispatch_async(self.queue) { [weak pluginRTCPeerConnection] in
-			pluginRTCPeerConnection?.RTCDTMFSender_insertDTMF(dsId,
+		self.queue.async { [weak pluginRTCPeerConnection] in
+			pluginRTCPeerConnection?.RTCDTMFSender_insertDTMF(dsId: dsId,
 				tones: tones,
 				duration: duration,
 				interToneGap: interToneGap
@@ -530,7 +532,7 @@ class iosrtcPlugin : CDVPlugin {
 	func MediaStream_setListener(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#MediaStream_setListener()")
 
-		let id = command.argumentAtIndex(0) as! String
+		let id = command.argument(at: 0) as! String
 		let pluginMediaStream = self.pluginMediaStreams[id]
 
 		if pluginMediaStream == nil {
@@ -538,15 +540,15 @@ class iosrtcPlugin : CDVPlugin {
 			return;
 		}
 
-		dispatch_async(self.queue) { [weak pluginMediaStream] in
+		self.queue.async { [weak pluginMediaStream] in
 			// Set the eventListener.
 			pluginMediaStream?.setListener(
-				{ (data: NSDictionary) -> Void in
-					let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAsDictionary: data as [NSObject : AnyObject])
+				eventListener: { (data: NSDictionary) -> Void in
+					let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: data as [NSObject : AnyObject])
 
 					// Allow more callbacks.
-					result.setKeepCallbackAsBool(true);
-					self.emit(command.callbackId, result: result)
+					result?.setKeepCallbackAs(true);
+					self.emit(callbackId: command.callbackId, result: result!)
 				},
 				eventListenerForAddTrack: self.saveMediaStreamTrack,
 				eventListenerForRemoveTrack: self.deleteMediaStreamTrack
@@ -558,8 +560,8 @@ class iosrtcPlugin : CDVPlugin {
 	func MediaStream_addTrack(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#MediaStream_addTrack()")
 
-		let id = command.argumentAtIndex(0) as! String
-		let trackId = command.argumentAtIndex(1) as! String
+		let id = command.argument(at: 0) as! String
+		let trackId = command.argument(at: 1) as! String
 		let pluginMediaStream = self.pluginMediaStreams[id]
 		let pluginMediaStreamTrack = self.pluginMediaStreamTracks[trackId]
 
@@ -573,8 +575,8 @@ class iosrtcPlugin : CDVPlugin {
 			return;
 		}
 
-		dispatch_async(self.queue) { [weak pluginMediaStream, weak pluginMediaStreamTrack] in
-			pluginMediaStream?.addTrack(pluginMediaStreamTrack!)
+		self.queue.async { [weak pluginMediaStream, weak pluginMediaStreamTrack] in
+			pluginMediaStream?.addTrack(pluginMediaStreamTrack: pluginMediaStreamTrack!)
 		}
 	}
 
@@ -582,8 +584,8 @@ class iosrtcPlugin : CDVPlugin {
 	func MediaStream_removeTrack(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#MediaStream_removeTrack()")
 
-		let id = command.argumentAtIndex(0) as! String
-		let trackId = command.argumentAtIndex(1) as! String
+		let id = command.argument(at: 0) as! String
+		let trackId = command.argument(at: 1) as! String
 		let pluginMediaStream = self.pluginMediaStreams[id]
 		let pluginMediaStreamTrack = self.pluginMediaStreamTracks[trackId]
 
@@ -597,8 +599,8 @@ class iosrtcPlugin : CDVPlugin {
 			return;
 		}
 
-		dispatch_async(self.queue) { [weak pluginMediaStream, weak pluginMediaStreamTrack] in
-			pluginMediaStream?.removeTrack(pluginMediaStreamTrack!)
+		self.queue.async { [weak pluginMediaStream, weak pluginMediaStreamTrack] in
+			pluginMediaStream?.removeTrack(pluginMediaStreamTrack: pluginMediaStreamTrack!)
 		}
 	}
 
@@ -606,7 +608,7 @@ class iosrtcPlugin : CDVPlugin {
 	func MediaStream_release(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#MediaStream_release()")
 
-		let id = command.argumentAtIndex(0) as! String
+		let id = command.argument(at: 0) as! String
 		let pluginMediaStream = self.pluginMediaStreams[id]
 
 		if pluginMediaStream == nil {
@@ -621,7 +623,7 @@ class iosrtcPlugin : CDVPlugin {
 	func MediaStreamTrack_setListener(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#MediaStreamTrack_setListener()")
 
-		let id = command.argumentAtIndex(0) as! String
+		let id = command.argument(at: 0) as! String
 		let pluginMediaStreamTrack = self.pluginMediaStreamTracks[id]
 
 		if pluginMediaStreamTrack == nil {
@@ -629,15 +631,15 @@ class iosrtcPlugin : CDVPlugin {
 			return;
 		}
 
-		dispatch_async(self.queue) { [weak pluginMediaStreamTrack] in
+		self.queue.async { [weak pluginMediaStreamTrack] in
 			// Set the eventListener.
 			pluginMediaStreamTrack?.setListener(
-				{ (data: NSDictionary) -> Void in
-					let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAsDictionary: data as [NSObject : AnyObject])
+				eventListener: { (data: NSDictionary) -> Void in
+					let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: data as [NSObject : AnyObject])
 
 					// Allow more callbacks.
-					result.setKeepCallbackAsBool(true);
-					self.emit(command.callbackId, result: result)
+					result?.setKeepCallbackAs(true);
+					self.emit(callbackId: command.callbackId, result: result!)
 				},
 				eventListenerForEnded: { () -> Void in
 					// Remove the track from the container.
@@ -651,8 +653,8 @@ class iosrtcPlugin : CDVPlugin {
 	func MediaStreamTrack_setEnabled(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#MediaStreamTrack_setEnabled()")
 
-		let id = command.argumentAtIndex(0) as! String
-		let value = command.argumentAtIndex(1) as! Bool
+		let id = command.argument(at: 0) as! String
+		let value = command.argument(at: 1) as! Bool
 		let pluginMediaStreamTrack = self.pluginMediaStreamTracks[id]
 
 		if pluginMediaStreamTrack == nil {
@@ -660,8 +662,8 @@ class iosrtcPlugin : CDVPlugin {
 			return;
 		}
 
-		dispatch_async(self.queue) {[weak pluginMediaStreamTrack] in
-			pluginMediaStreamTrack?.setEnabled(value)
+		self.queue.async {[weak pluginMediaStreamTrack] in
+			pluginMediaStreamTrack?.setEnabled(value: value)
 		}
 	}
 
@@ -669,7 +671,7 @@ class iosrtcPlugin : CDVPlugin {
 	func MediaStreamTrack_stop(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#MediaStreamTrack_stop()")
 
-		let id = command.argumentAtIndex(0) as! String
+		let id = command.argument(at: 0) as! String
 		let pluginMediaStreamTrack = self.pluginMediaStreamTracks[id]
 
 		if pluginMediaStreamTrack == nil {
@@ -677,7 +679,7 @@ class iosrtcPlugin : CDVPlugin {
 			return;
 		}
 
-		dispatch_async(self.queue) { [weak pluginMediaStreamTrack] in
+		self.queue.async { [weak pluginMediaStreamTrack] in
 			pluginMediaStreamTrack?.stop()
 		}
 	}
@@ -686,16 +688,16 @@ class iosrtcPlugin : CDVPlugin {
 	func new_MediaStreamRenderer(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#new_MediaStreamRenderer()")
 
-		let id = command.argumentAtIndex(0) as! Int
+		let id = command.argument(at: 0) as! Int
 
 		let pluginMediaStreamRenderer = PluginMediaStreamRenderer(
 			webView: self.webView!,
 			eventListener: { (data: NSDictionary) -> Void in
-				let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAsDictionary: data as [NSObject : AnyObject])
+				let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: data as [NSObject : AnyObject])
 
 				// Allow more callbacks.
-				result.setKeepCallbackAsBool(true);
-				self.emit(command.callbackId, result: result)
+				result?.setKeepCallbackAs(true);
+				self.emit(callbackId: command.callbackId, result: result!)
 			}
 		)
 
@@ -710,8 +712,8 @@ class iosrtcPlugin : CDVPlugin {
 	func MediaStreamRenderer_render(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#MediaStreamRenderer_render()")
 
-		let id = command.argumentAtIndex(0) as! Int
-		let streamId = command.argumentAtIndex(1) as! String
+		let id = command.argument(at: 0) as! Int
+		let streamId = command.argument(at: 1) as! String
 		let pluginMediaStreamRenderer = self.pluginMediaStreamRenderers[id]
 		let pluginMediaStream = self.pluginMediaStreams[streamId]
 
@@ -725,14 +727,14 @@ class iosrtcPlugin : CDVPlugin {
 			return;
 		}
 
-		pluginMediaStreamRenderer!.render(pluginMediaStream!)
+		pluginMediaStreamRenderer!.render(pluginMediaStream: pluginMediaStream!)
 	}
 
 
 	func MediaStreamRenderer_mediaStreamChanged(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#MediaStreamRenderer_mediaStreamChanged()")
 
-		let id = command.argumentAtIndex(0) as! Int
+		let id = command.argument(at: 0) as! Int
 		let pluginMediaStreamRenderer = self.pluginMediaStreamRenderers[id]
 
 		if pluginMediaStreamRenderer == nil {
@@ -747,8 +749,8 @@ class iosrtcPlugin : CDVPlugin {
 	func MediaStreamRenderer_refresh(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#MediaStreamRenderer_refresh()")
 
-		let id = command.argumentAtIndex(0) as! Int
-		let data = command.argumentAtIndex(1) as! NSDictionary
+		let id = command.argument(at: 0) as! Int
+		let data = command.argument(at: 1) as! NSDictionary
 		let pluginMediaStreamRenderer = self.pluginMediaStreamRenderers[id]
 
 		if pluginMediaStreamRenderer == nil {
@@ -756,14 +758,14 @@ class iosrtcPlugin : CDVPlugin {
 			return;
 		}
 
-		pluginMediaStreamRenderer!.refresh(data)
+		pluginMediaStreamRenderer!.refresh(data: data)
 	}
 
 
 	func MediaStreamRenderer_close(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#MediaStreamRenderer_close()")
 
-		let id = command.argumentAtIndex(0) as! Int
+		let id = command.argument(at: 0) as! Int
 		let pluginMediaStreamRenderer = self.pluginMediaStreamRenderers[id]
 
 		if pluginMediaStreamRenderer == nil {
@@ -781,17 +783,17 @@ class iosrtcPlugin : CDVPlugin {
 	func getUserMedia(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#getUserMedia()")
 
-		let constraints = command.argumentAtIndex(0) as! NSDictionary
+		let constraints = command.argument(at: 0) as! NSDictionary
 
-		self.pluginGetUserMedia.call(constraints,
+		self.pluginGetUserMedia.call(constraints: constraints,
 			callback: { (data: NSDictionary) -> Void in
-				self.emit(command.callbackId,
-					result: CDVPluginResult(status: CDVCommandStatus_OK, messageAsDictionary: data as [NSObject : AnyObject])
+				self.emit(callbackId: command.callbackId,
+					result: CDVPluginResult(status: CDVCommandStatus_OK, messageAs: data as [NSObject : AnyObject])
 				)
 			},
 			errback: { (error: String) -> Void in
-				self.emit(command.callbackId,
-					result: CDVPluginResult(status: CDVCommandStatus_ERROR, messageAsString: error)
+				self.emit(callbackId: command.callbackId,
+					result: CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: error)
 				)
 			},
 			eventListenerForNewStream: self.saveMediaStream
@@ -802,11 +804,11 @@ class iosrtcPlugin : CDVPlugin {
 	func enumerateDevices(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#enumerateDevices()")
 
-		dispatch_async(self.queue) {
+		self.queue.async {
 			PluginEnumerateDevices.call(
-				{ (data: NSDictionary) -> Void in
-					self.emit(command.callbackId,
-						result: CDVPluginResult(status: CDVCommandStatus_OK, messageAsDictionary: data as [NSObject : AnyObject])
+				callback: { (data: NSDictionary) -> Void in
+					self.emit(callbackId: command.callbackId,
+						result: CDVPluginResult(status: CDVCommandStatus_OK, messageAs: data as [NSObject : AnyObject])
 					)
 				}
 			)
@@ -818,9 +820,9 @@ class iosrtcPlugin : CDVPlugin {
 		NSLog("iosrtcPlugin#selectAudioOutputEarpiece()")
 
 		do {
-			try AVAudioSession.sharedInstance().overrideOutputAudioPort(AVAudioSessionPortOverride.None)
+			try AVAudioSession.sharedInstance().overrideOutputAudioPort(AVAudioSessionPortOverride.none)
 		} catch {
-			NSLog("iosrtcPlugin#selectAudioOutputEarpiece() | ERROR: %@", String(error))
+			NSLog("iosrtcPlugin#selectAudioOutputEarpiece() | ERROR: %@", String(describing: error))
 		};
 	}
 
@@ -829,9 +831,9 @@ class iosrtcPlugin : CDVPlugin {
 		NSLog("iosrtcPlugin#selectAudioOutputSpeaker()")
 
 		do {
-			try AVAudioSession.sharedInstance().overrideOutputAudioPort(AVAudioSessionPortOverride.Speaker)
+			try AVAudioSession.sharedInstance().overrideOutputAudioPort(AVAudioSessionPortOverride.speaker)
 		} catch {
-			NSLog("iosrtcPlugin#selectAudioOutputSpeaker() | ERROR: %@", String(error))
+			NSLog("iosrtcPlugin#selectAudioOutputSpeaker() | ERROR: %@", String(describing: error))
 		};
 	}
 
@@ -863,8 +865,8 @@ class iosrtcPlugin : CDVPlugin {
 
 
 	private func emit(callbackId: String, result: CDVPluginResult) {
-		dispatch_async(dispatch_get_main_queue()) {
-			self.commandDelegate!.sendPluginResult(result, callbackId: callbackId)
+		DispatchQueue.main.async {
+			self.commandDelegate!.send(result, callbackId: callbackId)
 		}
 	}
 

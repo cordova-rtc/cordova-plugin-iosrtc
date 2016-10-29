@@ -13,8 +13,8 @@ class PluginRTCPeerConnectionConstraints {
 			return
 		}
 
-		var	offerToReceiveAudio = pcConstraints?.objectForKey("offerToReceiveAudio") as? Bool
-		var	offerToReceiveVideo = pcConstraints?.objectForKey("offerToReceiveVideo") as? Bool
+		var	offerToReceiveAudio = pcConstraints?.object(forKey: "offerToReceiveAudio") as? Bool
+		var	offerToReceiveVideo = pcConstraints?.object(forKey: "offerToReceiveVideo") as? Bool
 
 		if offerToReceiveAudio == nil && offerToReceiveVideo == nil {
 			self.constraints = RTCMediaConstraints()
