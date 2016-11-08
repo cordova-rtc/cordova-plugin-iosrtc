@@ -1,7 +1,7 @@
 import Foundation
 
 
-class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionDescriptionDelegate {
+class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionDescriptionDelegate, RTCStatsDelegate {
 	var rtcPeerConnectionFactory: RTCPeerConnectionFactory
 	var rtcPeerConnection: RTCPeerConnection!
 	var pluginRTCPeerConnectionConfig: PluginRTCPeerConnectionConfig
@@ -17,6 +17,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 	var onCreateDescriptionFailureCallback: ((_ error: NSError) -> Void)!
 	var onSetDescriptionSuccessCallback: (() -> Void)!
 	var onSetDescriptionFailureCallback: ((_ error: NSError) -> Void)!
+    var onGetStatsCallback: ((_ rtcPeerConnectionStats: NSDictionary) -> Void)!
 
 
 	init(
@@ -340,6 +341,26 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 		pluginRTCDTMFSender.run()
 	}
 
+    
+    func getStats(
+        track: PluginMediaStreamTrack?,
+        callback: @escaping (_ data: NSDictionary) -> Void,
+        errback: @escaping (_ error: NSError) -> Void
+        ) {
+        NSLog("PluginRTCPeerConnection#getStats()")
+        
+        self.onGetStatsCallback = { (rtcPeerConnectionStats: NSDictionary) -> Void in
+            callback(rtcPeerConnectionStats as NSDictionary)
+        }
+        
+        if !self.rtcPeerConnection.getStatsWith(self,
+                                                mediaStreamTrack: track?.rtcMediaStreamTrack,
+                                                statsOutputLevel: RTCStatsOutputLevelDebug) {
+            NSLog("PluginRTCPeerConnection#getStats() ERROR")
+            
+            errback(NSError(domain: "Cannot get peer connection stats.", code: -1, userInfo: nil))
+        }
+    }
 
 	func close() {
 		NSLog("PluginRTCPeerConnection#close()")
@@ -617,4 +638,31 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 			self.onSetDescriptionFailureCallback(error as NSError)
 		}
 	}
+    
+    /**
+     * Methods inherited from RTCStatsDelegate
+     */
+    
+    func peerConnection(_ peerConnection: RTCPeerConnection!,
+                        didGetStats rtcStatsReport: [Any]!) {
+        var statsReportItems = [String : Any]()
+        
+        for case let statReport as RTCStatsReport in rtcStatsReport {
+            let reportId = statReport.reportId!
+            
+            var statReportItem = [
+                "id": reportId,
+                "timestamp": String(statReport.timestamp),
+                "type": statReport.type!
+            ]
+            
+            for statValue in statReport.values as! [RTCPair] {
+                statReportItem[statValue.key] = statValue.value
+            }
+            
+            statsReportItems[reportId] = statReportItem
+        }
+        
+        self.onGetStatsCallback(statsReportItems as NSDictionary)
+    }
 }

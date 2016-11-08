@@ -1913,6 +1913,78 @@ RTCPeerConnection.prototype.createDTMFSender = function (track) {
 };
 
 
+RTCPeerConnection.prototype.getStats = function () {
+	var self = this,
+		isPromise,
+		selector,
+		callback, errback;
+
+	if (arguments.length == 1) {
+		isPromise = true;
+		selector = arguments[0];
+	} else {
+		isPromise = false;
+		selector = arguments[0];
+		callback = arguments[1];
+		errback = arguments[2];
+	}
+
+	if (selector && !(selector instanceof MediaStreamTrack)) {
+		throw new Error('getStats() must be called with null or a valid MediaStreamTrack instance as argument');
+	}
+
+	if (isClosed.call(this)) {
+		return;
+	}
+
+	if (isPromise) {
+		return new Promise(function (resolve, reject) {
+			function onResultOK(array) {
+				if (isClosed.call(self)) {
+					return;
+				}
+
+				resolve(array);
+			}
+
+			function onResultError(error) {
+				if (isClosed.call(self)) {
+					return;
+				}
+
+				debugerror('getStats() | failure: %s', error);
+				if (typeof errback === 'function') {
+					reject(new global.DOMError(error));
+				}
+			}
+
+			exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_getStats', [this.pcId, selector ? selector.id : null]);
+		});
+	}
+
+	function onResultOK(array) {
+		if (isClosed.call(self)) {
+			return;
+		}
+		
+		callback(array);
+	}
+
+	function onResultError(error) {
+		if (isClosed.call(self)) {
+			return;
+		}
+
+		debugerror('getStats() | failure: %s', error);
+		if (typeof errback === 'function') {
+			errback(new global.DOMError(error));
+		}
+	}
+
+	exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_getStats', [this.pcId, selector ? selector.id : null]);
+};
+
+
 RTCPeerConnection.prototype.close = function () {
 	if (isClosed.call(this)) {
 		return;

@@ -343,6 +343,46 @@ class iosrtcPlugin : CDVPlugin {
 		}
 	}
     
+    open func RTCPeerConnection_getStats(_ command: CDVInvokedUrlCommand) {
+        let pcId = command.argument(at: 0) as! Int
+        let trackId = command.argument(at: 1) as! String
+        let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
+        let pluginMediaStreamTrack = self.pluginMediaStreamTracks[trackId]
+        
+        if pluginRTCPeerConnection == nil {
+            let error = String("iosrtcPlugin#RTCPeerConnection_getStats() | ERROR: pluginRTCPeerConnection with pcId=\(pcId) does not exist")
+            
+            self.emit(callbackId: command.callbackId,
+                      result: CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: error)
+            )
+            return;
+        }
+        
+        if pluginMediaStreamTrack == nil {
+            let error = String("iosrtcPlugin#RTCPeerConnection_getStats() | ERROR: pluginMediaStreamTrack with id= /(trackId) does not exist");
+            
+            self.emit(callbackId: command.callbackId,
+                      result: CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: error)
+            )
+            return;
+        }
+        
+        self.queue.async {[weak pluginRTCPeerConnection, weak pluginMediaStreamTrack] in
+            pluginRTCPeerConnection?.getStats(track: pluginMediaStreamTrack,
+                callback: { (data: NSDictionary) -> Void in
+                    self.emit(callbackId: command.callbackId,
+                              result: CDVPluginResult(status: CDVCommandStatus_OK,  messageAs: data as [NSObject : AnyObject])
+                    )
+                },
+                errback: { (error: NSError) -> Void in
+                    self.emit(callbackId: command.callbackId,
+                              result: CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: error.localizedDescription)
+                    )
+                }
+            )
+        }
+    }
+
 	open func RTCPeerConnection_close(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_close()")
 
