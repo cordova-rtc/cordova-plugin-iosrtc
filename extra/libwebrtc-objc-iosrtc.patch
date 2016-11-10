@@ -1,8 +1,10 @@
---- a/talk/app/webrtc/objc/RTCMediaStream+Internal.h
-+++ b/talk/app/webrtc/objc/RTCMediaStream+Internal.h
-@@ -37,4 +37,12 @@
- - (id)initWithMediaStream:
-         (rtc::scoped_refptr<webrtc::MediaStreamInterface>)mediaStream;
+diff --git a/webrtc/sdk/objc/Framework/Classes/RTCMediaStream+Private.h b/webrtc/sdk/objc/Framework/Classes/RTCMediaStream+Private.h
+index 7f87072..ac55615 100644
+--- a/webrtc/sdk/objc/Framework/Classes/RTCMediaStream+Private.h
++++ b/webrtc/sdk/objc/Framework/Classes/RTCMediaStream+Private.h
+@@ -31,6 +31,15 @@ NS_ASSUME_NONNULL_BEGIN
+ - (instancetype)initWithNativeMediaStream:
+     (rtc::scoped_refptr<webrtc::MediaStreamInterface>)nativeMediaStream;
  
 +- (void)update;
 +- (BOOL)hasNativeAudioTrack:(RTCAudioTrack *)objcTrack;
@@ -12,19 +14,23 @@
 +- (BOOL)hasObjcVideoTrack:
 +    (rtc::scoped_refptr<webrtc::VideoTrackInterface>)nativeTrack;
 +
++
  @end
---- a/talk/app/webrtc/objc/RTCMediaStream.mm
-+++ b/talk/app/webrtc/objc/RTCMediaStream.mm
-@@ -31,16 +31,31 @@
  
- #import "RTCMediaStream+Internal.h"
+ NS_ASSUME_NONNULL_END
+diff --git a/webrtc/sdk/objc/Framework/Classes/RTCMediaStream.mm b/webrtc/sdk/objc/Framework/Classes/RTCMediaStream.mm
+index 0737dee..4bab6b2 100644
+--- a/webrtc/sdk/objc/Framework/Classes/RTCMediaStream.mm
++++ b/webrtc/sdk/objc/Framework/Classes/RTCMediaStream.mm
+@@ -13,17 +13,35 @@
+ #include <vector>
  
--#import "RTCAudioTrack+Internal.h"
- #import "RTCMediaStreamTrack+Internal.h"
-+#import "RTCAudioTrack+Internal.h"
- #import "RTCVideoTrack+Internal.h"
- 
- #include "webrtc/api/mediastreaminterface.h"
+ #import "NSString+StdString.h"
+-#import "RTCAudioTrack+Private.h"
+ #import "RTCMediaStreamTrack+Private.h"
++#import "RTCAudioTrack+Private.h"
+ #import "RTCPeerConnectionFactory+Private.h"
+ #import "RTCVideoTrack+Private.h"
  
 +namespace webrtc {
 +  class RTCMediaStreamObserver : public ObserverInterface {
@@ -40,81 +46,77 @@
 +  };
 +}
 +
++
  @implementation RTCMediaStream {
-   NSMutableArray* _audioTracks;
-   NSMutableArray* _videoTracks;
-   rtc::scoped_refptr<webrtc::MediaStreamInterface> _mediaStream;
+   NSMutableArray *_audioTracks;
+   NSMutableArray *_videoTracks;
+   rtc::scoped_refptr<webrtc::MediaStreamInterface> _nativeMediaStream;
 +  std::unique_ptr<webrtc::RTCMediaStreamObserver> _observer;
  }
  
- - (NSString*)description {
-@@ -64,7 +79,6 @@ - (NSString*)label {
++@synthesize delegate = _delegate;
++
+ - (instancetype)initWithFactory:(RTCPeerConnectionFactory *)factory
+                        streamId:(NSString *)streamId {
+   NSParameterAssert(factory);
+@@ -48,13 +66,11 @@ - (NSString *)streamId {
  
- - (BOOL)addAudioTrack:(RTCAudioTrack*)track {
-   if (self.mediaStream->AddTrack(track.audioTrack)) {
--    [_audioTracks addObject:track];
-     return YES;
+ - (void)addAudioTrack:(RTCAudioTrack *)audioTrack {
+   if (_nativeMediaStream->AddTrack(audioTrack.nativeAudioTrack)) {
+-    [_audioTracks addObject:audioTrack];
    }
-   return NO;
-@@ -72,7 +86,6 @@ - (BOOL)addAudioTrack:(RTCAudioTrack*)track {
+ }
  
- - (BOOL)addVideoTrack:(RTCVideoTrack*)track {
-   if (self.mediaStream->AddTrack(track.nativeVideoTrack)) {
--    [_videoTracks addObject:track];
-     return YES;
+ - (void)addVideoTrack:(RTCVideoTrack *)videoTrack {
+   if (_nativeMediaStream->AddTrack(videoTrack.nativeVideoTrack)) {
+-    [_videoTracks addObject:videoTrack];
    }
-   return NO;
-@@ -83,7 +96,6 @@ - (BOOL)removeAudioTrack:(RTCAudioTrack*)track {
-   NSAssert(index != NSNotFound,
+ }
+ 
+@@ -64,7 +80,6 @@ - (void)removeAudioTrack:(RTCAudioTrack *)audioTrack {
             @"|removeAudioTrack| called on unexpected RTCAudioTrack");
-   if (index != NSNotFound && self.mediaStream->RemoveTrack(track.audioTrack)) {
+   if (index != NSNotFound &&
+       _nativeMediaStream->RemoveTrack(audioTrack.nativeAudioTrack)) {
 -    [_audioTracks removeObjectAtIndex:index];
-     return YES;
    }
-   return NO;
-@@ -93,9 +105,7 @@ - (BOOL)removeVideoTrack:(RTCVideoTrack*)track {
-   NSUInteger index = [_videoTracks indexOfObjectIdenticalTo:track];
-   NSAssert(index != NSNotFound,
-            @"|removeAudioTrack| called on unexpected RTCVideoTrack");
--  if (index != NSNotFound &&
--      self.mediaStream->RemoveTrack(track.nativeVideoTrack)) {
--    [_videoTracks removeObjectAtIndex:index];
-+  if (index != NSNotFound && self.mediaStream->RemoveTrack(track.nativeVideoTrack)) {
-     return YES;
-   }
-   return NO;
-@@ -119,6 +129,8 @@ - (id)initWithMediaStream:
-     _audioTracks = [NSMutableArray arrayWithCapacity:audio_tracks.size()];
-     _videoTracks = [NSMutableArray arrayWithCapacity:video_tracks.size()];
-     _mediaStream = mediaStream;
-+    _observer.reset(new webrtc::RTCMediaStreamObserver(self));
-+    _mediaStream->RegisterObserver(_observer.get());
+ }
  
-     for (size_t i = 0; i < audio_tracks.size(); ++i) {
-       rtc::scoped_refptr<webrtc::AudioTrackInterface> track =
-@@ -139,8 +151,157 @@ - (id)initWithMediaStream:
+@@ -74,7 +89,6 @@ - (void)removeVideoTrack:(RTCVideoTrack *)videoTrack {
+            @"|removeVideoTrack| called on unexpected RTCVideoTrack");
+   if (index != NSNotFound &&
+       _nativeMediaStream->RemoveTrack(videoTrack.nativeVideoTrack)) {
+-    [_videoTracks removeObjectAtIndex:index];
+   }
+ }
+ 
+@@ -101,6 +115,8 @@ - (instancetype)initWithNativeMediaStream:
+     _audioTracks = [NSMutableArray arrayWithCapacity:audioTracks.size()];
+     _videoTracks = [NSMutableArray arrayWithCapacity:videoTracks.size()];
+     _nativeMediaStream = nativeMediaStream;
++    _observer.reset(new webrtc::RTCMediaStreamObserver(self));
++    _nativeMediaStream->RegisterObserver(_observer.get());
+ 
+     for (auto &track : audioTracks) {
+       RTCMediaStreamTrackType type = RTCMediaStreamTrackTypeAudio;
+@@ -119,4 +135,153 @@ - (instancetype)initWithNativeMediaStream:
    return self;
  }
  
 +- (void)dealloc {
-+  _mediaStream->UnregisterObserver(_observer.get());
++  _nativeMediaStream->UnregisterObserver(_observer.get());
 +}
 +
- - (rtc::scoped_refptr<webrtc::MediaStreamInterface>)mediaStream {
-   return _mediaStream;
- }
- 
 +- (void)update {
 +  size_t i;
-+  webrtc::AudioTrackVector native_audio_tracks = _mediaStream->GetAudioTracks();
-+  webrtc::VideoTrackVector native_video_tracks = _mediaStream->GetVideoTracks();
++  webrtc::AudioTrackVector native_audio_tracks = _nativeMediaStream->GetAudioTracks();
++  webrtc::VideoTrackVector native_video_tracks = _nativeMediaStream->GetVideoTracks();
 +  std::vector<size_t> removedAudioTrackIndexes;
 +  std::vector<size_t> removedVideoTrackIndexes;
 +
 +  // Detect audio tracks removal.
 +  for (i = 0; i < [_audioTracks count]; i++) {
 +    RTCAudioTrack* objcTrack = [_audioTracks objectAtIndex:i];
-+    NSNumber* index;
++//    NSNumber* index;
 +
 +    if (![self hasNativeAudioTrack:objcTrack]) {
 +      removedAudioTrackIndexes.push_back(i);
@@ -124,7 +126,7 @@
 +  // Detect video tracks removal.
 +  for (i = 0; i < [_videoTracks count]; i++) {
 +    RTCVideoTrack* objcTrack = [_videoTracks objectAtIndex:i];
-+    NSNumber* index;
++//    NSNumber* index;
 +
 +    if (![self hasNativeVideoTrack:objcTrack]) {
 +      removedVideoTrackIndexes.push_back(i);
@@ -163,7 +165,7 @@
 +    if (![self hasObjcAudioTrack:nativeTrack]) {
 +      // Create the RTCAudioTrack instance and add it to the ObjC container.
 +      RTCAudioTrack* objcTrack =
-+        [[RTCAudioTrack alloc] initWithMediaTrack:nativeTrack];
++        [[RTCAudioTrack alloc] initWithNativeTrack:nativeTrack];
 +      [_audioTracks addObject:objcTrack];
 +
 +      // Notify the delegate.
@@ -179,7 +181,7 @@
 +    if (![self hasObjcVideoTrack:nativeTrack]) {
 +      // Create the RTCVideoTrack instance and add it to the ObjC container.
 +      RTCVideoTrack* objcTrack =
-+        [[RTCVideoTrack alloc] initWithMediaTrack:nativeTrack];
++        [[RTCVideoTrack alloc] initWithNativeTrack:nativeTrack];
 +      [_videoTracks addObject:objcTrack];
 +
 +      // Notify the delegate.
@@ -200,12 +202,12 @@
 +}
 +
 +- (BOOL)hasNativeAudioTrack:(RTCAudioTrack *)objcTrack {
-+  webrtc::AudioTrackVector audio_tracks = _mediaStream->GetAudioTracks();
++  webrtc::AudioTrackVector audio_tracks = _nativeMediaStream->GetAudioTracks();
 +
 +  for (size_t i = 0; i < audio_tracks.size(); ++i) {
 +    rtc::scoped_refptr<webrtc::AudioTrackInterface> track = audio_tracks[i];
 +
-+    if (track->id().compare(objcTrack.audioTrack->id()) == 0) {
++    if (track->id().compare(objcTrack.nativeAudioTrack->id()) == 0) {
 +      return YES;
 +    }
 +  }
@@ -213,7 +215,7 @@
 +}
 +
 +- (BOOL)hasNativeVideoTrack:(RTCVideoTrack *)objcTrack {
-+  webrtc::VideoTrackVector video_tracks = _mediaStream->GetVideoTracks();
++  webrtc::VideoTrackVector video_tracks = _nativeMediaStream->GetVideoTracks();
 +
 +  for (size_t i = 0; i < video_tracks.size(); ++i) {
 +    rtc::scoped_refptr<webrtc::VideoTrackInterface> track = video_tracks[i];
@@ -230,7 +232,7 @@
 +  for (size_t i = 0; i < [_audioTracks count]; i++) {
 +    RTCAudioTrack* track = [_audioTracks objectAtIndex:i];
 +
-+    if (track.audioTrack->id().compare(nativeTrack->id()) == 0) {
++    if (track.nativeAudioTrack->id().compare(nativeTrack->id()) == 0) {
 +      return YES;
 +    }
 +  }
@@ -250,11 +252,13 @@
 +}
 +
  @end
---- a/talk/app/webrtc/objc/public/RTCMediaStream.h
-+++ b/talk/app/webrtc/objc/public/RTCMediaStream.h
-@@ -29,6 +29,21 @@
- 
+diff --git a/webrtc/sdk/objc/Framework/Headers/WebRTC/RTCMediaStream.h b/webrtc/sdk/objc/Framework/Headers/WebRTC/RTCMediaStream.h
+index b97960d..32d1566 100644
+--- a/webrtc/sdk/objc/Framework/Headers/WebRTC/RTCMediaStream.h
++++ b/webrtc/sdk/objc/Framework/Headers/WebRTC/RTCMediaStream.h
+@@ -17,6 +17,21 @@ NS_ASSUME_NONNULL_BEGIN
  @class RTCAudioTrack;
+ @class RTCPeerConnectionFactory;
  @class RTCVideoTrack;
 +@class RTCMediaStream;
 +@class RTCMediaStreamTrack;
@@ -272,13 +276,13 @@
 +
 +@end
  
- // RTCMediaStream is an ObjectiveC wrapper for MediaStreamInterface.
+ RTC_EXPORT
  @interface RTCMediaStream : NSObject
-@@ -36,6 +51,7 @@
- @property(nonatomic, strong, readonly) NSArray *audioTracks;
- @property(nonatomic, strong, readonly) NSArray *videoTracks;
- @property(nonatomic, strong, readonly) NSString *label;
+@@ -29,6 +44,7 @@ RTC_EXPORT
+ 
+ /** An identifier for this media stream. */
+ @property(nonatomic, readonly) NSString *streamId;
 +@property(nonatomic, weak) id<RTCMediaStreamDelegate> delegate;
  
- - (BOOL)addAudioTrack:(RTCAudioTrack *)track;
- - (BOOL)addVideoTrack:(RTCVideoTrack *)track;
+ - (instancetype)init NS_UNAVAILABLE;
+ 
