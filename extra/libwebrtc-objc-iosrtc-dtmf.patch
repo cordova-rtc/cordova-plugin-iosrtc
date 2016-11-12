@@ -1,24 +1,29 @@
---- a/talk/app/webrtc/legacy_objc_api.gyp
-+++ b/talk/app/webrtc/legacy_objc_api.gyp
-@@ -41,6 +41,8 @@
-             'objc/RTCAudioTrack.mm',
-             'objc/RTCDataChannel+Internal.h',
-             'objc/RTCDataChannel.mm',
-+            'objc/RTCDTMFSender+Internal.h',
-+            'objc/RTCDTMFSender.mm',
-             'objc/RTCEnumConverter.h',
-             'objc/RTCEnumConverter.mm',
-             'objc/RTCI420Frame+Internal.h',
-@@ -84,6 +86,7 @@
-             'objc/public/RTCAudioSource.h',
-             'objc/public/RTCAudioTrack.h',
-             'objc/public/RTCDataChannel.h',
-+            'objc/public/RTCDTMFSender.h',
-             'objc/public/RTCFileLogger.h',
-             'objc/public/RTCI420Frame.h',
-             'objc/public/RTCICECandidate.h',
+diff --git a/webrtc/sdk/BUILD.gn b/webrtc/sdk/BUILD.gn
+index 0779291..e7dca1d 100644
+--- a/webrtc/sdk/BUILD.gn
++++ b/webrtc/sdk/BUILD.gn
+@@ -93,6 +93,8 @@ if (is_ios || (is_mac && mac_deployment_target == "10.7")) {
+       "objc/Framework/Classes/RTCDataChannel.mm",
+       "objc/Framework/Classes/RTCDataChannelConfiguration+Private.h",
+       "objc/Framework/Classes/RTCDataChannelConfiguration.mm",
++      "objc/Framework/Classes/RTCDTMFSender+Private.h",
++      "objc/Framework/Classes/RTCDTMFSender.mm",
+       "objc/Framework/Classes/RTCI420Shader.mm",
+       "objc/Framework/Classes/RTCIceCandidate+Private.h",
+       "objc/Framework/Classes/RTCIceCandidate.mm",
+@@ -149,6 +151,7 @@ if (is_ios || (is_mac && mac_deployment_target == "10.7")) {
+       "objc/Framework/Headers/WebRTC/RTCConfiguration.h",
+       "objc/Framework/Headers/WebRTC/RTCDataChannel.h",
+       "objc/Framework/Headers/WebRTC/RTCDataChannelConfiguration.h",
++      "objc/Framework/Headers/WebRTC/RTCDTMFSender.h",
+       "objc/Framework/Headers/WebRTC/RTCIceCandidate.h",
+       "objc/Framework/Headers/WebRTC/RTCIceServer.h",
+       "objc/Framework/Headers/WebRTC/RTCLegacyStatsReport.h",
+diff --git a/webrtc/sdk/objc/Framework/Classes/RTCDTMFSender+Private.h b/webrtc/sdk/objc/Framework/Classes/RTCDTMFSender+Private.h
+new file mode 100644
+index 0000000..ff31077
 --- /dev/null
-+++ b/talk/app/webrtc/objc/RTCDTMFSender+Internal.h
++++ b/webrtc/sdk/objc/Framework/Classes/RTCDTMFSender+Private.h
 @@ -0,0 +1,42 @@
 +/*
 + * libjingle
@@ -47,13 +52,13 @@
 + * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 + */
 +
-+#import "RTCDTMFSender.h"
++#import "WebRTC/RTCDTMFSender.h"
 +
 +#include "webrtc/api/dtmfsenderinterface.h"
 +#include "webrtc/base/scoped_ref_ptr.h"
 +
 +
-+@interface RTCDTMFSender (Internal)
++@interface RTCDTMFSender (Private)
 +
 +@property(nonatomic, readonly)
 +    rtc::scoped_refptr<webrtc::DtmfSenderInterface> dtmfSender;
@@ -62,9 +67,12 @@
 +        (rtc::scoped_refptr<webrtc::DtmfSenderInterface>)dtmfSender;
 +
 +@end
+diff --git a/webrtc/sdk/objc/Framework/Classes/RTCDTMFSender.mm b/webrtc/sdk/objc/Framework/Classes/RTCDTMFSender.mm
+new file mode 100644
+index 0000000..2cce3bc
 --- /dev/null
-+++ b/talk/app/webrtc/objc/RTCDTMFSender.mm
-@@ -0,0 +1,150 @@
++++ b/webrtc/sdk/objc/Framework/Classes/RTCDTMFSender.mm
+@@ -0,0 +1,152 @@
 +/*
 + * libjingle
 + * Copyright 2014 Google Inc.
@@ -96,9 +104,9 @@
 +#error "This file requires ARC support."
 +#endif
 +
-+#include "RTCDTMFSender.h"
-+#include "RTCAudioTrack+Internal.h"
-+#include "RTCMediaStreamTrack+Internal.h"
++#include "WebRTC/RTCDTMFSender.h"
++#include "RTCAudioTrack+Private.h"
++#include "RTCMediaStreamTrack+Private.h"
 +
 +#include <memory>
 +
@@ -146,6 +154,8 @@
 +  BOOL _isObserverRegistered;
 +}
 +
++@synthesize delegate = _delegate;
++
 +- (void)dealloc {
 +  // Handles unregistering the observer properly.
 +  self.delegate = nil;
@@ -171,7 +181,7 @@
 +  rtc::scoped_refptr<webrtc::AudioTrackInterface> audioTrack(
 +    const_cast<webrtc::AudioTrackInterface*>(_dtmfSender->track()));
 +  if (audioTrack) {
-+    return [[RTCAudioTrack alloc] initWithMediaTrack:audioTrack];
++    return [[RTCAudioTrack alloc] initWithNativeTrack:audioTrack];
 +  }
 +  return nil;
 +}
@@ -197,7 +207,7 @@
 +
 +@end
 +
-+@implementation RTCDTMFSender (Internal)
++@implementation RTCDTMFSender (Private)
 +
 +- (instancetype)initWithDtmfSender:
 +                    (rtc::scoped_refptr<webrtc::DtmfSenderInterface>)
@@ -215,35 +225,38 @@
 +}
 +
 +@end
---- a/talk/app/webrtc/objc/RTCPeerConnection.mm
-+++ b/talk/app/webrtc/objc/RTCPeerConnection.mm
-@@ -31,7 +31,9 @@
+diff --git a/webrtc/sdk/objc/Framework/Classes/RTCPeerConnection.mm b/webrtc/sdk/objc/Framework/Classes/RTCPeerConnection.mm
+index b4a8738..e19cc51 100644
+--- a/webrtc/sdk/objc/Framework/Classes/RTCPeerConnection.mm
++++ b/webrtc/sdk/objc/Framework/Classes/RTCPeerConnection.mm
+@@ -12,7 +12,9 @@
  
- #import "RTCPeerConnection+Internal.h"
- 
-+#import "RTCAudioTrack+Internal.h"
- #import "RTCDataChannel+Internal.h"
-+#import "RTCDTMFSender+Internal.h"
- #import "RTCEnumConverter.h"
- #import "RTCICECandidate+Internal.h"
- #import "RTCICEServer+Internal.h"
-@@ -171,6 +173,13 @@ - (RTCDataChannel*)createDataChannelWithLabel:(NSString*)label
-   return [[RTCDataChannel alloc] initWithDataChannel:dataChannel];
+ #import "NSString+StdString.h"
+ #import "RTCConfiguration+Private.h"
++#import "RTCAudioTrack+Private.h"
+ #import "RTCDataChannel+Private.h"
++#import "RTCDTMFSender+Private.h"
+ #import "RTCIceCandidate+Private.h"
+ #import "RTCLegacyStatsReport+Private.h"
+ #import "RTCMediaConstraints+Private.h"
+@@ -589,4 +591,11 @@ + (NSString *)stringForIceGatheringState:(RTCIceGatheringState)state {
+   return _peerConnection;
  }
  
 +- (RTCDTMFSender*)createDTMFSenderForTrack:(RTCAudioTrack*)track {
 +  rtc::scoped_refptr<webrtc::DtmfSenderInterface> dtmfSender =
-+      self.peerConnection->CreateDtmfSender(track.audioTrack);
++      self.nativePeerConnection->CreateDtmfSender(track.nativeAudioTrack);
 +  return dtmfSender ? [[RTCDTMFSender alloc] initWithDtmfSender:dtmfSender]
 +                    : nil;
 +}
 +
- - (void)createAnswerWithDelegate:(id<RTCSessionDescriptionDelegate>)delegate
-                      constraints:(RTCMediaConstraints*)constraints {
-   rtc::scoped_refptr<webrtc::RTCCreateSessionDescriptionObserver>
+ @end
+diff --git a/webrtc/sdk/objc/Framework/Headers/WebRTC/RTCDTMFSender.h b/webrtc/sdk/objc/Framework/Headers/WebRTC/RTCDTMFSender.h
+new file mode 100644
+index 0000000..8603c24
 --- /dev/null
-+++ b/talk/app/webrtc/objc/public/RTCDTMFSender.h
-@@ -0,0 +1,66 @@
++++ b/webrtc/sdk/objc/Framework/Headers/WebRTC/RTCDTMFSender.h
+@@ -0,0 +1,67 @@
 +/*
 + * libjingle
 + * Copyright 2014 Google Inc.
@@ -297,7 +310,7 @@
 +@property(nonatomic, weak) id<RTCDTMFSenderDelegate> delegate;
 +// The track associated with this DTMF sender. This property
 +// returns a copy of the RTCMediaStreamTrack
-+@property(nonatomic, copy, nullable) RTCAudioTrack *track;
++@property(nonatomic, copy, readonly, nullable) RTCAudioTrack *track;
 +
 +- (BOOL)insertDTMF:(NSString*)tones withDuration:(NSInteger)duration andInterToneGap:(NSInteger)interToneGap;
 +
@@ -310,27 +323,30 @@
 +@end
 +
 +NS_ASSUME_NONNULL_END
---- a/talk/app/webrtc/objc/public/RTCPeerConnection.h
-+++ b/talk/app/webrtc/objc/public/RTCPeerConnection.h
-@@ -27,9 +27,11 @@
++
+diff --git a/webrtc/sdk/objc/Framework/Headers/WebRTC/RTCPeerConnection.h b/webrtc/sdk/objc/Framework/Headers/WebRTC/RTCPeerConnection.h
+index 4438eb2..c18cd9e 100644
+--- a/webrtc/sdk/objc/Framework/Headers/WebRTC/RTCPeerConnection.h
++++ b/webrtc/sdk/objc/Framework/Headers/WebRTC/RTCPeerConnection.h
+@@ -12,9 +12,11 @@
  
- #import "RTCPeerConnectionDelegate.h"
+ #import <WebRTC/RTCMacros.h>
  
 +@class RTCAudioTrack;
  @class RTCConfiguration;
  @class RTCDataChannel;
- @class RTCDataChannelInit;
+ @class RTCDataChannelConfiguration;
 +@class RTCDTMFSender;
- @class RTCICECandidate;
- @class RTCICEServers;
+ @class RTCIceCandidate;
  @class RTCMediaConstraints;
-@@ -76,6 +78,9 @@
- - (RTCDataChannel*)createDataChannelWithLabel:(NSString*)label
-                                        config:(RTCDataChannelInit*)config;
+ @class RTCMediaStream;
+@@ -161,6 +163,9 @@ RTC_EXPORT
+ /** Remove the given media stream from this peer connection. */
+ - (void)removeStream:(RTCMediaStream *)stream;
  
-+// Create a DTMF sender.
++/** Create a DTMF sender. */
 +- (RTCDTMFSender*)createDTMFSenderForTrack:(RTCAudioTrack*)audioTrack;
 +
- // Create a new offer.
- // Success or failure will be reported via RTCSessionDescriptionDelegate.
- - (void)createOfferWithDelegate:(id<RTCSessionDescriptionDelegate>)delegate
+ /** Generate an SDP offer. */
+ - (void)offerForConstraints:(RTCMediaConstraints *)constraints
+           completionHandler:(nullable void (^)
