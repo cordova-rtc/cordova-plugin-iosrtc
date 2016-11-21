@@ -96,7 +96,6 @@ All the methods are implemented in both fashions: the deprecated callbacks based
 *TODO:*
 
 * `updateIce()` method.
-* `getStats()` method.
 * Can not use `id` value greater than 1023 in the config object for `createDataChannel()` (see [issue #4618](https://code.google.com/p/webrtc/issues/detail?id=4618)).
 
 

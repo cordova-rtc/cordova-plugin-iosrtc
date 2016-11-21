@@ -341,6 +341,44 @@ class iosrtcPlugin : CDVPlugin {
 		}
 	}
 
+	func RTCPeerConnection_getStats(command: CDVInvokedUrlCommand) {
+		NSLog("iosrtcPlugin#RTCPeerConnection_getStats()")
+
+		let pcId = command.argumentAtIndex(0) as! Int
+		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
+
+		if pluginRTCPeerConnection == nil {
+			NSLog("iosrtcPlugin#RTCPeerConnection_getStats() | ERROR: pluginRTCPeerConnection with pcId=\(pcId) does not exist")
+			return;
+		}
+
+		var pluginMediaStreamTrack: PluginMediaStreamTrack?
+
+		if command.argumentAtIndex(1) != nil {
+			let trackId = command.argumentAtIndex(1) as! String
+			pluginMediaStreamTrack = self.pluginMediaStreamTracks[trackId]
+
+			if pluginMediaStreamTrack == nil {
+				NSLog("iosrtcPlugin#RTCPeerConnection_getStats() | ERROR: pluginMediaStreamTrack with id=\(trackId) does not exist")
+				return;
+			}
+		}
+
+		dispatch_async(self.queue) { [weak pluginRTCPeerConnection, weak pluginMediaStreamTrack] in
+			pluginRTCPeerConnection?.getStats(pluginMediaStreamTrack,
+				callback: { (array: NSArray) -> Void in
+					self.emit(command.callbackId,
+						result: CDVPluginResult(status: CDVCommandStatus_OK, messageAsArray: array as [AnyObject])
+						)
+				},
+				errback: { (error: NSError) -> Void in
+					self.emit(command.callbackId,
+						result: CDVPluginResult(status: CDVCommandStatus_ERROR, messageAsString: error.localizedDescription)
+						)
+				}
+			)
+		}
+	}
 
 	func RTCPeerConnection_close(command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_close()")
