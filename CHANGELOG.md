@@ -1,3 +1,8 @@
+#### Version 3.2.1
+
+* Fix emitting "connected" stream event for local streams when using getUserMedia with promises.
+
+
 #### Version 3.2.0
 
 * Add support for RTCPeerConnection.getStats ([PR #163](https://github.com/eface2face/cordova-plugin-iosrtc/pull/163) by @oNaiPs)
