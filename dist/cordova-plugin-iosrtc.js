@@ -1,5 +1,5 @@
 /*
- * cordova-plugin-iosrtc v3.1.0
+ * cordova-plugin-iosrtc v3.2.1
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015-2016 Iñaki Baz Castillo at eFace2Face, inc. (https://eface2face.com)
  * License MIT
@@ -2388,7 +2388,10 @@ function getUserMedia(constraints) {
 		return new Promise(function (resolve, reject) {
 			function onResultOK(data) {
 				debug('getUserMedia() | success');
-				resolve(MediaStream.create(data.stream));
+				var stream = MediaStream.create(data.stream);
+				resolve(stream);
+				// Emit "connected" on the stream.
+				stream.emitConnected();
 			}
 
 			function onResultError(error) {
