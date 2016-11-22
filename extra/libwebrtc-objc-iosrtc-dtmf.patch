@@ -1,5 +1,5 @@
 diff --git a/webrtc/sdk/BUILD.gn b/webrtc/sdk/BUILD.gn
-index 0779291..e7dca1d 100644
+index 0779291..511a928 100644
 --- a/webrtc/sdk/BUILD.gn
 +++ b/webrtc/sdk/BUILD.gn
 @@ -93,6 +93,8 @@ if (is_ios || (is_mac && mac_deployment_target == "10.7")) {
@@ -19,6 +19,16 @@ index 0779291..e7dca1d 100644
        "objc/Framework/Headers/WebRTC/RTCIceCandidate.h",
        "objc/Framework/Headers/WebRTC/RTCIceServer.h",
        "objc/Framework/Headers/WebRTC/RTCLegacyStatsReport.h",
+@@ -311,6 +314,9 @@ if (is_ios || (is_mac && mac_deployment_target == "10.7")) {
+       sources = common_objc_headers
+       public_headers = common_objc_headers
+ 
++      # add iosrtc DTMFSender.h to framework bundle.
++      public_headers += [ "objc/Framework/Headers/WebRTC/RTCDTMFSender.h" ]
++
+       if (!build_with_chromium) {
+         sources += [ "objc/Framework/Headers/WebRTC/RTCFileLogger.h" ]
+         public_headers += [ "objc/Framework/Headers/WebRTC/RTCFileLogger.h" ]
 diff --git a/webrtc/sdk/objc/Framework/Classes/RTCDTMFSender+Private.h b/webrtc/sdk/objc/Framework/Classes/RTCDTMFSender+Private.h
 new file mode 100644
 index 0000000..ff31077
@@ -350,3 +360,15 @@ index 4438eb2..c18cd9e 100644
  /** Generate an SDP offer. */
  - (void)offerForConstraints:(RTCMediaConstraints *)constraints
            completionHandler:(nullable void (^)
+diff --git a/webrtc/sdk/objc/Framework/Headers/WebRTC/WebRTC.h b/webrtc/sdk/objc/Framework/Headers/WebRTC/WebRTC.h
+index 8082d02..69bc343 100644
+--- a/webrtc/sdk/objc/Framework/Headers/WebRTC/WebRTC.h
++++ b/webrtc/sdk/objc/Framework/Headers/WebRTC/WebRTC.h
+@@ -16,6 +16,7 @@
+ #import <WebRTC/RTCDataChannel.h>
+ #import <WebRTC/RTCDataChannelConfiguration.h>
+ #import <WebRTC/RTCDispatcher.h>
++#import <WebRTC/RTCDTMFSender.h>
+ #import <WebRTC/RTCEAGLVideoView.h>
+ #import <WebRTC/RTCFieldTrials.h>
+ #import <WebRTC/RTCFileLogger.h>
