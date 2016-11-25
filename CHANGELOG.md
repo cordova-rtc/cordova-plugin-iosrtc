@@ -1,3 +1,23 @@
+#### Version 3.2.1
+
+* Fix emitting "connected" stream event for local streams when using getUserMedia with promises.
+
+
+#### Version 3.2.0
+
+* Add support for RTCPeerConnection.getStats ([PR #163](https://github.com/eface2face/cordova-plugin-iosrtc/pull/163) by @oNaiPs)
+
+* Set default deployment target to 9.0
+
+* Document iOS 10 specific stuff
+
+* Fix crash if RTCPeerConnection.close() is called twice
+
+* Data channel improvements
+
+* Updated documentation
+
+
 #### Version 3.1.0
 
 * Implement `RTCPeerConnection.createDTMFSender()` ([PR #189](https://github.com/eface2face/cordova-plugin-iosrtc/pull/189) by @saghul).
