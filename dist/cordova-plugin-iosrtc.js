@@ -1964,7 +1964,7 @@ RTCPeerConnection.prototype.getStats = function () {
 				reject(new global.DOMError(error));
 			}
 
-			exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_getStats', [this.pcId, selector ? selector.id : null]);
+			exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_getStats', [self.pcId, selector ? selector.id : null]);
 		});
 	}
 
