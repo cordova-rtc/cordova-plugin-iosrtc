@@ -1,5 +1,5 @@
 /*
- * cordova-plugin-iosrtc v3.2.1
+ * cordova-plugin-iosrtc v3.2.2
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015-2016 Iñaki Baz Castillo at eFace2Face, inc. (https://eface2face.com)
  * License MIT
@@ -461,7 +461,7 @@ function onEvent(data) {
 	}
 }
 
-},{"./MediaStreamTrack":5,"cordova/exec":undefined,"debug":18,"yaeti":23}],4:[function(require,module,exports){
+},{"./MediaStreamTrack":5,"cordova/exec":undefined,"debug":18,"yaeti":24}],4:[function(require,module,exports){
 /**
  * Expose the MediaStreamRenderer class.
  */
@@ -813,7 +813,7 @@ function getElementPositionAndSize() {
 	};
 }
 
-},{"./MediaStream":3,"cordova/exec":undefined,"debug":18,"random-number":22,"yaeti":23}],5:[function(require,module,exports){
+},{"./MediaStream":3,"cordova/exec":undefined,"debug":18,"random-number":23,"yaeti":24}],5:[function(require,module,exports){
 /**
  * Expose the MediaStreamTrack class.
  */
@@ -933,7 +933,7 @@ function onEvent(data) {
 	}
 }
 
-},{"./enumerateDevices":13,"cordova/exec":undefined,"debug":18,"yaeti":23}],6:[function(require,module,exports){
+},{"./enumerateDevices":13,"cordova/exec":undefined,"debug":18,"yaeti":24}],6:[function(require,module,exports){
 /**
  * Expose the RTCDTMFSender class.
  */
@@ -1065,7 +1065,7 @@ function onEvent(data) {
 	}
 }
 
-},{"cordova/exec":undefined,"debug":18,"random-number":22,"yaeti":23}],7:[function(require,module,exports){
+},{"cordova/exec":undefined,"debug":18,"random-number":23,"yaeti":24}],7:[function(require,module,exports){
 /**
  * Expose the RTCDataChannel class.
  */
@@ -1296,7 +1296,7 @@ function onEvent(data) {
 	}
 }
 
-},{"cordova/exec":undefined,"debug":18,"random-number":22,"yaeti":23}],8:[function(require,module,exports){
+},{"cordova/exec":undefined,"debug":18,"random-number":23,"yaeti":24}],8:[function(require,module,exports){
 /**
  * Expose the RTCIceCandidate class.
  */
@@ -2127,7 +2127,7 @@ function onEvent(data) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./Errors":1,"./MediaStream":3,"./MediaStreamTrack":5,"./RTCDTMFSender":6,"./RTCDataChannel":7,"./RTCIceCandidate":8,"./RTCSessionDescription":10,"./RTCStatsReport":11,"./RTCStatsResponse":12,"cordova/exec":undefined,"debug":18,"random-number":22,"yaeti":23}],10:[function(require,module,exports){
+},{"./Errors":1,"./MediaStream":3,"./MediaStreamTrack":5,"./RTCDTMFSender":6,"./RTCDataChannel":7,"./RTCIceCandidate":8,"./RTCSessionDescription":10,"./RTCStatsReport":11,"./RTCStatsResponse":12,"cordova/exec":undefined,"debug":18,"random-number":23,"yaeti":24}],10:[function(require,module,exports){
 /**
  * Expose the RTCSessionDescription class.
  */
@@ -2933,7 +2933,7 @@ function releaseMediaStreamRenderer(video) {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./MediaStreamRenderer":4,"debug":18}],18:[function(require,module,exports){
-
+(function (process){
 /**
  * This is the web browser implementation of `debug()`.
  *
@@ -2973,13 +2973,23 @@ exports.colors = [
  */
 
 function useColors() {
+  // NB: In an Electron preload script, document will be defined but not fully
+  // initialized. Since we know we're in Chrome, we'll just detect this case
+  // explicitly
+  if (typeof window !== 'undefined' && 'process' in window && window.process.type === 'renderer') {
+    return true;
+  }
+
   // is webkit? http://stackoverflow.com/a/16459606/376773
-  return ('WebkitAppearance' in document.documentElement.style) ||
+  // document is undefined in react-native: https://github.com/facebook/react-native/pull/1632
+  return (typeof document !== 'undefined' && 'WebkitAppearance' in document.documentElement.style) ||
     // is firebug? http://stackoverflow.com/a/398120/376773
-    (window.console && (console.firebug || (console.exception && console.table))) ||
+    (typeof window !== 'undefined' && window.console && (console.firebug || (console.exception && console.table))) ||
     // is firefox >= v31?
     // https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
-    (navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31);
+    (navigator.userAgent && navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31) ||
+    // double check webkit in userAgent just in case we are in a worker
+    (navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/));
 }
 
 /**
@@ -2987,7 +2997,11 @@ function useColors() {
  */
 
 exports.formatters.j = function(v) {
-  return JSON.stringify(v);
+  try {
+    return JSON.stringify(v);
+  } catch (err) {
+    return '[UnexpectedJSONParseError]: ' + err.message;
+  }
 };
 
 
@@ -2997,8 +3011,7 @@ exports.formatters.j = function(v) {
  * @api public
  */
 
-function formatArgs() {
-  var args = arguments;
+function formatArgs(args) {
   var useColors = this.useColors;
 
   args[0] = (useColors ? '%c' : '')
@@ -3008,10 +3021,10 @@ function formatArgs() {
     + (useColors ? '%c ' : ' ')
     + '+' + exports.humanize(this.diff);
 
-  if (!useColors) return args;
+  if (!useColors) return;
 
   var c = 'color: ' + this.color;
-  args = [args[0], c, 'color: inherit'].concat(Array.prototype.slice.call(args, 1));
+  args.splice(1, 0, c, 'color: inherit')
 
   // the final "%c" is somewhat tricky, because there could be other
   // arguments passed either before or after the %c, so we need to
@@ -3029,7 +3042,6 @@ function formatArgs() {
   });
 
   args.splice(lastC, 0, c);
-  return args;
 }
 
 /**
@@ -3074,9 +3086,13 @@ function save(namespaces) {
 function load() {
   var r;
   try {
-    r = exports.storage.debug;
+    return exports.storage.debug;
   } catch(e) {}
-  return r;
+
+  // If debug isn't set in LS, and we're in Electron, try to load $DEBUG
+  if (typeof process !== 'undefined' && 'env' in process) {
+    return process.env.DEBUG;
+  }
 }
 
 /**
@@ -3096,13 +3112,14 @@ exports.enable(load());
  * @api private
  */
 
-function localstorage(){
+function localstorage() {
   try {
     return window.localStorage;
   } catch (e) {}
 }
 
-},{"./debug":19}],19:[function(require,module,exports){
+}).call(this,require('_process'))
+},{"./debug":19,"_process":22}],19:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -3111,7 +3128,7 @@ function localstorage(){
  * Expose `debug()` as the module.
  */
 
-exports = module.exports = debug;
+exports = module.exports = createDebug.debug = createDebug.default = createDebug;
 exports.coerce = coerce;
 exports.disable = disable;
 exports.enable = enable;
@@ -3128,16 +3145,10 @@ exports.skips = [];
 /**
  * Map of special "%n" handling functions, for the debug "format" argument.
  *
- * Valid key names are a single, lowercased letter, i.e. "n".
+ * Valid key names are a single, lower or upper-case letter, i.e. "n" and "N".
  */
 
 exports.formatters = {};
-
-/**
- * Previously assigned color.
- */
-
-var prevColor = 0;
 
 /**
  * Previous log timestamp.
@@ -3147,13 +3158,20 @@ var prevTime;
 
 /**
  * Select a color.
- *
+ * @param {String} namespace
  * @return {Number}
  * @api private
  */
 
-function selectColor() {
-  return exports.colors[prevColor++ % exports.colors.length];
+function selectColor(namespace) {
+  var hash = 0, i;
+
+  for (i in namespace) {
+    hash  = ((hash << 5) - hash) + namespace.charCodeAt(i);
+    hash |= 0; // Convert to 32bit integer
+  }
+
+  return exports.colors[Math.abs(hash) % exports.colors.length];
 }
 
 /**
@@ -3164,17 +3182,13 @@ function selectColor() {
  * @api public
  */
 
-function debug(namespace) {
+function createDebug(namespace) {
 
-  // define the `disabled` version
-  function disabled() {
-  }
-  disabled.enabled = false;
+  function debug() {
+    // disabled?
+    if (!debug.enabled) return;
 
-  // define the `enabled` version
-  function enabled() {
-
-    var self = enabled;
+    var self = debug;
 
     // set `diff` timestamp
     var curr = +new Date();
@@ -3184,22 +3198,22 @@ function debug(namespace) {
     self.curr = curr;
     prevTime = curr;
 
-    // add the `color` if not set
-    if (null == self.useColors) self.useColors = exports.useColors();
-    if (null == self.color && self.useColors) self.color = selectColor();
-
-    var args = Array.prototype.slice.call(arguments);
+    // turn the `arguments` into a proper Array
+    var args = new Array(arguments.length);
+    for (var i = 0; i < args.length; i++) {
+      args[i] = arguments[i];
+    }
 
     args[0] = exports.coerce(args[0]);
 
     if ('string' !== typeof args[0]) {
-      // anything else let's inspect with %o
-      args = ['%o'].concat(args);
+      // anything else let's inspect with %O
+      args.unshift('%O');
     }
 
     // apply any `formatters` transformations
     var index = 0;
-    args[0] = args[0].replace(/%([a-z%])/g, function(match, format) {
+    args[0] = args[0].replace(/%([a-zA-Z%])/g, function(match, format) {
       // if we encounter an escaped % then don't increase the array index
       if (match === '%%') return match;
       index++;
@@ -3215,19 +3229,24 @@ function debug(namespace) {
       return match;
     });
 
-    if ('function' === typeof exports.formatArgs) {
-      args = exports.formatArgs.apply(self, args);
-    }
+    // apply env-specific formatting (colors, etc.)
+    exports.formatArgs.call(self, args);
+
     var logFn = enabled.log || exports.log || console.log.bind(console);
     logFn.apply(self, args);
   }
-  enabled.enabled = true;
 
-  var fn = exports.enabled(namespace) ? enabled : disabled;
+  debug.namespace = namespace;
+  debug.enabled = exports.enabled(namespace);
+  debug.useColors = exports.useColors();
+  debug.color = selectColor(namespace);
 
-  fn.namespace = namespace;
+  // env-specific initialization logic for debug instances
+  if ('function' === typeof exports.init) {
+    exports.init(debug);
+  }
 
-  return fn;
+  return debug;
 }
 
 /**
@@ -3338,11 +3357,11 @@ function coerce(val) {
  * Helpers.
  */
 
-var s = 1000;
-var m = s * 60;
-var h = m * 60;
-var d = h * 24;
-var y = d * 365.25;
+var s = 1000
+var m = s * 60
+var h = m * 60
+var d = h * 24
+var y = d * 365.25
 
 /**
  * Parse or format the given `val`.
@@ -3353,17 +3372,23 @@ var y = d * 365.25;
  *
  * @param {String|Number} val
  * @param {Object} options
+ * @throws {Error} throw an error if val is not a non-empty string or a number
  * @return {String|Number}
  * @api public
  */
 
-module.exports = function(val, options){
-  options = options || {};
-  if ('string' == typeof val) return parse(val);
-  return options.long
-    ? long(val)
-    : short(val);
-};
+module.exports = function (val, options) {
+  options = options || {}
+  var type = typeof val
+  if (type === 'string' && val.length > 0) {
+    return parse(val)
+  } else if (type === 'number' && isNaN(val) === false) {
+    return options.long ?
+			fmtLong(val) :
+			fmtShort(val)
+  }
+  throw new Error('val is not a non-empty string or a valid number. val=' + JSON.stringify(val))
+}
 
 /**
  * Parse the given `str` and return milliseconds.
@@ -3374,47 +3399,53 @@ module.exports = function(val, options){
  */
 
 function parse(str) {
-  str = '' + str;
-  if (str.length > 10000) return;
-  var match = /^((?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|years?|yrs?|y)?$/i.exec(str);
-  if (!match) return;
-  var n = parseFloat(match[1]);
-  var type = (match[2] || 'ms').toLowerCase();
+  str = String(str)
+  if (str.length > 10000) {
+    return
+  }
+  var match = /^((?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|years?|yrs?|y)?$/i.exec(str)
+  if (!match) {
+    return
+  }
+  var n = parseFloat(match[1])
+  var type = (match[2] || 'ms').toLowerCase()
   switch (type) {
     case 'years':
     case 'year':
     case 'yrs':
     case 'yr':
     case 'y':
-      return n * y;
+      return n * y
     case 'days':
     case 'day':
     case 'd':
-      return n * d;
+      return n * d
     case 'hours':
     case 'hour':
     case 'hrs':
     case 'hr':
     case 'h':
-      return n * h;
+      return n * h
     case 'minutes':
     case 'minute':
     case 'mins':
     case 'min':
     case 'm':
-      return n * m;
+      return n * m
     case 'seconds':
     case 'second':
     case 'secs':
     case 'sec':
     case 's':
-      return n * s;
+      return n * s
     case 'milliseconds':
     case 'millisecond':
     case 'msecs':
     case 'msec':
     case 'ms':
-      return n;
+      return n
+    default:
+      return undefined
   }
 }
 
@@ -3426,12 +3457,20 @@ function parse(str) {
  * @api private
  */
 
-function short(ms) {
-  if (ms >= d) return Math.round(ms / d) + 'd';
-  if (ms >= h) return Math.round(ms / h) + 'h';
-  if (ms >= m) return Math.round(ms / m) + 'm';
-  if (ms >= s) return Math.round(ms / s) + 's';
-  return ms + 'ms';
+function fmtShort(ms) {
+  if (ms >= d) {
+    return Math.round(ms / d) + 'd'
+  }
+  if (ms >= h) {
+    return Math.round(ms / h) + 'h'
+  }
+  if (ms >= m) {
+    return Math.round(ms / m) + 'm'
+  }
+  if (ms >= s) {
+    return Math.round(ms / s) + 's'
+  }
+  return ms + 'ms'
 }
 
 /**
@@ -3442,12 +3481,12 @@ function short(ms) {
  * @api private
  */
 
-function long(ms) {
-  return plural(ms, d, 'day')
-    || plural(ms, h, 'hour')
-    || plural(ms, m, 'minute')
-    || plural(ms, s, 'second')
-    || ms + ' ms';
+function fmtLong(ms) {
+  return plural(ms, d, 'day') ||
+    plural(ms, h, 'hour') ||
+    plural(ms, m, 'minute') ||
+    plural(ms, s, 'second') ||
+    ms + ' ms'
 }
 
 /**
@@ -3455,12 +3494,198 @@ function long(ms) {
  */
 
 function plural(ms, n, name) {
-  if (ms < n) return;
-  if (ms < n * 1.5) return Math.floor(ms / n) + ' ' + name;
-  return Math.ceil(ms / n) + ' ' + name + 's';
+  if (ms < n) {
+    return
+  }
+  if (ms < n * 1.5) {
+    return Math.floor(ms / n) + ' ' + name
+  }
+  return Math.ceil(ms / n) + ' ' + name + 's'
 }
 
 },{}],22:[function(require,module,exports){
+// shim for using process in browser
+var process = module.exports = {};
+
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
+(function () {
+    try {
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+        } else {
+            cachedSetTimeout = defaultSetTimout;
+        }
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
+    }
+    try {
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
+        }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
+    }
+} ())
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+
+
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+
+
+
+}
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = runTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    runClearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        runTimeout(drainQueue);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+},{}],23:[function(require,module,exports){
 void function(root){
 
   function defaults(options){
@@ -3506,13 +3731,13 @@ void function(root){
   module.exports.defaults = defaults
 }(this)
 
-},{}],23:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 module.exports = {
 	EventTarget : require('./lib/EventTarget'),
 	Event       : require('./lib/Event')
 };
 
-},{"./lib/Event":24,"./lib/EventTarget":25}],24:[function(require,module,exports){
+},{"./lib/Event":25,"./lib/EventTarget":26}],25:[function(require,module,exports){
 (function (global){
 /**
  * In browsers export the native Event interface.
@@ -3521,7 +3746,7 @@ module.exports = {
 module.exports = global.Event;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],25:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 /**
  * Expose the _EventTarget class.
  */
