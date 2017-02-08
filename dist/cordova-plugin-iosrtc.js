@@ -2591,6 +2591,7 @@ module.exports = {
 
 function attachMediaStream(element, stream) {
 	element.src = URL.createObjectURL(stream);
+	element.srcObject = stream;
 	return element;
 }
 
