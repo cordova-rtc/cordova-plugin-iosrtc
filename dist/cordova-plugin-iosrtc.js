@@ -1,7 +1,7 @@
 /*
  * cordova-plugin-iosrtc v3.2.2
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
- * Copyright 2015-2016 Iñaki Baz Castillo at eFace2Face, inc. (https://eface2face.com)
+ * Copyright 2015-2017 Iñaki Baz Castillo at eFace2Face, inc. (https://eface2face.com)
  * License MIT
  */
 
@@ -2590,7 +2590,7 @@ module.exports = {
 
 
 function attachMediaStream(element, stream) {
-	element.src = URL.createObjectURL(stream);
+	element.srcObject = stream;
 	return element;
 }
 
@@ -2643,7 +2643,7 @@ var debug = require('debug')('iosrtc:videoElementsHandler'),
 			video = mutation.target;
 
 			// .src removed.
-			if (!video.src) {
+			if (!video.src || !video.srcObject) {
 				// If this video element was previously handling a MediaStreamRenderer, release it.
 				releaseMediaStreamRenderer(video);
 				continue;
@@ -2769,7 +2769,7 @@ function observeVideo(video) {
 
 	// If the video already has a src property but is not yet handled by the plugin
 	// then handle it now.
-	if (video.src && !video._iosrtcMediaStreamRendererId) {
+	if ((video.src || video.srcObject) && !video._iosrtcMediaStreamRendererId) {
 		handleVideo(video);
 	}
 
@@ -2792,8 +2792,20 @@ function observeVideo(video) {
 		characterDataOldValue: false,
 		// Set to an array of attribute local names (without namespace) if not all attribute mutations
 		// need to be observed.
-		// TODO: Add srcObject, mozSrcObject
 		attributeFilter: ['src']
+	});
+
+	var srcObject = video.srcObject;
+	Object.defineProperty(video, "srcObject", {
+		get : function () {
+			return srcObject;
+		},
+		set : function (val) {
+			srcObject = val;
+			handleVideo(video);
+		},
+		enumerable : true,
+		configurable : true
 	});
 
 	// Intercept video 'error' events if it's due to the attached MediaStream.
@@ -2812,6 +2824,11 @@ function observeVideo(video) {
  */
 
 function handleVideo(video) {
+	if (video.srcObject) {
+		handleVideoBlob(video, video.srcObject);
+		return;
+	}
+
 	var xhr = new XMLHttpRequest();
 
 	xhr.open('GET', video.src, true);
@@ -2824,32 +2841,37 @@ function handleVideo(video) {
 			return;
 		}
 
-		var reader = new FileReader();
-
-		// Some versions of Safari fail to set onloadend property, some others do not react
-		// on 'loadend' event. Try everything here.
-		try {
-			reader.onloadend = onloadend;
-		} catch (error) {
-			reader.addEventListener('loadend', onloadend);
-		}
-		reader.readAsText(xhr.response);
-
-		function onloadend() {
-			var mediaStreamBlobId = reader.result;
-
-			// The retrieved URL does not point to a MediaStream.
-			if (!mediaStreamBlobId || typeof mediaStreamBlobId !== 'string' || !MEDIASTREAM_ID_REGEXP.test(mediaStreamBlobId)) {
-				// If this video element was previously handling a MediaStreamRenderer, release it.
-				releaseMediaStreamRenderer(video);
-
-				return;
-			}
-
-			provideMediaStreamRenderer(video, mediaStreamBlobId);
-		}
+		handleVideoBlob(video, xhr.response);
 	};
 	xhr.send();
+}
+
+
+function handleVideoBlob(video, blob) {
+	var reader = new FileReader();
+
+	// Some versions of Safari fail to set onloadend property, some others do not react
+	// on 'loadend' event. Try everything here.
+	try {
+		reader.onloadend = onloadend;
+	} catch (error) {
+		reader.addEventListener('loadend', onloadend);
+	}
+	reader.readAsText(blob);
+
+	function onloadend() {
+		var mediaStreamBlobId = reader.result;
+
+		// The retrieved URL does not point to a MediaStream.
+		if (!mediaStreamBlobId || typeof mediaStreamBlobId !== 'string' || !MEDIASTREAM_ID_REGEXP.test(mediaStreamBlobId)) {
+			// If this video element was previously handling a MediaStreamRenderer, release it.
+			releaseMediaStreamRenderer(video);
+
+			return;
+		}
+
+		provideMediaStreamRenderer(video, mediaStreamBlobId);
+	}
 }
 
 
@@ -2976,20 +2998,20 @@ function useColors() {
   // NB: In an Electron preload script, document will be defined but not fully
   // initialized. Since we know we're in Chrome, we'll just detect this case
   // explicitly
-  if (typeof window !== 'undefined' && 'process' in window && window.process.type === 'renderer') {
+  if (typeof window !== 'undefined' && window && typeof window.process !== 'undefined' && window.process.type === 'renderer') {
     return true;
   }
 
   // is webkit? http://stackoverflow.com/a/16459606/376773
   // document is undefined in react-native: https://github.com/facebook/react-native/pull/1632
-  return (typeof document !== 'undefined' && 'WebkitAppearance' in document.documentElement.style) ||
+  return (typeof document !== 'undefined' && document && 'WebkitAppearance' in document.documentElement.style) ||
     // is firebug? http://stackoverflow.com/a/398120/376773
-    (typeof window !== 'undefined' && window.console && (console.firebug || (console.exception && console.table))) ||
+    (typeof window !== 'undefined' && window && window.console && (console.firebug || (console.exception && console.table))) ||
     // is firefox >= v31?
     // https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
-    (navigator.userAgent && navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31) ||
+    (typeof navigator !== 'undefined' && navigator && navigator.userAgent && navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31) ||
     // double check webkit in userAgent just in case we are in a worker
-    (navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/));
+    (typeof navigator !== 'undefined' && navigator && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/));
 }
 
 /**
@@ -3031,7 +3053,7 @@ function formatArgs(args) {
   // figure out the correct index to insert the CSS into
   var index = 0;
   var lastC = 0;
-  args[0].replace(/%[a-z%]/g, function(match) {
+  args[0].replace(/%[a-zA-Z%]/g, function(match) {
     if ('%%' === match) return;
     index++;
     if ('%c' === match) {
@@ -3084,7 +3106,6 @@ function save(namespaces) {
  */
 
 function load() {
-  var r;
   try {
     return exports.storage.debug;
   } catch(e) {}
@@ -3128,7 +3149,7 @@ function localstorage() {
  * Expose `debug()` as the module.
  */
 
-exports = module.exports = createDebug.debug = createDebug.default = createDebug;
+exports = module.exports = createDebug.debug = createDebug['default'] = createDebug;
 exports.coerce = coerce;
 exports.disable = disable;
 exports.enable = enable;
@@ -3232,7 +3253,7 @@ function createDebug(namespace) {
     // apply env-specific formatting (colors, etc.)
     exports.formatArgs.call(self, args);
 
-    var logFn = enabled.log || exports.log || console.log.bind(console);
+    var logFn = debug.log || exports.log || console.log.bind(console);
     logFn.apply(self, args);
   }
 
@@ -3259,6 +3280,9 @@ function createDebug(namespace) {
 
 function enable(namespaces) {
   exports.save(namespaces);
+
+  exports.names = [];
+  exports.skips = [];
 
   var split = (namespaces || '').split(/[\s,]+/);
   var len = split.length;
