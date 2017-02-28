@@ -204,6 +204,10 @@ function observeVideo(video) {
 		},
 		set : function (val) {
 			srcObject = val;
+			if (!video.src || !video.srcObject) {
+				releaseMediaStreamRenderer(video);
+				return;
+			}
 			handleVideo(video);
 		},
 		enumerable : true,
