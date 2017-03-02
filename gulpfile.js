@@ -11,6 +11,7 @@ var gulp = require('gulp'),
 	header = require('gulp-header'),
 	path = require('path'),
 	fs = require('fs'),
+	derequire = require('gulp-derequire'),
 
 /**
  * Constants.
@@ -48,6 +49,7 @@ gulp.task('browserify', function () {
 		.pipe(vinyl_source_stream(PKG.name + '.js'))
 		.pipe(vinyl_buffer())
 		.pipe(header(banner, banner_options))
+		.pipe(derequire())
 		.pipe(gulp.dest('dist/'));
 });
 
