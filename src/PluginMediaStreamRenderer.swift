@@ -20,6 +20,8 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 
 		// The browser HTML view.
 		self.webView = webView
+		self.webView.opaque = false
+		self.webView.backgroundColor = UIColor.clearColor()
 		self.eventListener = eventListener
 		// The video element view.
 		self.elementView = UIView()
@@ -29,7 +31,7 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 
 		self.elementView.userInteractionEnabled = false
 		self.elementView.hidden = true
-		self.elementView.backgroundColor = UIColor.blackColor()
+		self.elementView.backgroundColor = UIColor.clearColor()
 		self.elementView.addSubview(self.videoView)
 		self.elementView.layer.masksToBounds = true
 
@@ -186,7 +188,19 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		}
 
 		self.elementView.alpha = CGFloat(opacity)
-		self.elementView.layer.zPosition = CGFloat(zIndex)
+		self.elementView.tag = Int(zIndex)
+
+		var prevSiblingView: UIView?
+		for childView in (self.webView.superview?.subviews)!{
+			if(childView.tag > Int(zIndex)) {
+		    prevSiblingView = childView;
+		    break;
+		  }
+		}
+
+		if let view = prevSiblingView {
+			self.webView.superview?.insertSubview(self.elementView, belowSubview: view)
+		}
 
                 // if the zIndex is 0 (the default) bring the view to the top, last one wins
                 if zIndex == 0 {
