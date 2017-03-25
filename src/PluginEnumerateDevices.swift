@@ -8,7 +8,7 @@ import AVFoundation
 
 
 class PluginEnumerateDevices {
-	class func call(callback: (data: NSDictionary) -> Void) {
+	class func call(_ callback: (_ data: NSDictionary) -> Void) {
 		NSLog("PluginEnumerateDevices#call()")
 
 		let devices = AVCaptureDevice.devices() as! Array<AVCaptureDevice>
@@ -23,19 +23,19 @@ class PluginEnumerateDevices {
 			let hasVideo = device.hasMediaType(AVMediaTypeVideo)
 
 			switch device.position {
-			case AVCaptureDevicePosition.Unspecified:
+			case AVCaptureDevicePosition.unspecified:
 				facing = "unknown"
-			case AVCaptureDevicePosition.Back:
+			case AVCaptureDevicePosition.back:
 				facing = "back"
-			case AVCaptureDevicePosition.Front:
+			case AVCaptureDevicePosition.front:
 				facing = "front"
 			}
 
 			NSLog("- device [uniqueID:'%@', localizedName:'%@', facing:%@, audio:%@, video:%@, connected:%@]",
 				String(device.uniqueID), String(device.localizedName), String(facing),
-				String(hasAudio), String(hasVideo), String(device.connected))
+				String(hasAudio), String(hasVideo), String(device.isConnected))
 
-			if device.connected == false || (hasAudio == false && hasVideo == false) {
+			if device.isConnected == false || (hasAudio == false && hasVideo == false) {
 				continue
 			}
 
@@ -47,6 +47,6 @@ class PluginEnumerateDevices {
 			]
 		}
 
-		callback(data: json)
+		callback(json)
 	}
 }

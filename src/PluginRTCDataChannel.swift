@@ -1,10 +1,34 @@
 import Foundation
+// FIXME: comparison operators with optionals were removed from the Swift Standard Libary.
+// Consider refactoring the code to use the non-optional operators.
+fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l < r
+  case (nil, _?):
+    return true
+  default:
+    return false
+  }
+}
+
+// FIXME: comparison operators with optionals were removed from the Swift Standard Libary.
+// Consider refactoring the code to use the non-optional operators.
+fileprivate func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l > r
+  default:
+    return rhs < lhs
+  }
+}
+
 
 
 class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 	var rtcDataChannel: RTCDataChannel?
-	var eventListener: ((data: NSDictionary) -> Void)?
-	var eventListenerForBinaryMessage: ((data: NSData) -> Void)?
+	var eventListener: ((_ data: NSDictionary) -> Void)?
+	var eventListenerForBinaryMessage: ((_ data: Data) -> Void)?
 	var lostStates = Array<String>()
 	var lostMessages = Array<RTCDataBuffer>()
 
@@ -16,8 +40,8 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 		rtcPeerConnection: RTCPeerConnection,
 		label: String,
 		options: NSDictionary?,
-		eventListener: (data: NSDictionary) -> Void,
-		eventListenerForBinaryMessage: (data: NSData) -> Void
+		eventListener: @escaping (_ data: NSDictionary) -> Void,
+		eventListenerForBinaryMessage: @escaping (_ data: Data) -> Void
 	) {
 		NSLog("PluginRTCDataChannel#init()")
 
@@ -26,17 +50,17 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 
 		let rtcDataChannelInit = RTCDataChannelInit()
 
-		if options?.objectForKey("ordered") != nil {
-			rtcDataChannelInit.isOrdered = options!.objectForKey("ordered") as! Bool
+		if options?.object(forKey: "ordered") != nil {
+			rtcDataChannelInit.isOrdered = options!.object(forKey: "ordered") as! Bool
 		}
 
-		if options?.objectForKey("maxPacketLifeTime") != nil {
+		if options?.object(forKey: "maxPacketLifeTime") != nil {
 			// TODO: rtcDataChannel.maxRetransmitTime always reports 0.
-			rtcDataChannelInit.maxRetransmitTimeMs = options!.objectForKey("maxPacketLifeTime") as! Int
+			rtcDataChannelInit.maxRetransmitTimeMs = options!.object(forKey: "maxPacketLifeTime") as! Int
 		}
 
-		if options?.objectForKey("maxRetransmits") != nil {
-			rtcDataChannelInit.maxRetransmits = options!.objectForKey("maxRetransmits") as! Int
+		if options?.object(forKey: "maxRetransmits") != nil {
+			rtcDataChannelInit.maxRetransmits = options!.object(forKey: "maxRetransmits") as! Int
 		}
 
 		// TODO: error: expected member name following '.'
@@ -44,19 +68,19 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 		// if options?.objectForKey("protocol") != nil {
 			// rtcDataChannelInit.protocol = options!.objectForKey("protocol") as! String
 		// }
-		if options?.objectForKey("protocol") != nil {
-			rtcDataChannelInit.`protocol` = options!.objectForKey("protocol") as! String
+		if options?.object(forKey: "protocol") != nil {
+			rtcDataChannelInit.`protocol` = options!.object(forKey: "protocol") as! String
 		}
 
-		if options?.objectForKey("negotiated") != nil {
-			rtcDataChannelInit.isNegotiated = options!.objectForKey("negotiated") as! Bool
+		if options?.object(forKey: "negotiated") != nil {
+			rtcDataChannelInit.isNegotiated = options!.object(forKey: "negotiated") as! Bool
 		}
 
-		if options?.objectForKey("id") != nil {
-			rtcDataChannelInit.streamId = options!.objectForKey("id") as! Int
+		if options?.object(forKey: "id") != nil {
+			rtcDataChannelInit.streamId = options!.object(forKey: "id") as! Int
 		}
 
-		self.rtcDataChannel = rtcPeerConnection.createDataChannelWithLabel(label,
+		self.rtcDataChannel = rtcPeerConnection.createDataChannel(withLabel: label,
 			config: rtcDataChannelInit
 		)
 
@@ -66,7 +90,7 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 		}
 
 		// Report definitive data to update the JS instance.
-		self.eventListener!(data: [
+		self.eventListener!([
 			"type": "new",
 			"channel": [
 				"ordered": self.rtcDataChannel!.isOrdered,
@@ -111,8 +135,8 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 
 
 	func setListener(
-		eventListener: (data: NSDictionary) -> Void,
-		eventListenerForBinaryMessage: (data: NSData) -> Void
+		_ eventListener: @escaping (_ data: NSDictionary) -> Void,
+		eventListenerForBinaryMessage: @escaping (_ data: Data) -> Void
 	) {
 		NSLog("PluginRTCDataChannel#setListener()")
 
@@ -120,7 +144,7 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 		self.eventListenerForBinaryMessage = eventListenerForBinaryMessage
 
 		for readyState in self.lostStates {
-			self.eventListener!(data: [
+			self.eventListener!([
 				"type": "statechange",
 				"readyState": readyState
 			])
@@ -135,13 +159,13 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 
 
 	func sendString(
-		data: String,
-		callback: (data: NSDictionary) -> Void
+		_ data: String,
+		callback: (_ data: NSDictionary) -> Void
 	) {
 		NSLog("PluginRTCDataChannel#sendString()")
 
 		let buffer = RTCDataBuffer(
-			data: (data.dataUsingEncoding(NSUTF8StringEncoding))!,
+			data: (data.data(using: String.Encoding.utf8))!,
 			isBinary: false
 		)
 
@@ -153,8 +177,8 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 
 
 	func sendBinary(
-		data: NSData,
-		callback: (data: NSDictionary) -> Void
+		_ data: Data,
+		callback: (_ data: NSDictionary) -> Void
 	) {
 		NSLog("PluginRTCDataChannel#sendBinary()")
 
@@ -182,24 +206,24 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 	 */
 
 
-	func channelDidChangeState(channel: RTCDataChannel!) {
+	func channelDidChangeState(_ channel: RTCDataChannel!) {
 		let state_str = PluginRTCTypes.dataChannelStates[self.rtcDataChannel!.state.rawValue] as String!
 
-		NSLog("PluginRTCDataChannel | state changed [state:%@]", String(state_str))
+		NSLog("PluginRTCDataChannel | state changed [state:%@]", String(describing: state_str))
 
 		if self.eventListener != nil {
-			self.eventListener!(data: [
+			self.eventListener!([
 				"type": "statechange",
 				"readyState": state_str
 			])
 		} else {
 			// It may happen that the eventListener is not yet set, so store the lost states.
-			self.lostStates.append(state_str)
+			self.lostStates.append(state_str!)
 		}
 	}
 
 
-	func channel(channel: RTCDataChannel!, didReceiveMessageWithBuffer buffer: RTCDataBuffer!) {
+	func channel(_ channel: RTCDataChannel!, didReceiveMessageWith buffer: RTCDataBuffer!) {
 		if !buffer.isBinary {
 			NSLog("PluginRTCDataChannel | utf8 message received")
 
@@ -221,29 +245,29 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 		}
 	}
 
-	func channel(channel: RTCDataChannel!, didChangeBufferedAmount amount: UInt) {
+	func channel(_ channel: RTCDataChannel!, didChangeBufferedAmount amount: UInt) {
 		NSLog("PluginRTCDataChannel | didChangeBufferedAmount %d", amount)
 
-		self.eventListener!(data: [
+		self.eventListener!([
 			"type": "bufferedamount",
 			"bufferedAmount": amount
 			])
 
 	}
 
-	func emitReceivedMessage(buffer: RTCDataBuffer) {
+	func emitReceivedMessage(_ buffer: RTCDataBuffer) {
 		if !buffer.isBinary {
 			let string = NSString(
 				data: buffer.data,
-				encoding: NSUTF8StringEncoding
+				encoding: String.Encoding.utf8.rawValue
 			)
 
-			self.eventListener!(data: [
+			self.eventListener!([
 				"type": "message",
 				"message": string as! String
 			])
 		} else {
-			self.eventListenerForBinaryMessage!(data: buffer.data)
+			self.eventListenerForBinaryMessage!(buffer.data)
 		}
 	}
 }

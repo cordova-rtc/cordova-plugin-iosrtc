@@ -2,29 +2,29 @@ import Foundation
 
 
 class PluginRTCPeerConnectionConfig {
-	private var iceServers: [RTCICEServer] = []
+	fileprivate var iceServers: [RTCICEServer] = []
 
 
 	init(pcConfig: NSDictionary?) {
 		NSLog("PluginRTCPeerConnectionConfig#init()")
 
-		let iceServers = pcConfig?.objectForKey("iceServers") as? [NSDictionary]
+		let iceServers = pcConfig?.object(forKey: "iceServers") as? [NSDictionary]
 
 		if iceServers == nil {
 			return
 		}
 
 		for iceServer: NSDictionary in iceServers! {
-			let url = iceServer.objectForKey("url") as? String
-			let username = iceServer.objectForKey("username") as? String ?? ""
-			let password = iceServer.objectForKey("credential") as? String ?? ""
+			let url = iceServer.object(forKey: "url") as? String
+			let username = iceServer.object(forKey: "username") as? String ?? ""
+			let password = iceServer.object(forKey: "credential") as? String ?? ""
 
 			if (url != nil) {
 				NSLog("PluginRTCPeerConnectionConfig#init() | adding ICE server [url:'%@', username:'%@', password:'******']",
 					String(url!), String(username))
 
 				self.iceServers.append(RTCICEServer(
-					URI: NSURL(string: url!),
+					uri: URL(string: url!),
 					username: username,
 					password: password
 				))

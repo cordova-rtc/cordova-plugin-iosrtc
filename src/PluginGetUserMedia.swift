@@ -19,22 +19,22 @@ class PluginGetUserMedia {
 
 
 	func call(
-		constraints: NSDictionary,
-		callback: (data: NSDictionary) -> Void,
-		errback: (error: String) -> Void,
-		eventListenerForNewStream: (pluginMediaStream: PluginMediaStream) -> Void
+		_ constraints: NSDictionary,
+		callback: (_ data: NSDictionary) -> Void,
+		errback: (_ error: String) -> Void,
+		eventListenerForNewStream: (_ pluginMediaStream: PluginMediaStream) -> Void
 	) {
 		NSLog("PluginGetUserMedia#call()")
 
-		let	audioRequested = constraints.objectForKey("audio") as? Bool ?? false
-		let	videoRequested = constraints.objectForKey("video") as? Bool ?? false
-		let	videoDeviceId = constraints.objectForKey("videoDeviceId") as? String
-		let	videoMinWidth = constraints.objectForKey("videoMinWidth") as? Int ?? 0
-		let	videoMaxWidth = constraints.objectForKey("videoMaxWidth") as? Int ?? 0
-		let	videoMinHeight = constraints.objectForKey("videoMinHeight") as? Int ?? 0
-		let	videoMaxHeight = constraints.objectForKey("videoMaxHeight") as? Int ?? 0
-		let	videoMinFrameRate = constraints.objectForKey("videoMinFrameRate") as? Float ?? 0.0
-		let	videoMaxFrameRate = constraints.objectForKey("videoMaxFrameRate") as? Float ?? 0.0
+		let	audioRequested = constraints.object(forKey: "audio") as? Bool ?? false
+		let	videoRequested = constraints.object(forKey: "video") as? Bool ?? false
+		let	videoDeviceId = constraints.object(forKey: "videoDeviceId") as? String
+		let	videoMinWidth = constraints.object(forKey: "videoMinWidth") as? Int ?? 0
+		let	videoMaxWidth = constraints.object(forKey: "videoMaxWidth") as? Int ?? 0
+		let	videoMinHeight = constraints.object(forKey: "videoMinHeight") as? Int ?? 0
+		let	videoMaxHeight = constraints.object(forKey: "videoMaxHeight") as? Int ?? 0
+		let	videoMinFrameRate = constraints.object(forKey: "videoMinFrameRate") as? Float ?? 0.0
+		let	videoMaxFrameRate = constraints.object(forKey: "videoMaxFrameRate") as? Float ?? 0.0
 
 		var rtcMediaStream: RTCMediaStream
 		var pluginMediaStream: PluginMediaStream?
@@ -47,48 +47,48 @@ class PluginGetUserMedia {
 		var constraints: RTCMediaConstraints
 
 		if videoRequested == true {
-			switch AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeVideo) {
-			case AVAuthorizationStatus.NotDetermined:
+			switch AVCaptureDevice.authorizationStatus(forMediaType: AVMediaTypeVideo) {
+			case AVAuthorizationStatus.notDetermined:
 				NSLog("PluginGetUserMedia#call() | video authorization: not determined")
-			case AVAuthorizationStatus.Authorized:
+			case AVAuthorizationStatus.authorized:
 				NSLog("PluginGetUserMedia#call() | video authorization: authorized")
-			case AVAuthorizationStatus.Denied:
+			case AVAuthorizationStatus.denied:
 				NSLog("PluginGetUserMedia#call() | video authorization: denied")
-				errback(error: "video denied")
+				errback("video denied")
 				return
-			case AVAuthorizationStatus.Restricted:
+			case AVAuthorizationStatus.restricted:
 				NSLog("PluginGetUserMedia#call() | video authorization: restricted")
-				errback(error: "video restricted")
+				errback("video restricted")
 				return
 			}
 		}
 
 		if audioRequested == true {
-			switch AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeAudio) {
-			case AVAuthorizationStatus.NotDetermined:
+			switch AVCaptureDevice.authorizationStatus(forMediaType: AVMediaTypeAudio) {
+			case AVAuthorizationStatus.notDetermined:
 				NSLog("PluginGetUserMedia#call() | audio authorization: not determined")
-			case AVAuthorizationStatus.Authorized:
+			case AVAuthorizationStatus.authorized:
 				NSLog("PluginGetUserMedia#call() | audio authorization: authorized")
-			case AVAuthorizationStatus.Denied:
+			case AVAuthorizationStatus.denied:
 				NSLog("PluginGetUserMedia#call() | audio authorization: denied")
-				errback(error: "audio denied")
+				errback("audio denied")
 				return
-			case AVAuthorizationStatus.Restricted:
+			case AVAuthorizationStatus.restricted:
 				NSLog("PluginGetUserMedia#call() | audio authorization: restricted")
-				errback(error: "audio restricted")
+				errback("audio restricted")
 				return
 			}
 		}
 
-		rtcMediaStream = self.rtcPeerConnectionFactory.mediaStreamWithLabel(NSUUID().UUIDString)
+		rtcMediaStream = self.rtcPeerConnectionFactory.mediaStream(withLabel: UUID().uuidString)
 
 		if videoRequested == true {
 			// No specific video device requested.
 			if videoDeviceId == nil {
 				NSLog("PluginGetUserMedia#call() | video requested (device not specified)")
 
-				for device: AVCaptureDevice in (AVCaptureDevice.devicesWithMediaType(AVMediaTypeVideo) as! Array<AVCaptureDevice>) {
-					if device.position == AVCaptureDevicePosition.Front {
+				for device: AVCaptureDevice in (AVCaptureDevice.devices(withMediaType: AVMediaTypeVideo) as! Array<AVCaptureDevice>) {
+					if device.position == AVCaptureDevicePosition.front {
 						videoDevice = device
 						break
 					}
@@ -99,7 +99,7 @@ class PluginGetUserMedia {
 			else {
 				NSLog("PluginGetUserMedia#call() | video requested (specified device id: '%@')", String(videoDeviceId!))
 
-				for device: AVCaptureDevice in (AVCaptureDevice.devicesWithMediaType(AVMediaTypeVideo) as! Array<AVCaptureDevice>) {
+				for device: AVCaptureDevice in (AVCaptureDevice.devices(withMediaType: AVMediaTypeVideo) as! Array<AVCaptureDevice>) {
 					if device.uniqueID == videoDeviceId {
 						videoDevice = device
 						break
@@ -110,11 +110,11 @@ class PluginGetUserMedia {
 			if videoDevice == nil {
 				NSLog("PluginGetUserMedia#call() | video requested but no suitable device found")
 
-				errback(error: "no suitable camera device found")
+				errback("no suitable camera device found")
 				return
 			}
 
-			NSLog("PluginGetUserMedia#call() | chosen video device: %@", String(videoDevice!))
+			NSLog("PluginGetUserMedia#call() | chosen video device: %@", String(describing: videoDevice!))
 
 			rtcVideoCapturer = RTCVideoCapturer(deviceName: videoDevice!.localizedName)
 
@@ -148,7 +148,7 @@ class PluginGetUserMedia {
 				optionalConstraints: []
 			)
 
-			rtcVideoSource = self.rtcPeerConnectionFactory.videoSourceWithCapturer(rtcVideoCapturer,
+			rtcVideoSource = self.rtcPeerConnectionFactory.videoSource(with: rtcVideoCapturer,
 				constraints: constraints
 			)
 
@@ -157,11 +157,11 @@ class PluginGetUserMedia {
 			if (rtcVideoSource!.state == RTCSourceStateEnded) {
 				NSLog("PluginGetUserMedia() | rtcVideoSource.state is 'ended', constraints not satisfied")
 
-				errback(error: "constraints not satisfied")
+				errback("constraints not satisfied")
 				return
 			}
 
-			rtcVideoTrack = self.rtcPeerConnectionFactory.videoTrackWithID(NSUUID().UUIDString,
+			rtcVideoTrack = self.rtcPeerConnectionFactory.videoTrack(withID: UUID().uuidString,
 				source: rtcVideoSource
 			)
 
@@ -171,7 +171,7 @@ class PluginGetUserMedia {
 		if audioRequested == true {
 			NSLog("PluginGetUserMedia#call() | audio requested")
 
-			rtcAudioTrack = self.rtcPeerConnectionFactory.audioTrackWithID(NSUUID().UUIDString)
+			rtcAudioTrack = self.rtcPeerConnectionFactory.audioTrack(withID: UUID().uuidString)
 
 			rtcMediaStream.addAudioTrack(rtcAudioTrack!)
 		}
@@ -180,9 +180,9 @@ class PluginGetUserMedia {
 		pluginMediaStream!.run()
 
 		// Let the plugin store it in its dictionary.
-		eventListenerForNewStream(pluginMediaStream: pluginMediaStream!)
+		eventListenerForNewStream(pluginMediaStream!)
 
-		callback(data: [
+		callback([
 			"stream": pluginMediaStream!.getJSON()
 		])
 	}
