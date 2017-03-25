@@ -28,8 +28,7 @@ var
 	RTCIceCandidate        = require('./RTCIceCandidate'),
 	MediaStream            = require('./MediaStream'),
 	MediaStreamTrack       = require('./MediaStreamTrack'),
-	videoElementsHandler   = require('./videoElementsHandler'),
-	rtcninjaPlugin         = require('./rtcninjaPlugin');
+	videoElementsHandler   = require('./videoElementsHandler');
 
 
 /**
@@ -57,9 +56,6 @@ module.exports = {
 
 	// Expose a function to pollute window and naigator namespaces.
 	registerGlobals:       registerGlobals,
-
-	// Expose the rtcninjaPlugin module.
-	rtcninjaPlugin:        rtcninjaPlugin,
 
 	// Expose the debug module.
 	debug:                 require('debug'),
