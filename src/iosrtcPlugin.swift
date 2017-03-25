@@ -852,28 +852,6 @@ class iosrtcPlugin : CDVPlugin {
 	}
 
 
-	func selectAudioOutputEarpiece(_ command: CDVInvokedUrlCommand) {
-		NSLog("iosrtcPlugin#selectAudioOutputEarpiece()")
-
-		do {
-			try AVAudioSession.sharedInstance().overrideOutputAudioPort(AVAudioSessionPortOverride.none)
-		} catch {
-			NSLog("iosrtcPlugin#selectAudioOutputEarpiece() | ERROR: %@", String(describing: error))
-		};
-	}
-
-
-	func selectAudioOutputSpeaker(_ command: CDVInvokedUrlCommand) {
-		NSLog("iosrtcPlugin#selectAudioOutputSpeaker()")
-
-		do {
-			try AVAudioSession.sharedInstance().overrideOutputAudioPort(AVAudioSessionPortOverride.speaker)
-		} catch {
-			NSLog("iosrtcPlugin#selectAudioOutputSpeaker() | ERROR: %@", String(describing: error))
-		};
-	}
-
-
 	func dump(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#dump()")
 
