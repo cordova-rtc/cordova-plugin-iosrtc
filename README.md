@@ -147,14 +147,15 @@ Methods such as `play()`, `pause()` are not implemented. In order to pause a vid
 
 See [CHANGELOG.md](./CHANGELOG.md).
 
+
 ## Author
 
-Iñaki Baz Castillo at [eFace2Face, inc.](https://eface2face.com)
+[Iñaki Baz Castillo](https://inakibaz.me/)
 
 ### Maintainers
 
-* Iñaki Baz Castillo at [eFace2Face, inc.](https://eface2face.com)
-* Saúl Ibarra Corretgé ([Better Call Saghul](http://bettercallsaghul.com)
+* [Iñaki Baz Castillo](https://inakibaz.me/)
+* [Saúl Ibarra Corretgé](http://bettercallsaghul.com)
 
 
 ## License
