@@ -115,13 +115,6 @@ Again, there is no real video attached to the `<video>` element so some peropert
 Read the full [documentation](docs/index.md) in the *docs* folder.
 
 
-## Demo Application
-
-Check our [iOSRTCApp](https://github.com/eface2face/iOSRTCApp) (Google's [AppRTC](https://apprtc.appspot.com/) adapted to Cordova iOS with pure HTML5/JavaScript and *cordova-plugin-iosrtc*).
-
-*NOTE:* The demo app is currently unmaintained and it may just fail.
-
-
 ## Who Uses It
 
 [People and companies](WHO_USES_IT.md) using *cordova-plugin-iosrtc*.
