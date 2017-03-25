@@ -83,6 +83,8 @@ function refreshVideos() {
 
 
 function registerGlobals() {
+	debug('registerGlobals()');
+
 	if (!global.navigator) {
 		global.navigator = {};
 	}
