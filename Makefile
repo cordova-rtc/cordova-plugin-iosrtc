@@ -5,4 +5,7 @@ all: build
 build:
 	$(GULP)
 
-.PHONY: build
+clean:
+	rm -rf node_modules
+
+.PHONY: build clean
