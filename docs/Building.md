@@ -62,12 +62,11 @@ If you still prefer to do it manually open it with Xcode and follow these steps:
 * Within the project "Build Settings" add an entry to the "Runpath Search Paths" setting with value `@executable_path/Frameworks`.
 * Within the project "Build Settings" set "Objective-C Bridging Header" to `PROJECT_NAME/Plugins/cordova-plugin-iosrtc/cordova-plugin-iosrtc-Bridging-Header.h` (read more about the "Bridging Header" above).
 * Within the project "Build Settings" set "Enable Bitcode" to "No".
-* If using Xcode 8, select "Use Swift Legacy version" under "Build Settings".
 
 
 #### iOS 10 notes
 
-On iOS 10 each permission requested must be accompanied by a description or the app won't start. Here is an example:
+On iOS 10 each permission requested must be accompanied by a description or the app will crash. Here is an example:
 
 ```xml
 <platform name="ios">
