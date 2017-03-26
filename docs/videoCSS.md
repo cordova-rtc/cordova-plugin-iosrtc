@@ -20,15 +20,13 @@ HTML elements on top of the native video elements.
 
 ## Quirks
 
-### Position of the `Webview` element does not match the corresponding `video` element
+### Position of the `WebView` element does not match the corresponding `video` element
 
-In some cases iOS adds offsets to the `Webview` element. As a result the coordinates between the `video` element and it's corresponding `Webview` element are unsync. 
+In some cases iOS adds an offset to the `WebView` element. As a result the coordinates between the `video` element and it's corresponding `WebView` element are out of sync.
 This happens when the status bar is shown. This can be fixed through disabling the statusbar in two ways:
 
-* at runtime through [cordova-plugin-statusbar](https://github.com/apache/cordova-plugin-statusbar)
-
-* permanently through editing the project `.plist` like
-
+* at runtime, using [cordova-plugin-statusbar](https://github.com/apache/cordova-plugin-statusbar)
+* permanently, editing the project `.plist` file:
 ```xml
   <key>UIViewControllerBasedStatusBarAppearance</key>
   <false/>
