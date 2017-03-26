@@ -23,3 +23,15 @@
 **Q:** What about Android? Why just iOS?
 
 **A:** In modern versions of Android the *WebView* component is based on the Chromium open source project which already includes WebRTC ([more info](https://developer.chrome.com/multidevice/webview/overview)). For older versions of Android the [CrossWalk](https://crosswalk-project.org) project provides new *WebView* versions with WebRTC support as well.
+
+**Q:** Why does a "play button" show up on top of the video?
+
+**A:** That's automatically done by Safari, you can disable it by using the following CSS rules:
+```css
+video::-webkit-media-controls {
+    display: none !important;
+}
+video::-webkit-media-controls-start-playback-button {
+    display: none !important;
+}
+```
