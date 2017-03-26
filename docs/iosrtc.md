@@ -174,13 +174,6 @@ peerconnection.addEventListener('addstream', function (event) {
 ```
 
 
-### `iosrtc.selectAudioOutput(output)`
-
-Select the audio output device. Given `output` argument must be "earpiece" or "speaker".
-
-*NOTE:* "speaker" output can only be set during a WebRTC session.
-
-
 ### `iosrtc.registerGlobals()`
 
 By calling this method the JavaScript global namespace gets "polluted" with the following additions:
@@ -207,33 +200,6 @@ The [debug](https://github.com/visionmedia/debug) module. Useful to enable verbo
 ```javascript
 cordova.plugins.iosrtc.debug.enable('iosrtc*');
 ```
-
-
-### `iosrtc.rtcninjaPlugin`
-
-A plugin interface for [rtcninja](https://github.com/eface2face/rtcninja.js/). 
-
-Usage (assuming that [cordova-plugin-device](https://www.npmjs.com/package/cordova-plugin-device) is installed):
-
-```javascript
-// Just for Cordova apps.
-document.addEventListener('deviceready', function () {
-  // Just for iOS devices.
-  if (window.device.platform === 'iOS') {
-    // Load rtcninja with cordova-plugin-iosrtc.
-    rtcninja({
-      plugin: cordova.plugins.iosrtc.rtcninjaPlugin
-    });
-  }
-
-  console.log('WebRTC supported?: %s', rtcninja.hasWebRTC());
-  // => WebRTC supported?: true
-
-  rtcninja.RTCPeerConnection === cordova.plugins.iosrtc.RTCPeerConnection;
-  // => true
-});
-```
-
 
 
 ## Others
