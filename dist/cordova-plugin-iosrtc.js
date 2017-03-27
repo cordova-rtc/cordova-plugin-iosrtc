@@ -1,7 +1,8 @@
 /*
  * cordova-plugin-iosrtc v4.0.0-pre
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
- * Copyright 2015-2017 Iñaki Baz Castillo at eFace2Face, inc. (https://eface2face.com)
+ * Copyright 2015-2017 eFace2Face, Inc. (https://eface2face.com)
+ * Copyright 2017 BasqueVoIPMafia (https://github.com/BasqueVoIPMafia)
  * License MIT
  */
 
@@ -2512,6 +2513,8 @@ function refreshVideos() {
 
 
 function registerGlobals() {
+	debug('registerGlobals()');
+
 	if (!global.navigator) {
 		global.navigator = {};
 	}

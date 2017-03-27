@@ -50,7 +50,7 @@ It may happen that your Cordova application uses more than a single plugin coded
 #import "cordova-plugin-iosrtc-Bridging-Header.h"
 ```
 
-And then set `Unified-Bridging-Header.h` as the value of the "Objective-C Bridging Header" build setting in your Xcode project. For more information check this [issue](https://github.com/eface2face/cordova-plugin-iosrtc/issues/9).
+And then set `Unified-Bridging-Header.h` as the value of the "Objective-C Bridging Header" build setting in your Xcode project. For more information check this [issue](https://github.com/BasqueVoIPMafia/cordova-plugin-iosrtc/issues/9).
 
 
 #### Xcode

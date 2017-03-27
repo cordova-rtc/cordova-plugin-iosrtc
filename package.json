@@ -2,7 +2,10 @@
   "name": "cordova-plugin-iosrtc",
   "version": "4.0.0-pre",
   "description": "Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs",
-  "author": "Iñaki Baz Castillo at eFace2Face, inc. (https://eface2face.com)",
+  "author": "Iñaki Baz Castillo (https://inakibaz.me)",
+  "contributors": [
+    "Saúl Ibarra Corretgé (http://bettercallsaghul.com)"
+  ],
   "license": "MIT",
   "keywords": [
     "ecosystem:cordova",
@@ -10,13 +13,13 @@
     "ios"
   ],
   "main": "js/iosrtc.js",
-  "homepage": "https://github.com/eface2face/cordova-plugin-iosrtc",
+  "homepage": "https://github.com/BasqueVoIPMafia/cordova-plugin-iosrtc",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/eface2face/cordova-plugin-iosrtc.git"
+    "url": "git+https://github.com/BasqueVoIPMafia/cordova-plugin-iosrtc.git"
   },
   "bugs": {
-    "url": "https://github.com/eface2face/cordova-plugin-iosrtc/issues"
+    "url": "https://github.com/BasqueVoIPMafia/cordova-plugin-iosrtc/issues"
   },
   "dependencies": {
     "debug": "^2.6.3",

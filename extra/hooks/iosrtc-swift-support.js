@@ -3,7 +3,7 @@
 'use strict';
 
 // This hook automates this:
-// https://github.com/eface2face/cordova-plugin-iosrtc/blob/master/docs/Building.md
+// https://github.com/BasqueVoIPMafia/cordova-plugin-iosrtc/blob/master/docs/Building.md
 
 var
 	fs = require("fs"),
