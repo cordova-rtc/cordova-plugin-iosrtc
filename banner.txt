@@ -1,7 +1,8 @@
 /*
  * <%= pkg.name %> v<%= pkg.version %>
  * <%= pkg.description %>
- * Copyright 2015<%= currentYear > 2015 ? '-' + currentYear : '' %> <%= pkg.author %>
+ * Copyright 2015-2017 eFace2Face, Inc. (https://eface2face.com)
+ * Copyright 2017<%= currentYear > 2017 ? '-' + currentYear : '' %> BasqueVoIPMafia (https://github.com/BasqueVoIPMafia)
  * License <%= pkg.license %>
  */
 

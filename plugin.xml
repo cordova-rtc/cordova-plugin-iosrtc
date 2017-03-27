@@ -5,13 +5,13 @@
 
 	<name>iosrtc</name>
 	<description>Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs</description>
-	<author>Iñaki Baz Castillo at eFace2Face, inc.</author>
+	<author>eFace2Face, Inc. & BasqueVoIPMafia</author>
 	<license>MIT</license>
 	<keywords>webrtc, ios</keywords>
 
 	<info>
 		cordova-plugin-iosrtc enables use of the JavaScript WebRTC APIs (as defined by the W3C) in iOS devices.
-		Learn more at https://github.com/eface2face/cordova-plugin-iosrtc
+		Learn more at https://github.com/BasqueVoIPMafia/cordova-plugin-iosrtc
 	</info>
 
 	<engines>
