@@ -1,3 +1,19 @@
+#### Version 4.0.0
+
+* Moved the repository over to its new home with the Basque VoIP Mafia
+* Fix compatibility with "--browserify" cordova option
+* Convert syntax to Swift 3
+* Remove rtcninja integration
+* Remove selectAudioOutput function
+* Add convenience Makefile
+* Update documentation
+
+
+#### Version 3.2.2
+
+* Fix promise implementation of RTCPeerConnection.getStats
+
+
 #### Version 3.2.1
 
 * Fix emitting "connected" stream event for local streams when using getUserMedia with promises.
