@@ -101,6 +101,10 @@ MediaStream.create = function (dataFromEvent) {
 };
 
 
+MediaStream.prototype.getBlobId = function () {
+	return this._blobId;
+};
+
 MediaStream.prototype.getAudioTracks = function () {
 	debug('getAudioTracks()');
 

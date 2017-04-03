@@ -9,7 +9,8 @@ module.exports.observeVideo = observeVideo;
 /**
  * Dependencies.
  */
-var debug = require('debug')('iosrtc:videoElementsHandler'),
+var
+	debug = require('debug')('iosrtc:videoElementsHandler'),
 	MediaStreamRenderer = require('./MediaStreamRenderer'),
 
 
@@ -35,8 +36,7 @@ var debug = require('debug')('iosrtc:videoElementsHandler'),
 
 	// Video element mutation observer.
 	videoObserver = new MutationObserver(function (mutations) {
-		var i, numMutations, mutation,
-			video;
+		var i, numMutations, mutation, video;
 
 		for (i = 0, numMutations = mutations.length; i < numMutations; i++) {
 			mutation = mutations[i];
@@ -44,8 +44,8 @@ var debug = require('debug')('iosrtc:videoElementsHandler'),
 			// HTML video element.
 			video = mutation.target;
 
-			// .src removed.
-			if (!video.src) {
+			// .src or .srcObject removed.
+			if (!video.src && !video.srcObject) {
 				// If this video element was previously handling a MediaStreamRenderer, release it.
 				releaseMediaStreamRenderer(video);
 				continue;
@@ -57,7 +57,8 @@ var debug = require('debug')('iosrtc:videoElementsHandler'),
 
 	// DOM mutation observer.
 	domObserver = new MutationObserver(function (mutations) {
-		var i, numMutations, mutation,
+		var
+			i, numMutations, mutation,
 			j, numNodes, node;
 
 		for (i = 0, numMutations = mutations.length; i < numMutations; i++) {
@@ -127,9 +128,9 @@ var debug = require('debug')('iosrtc:videoElementsHandler'),
 
 
 function videoElementsHandler(_mediaStreams, _mediaStreamRenderers) {
-	var existingVideos = document.querySelectorAll('video'),
-		i, len,
-		video;
+	var
+		existingVideos = document.querySelectorAll('video'),
+		i, len, video;
 
 	mediaStreams = _mediaStreams;
 	mediaStreamRenderers = _mediaStreamRenderers;
@@ -169,9 +170,9 @@ function videoElementsHandler(_mediaStreams, _mediaStreamRenderers) {
 function observeVideo(video) {
 	debug('observeVideo()');
 
-	// If the video already has a src property but is not yet handled by the plugin
+	// If the video already has a src/srcObject property but is not yet handled by the plugin
 	// then handle it now.
-	if (video.src && !video._iosrtcMediaStreamRendererId) {
+	if ((video.src || video.srcObject) && !video._iosrtcMediaStreamRendererId) {
 		handleVideo(video);
 	}
 
@@ -194,8 +195,7 @@ function observeVideo(video) {
 		characterDataOldValue: false,
 		// Set to an array of attribute local names (without namespace) if not all attribute mutations
 		// need to be observed.
-		// TODO: Add srcObject, mozSrcObject
-		attributeFilter: ['src']
+		attributeFilter: ['src', 'srcObject']
 	});
 
 	// Intercept video 'error' events if it's due to the attached MediaStream.
@@ -214,49 +214,69 @@ function observeVideo(video) {
  */
 
 function handleVideo(video) {
-	var xhr = new XMLHttpRequest();
+	var
+		xhr = new XMLHttpRequest(),
+		stream;
 
-	xhr.open('GET', video.src, true);
-	xhr.responseType = 'blob';
-	xhr.onload = function () {
-		if (xhr.status !== 200) {
-			// If this video element was previously handling a MediaStreamRenderer, release it.
-			releaseMediaStreamRenderer(video);
-
-			return;
-		}
-
-		var reader = new FileReader();
-
-		// Some versions of Safari fail to set onloadend property, some others do not react
-		// on 'loadend' event. Try everything here.
-		try {
-			reader.onloadend = onloadend;
-		} catch (error) {
-			reader.addEventListener('loadend', onloadend);
-		}
-		reader.readAsText(xhr.response);
-
-		function onloadend() {
-			var mediaStreamBlobId = reader.result;
-
-			// The retrieved URL does not point to a MediaStream.
-			if (!mediaStreamBlobId || typeof mediaStreamBlobId !== 'string' || !MEDIASTREAM_ID_REGEXP.test(mediaStreamBlobId)) {
+	// The app has set video.src.
+	if (video.src) {
+		xhr.open('GET', video.src, true);
+		xhr.responseType = 'blob';
+		xhr.onload = function () {
+			if (xhr.status !== 200) {
 				// If this video element was previously handling a MediaStreamRenderer, release it.
 				releaseMediaStreamRenderer(video);
 
 				return;
 			}
 
-			provideMediaStreamRenderer(video, mediaStreamBlobId);
+			var reader = new FileReader();
+
+			// Some versions of Safari fail to set onloadend property, some others do not react
+			// on 'loadend' event. Try everything here.
+			try {
+				reader.onloadend = onloadend;
+			} catch (error) {
+				reader.addEventListener('loadend', onloadend);
+			}
+			reader.readAsText(xhr.response);
+
+			function onloadend() {
+				var mediaStreamBlobId = reader.result;
+
+				// The retrieved URL does not point to a MediaStream.
+				if (!mediaStreamBlobId || typeof mediaStreamBlobId !== 'string' || !MEDIASTREAM_ID_REGEXP.test(mediaStreamBlobId)) {
+					// If this video element was previously handling a MediaStreamRenderer, release it.
+					releaseMediaStreamRenderer(video);
+
+					return;
+				}
+
+				provideMediaStreamRenderer(video, mediaStreamBlobId);
+			}
+		};
+		xhr.send();
+	}
+
+	// The app has set video.srcObject.
+	else if (video.srcObject) {
+		stream = video.srcObject;
+
+		if (!stream.getBlobId()) {
+			// If this video element was previously handling a MediaStreamRenderer, release it.
+			releaseMediaStreamRenderer(video);
+
+			return;
 		}
-	};
-	xhr.send();
+
+		provideMediaStreamRenderer(video, stream.getBlobId());
+	}
 }
 
 
 function provideMediaStreamRenderer(video, mediaStreamBlobId) {
-	var mediaStream = mediaStreams[mediaStreamBlobId],
+	var
+		mediaStream = mediaStreams[mediaStreamBlobId],
 		mediaStreamRenderer = mediaStreamRenderers[video._iosrtcMediaStreamRendererId];
 
 	if (!mediaStream) {
