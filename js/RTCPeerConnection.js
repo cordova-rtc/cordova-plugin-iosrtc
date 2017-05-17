@@ -413,14 +413,14 @@ RTCPeerConnection.prototype.addIceCandidate = function (candidate) {
 
 	debug('addIceCandidate() | [candidate:%o]', candidate);
 
-	if (!(candidate instanceof RTCIceCandidate)) {
+	if (typeof candidate !== 'object') {
 		if (isPromise) {
 			return new Promise(function (resolve, reject) {
-				reject(new global.DOMError('addIceCandidate() must be called with a RTCIceCandidate instance as first argument'));
+				reject(new global.DOMError('addIceCandidate() must be called with a RTCIceCandidate instance or RTCIceCandidateInit object as argument'));
 			});
 		} else {
 			if (typeof errback === 'function') {
-				errback(new global.DOMError('addIceCandidate() must be called with a RTCIceCandidate instance as first argument'));
+				errback(new global.DOMError('addIceCandidate() must be called with a RTCIceCandidate instance or RTCIceCandidateInit object as argument'));
 			}
 			return;
 		}
