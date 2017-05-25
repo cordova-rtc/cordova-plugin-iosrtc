@@ -95,8 +95,8 @@ function getUserMedia(constraints) {
 		if (typeof constraints.video.deviceId === 'string') {
 			newConstraints.videoDeviceId = constraints.video.deviceId;
 		// Also check sourceId (mangled by adapter.js).
-		} else if (typeof constraints.video.sourceId === 'string') {
-			newConstraints.videoDeviceId = constraints.video.sourceId;
+		} else if (constraints.video.optional && constraints.video.optional[0] && typeof constraints.video.optional[0].sourceId === 'string') {
+			newConstraints.videoDeviceId = constraints.video.optional[0].sourceId;
 		}
 
 		// Get requested min/max width.
