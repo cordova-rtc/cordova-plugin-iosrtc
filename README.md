@@ -126,6 +126,21 @@ Or better yet, include the provided [ios-websocket-hack.js](extra/ios-websocket-
 <script src="ios-websocket-hack.min.js"></script>
 ```
 
+#### Position of the `Webview` element does not match the corresponding `video` element
+
+In some cases iOS adds offsets to the `Webview` element. As a result the coordinates between the `video` element and it's corresponding `Webview` element are unsync. 
+This happens when the status bar is shown. This can be fixed through disabling the statusbar in two ways:
+
+* at runtime through [cordova-plugin-statusbar](https://github.com/apache/cordova-plugin-statusbar) 
+
+* permanently through editing the project `.plist` like 
+```
+  <key>UIViewControllerBasedStatusBarAppearance</key>
+  <false/>
+  <key>UIStatusBarHidden</key>
+  <true/>
+```
+
 #### HTML5 video API
 
 There is no real media source attached to the `<video>` element so some [HTML5 video events](https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Media_events) and properties are artificially emitted/set by the plugin on behalf of the video element.
