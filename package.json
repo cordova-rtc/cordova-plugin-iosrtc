@@ -40,6 +40,7 @@
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0"
   },
+  "types": "./extra/cordova-plugin-iosrtc.d.ts",
   "cordova": {
     "id": "cordova-plugin-iosrtc",
     "platforms": [
