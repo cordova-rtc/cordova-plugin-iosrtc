@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
 		id="cordova-plugin-iosrtc"
-		version="4.0.1">
+		version="4.0.2">
 
 	<name>iosrtc</name>
 	<description>Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs</description>

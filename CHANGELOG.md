@@ -1,3 +1,8 @@
+#### Version 4.0.2
+
+* `getUserMedia` constraints: Allow `sourceId` (rather than just `deviceId`) to make adapter.js happy (#282).
+
+
 #### Version 4.0.1
 
 * Let `addIceCandidate()` be called with a `RTCIceCandidateInit` object as argument (as per the latest WebRTC spec) rather than mandating a `RTCIceCandidate` instance.
