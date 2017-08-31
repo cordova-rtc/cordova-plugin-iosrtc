@@ -646,22 +646,24 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 	* Methods inherited from RTCStatsDelegate
 	*/
     
-	func peerConnection(_ peerConnection: RTCPeerConnection!,
-		didGetStats stats: [Any]!) {
-
-		var jsStats = [NSDictionary]()
-
-		for stat in stats as NSArray {
-			var jsValues = Dictionary<String,String>()
-
-			for pair in (stat as AnyObject).values as! [RTCPair] {
-				jsValues[pair.key] = pair.value;
-			}
-
-			jsStats.append(["reportId": (stat as! RTCStatsReport).reportId, "type": (stat as! RTCStatsReport).type, "timestamp": (stat as! RTCStatsReport).timestamp, "values": jsValues]);
-
-		}
-
-		//self.onGetStatsCallback(jsStats);
-	}
+    func peerConnection(_ peerConnection: RTCPeerConnection!,
+                        didGetStats stats: [Any]!) {
+        
+        let jsStats = NSMutableArray()
+        
+        for stat in stats as NSArray {
+            var jsValues = Dictionary<String,String>()
+            
+            for pair in (stat as AnyObject).values as! [RTCPair] {
+                jsValues[pair.key] = pair.value;
+            }
+            
+            jsStats.add(["reportId": (stat as! RTCStatsReport).reportId, "type": (stat as! RTCStatsReport).type, "timestamp": (stat as! RTCStatsReport).timestamp, "values": jsValues]);
+            
+        }
+        
+        let jsStatsArray = NSArray(array: jsStats)
+        
+        self.onGetStatsCallback(jsStatsArray);
+    }
 }
