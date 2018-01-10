@@ -102,7 +102,7 @@
 
 		<!-- WebRTC static library -->
 		<source-file src="lib/libWebRTC-LATEST-Universal-Release.a" framework="true" />
-		<dependency id="cordova-plugin-add-swift-support" version="1.6.1"/>
+		<dependency id="cordova-plugin-add-swift-support" version="1.7.1"/>
 	</platform>
 
 </plugin>
