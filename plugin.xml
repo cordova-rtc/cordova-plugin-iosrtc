@@ -24,6 +24,7 @@
 				<param name="ios-package" value="iosrtcPlugin" />
 				<param name="onload" value="true" />
 			</feature>
+			<preference name="deployment-target" value="9.0" />
 		</config-file>
 
 		<js-module src="dist/cordova-plugin-iosrtc.js" name="Plugin">
@@ -101,6 +102,7 @@
 
 		<!-- WebRTC static library -->
 		<source-file src="lib/libWebRTC-LATEST-Universal-Release.a" framework="true" />
+		<dependency id="cordova-plugin-add-swift-support" version="1.7.1"/>
 	</platform>
 
 </plugin>
