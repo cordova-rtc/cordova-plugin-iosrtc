@@ -1,8 +1,7 @@
 import Foundation
 
 
-class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionDescriptionDelegate, RTCStatsDelegate {
-
+class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionDescriptionDelegate {
 	var rtcPeerConnectionFactory: RTCPeerConnectionFactory
 	var rtcPeerConnection: RTCPeerConnection!
 	var pluginRTCPeerConnectionConfig: PluginRTCPeerConnectionConfig
@@ -15,10 +14,10 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 	var eventListenerForAddStream: (_ pluginMediaStream: PluginMediaStream) -> Void
 	var eventListenerForRemoveStream: (_ id: String) -> Void
 	var onCreateDescriptionSuccessCallback: ((_ rtcSessionDescription: RTCSessionDescription) -> Void)!
-	var onCreateDescriptionFailureCallback: ((_ error: Error) -> Void)!
+	var onCreateDescriptionFailureCallback: ((_ error: NSError) -> Void)!
 	var onSetDescriptionSuccessCallback: (() -> Void)!
-	var onSetDescriptionFailureCallback: ((_ error: Error) -> Void)!
-	var onGetStatsCallback: ((_ array: NSArray) -> Void)!
+	var onSetDescriptionFailureCallback: ((_ error: NSError) -> Void)!
+
 
 	init(
 		rtcPeerConnectionFactory: RTCPeerConnectionFactory,
@@ -59,7 +58,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 	func createOffer(
 		_ options: NSDictionary?,
 		callback: @escaping (_ data: NSDictionary) -> Void,
-		errback: @escaping (_ error: Error) -> Void
+		errback: @escaping (_ error: NSError) -> Void
 	) {
 		NSLog("PluginRTCPeerConnection#createOffer()")
 
@@ -80,7 +79,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 			callback(data as NSDictionary)
 		}
 
-		self.onCreateDescriptionFailureCallback = { (error: Error) -> Void in
+		self.onCreateDescriptionFailureCallback = { (error: NSError) -> Void in
 			NSLog("PluginRTCPeerConnection#createOffer() | failure callback: %@", String(describing: error))
 
 			errback(error)
@@ -94,7 +93,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 	func createAnswer(
 		_ options: NSDictionary?,
 		callback: @escaping (_ data: NSDictionary) -> Void,
-		errback: @escaping (_ error: Error) -> Void
+		errback: @escaping (_ error: NSError) -> Void
 	) {
 		NSLog("PluginRTCPeerConnection#createAnswer()")
 
@@ -115,7 +114,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 			callback(data as NSDictionary)
 		}
 
-		self.onCreateDescriptionFailureCallback = { (error: Error) -> Void in
+		self.onCreateDescriptionFailureCallback = { (error: NSError) -> Void in
 			NSLog("PluginRTCPeerConnection#createAnswer() | failure callback: %@", String(describing: error))
 
 			errback(error)
@@ -129,7 +128,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 	func setLocalDescription(
 		_ desc: NSDictionary,
 		callback: @escaping (_ data: NSDictionary) -> Void,
-		errback: @escaping (_ error: Error) -> Void
+		errback: @escaping (_ error: NSError) -> Void
 	) {
 		NSLog("PluginRTCPeerConnection#setLocalDescription()")
 
@@ -152,7 +151,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 			callback(data as NSDictionary)
 		}
 
-		self.onSetDescriptionFailureCallback = { (error: Error) -> Void in
+		self.onSetDescriptionFailureCallback = { (error: NSError) -> Void in
 			NSLog("PluginRTCPeerConnection#setLocalDescription() | failure callback: %@", String(describing: error))
 
 			errback(error)
@@ -167,7 +166,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 	func setRemoteDescription(
 		_ desc: NSDictionary,
 		callback: @escaping (_ data: NSDictionary) -> Void,
-		errback: @escaping (_ error: Error) -> Void
+		errback: @escaping (_ error: NSError) -> Void
 	) {
 		NSLog("PluginRTCPeerConnection#setRemoteDescription()")
 
@@ -190,7 +189,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 			callback(data as NSDictionary)
 		}
 
-		self.onSetDescriptionFailureCallback = { (error: Error) -> Void in
+		self.onSetDescriptionFailureCallback = { (error: NSError) -> Void in
 			NSLog("PluginRTCPeerConnection#setRemoteDescription() | failure callback: %@", String(describing: error))
 
 			errback(error)
@@ -272,8 +271,8 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 		_ dcId: Int,
 		label: String,
 		options: NSDictionary?,
-		eventListener: @escaping (_ data: NSDictionary) -> Void,
-		eventListenerForBinaryMessage: @escaping (_ data: Data) -> Void
+        eventListener: @escaping (_ data: NSDictionary) -> Void,
+        eventListenerForBinaryMessage: @escaping (_ data: Data) -> Void
 	) {
 		NSLog("PluginRTCPeerConnection#createDataChannel()")
 
@@ -299,8 +298,8 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 
 	func RTCDataChannel_setListener(
 		_ dcId: Int,
-		eventListener: @escaping (_ data: NSDictionary) -> Void,
-		eventListenerForBinaryMessage: @escaping (_ data: Data) -> Void
+        eventListener: @escaping (_ data: NSDictionary) -> Void,
+        eventListenerForBinaryMessage: @escaping (_ data: Data) -> Void
 	) {
 		NSLog("PluginRTCPeerConnection#RTCDataChannel_setListener()")
 
@@ -320,7 +319,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 	func createDTMFSender(
 		_ dsId: Int,
 		track: PluginMediaStreamTrack,
-		eventListener: @escaping (_ data: NSDictionary) -> Void
+        eventListener: @escaping (_ data: NSDictionary) -> Void
 	) {
 		NSLog("PluginRTCPeerConnection#createDTMFSender()")
 
@@ -341,27 +340,6 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 		pluginRTCDTMFSender.run()
 	}
 
-	func getStats(
-		_ pluginMediaStreamTrack: PluginMediaStreamTrack?,
-		callback: @escaping (_ data: NSArray) -> Void,
-		errback: (_ error: NSError) -> Void
-	) {
-		NSLog("PluginRTCPeerConnection#getStats()")
-
-		if self.rtcPeerConnection.signalingState.rawValue == RTCSignalingClosed.rawValue {
-			return
-		}
-
-		self.onGetStatsCallback = { (array: NSArray) -> Void in
-			callback(array)
-		}
-
-		if !self.rtcPeerConnection.getStatsWith(self,
-			mediaStreamTrack: pluginMediaStreamTrack?.rtcMediaStreamTrack,
-			statsOutputLevel: RTCStatsOutputLevelStandard) {
-				errback(NSError(domain: "Cannot get peer connection stats.", code: -1, userInfo: nil))
-		}
-    }
 
 	func close() {
 		NSLog("PluginRTCPeerConnection#close()")
@@ -600,7 +578,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 		pluginRTCDataChannel.run()
 
 		// Fire the 'datachannel' event so the JS will create a new RTCDataChannel.
-		self.eventListener([
+        self.eventListener([
 			"type": "datachannel",
 			"channel": [
 				"dcId": dcId,
@@ -624,44 +602,21 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 
 
 	func peerConnection(_ rtcPeerConnection: RTCPeerConnection!,
-		didCreateSessionDescription rtcSessionDescription: RTCSessionDescription!, error: Error!) {
+                        didCreateSessionDescription rtcSessionDescription: RTCSessionDescription!, error: Error!) {
 		if error == nil {
 			self.onCreateDescriptionSuccessCallback(rtcSessionDescription)
 		} else {
-			self.onCreateDescriptionFailureCallback(error)
+			self.onCreateDescriptionFailureCallback(error as! NSError)
 		}
 	}
 
 
 	func peerConnection(_ peerConnection: RTCPeerConnection!,
-		didSetSessionDescriptionWithError error: Error!) {
+                        didSetSessionDescriptionWithError error: Error!) {
 		if error == nil {
 			self.onSetDescriptionSuccessCallback()
 		} else {
-			self.onSetDescriptionFailureCallback(error)
+			self.onSetDescriptionFailureCallback(error as! NSError )
 		}
-	}
-
-	/**
-	* Methods inherited from RTCStatsDelegate
-	*/
-    
-	func peerConnection(_ peerConnection: RTCPeerConnection!,
-		didGetStats stats: [Any]!) {
-
-		var jsStats = [NSDictionary]()
-
-		for stat in stats as NSArray {
-			var jsValues = Dictionary<String,String>()
-
-			for pair in (stat as AnyObject).values as! [RTCPair] {
-				jsValues[pair.key] = pair.value;
-			}
-
-			jsStats.append(["reportId": (stat as! RTCStatsReport).reportId, "type": (stat as! RTCStatsReport).type, "timestamp": (stat as! RTCStatsReport).timestamp, "values": jsValues]);
-
-		}
-
-		//self.onGetStatsCallback(jsStats);
 	}
 }

@@ -1,28 +1,4 @@
 import Foundation
-// FIXME: comparison operators with optionals were removed from the Swift Standard Libary.
-// Consider refactoring the code to use the non-optional operators.
-fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
-  switch (lhs, rhs) {
-  case let (l?, r?):
-    return l < r
-  case (nil, _?):
-    return true
-  default:
-    return false
-  }
-}
-
-// FIXME: comparison operators with optionals were removed from the Swift Standard Libary.
-// Consider refactoring the code to use the non-optional operators.
-fileprivate func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
-  switch (lhs, rhs) {
-  case let (l?, r?):
-    return l > r
-  default:
-    return rhs < lhs
-  }
-}
-
 
 
 class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
@@ -125,12 +101,6 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 		NSLog("PluginRTCDataChannel#run()")
 
 		self.rtcDataChannel!.delegate = self
-
-		//if data channel is created after there is a connection,
-		// we need to dispatch its current state.
-		if (self.rtcDataChannel?.state.rawValue > 0) {
-			channelDidChangeState(self.rtcDataChannel);
-		}
 	}
 
 
@@ -170,7 +140,11 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 		)
 
 		let result = self.rtcDataChannel!.sendData(buffer)
-		if !result {
+		if result == true {
+			callback([
+				"bufferedAmount": self.rtcDataChannel!.bufferedAmount
+			])
+		} else {
 			NSLog("PluginRTCDataChannel#sendString() | RTCDataChannel#sendData() failed")
 		}
 	}
@@ -188,7 +162,11 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 		)
 
 		let result = self.rtcDataChannel!.sendData(buffer)
-		if !result {
+		if result == true {
+			callback([
+				"bufferedAmount": self.rtcDataChannel!.bufferedAmount
+			])
+		} else {
 			NSLog("PluginRTCDataChannel#sendBinary() | RTCDataChannel#sendData() failed")
 		}
 	}
@@ -224,7 +202,7 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 
 
 	func channel(_ channel: RTCDataChannel!, didReceiveMessageWith buffer: RTCDataBuffer!) {
-		if !buffer.isBinary {
+		if buffer.isBinary == false {
 			NSLog("PluginRTCDataChannel | utf8 message received")
 
 			if self.eventListener != nil {
@@ -245,18 +223,9 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 		}
 	}
 
-	func channel(_ channel: RTCDataChannel!, didChangeBufferedAmount amount: UInt) {
-		NSLog("PluginRTCDataChannel | didChangeBufferedAmount %d", amount)
-
-		self.eventListener!([
-			"type": "bufferedamount",
-			"bufferedAmount": amount
-			])
-
-	}
 
 	func emitReceivedMessage(_ buffer: RTCDataBuffer) {
-		if !buffer.isBinary {
+		if buffer.isBinary == false {
 			let string = NSString(
 				data: buffer.data,
 				encoding: String.Encoding.utf8.rawValue
