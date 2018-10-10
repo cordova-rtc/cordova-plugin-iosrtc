@@ -7,6 +7,9 @@
 * [Bug Tracker](https://github.com/BasqueVoIPMafia/cordova-plugin-iosrtc/issues) for reporting issues and requesting new features (**please** don't use the bug tracker for questions or problems, use the mailing list instead).
 * [NPM package](https://www.npmjs.com/package/cordova-plugin-iosrtc).
 
+**A extended version from cordova-plugin-iosrtc
+#### Version 5.0.0
+Using lastest lib Webrtc and customize for best framerate
 
 **Yet another WebRTC SDK for iOS?**
 

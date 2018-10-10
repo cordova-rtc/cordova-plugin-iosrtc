@@ -1,56 +1,50 @@
 /*
- * libjingle
- * Copyright 2013 Google Inc.
+ *  Copyright 2015 The WebRTC project authors. All Rights Reserved.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  1. Redistributions of source code must retain the above copyright notice,
- *     this list of conditions and the following disclaimer.
- *  2. Redistributions in binary form must reproduce the above copyright notice,
- *     this list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
- *  3. The name of the author may not be used to endorse or promote products
- *     derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
- * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
- * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
- * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
- * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree. An additional intellectual property rights grant can be found
+ *  in the file PATENTS.  All contributing project authors may
+ *  be found in the AUTHORS file in the root of the source tree.
  */
 
 #import <Foundation/Foundation.h>
 
-// RTCICECandidate contains an instance of ICECandidateInterface.
-@interface RTCICECandidate : NSObject
+#import "RTCMacros.h"
 
-// If present, this contains the identifier of the "media stream
-// identification" as defined in [RFC 3388] for m-line this candidate is
-// associated with.
-@property(nonatomic, copy, readonly) NSString* sdpMid;
+NS_ASSUME_NONNULL_BEGIN
 
-// This indicates the index (starting at zero) of m-line in the SDP this
-// candidate is associated with.
-@property(nonatomic, assign, readonly) NSInteger sdpMLineIndex;
+RTC_EXPORT
+@interface RTCIceCandidate : NSObject
 
-// Creates an SDP-ized form of this candidate.
-@property(nonatomic, copy, readonly) NSString* sdp;
+/**
+ * If present, the identifier of the "media stream identification" for the media
+ * component this candidate is associated with.
+ */
+@property(nonatomic, readonly, nullable) NSString *sdpMid;
 
-// Creates an ICECandidateInterface based on SDP string.
-- (id)initWithMid:(NSString*)sdpMid
-            index:(NSInteger)sdpMLineIndex
-              sdp:(NSString*)sdp;
+/**
+ * The index (starting at zero) of the media description this candidate is
+ * associated with in the SDP.
+ */
+@property(nonatomic, readonly) int sdpMLineIndex;
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-// Disallow init and don't add to documentation
-- (id)init __attribute__((
-    unavailable("init is not a supported initializer for this class.")));
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+/** The SDP string for this candidate. */
+@property(nonatomic, readonly) NSString *sdp;
+
+/** The URL of the ICE server which this candidate is gathered from. */
+@property(nonatomic, readonly, nullable) NSString *serverUrl;
+
+- (instancetype)init NS_UNAVAILABLE;
+
+/**
+ * Initialize an RTCIceCandidate from SDP.
+ */
+- (instancetype)initWithSdp:(NSString *)sdp
+              sdpMLineIndex:(int)sdpMLineIndex
+                     sdpMid:(nullable NSString *)sdpMid
+    NS_DESIGNATED_INITIALIZER;
 
 @end
+
+NS_ASSUME_NONNULL_END

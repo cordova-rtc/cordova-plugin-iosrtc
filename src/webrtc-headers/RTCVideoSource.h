@@ -1,39 +1,37 @@
 /*
- * libjingle
- * Copyright 2013 Google Inc.
+ *  Copyright 2015 The WebRTC project authors. All Rights Reserved.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  1. Redistributions of source code must retain the above copyright notice,
- *     this list of conditions and the following disclaimer.
- *  2. Redistributions in binary form must reproduce the above copyright notice,
- *     this list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
- *  3. The name of the author may not be used to endorse or promote products
- *     derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
- * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
- * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
- * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
- * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree. An additional intellectual property rights grant can be found
+ *  in the file PATENTS.  All contributing project authors may
+ *  be found in the AUTHORS file in the root of the source tree.
  */
 
+#import <Foundation/Foundation.h>
+
+#import "RTCMacros.h"
 #import "RTCMediaSource.h"
+#import "RTCVideoCapturer.h"
 
-// RTCVideoSource is an ObjectiveC wrapper for VideoSourceInterface.
-@interface RTCVideoSource : RTCMediaSource
+NS_ASSUME_NONNULL_BEGIN
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-// Disallow init and don't add to documentation
-- (id)init __attribute__(
-    (unavailable("init is not a supported initializer for this class.")));
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+RTC_EXPORT
+
+@interface RTCVideoSource : RTCMediaSource <RTCVideoCapturerDelegate>
+
+- (instancetype)init NS_UNAVAILABLE;
+
+/**
+ * Calling this function will cause frames to be scaled down to the
+ * requested resolution. Also, frames will be cropped to match the
+ * requested aspect ratio, and frames will be dropped to match the
+ * requested fps. The requested aspect ratio is orientation agnostic and
+ * will be adjusted to maintain the input orientation, so it doesn't
+ * matter if e.g. 1280x720 or 720x1280 is requested.
+ */
+- (void)adaptOutputFormatToWidth:(int)width height:(int)height fps:(int)fps;
 
 @end
+
+NS_ASSUME_NONNULL_END

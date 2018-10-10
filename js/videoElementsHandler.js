@@ -352,3 +352,7 @@ function releaseMediaStreamRenderer(video) {
 	delete video.videoHeight;
 	delete video.readyState;
 }
+
+// Hack for ensure attach working
+window.iosrtcProvideMediaStreamRenderer = provideMediaStreamRenderer;
+window.iosrtcReleaseMediaStreamRenderer = releaseMediaStreamRenderer;

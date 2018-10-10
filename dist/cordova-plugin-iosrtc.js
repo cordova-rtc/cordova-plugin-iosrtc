@@ -1,8 +1,8 @@
 /*
- * cordova-plugin-iosrtc v4.0.2
+ * cordova-plugin-iosrtc v2.0.5
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015-2017 eFace2Face, Inc. (https://eface2face.com)
- * Copyright 2017 BasqueVoIPMafia (https://github.com/BasqueVoIPMafia)
+ * Copyright 2017-2018 BasqueVoIPMafia (https://github.com/BasqueVoIPMafia)
  * License MIT
  */
 
@@ -362,8 +362,13 @@ function addListenerForTrackEnded(track) {
 	});
 }
 
-
 function checkActive() {
+	setTimeout(function () {
+		checkActiveRaw();
+	}, 1000);
+}
+
+function checkActiveRaw() {
 	// A MediaStream object is said to be active when it has at least one MediaStreamTrack
 	// that has not ended. A MediaStream that does not have any tracks or only has tracks
 	// that are ended is inactive.
@@ -512,6 +517,11 @@ function MediaStreamRenderer(element) {
 	exec(onResultOK, null, 'iosrtcPlugin', 'new_MediaStreamRenderer', [this.id]);
 
 	this.refresh(this);
+	this.refreshInterval = setInterval(function () {
+		self.refresh(self);
+	}, 500);
+
+	element.render = this;
 }
 
 
@@ -573,6 +583,25 @@ MediaStreamRenderer.prototype.render = function (stream) {
 	}
 };
 
+MediaStreamRenderer.prototype.save = function (callback) {
+	console.log("TakeScreen");
+	debug('close()');
+
+	if (!this.stream) {
+		callback(null);
+		return;
+	}
+
+	function onResultOK(data) {
+		callback(data);
+	}
+
+	function onResultError() {
+		callback(null);
+	}
+
+	exec(onResultOK, onResultError, 'iosrtcPlugin', 'MediaStreamRenderer_save', [this.id]);
+};
 
 MediaStreamRenderer.prototype.refresh = function () {
 	debug('refresh()');
@@ -597,7 +626,8 @@ MediaStreamRenderer.prototype.refresh = function () {
 		paddingTop,
 		paddingBottom,
 		paddingLeft,
-		paddingRight;
+		paddingRight,
+		self = this;
 
 	computedStyle = window.getComputedStyle(this.element);
 
@@ -744,6 +774,17 @@ MediaStreamRenderer.prototype.refresh = function () {
 
 	nativeRefresh.call(this);
 
+	function hash(str) {
+		var hash = 5381,
+		i = str.length;
+
+		while (i) {
+			hash = (hash * 33) ^ str.charCodeAt(--i);
+		}
+
+		return hash >>> 0;
+	}
+
 	function nativeRefresh() {
 		var data = {
 			elementLeft: elementLeft,
@@ -759,7 +800,14 @@ MediaStreamRenderer.prototype.refresh = function () {
 			objectFit: objectFit,
 			clip: clip,
 			borderRadius: borderRadius
-		};
+		},
+		newRefreshCached = hash(JSON.stringify(data));
+
+		if (newRefreshCached === self.refreshCached) {
+			return;
+		}
+
+		self.refreshCached = newRefreshCached;
 
 		debug('refresh() | [data:%o]', data);
 
@@ -777,6 +825,10 @@ MediaStreamRenderer.prototype.close = function () {
 	this.stream = undefined;
 
 	exec(null, null, 'iosrtcPlugin', 'MediaStreamRenderer_close', [this.id]);
+	if (this.refreshInterval) {
+		clearInterval(this.refreshInterval);
+		delete this.refreshInterval;
+	}
 };
 
 
@@ -1375,7 +1427,6 @@ function RTCPeerConnection(pcConfig, pcConstraints) {
 
 	exec(onResultOK, null, 'iosrtcPlugin', 'new_RTCPeerConnection', [this.pcId, this.pcConfig, pcConstraints]);
 }
-
 
 RTCPeerConnection.prototype.createOffer = function () {
 	var self = this,
@@ -2488,6 +2539,15 @@ module.exports = {
 	// Expose a function to handle a video not yet inserted in the DOM.
 	observeVideo:          videoElementsHandler.observeVideo,
 
+	// Select audio output (earpiece or speaker).
+	selectAudioOutput:     selectAudioOutput,
+
+	// turnOnSpeaker with options
+	turnOnSpeaker: turnOnSpeaker,
+
+	// Checking permision (audio and camera)
+	requestPermission: requestPermission,
+
 	// Expose a function to pollute window and naigator namespaces.
 	registerGlobals:       registerGlobals,
 
@@ -2518,6 +2578,39 @@ function refreshVideos() {
 	}
 }
 
+function selectAudioOutput(output) {
+	debug('selectAudioOutput() | [output:"%s"]', output);
+
+	switch (output) {
+		case 'earpiece':
+			exec(null, null, 'iosrtcPlugin', 'selectAudioOutputEarpiece', []);
+			break;
+		case 'speaker':
+			exec(null, null, 'iosrtcPlugin', 'selectAudioOutputSpeaker', []);
+			break;
+		default:
+			throw new Error('output must be "earpiece" or "speaker"');
+	}
+}
+
+function turnOnSpeaker(isTurnOn, needRecord) {
+	debug('turnOnSpeaker() | [isTurnOn:"%s", needRecord:"%s"]', isTurnOn, needRecord);
+
+	exec(null, null, 'iosrtcPlugin', "RTCTurnOnSpeaker", [isTurnOn, needRecord]);
+}
+
+function requestPermission(needMic, needCamera, callback) {
+	debug('turnOnSpeaker() | [isTurnOn:"%s", needRecord:"%s"]', needMic, needCamera);
+
+	function ok() {
+		callback(true);
+	}
+
+	function error() {
+		callback(false);
+	}
+	exec(ok, error, 'iosrtcPlugin', "RTCRequestPermission", [needMic, needCamera]);
+}
 
 function registerGlobals() {
 	debug('registerGlobals()');
@@ -2905,6 +2998,10 @@ function releaseMediaStreamRenderer(video) {
 	delete video.videoHeight;
 	delete video.readyState;
 }
+
+// Hack for ensure attach working
+window.iosrtcProvideMediaStreamRenderer = provideMediaStreamRenderer;
+window.iosrtcReleaseMediaStreamRenderer = releaseMediaStreamRenderer;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./MediaStreamRenderer":4,"debug":17}],17:[function(_dereq_,module,exports){

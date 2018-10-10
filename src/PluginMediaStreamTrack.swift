@@ -14,7 +14,7 @@ class PluginMediaStreamTrack : NSObject, RTCMediaStreamTrackDelegate {
 		NSLog("PluginMediaStreamTrack#init()")
 
 		self.rtcMediaStreamTrack = rtcMediaStreamTrack
-		self.id = rtcMediaStreamTrack.label  // NOTE: No "id" property provided.
+		self.id = rtcMediaStreamTrack.trackId  // NOTE: No "id" property provided.
 		self.kind = rtcMediaStreamTrack.kind
 	}
 
@@ -26,18 +26,27 @@ class PluginMediaStreamTrack : NSObject, RTCMediaStreamTrackDelegate {
 
 	func run() {
 		NSLog("PluginMediaStreamTrack#run() [kind:%@, id:%@]", String(self.kind), String(self.id))
-
-		self.rtcMediaStreamTrack.delegate = self
 	}
-
+	
+	func getReadyState() -> String {
+		switch self.rtcMediaStreamTrack.readyState  {
+		case RTCMediaStreamTrackState.live:
+			return "live"
+		case RTCMediaStreamTrackState.ended:
+			return "ended"
+		default:
+			return "ended"
+		}
+		return "ended"
+	}
 
 	func getJSON() -> NSDictionary {
 		return [
 			"id": self.id,
 			"kind": self.kind,
-			"label": self.rtcMediaStreamTrack.label,
-			"enabled": self.rtcMediaStreamTrack.isEnabled() ? true : false,
-			"readyState": PluginRTCTypes.mediaStreamTrackStates[self.rtcMediaStreamTrack.state().rawValue] as String!
+			"trackId": self.rtcMediaStreamTrack.trackId,
+			"enabled": self.rtcMediaStreamTrack.isEnabled ? true : false,
+			"readyState": self.getReadyState()
 		]
 	}
 
@@ -55,11 +64,13 @@ class PluginMediaStreamTrack : NSObject, RTCMediaStreamTrackDelegate {
 			self.eventListener!([
 				"type": "statechange",
 				"readyState": readyState,
-				"enabled": self.rtcMediaStreamTrack.isEnabled() ? true : false
+				"enabled": self.rtcMediaStreamTrack.isEnabled ? true : false
 			])
 
 			if readyState == "ended" {
-				self.eventListenerForEnded!()
+                if(self.eventListenerForEnded != nil) {
+                    self.eventListenerForEnded!()
+                }
 			}
 		}
 		self.lostStates.removeAll()
@@ -70,7 +81,7 @@ class PluginMediaStreamTrack : NSObject, RTCMediaStreamTrackDelegate {
 		NSLog("PluginMediaStreamTrack#setEnabled() [kind:%@, id:%@, value:%@]",
 			String(self.kind), String(self.id), String(value))
 
-		self.rtcMediaStreamTrack.setEnabled(value)
+		self.rtcMediaStreamTrack.isEnabled = value
 	}
 
 
@@ -81,11 +92,8 @@ class PluginMediaStreamTrack : NSObject, RTCMediaStreamTrackDelegate {
 
 		NSLog("PluginMediaStreamTrack#stop() | stop() not implemented (see: https://github.com/BasqueVoIPMafia/cordova-plugin-iosrtc/issues/140")
 
-		// NOTE: There is no setState() anymore
-		// self.rtcMediaStreamTrack.setState(RTCTrackStateEnded)
-
 		// Let's try setEnabled(false), but it also fails.
-		self.rtcMediaStreamTrack.setEnabled(false)
+		self.rtcMediaStreamTrack.isEnabled = false
 	}
 
 
@@ -94,25 +102,27 @@ class PluginMediaStreamTrack : NSObject, RTCMediaStreamTrackDelegate {
 	 */
 
 
-	func mediaStreamTrackDidChange(_ rtcMediaStreamTrack: RTCMediaStreamTrack!) {
-		let state_str = PluginRTCTypes.mediaStreamTrackStates[self.rtcMediaStreamTrack.state().rawValue] as String!
+	func mediaStreamTrackDidChange(_ rtcMediaStreamTrack: RTCMediaStreamTrack) {
+		let state_str = self.getReadyState()
 
 		NSLog("PluginMediaStreamTrack | state changed [kind:%@, id:%@, state:%@, enabled:%@]",
-			String(self.kind), String(self.id), String(describing: state_str), String(self.rtcMediaStreamTrack.isEnabled()))
+			String(self.kind), String(self.id), String(describing: state_str), String(self.rtcMediaStreamTrack.isEnabled))
 
 		if self.eventListener != nil {
 			self.eventListener!([
 				"type": "statechange",
 				"readyState": state_str,
-				"enabled": self.rtcMediaStreamTrack.isEnabled() ? true : false
+				"enabled": self.rtcMediaStreamTrack.isEnabled ? true : false
 			])
 
-			if self.rtcMediaStreamTrack.state().rawValue == RTCTrackStateEnded.rawValue {
-				self.eventListenerForEnded!()
+			if self.rtcMediaStreamTrack.readyState.rawValue == RTCMediaStreamTrackState.ended.rawValue {
+                if self.eventListenerForEnded != nil {
+                    self.eventListenerForEnded!()
+                }
 			}
 		} else {
 			// It may happen that the eventListener is not yet set, so store the lost states.
-			self.lostStates.append(state_str!)
+			self.lostStates.append(state_str)
 		}
 	}
 }

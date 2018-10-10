@@ -274,8 +274,13 @@ function addListenerForTrackEnded(track) {
 	});
 }
 
-
 function checkActive() {
+	setTimeout(function () {
+		checkActiveRaw();
+	}, 1000);
+}
+
+function checkActiveRaw() {
 	// A MediaStream object is said to be active when it has at least one MediaStreamTrack
 	// that has not ended. A MediaStream that does not have any tracks or only has tracks
 	// that are ended is inactive.

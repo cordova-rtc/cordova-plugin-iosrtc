@@ -55,7 +55,6 @@ function RTCPeerConnection(pcConfig, pcConstraints) {
 	exec(onResultOK, null, 'iosrtcPlugin', 'new_RTCPeerConnection', [this.pcId, this.pcConfig, pcConstraints]);
 }
 
-
 RTCPeerConnection.prototype.createOffer = function () {
 	var self = this,
 		isPromise,

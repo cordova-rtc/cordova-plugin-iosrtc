@@ -1,7 +1,28 @@
-#### Version 4.0.2
+#### Version 2.0.7
+Fixing multi GetUserMedia calls, example switch camera by release old stream and request new stream
 
-* `getUserMedia` constraints: Allow `sourceId` (rather than just `deviceId`) to make adapter.js happy (#282).
+#### Version 2.0.6
+Adding Stream Render Utils hack: window.iosrtcReleaseMediaStreamRenderer window.iosrtcProvideMediaStreamRenderer
 
+#### Version 2.0.5
+Fixing layout in iOS11
+
+#### Version 2.0.4
+Fixing crash when remove stream
+
+#### Version 2.0.3
+Fixing remove track timing bug -> dont show camera
+
+#### Version 2.0.2
+Fixing fixing remove wrong stream when reconnect
+
+#### Version 2.0.1
+Fixing release all object when peerconnecttion close
+
+#### Version 2.0.0
+Using lastest lib Webrtc and customize for best framerate
+
+---------------------------OLD VERSION-------------------------------
 
 #### Version 4.0.1
 
