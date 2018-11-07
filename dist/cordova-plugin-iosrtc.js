@@ -587,8 +587,8 @@ MediaStreamRenderer.prototype.refresh = function () {
 		elementHeight = elementPositionAndSize.height,
 		videoViewWidth,
 		videoViewHeight,
-		visible,
-		opacity,
+		// visible,
+		// opacity,
 		zIndex,
 		mirrored,
 		objectFit,
@@ -618,15 +618,17 @@ MediaStreamRenderer.prototype.refresh = function () {
 	videoViewWidth = elementWidth;
 	videoViewHeight = elementHeight;
 
+	/*
 	// visible
 	if (computedStyle.visibility === 'hidden') {
 		visible = false;
 	} else {
 		visible = !!this.element.offsetHeight;  // Returns 0 if element or any parent is hidden.
 	}
+	*/
 
 	// opacity
-	opacity = parseFloat(computedStyle.opacity);
+	// opacity = parseFloat(computedStyle.opacity);
 
 	// zIndex
 	zIndex = parseFloat(computedStyle.zIndex) || parseFloat(this.element.style.zIndex) || 0;
@@ -752,8 +754,8 @@ MediaStreamRenderer.prototype.refresh = function () {
 			elementHeight: elementHeight,
 			videoViewWidth: videoViewWidth,
 			videoViewHeight: videoViewHeight,
-			visible: visible,
-			opacity: opacity,
+			// visible: visible,
+			// opacity: opacity,
 			zIndex: zIndex,
 			mirrored: mirrored,
 			objectFit: objectFit,
