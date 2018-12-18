@@ -33,8 +33,8 @@ class PluginGetUserMedia {
 		let	videoMaxWidth = constraints.object(forKey: "videoMaxWidth") as? Int ?? 0
 		let	videoMinHeight = constraints.object(forKey: "videoMinHeight") as? Int ?? 0
 		let	videoMaxHeight = constraints.object(forKey: "videoMaxHeight") as? Int ?? 0
-		let	videoMinFrameRate = constraints.object(forKey: "videoMinFrameRate") as? Float ?? 0.0
-		let	videoMaxFrameRate = constraints.object(forKey: "videoMaxFrameRate") as? Float ?? 0.0
+		let	videoMinFrameRate = constraints.object(forKey: "videoMinFrameRate") as? Double ?? 0.0
+		let	videoMaxFrameRate = constraints.object(forKey: "videoMaxFrameRate") as? Double ?? 0.0
 
 		var rtcMediaStream: RTCMediaStream
 		var pluginMediaStream: PluginMediaStream?

@@ -1,7 +1,13 @@
+# IMPORTANT
+
+[LOOKING FOR NEW MAINTAINERS](https://github.com/BasqueVoIPMafia/cordova-plugin-iosrtc/issues/353)
+
+This project is no longer maintained. If you are interested in become a maintainer, please comment in the above link.
+
+
 # cordova-plugin-iosrtc
 
-[Cordova](http://cordova.apache.org/) iOS plugin exposing the full [WebRTC W3C JavaScript APIs](http://www.w3.org/TR/webrtc/).
-
+[Cordova](http://cordova.apache.org/) iOS plugin exposing the  ̶f̶u̶l̶l̶ [WebRTC W3C JavaScript APIs](http://www.w3.org/TR/webrtc/).
 
 * [Public Google Group (mailing list)](https://groups.google.com/forum/#!forum/cordova-plugin-iosrtc) for questions and discussions about *cordova-plugin-iosrtc*.
 * [Bug Tracker](https://github.com/BasqueVoIPMafia/cordova-plugin-iosrtc/issues) for reporting issues and requesting new features (**please** don't use the bug tracker for questions or problems, use the mailing list instead).
@@ -12,14 +18,10 @@
 
 Absolutely **not**. This plugin exposes the WebRTC W3C API for Cordova iOS apps (you know there is no WebRTC in iOS, right?), which means no need to learn "yet another WebRTC API" and no need to use a specific service/product/provider.
 
-**Why?**
-
-Check the [release announcement](https://eface2face.com/blog/cordova-plugin-iosrtc.html) at the [eFace2Face](https://eface2face.com) site.
-
 
 **Who?**
 
-This plugin was initially developed at [eFace2Face](https://eface2face.com), and later maintained by the community, specially by [Saúl Ibarra Corretgé](http://bettercallsaghul.com) (_The OpenSource Warrior Who Does Not Burn_).
+This plugin was initially developed at eFace2Face, and later maintained by the community, specially by [Saúl Ibarra Corretgé](http://bettercallsaghul.com) (_The OpenSource Warrior Who Does Not Burn_).
 
 
 ## Requirements
@@ -145,8 +147,10 @@ See [CHANGELOG.md](./CHANGELOG.md).
 
 ### Maintainers
 
-* [Iñaki Baz Castillo](https://inakibaz.me/)
-* [Saúl Ibarra Corretgé](http://bettercallsaghul.com)
+* [Iñaki Baz Castillo](https://inakibaz.me/) (no longer active maintainer)
+* [Saúl Ibarra Corretgé](http://bettercallsaghul.com) (no longer active maintainer)
+
+Looking for new maintainers. Interested? Comment [here](https://github.com/BasqueVoIPMafia/cordova-plugin-iosrtc/issues/353).
 
 
 ## License

@@ -135,26 +135,26 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 
 
 	func refresh(_ data: NSDictionary) {
-		let elementLeft = data.object(forKey: "elementLeft") as? Float ?? 0
-		let elementTop = data.object(forKey: "elementTop") as? Float ?? 0
-		let elementWidth = data.object(forKey: "elementWidth") as? Float ?? 0
-		let elementHeight = data.object(forKey: "elementHeight") as? Float ?? 0
-		var videoViewWidth = data.object(forKey: "videoViewWidth") as? Float ?? 0
-		var videoViewHeight = data.object(forKey: "videoViewHeight") as? Float ?? 0
+		let elementLeft = data.object(forKey: "elementLeft") as? Double ?? 0
+		let elementTop = data.object(forKey: "elementTop") as? Double ?? 0
+		let elementWidth = data.object(forKey: "elementWidth") as? Double ?? 0
+		let elementHeight = data.object(forKey: "elementHeight") as? Double ?? 0
+		var videoViewWidth = data.object(forKey: "videoViewWidth") as? Double ?? 0
+		var videoViewHeight = data.object(forKey: "videoViewHeight") as? Double ?? 0
 		let visible = data.object(forKey: "visible") as? Bool ?? true
-		let opacity = data.object(forKey: "opacity") as? Float ?? 1
-		let zIndex = data.object(forKey: "zIndex") as? Float ?? 0
+		let opacity = data.object(forKey: "opacity") as? Double ?? 1
+		let zIndex = data.object(forKey: "zIndex") as? Double ?? 0
 		let mirrored = data.object(forKey: "mirrored") as? Bool ?? false
 		let clip = data.object(forKey: "clip") as? Bool ?? true
-		let borderRadius = data.object(forKey: "borderRadius") as? Float ?? 0
+		let borderRadius = data.object(forKey: "borderRadius") as? Double ?? 0
 
 		NSLog("PluginMediaStreamRenderer#refresh() [elementLeft:%@, elementTop:%@, elementWidth:%@, elementHeight:%@, videoViewWidth:%@, videoViewHeight:%@, visible:%@, opacity:%@, zIndex:%@, mirrored:%@, clip:%@, borderRadius:%@]",
 			String(elementLeft), String(elementTop), String(elementWidth), String(elementHeight),
 			String(videoViewWidth), String(videoViewHeight), String(visible), String(opacity), String(zIndex),
 			String(mirrored), String(clip), String(borderRadius))
 
-		let videoViewLeft: Float = (elementWidth - videoViewWidth) / 2
-		let videoViewTop: Float = (elementHeight - videoViewHeight) / 2
+		let videoViewLeft: Double = (elementWidth - videoViewWidth) / 2
+		let videoViewTop: Double = (elementHeight - videoViewHeight) / 2
 
 		self.elementView.frame = CGRect(
 			x: CGFloat(elementLeft),
