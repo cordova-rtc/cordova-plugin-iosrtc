@@ -47,7 +47,7 @@ class PluginGetUserMedia {
 		var constraints: RTCMediaConstraints
 
 		if videoRequested == true {
-			switch AVCaptureDevice.authorizationStatus(forMediaType: AVMediaTypeVideo) {
+			switch AVCaptureDevice.authorizationStatus(for: AVMediaType(rawValue: convertFromAVMediaType(AVMediaType.video))) {
 			case AVAuthorizationStatus.notDetermined:
 				NSLog("PluginGetUserMedia#call() | video authorization: not determined")
 			case AVAuthorizationStatus.authorized:
@@ -64,7 +64,7 @@ class PluginGetUserMedia {
 		}
 
 		if audioRequested == true {
-			switch AVCaptureDevice.authorizationStatus(forMediaType: AVMediaTypeAudio) {
+			switch AVCaptureDevice.authorizationStatus(for: AVMediaType(rawValue: convertFromAVMediaType(AVMediaType.audio))) {
 			case AVAuthorizationStatus.notDetermined:
 				NSLog("PluginGetUserMedia#call() | audio authorization: not determined")
 			case AVAuthorizationStatus.authorized:
@@ -87,8 +87,8 @@ class PluginGetUserMedia {
 			if videoDeviceId == nil {
 				NSLog("PluginGetUserMedia#call() | video requested (device not specified)")
 
-				for device: AVCaptureDevice in (AVCaptureDevice.devices(withMediaType: AVMediaTypeVideo) as! Array<AVCaptureDevice>) {
-					if device.position == AVCaptureDevicePosition.front {
+				for device: AVCaptureDevice in (AVCaptureDevice.devices(for: AVMediaType(rawValue: convertFromAVMediaType(AVMediaType.video))) ) {
+					if device.position == AVCaptureDevice.Position.front {
 						videoDevice = device
 						break
 					}
@@ -99,7 +99,7 @@ class PluginGetUserMedia {
 			else {
 				NSLog("PluginGetUserMedia#call() | video requested (specified device id: '%@')", String(videoDeviceId!))
 
-				for device: AVCaptureDevice in (AVCaptureDevice.devices(withMediaType: AVMediaTypeVideo) as! Array<AVCaptureDevice>) {
+				for device: AVCaptureDevice in (AVCaptureDevice.devices(for: AVMediaType(rawValue: convertFromAVMediaType(AVMediaType.video))) ) {
 					if device.uniqueID == videoDeviceId {
 						videoDevice = device
 						break
@@ -186,4 +186,9 @@ class PluginGetUserMedia {
 			"stream": pluginMediaStream!.getJSON()
 		])
 	}
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromAVMediaType(_ input: AVMediaType) -> String {
+	return input.rawValue
 }

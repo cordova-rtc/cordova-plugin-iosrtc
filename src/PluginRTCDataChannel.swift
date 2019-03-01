@@ -69,7 +69,7 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 			// rtcDataChannelInit.protocol = options!.objectForKey("protocol") as! String
 		// }
 		if options?.object(forKey: "protocol") != nil {
-			rtcDataChannelInit.`protocol` = options!.object(forKey: "protocol") as! String
+            rtcDataChannelInit.`protocol` = options!.object(forKey: "protocol") as? String
 		}
 
 		if options?.object(forKey: "negotiated") != nil {
@@ -214,7 +214,7 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 		if self.eventListener != nil {
 			self.eventListener!([
 				"type": "statechange",
-				"readyState": state_str
+                "readyState": state_str ?? ""
 			])
 		} else {
 			// It may happen that the eventListener is not yet set, so store the lost states.
