@@ -20,7 +20,7 @@ This is a fork from https://github.com/BasqueVoIPMafia/cordova-plugin-iosrtc/ wr
 * Within your Cordova project:
 
 ```bash
-$ cordova plugin add cordova-plugin-iosrtc
+$ cordova plugin add https://github.com/albanonm/cordova-plugin-iosrtc
 ```
 
 * Remove the iOS platform and add it again:
@@ -30,12 +30,16 @@ $ cordova platform add ios
 ```
 
 
+  
+  
+  
+  
 
-
-
-
-
-
+  
+  
+  
+  
+-------------------------------------------------------------------
 
 # IMPORTANT
 
