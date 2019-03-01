@@ -1,48 +1,5 @@
 # IMPORTANT
 
-This is a fork from https://github.com/BasqueVoIPMafia/cordova-plugin-iosrtc/ writted by [Iñaki Baz Castillo](https://inakibaz.me/).
-
-
-
-# What is changed
-
-* Swift code has been update to 4.2 and now plugin can be used with Xcode > 8.
-
-* iOS 10 permission notes added to plugin.xml.
-
-* It is no longer necessary to add the "hook" manually
-
-* It is no longer necessary change "iOS Deployment Target" and Swift code version.
-
-
-# Install
-
-* Within your Cordova project:
-
-```bash
-$ cordova plugin add https://github.com/albanonm/cordova-plugin-iosrtc
-```
-
-* Remove the iOS platform and add it again:
-```bash
-$ cordova platform remove ios
-$ cordova platform add ios
-```
-
-
-  
-  
-  
-  
-
-  
-  
-  
-  
--------------------------------------------------------------------
-
-# IMPORTANT
-
 [LOOKING FOR NEW MAINTAINERS](https://github.com/BasqueVoIPMafia/cordova-plugin-iosrtc/issues/353)
 
 This project is no longer maintained. If you are interested in become a maintainer, please comment in the above link.
@@ -85,6 +42,13 @@ $ cordova plugin add cordova-plugin-iosrtc
 ```
 
 (or add it into a `<plugin>` entry in the `config.xml` of your app).
+
+
+* Remove the iOS platform and add it again (this apply "hook" file):
+```bash
+$ cordova platform remove ios
+$ cordova platform add ios
+
 
 
 ## Building
