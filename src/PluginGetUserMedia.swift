@@ -88,7 +88,7 @@ class PluginGetUserMedia {
 				NSLog("PluginGetUserMedia#call() | video requested (device not specified)")
 
 				for device: AVCaptureDevice in (AVCaptureDevice.devices(for: AVMediaType.video) as! Array<AVCaptureDevice>) {
-					if device.position == AVCaptureDevicePosition.front {
+					if device.position == AVCaptureDevice.Position.front {
 						videoDevice = device
 						break
 					}
