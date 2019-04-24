@@ -188,10 +188,10 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		self.elementView.alpha = CGFloat(opacity)
 		self.elementView.layer.zPosition = CGFloat(zIndex)
 
-                // if the zIndex is 0 (the default) bring the view to the top, last one wins
-                if zIndex == 0 {
-			self.webView.superview?.bringSubviewToFront(self.elementView)
-                }
+        // if the zIndex is 0 (the default) bring the view to the top, last one wins
+        if zIndex == 0 {
+            self.webView.superview?.bringSubviewToFront(self.elementView)
+        }
 
 		if !mirrored {
 			self.elementView.transform = CGAffineTransform.identity

@@ -464,7 +464,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 
 	func peerConnection(_ peerConnection: RTCPeerConnection!,
 		signalingStateChanged newState: RTCSignalingState) {
-		let state_str = PluginRTCTypes.signalingStates[newState.rawValue] as String!
+        let state_str = PluginRTCTypes.signalingStates[newState.rawValue] as String?
 
 		NSLog("PluginRTCPeerConnection | onsignalingstatechange [signalingState:%@]", String(describing: state_str))
 
@@ -477,7 +477,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 
 	func peerConnection(_ peerConnection: RTCPeerConnection!,
 		iceGatheringChanged newState: RTCICEGatheringState) {
-		let state_str = PluginRTCTypes.iceGatheringStates[newState.rawValue] as String!
+        let state_str = PluginRTCTypes.iceGatheringStates[newState.rawValue] as String?
 
 		NSLog("PluginRTCPeerConnection | onicegatheringstatechange [iceGatheringState:%@]", String(describing: state_str))
 
@@ -531,7 +531,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 
 	func peerConnection(_ peerConnection: RTCPeerConnection!,
 		iceConnectionChanged newState: RTCICEConnectionState) {
-		let state_str = PluginRTCTypes.iceConnectionStates[newState.rawValue] as String!
+        let state_str = PluginRTCTypes.iceConnectionStates[newState.rawValue] as String?
 
 		NSLog("PluginRTCPeerConnection | oniceconnectionstatechange [iceConnectionState:%@]", String(describing: state_str))
 
@@ -611,7 +611,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 				"protocol": rtcDataChannel.`protocol`,
 				"negotiated": rtcDataChannel.isNegotiated,
 				"id": rtcDataChannel.streamId,
-				"readyState": PluginRTCTypes.dataChannelStates[rtcDataChannel.state.rawValue] as String!,
+				"readyState": PluginRTCTypes.dataChannelStates[rtcDataChannel.state.rawValue] as String?,
 				"bufferedAmount": rtcDataChannel.bufferedAmount
 			]
 		])

@@ -1,7 +1,7 @@
 import Foundation
 import AVFoundation
 
-
+@objcMembers
 @objc(iosrtcPlugin) // This class must be accesible from Objective-C.
 class iosrtcPlugin : CDVPlugin {
 	// RTCPeerConnectionFactory single instance.
