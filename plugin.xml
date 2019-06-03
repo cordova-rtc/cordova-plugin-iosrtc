@@ -10,7 +10,7 @@
 	<keywords>webrtc, ios</keywords>
 
 	<info>
-		cordova-plugin-iosrtc enables use of the JavaScript WebRTC APIs (as defined by the W3C) in iOS devices.
+		cordova-plugin-iosrtc-simplyrtc enables use of the JavaScript WebRTC APIs (as defined by the W3C) in iOS devices. 
 		Learn more at https://github.com/simplertc/cordova-plugin-iosrtc-simplyrtc
 	</info>
 
