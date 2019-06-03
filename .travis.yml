@@ -51,6 +51,7 @@ matrix:
           # The SDK version used to compile your project
           - android-28
           - android-26
+          - android-27
           # Additional components
           - extra-google-google_play_services
           - extra-google-m2repository
@@ -61,6 +62,7 @@ matrix:
           - android-sdk-preview-license-.+
           - android-sdk-license-.+
           - android-sdk-license-26
+          - android-sdk-license-27
           - google-gdk-license-.+
       before_install:
           - export LANG=en_US.UTF-8
