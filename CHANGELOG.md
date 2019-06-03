@@ -1,3 +1,8 @@
+#### Version 4.0.3rc1
+
+* Convert syntax to Swift 4.2
+* rename plugin to `cordova-plugin-iosrtc-simplertc` for easy migration (no plugin spec or git+http issues) (package.json, plugin.xml, extra/hooks/iosrtc-swift-support.js).
+
 #### Version 4.0.2
 
 * `getUserMedia` constraints: Allow `sourceId` (rather than just `deviceId`) to make adapter.js happy (#282).

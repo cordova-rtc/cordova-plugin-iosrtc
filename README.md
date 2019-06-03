@@ -1,17 +1,21 @@
 # IMPORTANT
 
-[LOOKING FOR NEW MAINTAINERS](https://github.com/BasqueVoIPMafia/cordova-plugin-iosrtc/issues/353)
+Original Source and Fork intent
+--------------------
 
-This project is no longer maintained. If you are interested in become a maintainer, please comment in the above link.
+This Cordova Plugin `cordova-plugin-iosrtc-simplyrtc` module version is a fork of `cordova-plugin-iosrtc` hosted on Github originally made by Saúl Ibarra Corretgé (http://bettercallsaghul.com) and available here: https://github.com/BasqueVoIPMafia/cordova-plugin-iosrtc/
 
+This fork of `cordova-plugin-iosrtc` module named `cordova-plugin-iosrtc-simplyrtc` starts at version `4.0.3-rc1` in case previous the repository decides to pick up work again on version `4.0.3`.
 
-# cordova-plugin-iosrtc
+For more information please visit: https://github.com/BasqueVoIPMafia/cordova-plugin-iosrtc/issues/353
+
+# cordova-plugin-iosrtc-simplyrtc
 
 [Cordova](http://cordova.apache.org/) iOS plugin exposing the  ̶f̶u̶l̶l̶ [WebRTC W3C JavaScript APIs](http://www.w3.org/TR/webrtc/).
 
 * [Public Google Group (mailing list)](https://groups.google.com/forum/#!forum/cordova-plugin-iosrtc) for questions and discussions about *cordova-plugin-iosrtc*.
-* [Bug Tracker](https://github.com/BasqueVoIPMafia/cordova-plugin-iosrtc/issues) for reporting issues and requesting new features (**please** don't use the bug tracker for questions or problems, use the mailing list instead).
-* [NPM package](https://www.npmjs.com/package/cordova-plugin-iosrtc).
+* [Bug Tracker](https://github.com/simplyrtc/cordova-plugin-iosrtc-simplyrtc/issues) for reporting issues and requesting new features (**please** don't use the bug tracker for questions or problems, use the mailing list instead).
+* [NPM package](https://www.npmjs.com/package/cordova-plugin-iosrtc-simplyrtc).
 
 
 **Yet another WebRTC SDK for iOS?**
@@ -38,7 +42,7 @@ In order to make this Cordova plugin run into a iOS application some requirement
 Within your Cordova project:
 
 ```bash
-$ cordova plugin add cordova-plugin-iosrtc
+$ cordova plugin add cordova-plugin-iosrtc-simplyrtc
 ```
 
 (or add it into a `<plugin>` entry in the `config.xml` of your app).
@@ -154,6 +158,7 @@ See [CHANGELOG.md](./CHANGELOG.md).
 
 ### Maintainers
 
+* [Harold Thetiot](https://github.com/simplertc)
 * [Iñaki Baz Castillo](https://inakibaz.me/) (no longer active maintainer)
 * [Saúl Ibarra Corretgé](http://bettercallsaghul.com) (no longer active maintainer)
 
