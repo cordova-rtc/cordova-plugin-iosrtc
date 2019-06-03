@@ -158,7 +158,7 @@ See [CHANGELOG.md](./CHANGELOG.md).
 
 ### Maintainers
 
-* [Harold Thetiot](https://github.com/simplertc)
+* [Harold Thetiot](https://github.com/simplyrtc)
 * [Iñaki Baz Castillo](https://inakibaz.me/) (no longer active maintainer)
 * [Saúl Ibarra Corretgé](http://bettercallsaghul.com) (no longer active maintainer)
 
