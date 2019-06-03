@@ -1,4 +1,4 @@
-#### Version 4.0.3rc1
+#### Version 4.0.3rc2
 
 * Convert syntax to Swift 4.2 (https://github.com/BasqueVoIPMafia/cordova-plugin-iosrtc/pull/356)
 * Update NPM Dependendcies
