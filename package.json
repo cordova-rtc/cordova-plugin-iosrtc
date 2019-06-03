@@ -14,13 +14,13 @@
     "ios"
   ],
   "main": "js/iosrtc.js",
-  "homepage": "https://github.com/simplyrtc/cordova-plugin-iosrtc",
+  "homepage": "https://github.com/simplyrtc/cordova-plugin-iosrtc-simplyrtc",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/simplyrtc/cordova-plugin-iosrtc.git"
+    "url": "git+https://github.com/simplyrtc/cordova-plugin-iosrtc-simplyrtc.git"
   },
   "bugs": {
-    "url": "https://github.com/simplyrtc/cordova-plugin-iosrtc/issues"
+    "url": "https://github.com/simplyrtc/cordova-plugin-iosrtc-simplyrtc/issues"
   },
   "dependencies": {
     "debug": "^2.6.8",
