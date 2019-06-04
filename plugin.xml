@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
-		id="cordova-plugin-iosrtc"
-		version="4.0.2">
+		id="cordova-plugin-iosrtc-simplyrtc"
+		version="4.0.3-rc2">
 
 	<name>iosrtc</name>
 	<description>Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs</description>
@@ -10,8 +10,8 @@
 	<keywords>webrtc, ios</keywords>
 
 	<info>
-		cordova-plugin-iosrtc enables use of the JavaScript WebRTC APIs (as defined by the W3C) in iOS devices.
-		Learn more at https://github.com/BasqueVoIPMafia/cordova-plugin-iosrtc
+		cordova-plugin-iosrtc-simplyrtc enables use of the JavaScript WebRTC APIs (as defined by the W3C) in iOS devices. 
+		Learn more at https://github.com/simplyrtc/cordova-plugin-iosrtc-simplyrtc
 	</info>
 
 	<engines>

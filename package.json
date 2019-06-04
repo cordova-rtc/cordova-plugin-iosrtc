@@ -1,10 +1,11 @@
 {
   "name": "cordova-plugin-iosrtc-simplyrtc",
-  "version": "4.0.3RC1",
+  "version": "4.0.3-rc3",
   "description": "Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs",
   "author": "Iñaki Baz Castillo (https://inakibaz.me)",
   "contributors": [
-    "Saúl Ibarra Corretgé (http://bettercallsaghul.com)"
+    "Saúl Ibarra Corretgé (http://bettercallsaghul.com)",
+    "Harold Thetiot (https://github.com/simplyrtc)"
   ],
   "license": "MIT",
   "keywords": [
@@ -13,13 +14,13 @@
     "ios"
   ],
   "main": "js/iosrtc.js",
-  "homepage": "https://github.com/simplyrtc/cordova-plugin-iosrtc",
+  "homepage": "https://github.com/simplyrtc/cordova-plugin-iosrtc-simplyrtc",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/simplyrtc/cordova-plugin-iosrtc.git"
+    "url": "git+https://github.com/simplyrtc/cordova-plugin-iosrtc-simplyrtc.git"
   },
   "bugs": {
-    "url": "https://github.com/simplyrtc/cordova-plugin-iosrtc/issues"
+    "url": "https://github.com/simplyrtc/cordova-plugin-iosrtc-simplyrtc/issues"
   },
   "dependencies": {
     "debug": "^2.6.8",
@@ -29,10 +30,10 @@
   },
   "devDependencies": {
     "browserify": "^14.4.0",
-    "gulp": "git+https://github.com/gulpjs/gulp.git#4.0",
+    "gulp": "^4.0.2",
     "gulp-derequire": "^2.1.0",
     "gulp-header": "^1.8.8",
-    "gulp-jscs": "^4.0.0",
+    "gulp-jscs": "^4.1.0",
     "gulp-jscs-stylish": "^1.4.0",
     "gulp-jshint": "^2.0.4",
     "jshint": "^2.9.4",
@@ -41,7 +42,7 @@
     "vinyl-source-stream": "^1.1.0"
   },
   "cordova": {
-    "id": "cordova-plugin-iosrtc",
+    "id": "cordova-plugin-iosrtc-simplyrtc",
     "platforms": [
       "ios"
     ]
