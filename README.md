@@ -52,8 +52,7 @@ $ cordova plugin add cordova-plugin-iosrtc-simplyrtc
 ```bash
 $ cordova platform remove ios
 $ cordova platform add ios
-
-
+```
 
 ## Building
 

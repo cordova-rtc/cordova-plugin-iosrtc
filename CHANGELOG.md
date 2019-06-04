@@ -1,5 +1,6 @@
-#### Version 4.0.3rc2
+#### Version 4.0.3-rcX
 
+* fix README.md
 * Convert syntax to Swift 4.2 (https://github.com/BasqueVoIPMafia/cordova-plugin-iosrtc/pull/356)
 * Update NPM Dependendcies
 * Add Travis build (Ionic, Cordova, Browser, Android, iOS Xcode 10.2)
