@@ -31,13 +31,13 @@
 
 		<!-- Permission notes -->
 		<config-file parent="NSCameraUsageDescription" target="*-Info.plist">
-			<string>Blink uses your camera to make video calls.</string>
+			<string>This Application uses your camera to make video calls.</string>
 		</config-file>
 		<config-file parent="NSContactsUsageDescription" target="*-Info.plist">
-			<string>Blink needs access to your contacts in order to be able to call them.</string>
+			<string>This Application needs access to your contacts in order to be able to call them.</string>
 		</config-file>
 		<config-file parent="NSMicrophoneUsageDescription" target="*-Info.plist">
-			<string>Blink uses your microphone to make calls.</string>
+			<string>This Application uses your microphone to make calls.</string>
 		</config-file>
 
 		<js-module src="dist/cordova-plugin-iosrtc.js" name="Plugin">
