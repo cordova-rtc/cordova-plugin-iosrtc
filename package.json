@@ -1,11 +1,12 @@
 {
-  "name": "cordova-plugin-iosrtc-simplyrtc",
+  "name": "cordova-plugin-iosrtc",
   "version": "4.0.3-rc4",
   "description": "Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs",
   "author": "Iñaki Baz Castillo (https://inakibaz.me)",
   "contributors": [
     "Saúl Ibarra Corretgé (http://bettercallsaghul.com)",
-    "Harold Thetiot (https://github.com/simplyrtc)"
+    "Iñaki Baz Castillo (https://inakibaz.me)",
+    "Harold Thetiot (https://sylaps.com)"
   ],
   "license": "MIT",
   "keywords": [
@@ -14,13 +15,13 @@
     "ios"
   ],
   "main": "js/iosrtc.js",
-  "homepage": "https://github.com/simplyrtc/cordova-plugin-iosrtc-simplyrtc",
+  "homepage": "https://github.com/BasqueVoIPMafia/cordova-plugin-iosrtc",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/simplyrtc/cordova-plugin-iosrtc-simplyrtc.git"
+    "url": "git+https://github.com/BasqueVoIPMafia/cordova-plugin-iosrtc.git"
   },
   "bugs": {
-    "url": "https://github.com/simplyrtc/cordova-plugin-iosrtc-simplyrtc/issues"
+    "url": "https://github.com/BasqueVoIPMafia/cordova-plugin-iosrtc/issues"
   },
   "dependencies": {
     "debug": "^2.6.8",
@@ -42,7 +43,7 @@
     "vinyl-source-stream": "^1.1.0"
   },
   "cordova": {
-    "id": "cordova-plugin-iosrtc-simplyrtc",
+    "id": "cordova-plugin-iosrtc",
     "platforms": [
       "ios"
     ]

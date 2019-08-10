@@ -91,6 +91,6 @@ matrix:
           - node_modules
 script: 
   - "ionic start myApp blank; cd myApp;"
-  - "ionic cordova plugin add cordova-plugin-iosrtc-simplyrtc"
+  - "ionic cordova plugin add cordova-plugin-iosrtc"
   - "ionic cordova platform add $CORDOVA_PLATFORM"
   - "ionic cordova build $CORDOVA_PLATFORM"
