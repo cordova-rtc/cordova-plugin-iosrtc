@@ -1,3 +1,11 @@
+#### Version 4.0.3
+
+* fix README.md
+* Convert syntax to Swift 4.2
+* Update NPM Dependendcies
+* Add Travis build (Ionic, Cordova, Browser, Android, iOS Xcode 10.2)
+
+
 #### Version 4.0.2
 
 * `getUserMedia` constraints: Allow `sourceId` (rather than just `deviceId`) to make adapter.js happy (#282).
