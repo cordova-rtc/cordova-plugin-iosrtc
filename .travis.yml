@@ -17,6 +17,7 @@ env:
     - JAVA_HOME=/usr/lib/jvm/java-8-oracle
 install: 
   - "nvm install $NODE_VERSION"
+  - "npm install -g gulp-cli"
   - "npm install -g cordova@$CORDOVA_VERSION"
   - "npm install -g ionic@$IONIC_VERSION"
   - "npm ci"
@@ -90,6 +91,7 @@ matrix:
         directories: 
           - node_modules
 script: 
+  - "gulp"
   - "ionic start myApp blank; cd myApp;"
   - "ionic cordova plugin add cordova-plugin-iosrtc"
   - "ionic cordova platform add $CORDOVA_PLATFORM"
