@@ -39,8 +39,8 @@
     "gulp-jshint": "^2.0.4",
     "jshint": "^2.9.4",
     "jshint-stylish": "~2.2.1",
-    "vinyl-buffer": "^1.0.0",
-    "vinyl-source-stream": "^1.1.0"
+    "vinyl-buffer": "^1.0.1",
+    "vinyl-source-stream": "^2.0.0"
   },
   "cordova": {
     "id": "cordova-plugin-iosrtc",
