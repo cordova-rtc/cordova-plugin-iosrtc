@@ -2,7 +2,7 @@
 
 * fix README.md
 * Convert syntax to Swift 4.2
-* Update NPM Dependendcies
+* Update NPM dependencies
 * Add Travis build (Ionic, Cordova, Browser, Android, iOS Xcode 10.2)
 
 
