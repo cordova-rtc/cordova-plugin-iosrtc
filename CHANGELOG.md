@@ -5,7 +5,8 @@
 * Uncomment, and fix, onGetStatsCallback closure
 * Update NPM dependencies
 * Add Travis build (Ionic, Cordova, Browser, Android, iOS Xcode 10.2)
-
+* Fix gulp browserify caused by old vinyl package version
+* Migrate from jscs to eslint to fix vulnerabilities reported by npm audit
 
 #### Version 4.0.2
 
