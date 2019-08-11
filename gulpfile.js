@@ -2,8 +2,7 @@
  * Dependencies.
  */
 var gulp = require('gulp'),
-	jscs = require('gulp-jscs'),
-	stylish = require('gulp-jscs-stylish'),
+	eslint = require('gulp-eslint'),
 	browserify = require('browserify'),
 	vinyl_source_stream = require('vinyl-source-stream'),
 	vinyl_buffer = require('vinyl-buffer'),
@@ -33,8 +32,7 @@ gulp.task('lint', function () {
 
 	return gulp.src(src)
 		.pipe(jshint('.jshintrc'))  // Enforce good practics.
-		.pipe(jscs('.jscsrc'))  // Enforce style guide.
-		.pipe(stylish.combineWithHintResults())
+		.pipe(eslint('.eslintrc'))  // Enforce style guide.
 		.pipe(jshint.reporter('jshint-stylish', {verbose: true}))
 		.pipe(jshint.reporter('fail'));
 });
