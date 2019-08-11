@@ -23,6 +23,10 @@
   "bugs": {
     "url": "https://github.com/BasqueVoIPMafia/cordova-plugin-iosrtc/issues"
   },
+  "scripts": {
+    "lint": "gulp lint",
+    "build": "gulp browserify"
+  },
   "dependencies": {
     "debug": "^2.6.8",
     "domready": "^1.0.8",
