@@ -2,6 +2,7 @@
 
 * fix README.md
 * Convert syntax to Swift 4.2
+* Uncomment, and fix, onGetStatsCallback closure
 * Update NPM dependencies
 * Add Travis build (Ionic, Cordova, Browser, Android, iOS Xcode 10.2)
 
