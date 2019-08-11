@@ -664,6 +664,6 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 
 		let jsStatsArray = NSArray(array: jsStats)
 
-		self.onGetStatsCallback(jsStats);
+		self.onGetStatsCallback(jsStatsArray);
 	}
 }
