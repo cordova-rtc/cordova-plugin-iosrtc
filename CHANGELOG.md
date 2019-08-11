@@ -1,4 +1,4 @@
-#### Version 4.0.3
+#### Version 5.0.0
 
 * fix README.md
 * Convert syntax to Swift 4.2
