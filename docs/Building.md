@@ -5,18 +5,8 @@
 
 An iOS Cordova application including the *cordova-plugin-iosrtc* plugin can be built using the [cordova-cli](https://cordova.apache.org/docs/en/edge/guide_cli_index.md.html#The%20Command-Line%20Interface) or Xcode.
 
-The plugin provides a ["hook"](../extra/hooks/iosrtc-swift-support.js) to automate required modifications in both *cordova-cli* and Xcode generated projects.
+The plugin provides a ["hook"](../extra/hooks/iosrtc-swift-support.js) to automate required modifications in both *cordova-cli* and Xcode generated projects. It is no longer necessary to add the "hook" manually, it is installed when platform is removed and added again.
 
-* Put the hook script under the "hooks/" folder of your Cordova project (or wherever you prefer) and give it execution permission:
-```bash
-$ chmod +x hooks/iosrtc-swift-support.js
-```
-* Add these lines to you "config.xml" file:
-```xml
-<platform name="ios">
-	<hook type="after_platform_add" src="hooks/iosrtc-swift-support.js" />
-</platform>
-```
 * Make sure you have the NPM [xcode](https://www.npmjs.com/package/xcode) package installed (locally or globally):
 ```bash
 $ npm install -g xcode

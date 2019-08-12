@@ -1,3 +1,13 @@
+#### Version 5.0.0
+
+* fix README.md
+* Convert syntax to Swift 4.2
+* Uncomment, and fix, onGetStatsCallback closure
+* Update NPM dependencies
+* Add Travis build (Ionic, Cordova, Browser, Android, iOS Xcode 10.2)
+* Fix gulp browserify caused by old vinyl package version
+* Migrate from jscs to eslint to fix vulnerabilities reported by npm audit
+
 #### Version 4.0.2
 
 * `getUserMedia` constraints: Allow `sourceId` (rather than just `deviceId`) to make adapter.js happy (#282).

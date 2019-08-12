@@ -44,6 +44,12 @@ $ cordova plugin add cordova-plugin-iosrtc
 (or add it into a `<plugin>` entry in the `config.xml` of your app).
 
 
+* Remove the iOS platform and add it again (this apply "hook" file):
+```bash
+$ cordova platform remove ios
+$ cordova platform add ios
+```
+
 ## Building
 
 * [Building](docs/Building.md): Guidelines for building a Cordova iOS application including the *cordova-plugin-iosrtc* plugin.
@@ -142,12 +148,13 @@ See [CHANGELOG.md](./CHANGELOG.md).
 
 ## Author
 
-[Iñaki Baz Castillo](https://inakibaz.me/)
+[Iñaki Baz Castillo](https://inakibaz.me)
 
 
 ### Maintainers
 
-* [Iñaki Baz Castillo](https://inakibaz.me/) (no longer active maintainer)
+* [Harold Thetiot](https://sylaps.com)
+* [Iñaki Baz Castillo](https://inakibaz.me) (no longer active maintainer)
 * [Saúl Ibarra Corretgé](http://bettercallsaghul.com) (no longer active maintainer)
 
 Looking for new maintainers. Interested? Comment [here](https://github.com/BasqueVoIPMafia/cordova-plugin-iosrtc/issues/353).
