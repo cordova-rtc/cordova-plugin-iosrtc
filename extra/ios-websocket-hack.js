@@ -6,7 +6,7 @@
  * buggy WebSocket context.
  *
  * The issue is described here:
- *   https://github.com/BasqueVoIPMafia/cordova-plugin-iosrtc/issues/12
+ *   https://github.com/cordova-rtc/cordova-plugin-iosrtc/issues/12
  *
  * USAGE:
  *
