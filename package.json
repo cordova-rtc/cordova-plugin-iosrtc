@@ -31,7 +31,8 @@
     "debug": "^2.6.8",
     "domready": "^1.0.8",
     "random-number": "^0.0.7",
-    "yaeti": "^0.0.6"
+    "yaeti": "^0.0.6",
+    "xcode": "^2.0.0"
   },
   "devDependencies": {
     "browserify": "^14.4.0",
@@ -43,8 +44,7 @@
     "jshint": "^2.9.4",
     "jshint-stylish": "~2.2.1",
     "vinyl-buffer": "^1.0.1",
-    "vinyl-source-stream": "^2.0.0",
-    "xcode": "^2.0.0"
+    "vinyl-source-stream": "^2.0.0"
   },
   "cordova": {
     "id": "cordova-plugin-iosrtc",
