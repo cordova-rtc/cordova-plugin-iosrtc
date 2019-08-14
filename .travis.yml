@@ -91,8 +91,13 @@ matrix:
         directories: 
           - node_modules
 script: 
+  # Get current branch and repository
+  - export BRANCH=$(if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then echo $TRAVIS_BRANCH; else echo $TRAVIS_PULL_REQUEST_BRANCH; fi)
+  - export REPO_SLUG=$(if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then echo $TRAVIS_REPO_SLUG; else echo $TRAVIS_PULL_REQUEST_SLUG; fi)
+  # Lint and Build plugin 
   - "gulp"
+  # Test Plugin platform build
   - "ionic start myApp blank; cd myApp;"
-  - "ionic cordova plugin add cordova-plugin-iosrtc"
+  - "ionic cordova plugin add https://github.com/$REPO_SLUG.git$BRANCH --verbose"
   - "ionic cordova platform add $CORDOVA_PLATFORM"
   - "ionic cordova build $CORDOVA_PLATFORM"
