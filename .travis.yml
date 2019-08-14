@@ -20,6 +20,7 @@ install:
   - "npm install -g gulp-cli"
   - "npm install -g cordova@$CORDOVA_VERSION"
   - "npm install -g ionic@$IONIC_VERSION"
+  - "npm install -g cordova-res"
   - "npm ci"
 matrix: 
   include: 
