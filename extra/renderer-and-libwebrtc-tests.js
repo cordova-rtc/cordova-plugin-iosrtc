@@ -1,7 +1,9 @@
+/* global RTCPeerConnection, MediaStream */
 
 //
 // Camera and Microphone Authorization   
 //
+
 /*
 cordova.plugins.diagnostic.requestMicrophoneAuthorization(function (status) {
     if(status === cordova.plugins.diagnostic.permissionStatus.GRANTED) {
@@ -103,7 +105,7 @@ function TestPluginMediaStreamRenderer(localVideoEl) {
       cordova.plugins.iosrtc.refreshVideos();
     }
 
-    return animateTimer = requestAnimationFrame(animateVideo);
+    return (animateTimer = requestAnimationFrame(animateVideo));
   }
 
   animateTimer = animateVideo();
@@ -157,7 +159,8 @@ function TestRTCPeerConnection(localStream) {
     return can && pc.addIceCandidate(can).catch(function (err) {
       console.log('addIceCandidateError', err);
     });
-  };
+  }
+
   pc1.onicecandidate = function (e) {
     return onAddIceCandidate(pc2, e.candidate);
   };
@@ -186,15 +189,13 @@ function TestRTCPeerConnection(localStream) {
     }
   };
 
-  pc2.onremovestream = function (e) {
-    peerVideoEl.stop();
-  };
-
   pc1.oniceconnectionstatechange = function (e) {
-    return console.log('iceConnectionState', pc1.iceConnectionState);
+    return console.log('iceConnectionState', e, pc1.iceConnectionState);
   };
 
   pc1.onnegotiationneeded = function (e) {
+    console.log('negotiatioNneeded', e);
+
     return pc1.createOffer().then(function (d) {
       return pc1.setLocalDescription(d);
     }).then(function () {
