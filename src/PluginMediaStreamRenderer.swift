@@ -153,12 +153,14 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 			String(videoViewWidth), String(videoViewHeight), String(visible), String(opacity), String(zIndex),
 			String(mirrored), String(clip), String(borderRadius))
 
-		let videoViewLeft: Double = (elementWidth - videoViewWidth) / 2
-		let videoViewTop: Double = (elementHeight - videoViewHeight) / 2
+		let videoViewLeft: Double = (elementWidth - videoViewWidth) / 2;
+		let videoViewTop: Double = (elementHeight - videoViewHeight) / 2;
+		
+		let screenStatusBarHeight = CGFloat(UIApplication.shared.statusBarFrame.height);
 
 		self.elementView.frame = CGRect(
 			x: CGFloat(elementLeft),
-			y: CGFloat(elementTop),
+			y: screenStatusBarHeight + CGFloat(elementTop),
 			width: CGFloat(elementWidth),
 			height: CGFloat(elementHeight)
 		)
@@ -188,10 +190,10 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		self.elementView.alpha = CGFloat(opacity)
 		self.elementView.layer.zPosition = CGFloat(zIndex)
 
-                // if the zIndex is 0 (the default) bring the view to the top, last one wins
-                if zIndex == 0 {
+		// if the zIndex is 0 (the default) bring the view to the top, last one wins
+		if zIndex == 0 {
 			self.webView.superview?.bringSubviewToFront(self.elementView)
-                }
+		}
 
 		if !mirrored {
 			self.elementView.transform = CGAffineTransform.identity
