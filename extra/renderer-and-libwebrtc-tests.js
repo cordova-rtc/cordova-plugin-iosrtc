@@ -194,7 +194,7 @@ function TestRTCPeerConnection(localStream) {
   };
 
   pc1.onnegotiationneeded = function (e) {
-    console.log('negotiatioNneeded', e);
+    console.log('negotiatioNeeded', e);
 
     return pc1.createOffer().then(function (d) {
       return pc1.setLocalDescription(d);
