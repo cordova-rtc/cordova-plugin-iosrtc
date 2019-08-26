@@ -563,8 +563,9 @@ RTCPeerConnection.prototype.getSenders = function () {
 };
 
 RTCPeerConnection.prototype.addTrack = function (track, stream) {
+	var id;
 	for (id in this.localStreams) {
-		if (!matchStream && this.localStreams.hasOwnProperty(id)) {
+		if (this.localStreams.hasOwnProperty(id)) {
 			if (
 				!stream || // No stream target
 					(stream && stream.id === id) // Stream target by id
@@ -577,15 +578,19 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 };
 
 RTCPeerConnection.prototype.removeTrack = function (track) {
-	var matchTrack;
+	var id,
+		hasTrack;
+
+	function matchLocalTrack(localTrack) {
+		return localTrack.id === track.id;
+	}
+
 	for (id in this.localStreams) {
-		if (!this.localStreams.hasOwnProperty(id)) {
-			if (
-				// Check if track is belong to stream
-				this.localStreams[id].getTacks().filter(function (localTrack) {
-					return localTrack.id === track.id;
-				}).length > 0
-			) {
+		if (this.localStreams.hasOwnProperty(id)) {
+			// Check if track is belong to stream
+			hasTrack = (this.localStreams[id].getTacks().filter(matchLocalTrack).length > 0);
+
+			if (hasTrack) {
 				this.localStreams[id].removeTrack(track);
 			}
 		}
