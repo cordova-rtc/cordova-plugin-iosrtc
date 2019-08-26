@@ -592,6 +592,7 @@ RTCPeerConnection.prototype.removeTrack = function (track) {
 
 			if (hasTrack) {
 				this.localStreams[id].removeTrack(track);
+				break;
 			}
 		}
 	}
