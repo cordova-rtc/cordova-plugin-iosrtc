@@ -5,12 +5,11 @@ import AVFoundation
 class PluginGetUserMedia {
 	var rtcPeerConnectionFactory: RTCPeerConnectionFactory
 
-
 	init(rtcPeerConnectionFactory: RTCPeerConnectionFactory) {
 		NSLog("PluginGetUserMedia#init()")
 
 		self.rtcPeerConnectionFactory = rtcPeerConnectionFactory
-	}
+    }
 
 
 	deinit {
@@ -29,6 +28,7 @@ class PluginGetUserMedia {
 		let	audioRequested = constraints.object(forKey: "audio") as? Bool ?? false
 		let	videoRequested = constraints.object(forKey: "video") as? Bool ?? false
 		let	videoDeviceId = constraints.object(forKey: "videoDeviceId") as? String
+        let audioDeviceId = constraints.object(forKey: "audioDeviceId") as? String
 		let	videoMinWidth = constraints.object(forKey: "videoMinWidth") as? Int ?? 0
 		let	videoMaxWidth = constraints.object(forKey: "videoMaxWidth") as? Int ?? 0
 		let	videoMinHeight = constraints.object(forKey: "videoMinHeight") as? Int ?? 0
@@ -86,20 +86,14 @@ class PluginGetUserMedia {
 			// No specific video device requested.
 			if videoDeviceId == nil {
 				NSLog("PluginGetUserMedia#call() | video requested (device not specified)")
-
-				for device: AVCaptureDevice in (AVCaptureDevice.devices(for: AVMediaType(rawValue: convertFromAVMediaType(AVMediaType.video))) ) {
-					if device.position == AVCaptureDevice.Position.front {
-						videoDevice = device
-						break
-					}
-				}
+				videoDevice = AVCaptureDevice.DiscoverySession.init(deviceTypes: [AVCaptureDevice.DeviceType.builtInWideAngleCamera, AVCaptureDevice.DeviceType.builtInDualCamera], mediaType: AVMediaType.video, position: AVCaptureDevice.Position.front).devices[0]
 			}
 
 			// Video device specified.
 			else {
 				NSLog("PluginGetUserMedia#call() | video requested (specified device id: '%@')", String(videoDeviceId!))
-
-				for device: AVCaptureDevice in (AVCaptureDevice.devices(for: AVMediaType(rawValue: convertFromAVMediaType(AVMediaType.video))) ) {
+				let videoDevices: [AVCaptureDevice] = AVCaptureDevice.DiscoverySession.init(deviceTypes: [AVCaptureDevice.DeviceType.builtInWideAngleCamera, AVCaptureDevice.DeviceType.builtInDualCamera], mediaType: AVMediaType.video, position: AVCaptureDevice.Position.unspecified).devices
+				for device: AVCaptureDevice in videoDevices {
 					if device.uniqueID == videoDeviceId {
 						videoDevice = device
 						break
@@ -174,6 +168,11 @@ class PluginGetUserMedia {
 			rtcAudioTrack = self.rtcPeerConnectionFactory.audioTrack(withID: UUID().uuidString)
 
 			rtcMediaStream.addAudioTrack(rtcAudioTrack!)
+
+            if (audioDeviceId != nil) {
+
+                PluginEnumerateDevices.saveAudioDevice(inputDeviceUID: audioDeviceId!)
+            }
 		}
 
 		pluginMediaStream = PluginMediaStream(rtcMediaStream: rtcMediaStream)
