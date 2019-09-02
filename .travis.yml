@@ -80,7 +80,7 @@ matrix:
           - node_modules
     - language: objective-c
       os: osx
-      osx_image: xcode10.2
+      osx_image: xcode11
       env: CORDOVA_PLATFORM=ios
       before_install: 
         - rvm use system
