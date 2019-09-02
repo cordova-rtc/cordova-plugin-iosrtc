@@ -225,10 +225,10 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 		))
 
 		if !self.isAudioInputSelected {
-            PluginEnumerateDevices.setPreferredInput()
-            self.isAudioInputSelected = true
-        }
-
+			PluginEnumerateDevices.setPreferredInput()
+			self.isAudioInputSelected = true
+		}
+		
 		var data: NSDictionary
 
 		if result == true {
