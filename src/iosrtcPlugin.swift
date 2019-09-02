@@ -854,7 +854,7 @@ class iosrtcPlugin : CDVPlugin {
 	}
 
 
-	@objc(dumo:) func dump(_ command: CDVInvokedUrlCommand) {
+	@objc(dump:) func dump(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#dump()")
 
 		for (id, _) in self.pluginRTCPeerConnections {
