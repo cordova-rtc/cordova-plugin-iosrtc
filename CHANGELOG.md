@@ -1,3 +1,6 @@
+#### Version 5.0.1
+* fix typo on iosrtcPlugin.swift
+
 #### Version 5.0.0
 
 * fix README.md
