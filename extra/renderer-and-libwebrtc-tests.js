@@ -63,8 +63,24 @@ appContainer.appendChild(localVideoEl);
 
 var localStream;
 
+navigator.mediaDevices.enumerateDevices().then(function (devices) {
+    console.log('getMediaDevices.ok', devices);
+    devices.forEach(function (device, idx) {
+      console.log('getMediaDevices.devices', idx, device.label, device.kind, device.deviceId);
+    });
+}, function (err) {
+    console.log('getMediaDevices.err', err);
+});
+
 navigator.mediaDevices.getUserMedia({ 
-  video: true, 
+  video: {
+    // Test Back Camera
+    //deviceId: 'com.apple.avfoundation.avcapturedevice.built-in_video:0'
+    //sourceId: 'com.apple.avfoundation.avcapturedevice.built-in_video:0'
+    deviceId: {
+      exact: 'com.apple.avfoundation.avcapturedevice.built-in_video:0'
+    }
+  }, 
   audio: true 
 }).then(function (stream) {
   
