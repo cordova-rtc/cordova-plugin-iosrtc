@@ -97,6 +97,11 @@ function getUserMedia(constraints) {
 		// Also check sourceId (mangled by adapter.js).
 		} else if (typeof constraints.video.sourceId === 'string') {
 			newConstraints.videoDeviceId = constraints.video.sourceId;
+		} else if (typeof constraints.video.deviceId === 'object') {
+			newConstraints.videoDeviceId = !!constraints.video.deviceId.exact ? constraints.video.deviceId.exact : constraints.video.deviceId.ideal;
+			if (Array.isArray(newConstraints.videoDeviceId)) {
+				newConstraints.videoDeviceId = newConstraints.videoDeviceId[0];
+			}
 		}
 
 		// Get requested min/max width.
@@ -128,6 +133,22 @@ function getUserMedia(constraints) {
 		} else if (isPositiveFloat(constraints.video.frameRate)) {
 			newConstraints.videoMinFrameRate = constraints.video.frameRate;
 			newConstraints.videoMaxFrameRate = constraints.video.frameRate;
+		}
+	}
+
+	// Get audio constraints
+	if (audioRequested) {
+		// Get requested audio deviceId.
+		if (typeof constraints.audio.deviceId === 'string') {
+			newConstraints.audioDeviceId = constraints.audio.deviceId;
+		// Also check sourceId (mangled by adapter.js).
+		} else if (typeof constraints.audio.sourceId === 'string') {
+			newConstraints.audioDeviceId = constraints.audio.sourceId;
+		} else if (typeof constraints.audio.deviceId === 'object') {
+			newConstraints.audioDeviceId = !!constraints.audio.deviceId.exact ? constraints.audio.deviceId.exact : constraints.audio.deviceId.ideal;
+			if (Array.isArray(newConstraints.audioDeviceId)) {
+				newConstraints.audioDeviceId = newConstraints.audioDeviceId[0];
+			}
 		}
 	}
 

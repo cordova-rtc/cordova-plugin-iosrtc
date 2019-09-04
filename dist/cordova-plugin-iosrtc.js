@@ -2,8 +2,8 @@
  * cordova-plugin-iosrtc v5.0.0
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015-2017 eFace2Face, Inc. (https://eface2face.com)
- * Copyright 2017-2019 BasqueVoIPMafia (https://github.com/BasqueVoIPMafia)
- * Copyright 2019 Cordova-RTC (https://github.com/cordova-rtc)
+ * Copyright 2015-2019 BasqueVoIPMafia (https://github.com/BasqueVoIPMafia)
+ * Copyright 2017-2019 Cordova-RTC (https://github.com/cordova-rtc)
  * License MIT
  */
 
@@ -2357,6 +2357,11 @@ function getUserMedia(constraints) {
 		// Also check sourceId (mangled by adapter.js).
 		} else if (typeof constraints.video.sourceId === 'string') {
 			newConstraints.videoDeviceId = constraints.video.sourceId;
+		} else if (typeof constraints.video.deviceId === 'object') {
+			newConstraints.videoDeviceId = !!constraints.video.deviceId.exact ? constraints.video.deviceId.exact : constraints.video.deviceId.ideal;
+			if (Array.isArray(newConstraints.videoDeviceId)) {
+				newConstraints.videoDeviceId = newConstraints.videoDeviceId[0];
+			}
 		}
 
 		// Get requested min/max width.
@@ -2388,6 +2393,22 @@ function getUserMedia(constraints) {
 		} else if (isPositiveFloat(constraints.video.frameRate)) {
 			newConstraints.videoMinFrameRate = constraints.video.frameRate;
 			newConstraints.videoMaxFrameRate = constraints.video.frameRate;
+		}
+	}
+
+	// Get audio constraints
+	if (audioRequested) {
+		// Get requested audio deviceId.
+		if (typeof constraints.audio.deviceId === 'string') {
+			newConstraints.audioDeviceId = constraints.audio.deviceId;
+		// Also check sourceId (mangled by adapter.js).
+		} else if (typeof constraints.audio.sourceId === 'string') {
+			newConstraints.audioDeviceId = constraints.audio.sourceId;
+		} else if (typeof constraints.audio.deviceId === 'object') {
+			newConstraints.audioDeviceId = !!constraints.audio.deviceId.exact ? constraints.audio.deviceId.exact : constraints.audio.deviceId.ideal;
+			if (Array.isArray(newConstraints.audioDeviceId)) {
+				newConstraints.audioDeviceId = newConstraints.audioDeviceId[0];
+			}
 		}
 	}
 
@@ -2433,7 +2454,6 @@ function getUserMedia(constraints) {
 
 	exec(onResultOK, onResultError, 'iosrtcPlugin', 'getUserMedia', [newConstraints]);
 }
-
 },{"./Errors":1,"./MediaStream":3,"cordova/exec":undefined,"debug":17}],15:[function(_dereq_,module,exports){
 (function (global){
 /**
