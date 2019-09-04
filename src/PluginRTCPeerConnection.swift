@@ -19,6 +19,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 	var onSetDescriptionSuccessCallback: (() -> Void)!
 	var onSetDescriptionFailureCallback: ((_ error: Error) -> Void)!
 	var onGetStatsCallback: ((_ array: NSArray) -> Void)!
+	var isAudioInputSelected: Bool = false
 
 	init(
 		rtcPeerConnectionFactory: RTCPeerConnectionFactory,
@@ -223,6 +224,11 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 			sdp: candidate
 		))
 
+		if !self.isAudioInputSelected {
+			PluginEnumerateDevices.setPreferredInput()
+			self.isAudioInputSelected = true
+		}
+		
 		var data: NSDictionary
 
 		if result == true {
