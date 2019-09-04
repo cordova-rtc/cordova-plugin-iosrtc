@@ -47,8 +47,8 @@ And then set `Unified-Bridging-Header.h` as the value of the "Objective-C Bridgi
 
 If you still prefer to do it manually open it with Xcode and follow these steps:
 
-* Set "iOS Deployment Target" to `7.0` or higher within your project settings.
-* Set "Deployment Target" to `7.0` or higher within the project target settings.
+* Set "iOS Deployment Target" to `10.2` or higher within your project settings.
+* Set "Deployment Target" to `10.2` or higher within the project target settings.
 * Within the project "Build Settings" add an entry to the "Runpath Search Paths" setting with value `@executable_path/Frameworks`.
 * Within the project "Build Settings" set "Objective-C Bridging Header" to `PROJECT_NAME/Plugins/cordova-plugin-iosrtc/cordova-plugin-iosrtc-Bridging-Header.h` (read more about the "Bridging Header" above).
 * Within the project "Build Settings" set "Enable Bitcode" to "No".
