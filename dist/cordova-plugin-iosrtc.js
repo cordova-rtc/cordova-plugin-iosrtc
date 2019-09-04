@@ -160,9 +160,9 @@ MediaStream.create = function (dataFromEvent) {
 	stream._audioTracks = {};
 	stream._videoTracks = {};
 
-	for (trackId in dataFromEvent.audioTracks) {
-		if (dataFromEvent.audioTracks.hasOwnProperty(trackId)) {
-			track = new MediaStreamTrack(dataFromEvent.audioTracks[trackId]);
+	for (trackId in dataFromEvent._audioTracks) {
+		if (dataFromEvent._audioTracks.hasOwnProperty(trackId)) {
+			track = new MediaStreamTrack(dataFromEvent._audioTracks[trackId]);
 
 			stream._audioTracks[track.id] = track;
 
@@ -170,9 +170,9 @@ MediaStream.create = function (dataFromEvent) {
 		}
 	}
 
-	for (trackId in dataFromEvent.videoTracks) {
-		if (dataFromEvent.videoTracks.hasOwnProperty(trackId)) {
-			track = new MediaStreamTrack(dataFromEvent.videoTracks[trackId]);
+	for (trackId in dataFromEvent._videoTracks) {
+		if (dataFromEvent._videoTracks.hasOwnProperty(trackId)) {
+			track = new MediaStreamTrack(dataFromEvent._videoTracks[trackId]);
 
 			stream._videoTracks[track.id] = track;
 
