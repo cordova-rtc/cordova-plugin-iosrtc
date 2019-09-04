@@ -540,9 +540,9 @@ RTCPeerConnection.prototype.getReceivers = function () {
 	var tracks = [],
 		id;
 
-	for (id in this.localStreams) {
-		if (this.localStreams.hasOwnProperty(id)) {
-			tracks = tracks.concat(this.localStreams[id].getTracks());
+	for (id in this.remoteStreams) {
+		if (this.remoteStreams.hasOwnProperty(id)) {
+			tracks = tracks.concat(this.remoteStreams[id].getTracks());
 		}
 	}
 
