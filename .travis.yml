@@ -100,5 +100,5 @@ script:
   # Test Plugin platform build
   - "ionic start myApp blank; cd myApp;"
   - "ionic cordova plugin add https://github.com/$REPO_SLUG.git#$BRANCH --verbose"
-  - "ionic cordova platform add $CORDOVA_PLATFORM"
-  - "ionic cordova build $CORDOVA_PLATFORM"
+  - "ionic cordova platform add $CORDOVA_PLATFORM --verbose"
+  - "ionic cordova build $CORDOVA_PLATFORM --verbose"
