@@ -228,19 +228,14 @@ RTCPeerConnection.prototype.setLocalDescription = function (desc) {
 		}
 	}
 
-	debug('setLocalDescription() [desc:%o]', desc);
+	// "This is no longer necessary, however; RTCPeerConnection.setLocalDescription() and other 
+	// methods which take SDP as input now directly accept an object conforming to the RTCSessionDescriptionInit dictionary, 
+	// so you don't have to instantiate an RTCSessionDescription yourself.""
+	// Source: https://developer.mozilla.org/en-US/docs/Web/API/RTCSessionDescription/RTCSessionDescription#Example
+	// Still we do instnanciate RTCSessionDescription, so internal object is used properly.
 
 	if (!(desc instanceof RTCSessionDescription)) {
-		if (isPromise) {
-			return new Promise(function (resolve, reject) {
-				reject(new Errors.InvalidSessionDescriptionError('setLocalDescription() must be called with a RTCSessionDescription instance as first argument'));
-			});
-		} else {
-			if (typeof errback === 'function') {
-				errback(new Errors.InvalidSessionDescriptionError('setLocalDescription() must be called with a RTCSessionDescription instance as first argument'));
-			}
-			return;
-		}
+		desc = new RTCSessionDescription(desc);
 	}
 
 	if (isPromise) {
@@ -321,17 +316,14 @@ RTCPeerConnection.prototype.setRemoteDescription = function (desc) {
 
 	debug('setRemoteDescription() [desc:%o]', desc);
 
+	// "This is no longer necessary, however; RTCPeerConnection.setLocalDescription() and other 
+	// methods which take SDP as input now directly accept an object conforming to the RTCSessionDescriptionInit dictionary, 
+	// so you don't have to instantiate an RTCSessionDescription yourself.""
+	// Source: https://developer.mozilla.org/en-US/docs/Web/API/RTCSessionDescription/RTCSessionDescription#Example
+	// Still we do instnanciate RTCSessionDescription so internal object is used properly.
+
 	if (!(desc instanceof RTCSessionDescription)) {
-		if (isPromise) {
-			return new Promise(function (resolve, reject) {
-				reject(new Errors.InvalidSessionDescriptionError('setRemoteDescription() must be called with a RTCSessionDescription instance as first argument'));
-			});
-		} else {
-			if (typeof errback === 'function') {
-				errback(new Errors.InvalidSessionDescriptionError('setRemoteDescription() must be called with a RTCSessionDescription instance as first argument'));
-			}
-			return;
-		}
+		desc = new RTCSessionDescription(desc);
 	}
 
 	if (isPromise) {
