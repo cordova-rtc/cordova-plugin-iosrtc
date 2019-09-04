@@ -1,3 +1,8 @@
+#### Version 5.0.2
+* Add cordova.plugins.iosrtc.getUserMedia MediaTrackConstraints.(video|audio).deviceId.(exact|ideal) support ([PR #374](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/374) by @CSantosM).
+* Add cordova.plugins.iosrtc.getMediaDevices bluetooth and wired audio devices support ([PR #374](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/374) by @CSantosM).
+* Set default deployment target to 10.2
+
 #### Version 5.0.1
 * fix typo on iosrtcPlugin.swift
 
