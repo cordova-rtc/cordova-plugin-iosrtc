@@ -73,7 +73,7 @@ class PluginEnumerateDevices {
 	class func setPreferredInput() -> Void {
 		let audioSession: AVAudioSession = AVAudioSession.sharedInstance()
 		
-		print("SETTING INPUT SELECTED: ", audioInputSelected!)
+		//print("SETTING INPUT SELECTED: ", audioInputSelected!)
 		
 		do {
 			try audioSession.setPreferredInput(audioInputSelected)
