@@ -1,5 +1,5 @@
 /*
- * cordova-plugin-iosrtc v5.0.0
+ * cordova-plugin-iosrtc v5.0.2
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015-2017 eFace2Face, Inc. (https://eface2face.com)
  * Copyright 2015-2019 BasqueVoIPMafia (https://github.com/BasqueVoIPMafia)
@@ -1329,7 +1329,7 @@ module.exports = RTCPeerConnection;
 /**
  * Dependencies.
  */
-var
+var 
 	debug = _dereq_('debug')('iosrtc:RTCPeerConnection'),
 	debugerror = _dereq_('debug')('iosrtc:ERROR:RTCPeerConnection'),
 	exec = _dereq_('cordova/exec'),
@@ -1345,8 +1345,16 @@ var
 	MediaStreamTrack = _dereq_('./MediaStreamTrack'),
 	Errors = _dereq_('./Errors');
 
-
 debugerror.log = console.warn.bind(console);
+
+function deprecateWarning(method, newMethod) {
+	if (!newMethod) {
+		console.warn(method + ' is deprecated.');
+	} else {
+		console.warn(method + ' method is deprecated, use ' + newMethod + 'instead.');	
+	}
+}
+
 
 
 function RTCPeerConnection(pcConfig, pcConstraints) {
@@ -1819,6 +1827,7 @@ RTCPeerConnection.prototype.getConfiguration = function () {
 
 RTCPeerConnection.prototype.getLocalStreams = function () {
 	debug('getLocalStreams()');
+	deprecateWarning('getLocalStreams', 'getSenders');
 
 	var streams = [],
 		id;
@@ -1835,6 +1844,7 @@ RTCPeerConnection.prototype.getLocalStreams = function () {
 
 RTCPeerConnection.prototype.getRemoteStreams = function () {
 	debug('getRemoteStreams()');
+	deprecateWarning('getRemoteStreams', 'getReceivers');
 
 	var streams = [],
 		id;
@@ -1848,6 +1858,67 @@ RTCPeerConnection.prototype.getRemoteStreams = function () {
 	return streams;
 };
 
+RTCPeerConnection.prototype.getReceivers = function () {
+	var tracks = [],
+		id;
+
+	for (id in this.localStreams) {
+		if (this.localStreams.hasOwnProperty(id)) {
+			tracks = tracks.concat(this.localStreams[id].getTacks());
+		}
+	}
+
+	return tracks;
+};
+
+RTCPeerConnection.prototype.getSenders = function () {
+	var tracks = [],
+		id;
+
+	for (id in this.localStreams) {
+		if (this.localStreams.hasOwnProperty(id)) {
+			tracks = tracks.concat(this.localStreams[id].getTacks());
+		}
+	}
+
+	return tracks;
+};
+
+RTCPeerConnection.prototype.addTrack = function (track, stream) {
+	var id;
+	for (id in this.localStreams) {
+		if (this.localStreams.hasOwnProperty(id)) {
+			if (
+				!stream || // No stream target
+					(stream && stream.id === id) // Stream target by id
+			) {
+				this.localStreams[id].addTrack(track);
+				break;
+			}
+		}
+	}
+};
+
+RTCPeerConnection.prototype.removeTrack = function (track) {
+	var id,
+		hasTrack;
+
+	function matchLocalTrack(localTrack) {
+		return localTrack.id === track.id;
+	}
+
+	for (id in this.localStreams) {
+		if (this.localStreams.hasOwnProperty(id)) {
+			// Check if track is belong to stream
+			hasTrack = (this.localStreams[id].getTacks().filter(matchLocalTrack).length > 0);
+
+			if (hasTrack) {
+				this.localStreams[id].removeTrack(track);
+				break;
+			}
+		}
+	}
+};
 
 RTCPeerConnection.prototype.getStreamById = function (id) {
 	debug('getStreamById()');
@@ -2100,6 +2171,10 @@ function onEvent(data) {
 			break;
 
 		case 'negotiationneeded':
+			break;
+
+		case 'ontrack':
+			// TODO
 			break;
 
 		case 'addstream':
