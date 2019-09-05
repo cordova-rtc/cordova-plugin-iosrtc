@@ -853,7 +853,11 @@ class iosrtcPlugin : CDVPlugin {
 		}
 	}
 
-
+	@objc(enableSpeakerphone:) func enableSpeakerphone(_ command: CDVInvokedUrlCommand) {
+		NSLog("iosrtcPlugin#enameSpeakerphone()")
+		PluginEnumerateDevices.enableSpeakerphone()
+	}
+	
 	@objc(dump:) func dump(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#dump()")
 

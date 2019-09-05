@@ -17,6 +17,7 @@ struct MediaDeviceInfo {
 }
 
 var audioInputSelected: AVAudioSessionPortDescription? = nil
+var audioOutputPort: AVAudioSession.PortOverride = AVAudioSession.PortOverride.none
 
 class PluginEnumerateDevices {
 	class func call(_ callback: (_ data: NSDictionary) -> Void) {
@@ -69,17 +70,32 @@ class PluginEnumerateDevices {
 		audioInputSelected = audioInput
 	}
 	
-	// Setter function inserted by set specific audio device
-	class func setPreferredInput() -> Void {
+	// Setter function inserted by set specific audio device and audio output port
+	class func setPreferredInputOutput() -> Void {
 		let audioSession: AVAudioSession = AVAudioSession.sharedInstance()
 		
 		//print("SETTING INPUT SELECTED: ", audioInputSelected!)
 		
 		do {
 			try audioSession.setPreferredInput(audioInputSelected)
+			if (audioOutputPort == AVAudioSession.PortOverride.speaker && UIDevice.current.userInterfaceIdiom == .phone) {
+				try audioSession.overrideOutputAudioPort(audioOutputPort)
+			}
 		} catch {
 			print("Error setting audio device.")
 		}
+	}
+	
+	// Enable iPhone Speakerphone. Setting audioOutputPort with speaker value
+	class func enableSpeakerphone() -> Void {
+		if UIDevice.current.userInterfaceIdiom == .phone {
+			print("Enabling Speakerphone: ")
+			audioOutputPort = AVAudioSession.PortOverride.speaker
+		}
+		else {
+			print("Speakerphone not supported ")
+		}
+		
 	}
 }
 
@@ -102,6 +118,7 @@ fileprivate func getAllAudioDevices() -> [MediaDeviceInfo] {
 
 fileprivate func initAudioDevices() -> Void {
 	let audioSession: AVAudioSession = AVAudioSession.sharedInstance()
+	audioOutputPort = AVAudioSession.PortOverride.none
 	
 	do {
 		try audioSession.setCategory(AVAudioSession.Category.playAndRecord, options: .allowBluetooth)

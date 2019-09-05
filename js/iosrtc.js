@@ -23,6 +23,7 @@ var
 
 	getUserMedia           = require('./getUserMedia'),
 	enumerateDevices       = require('./enumerateDevices'),
+	enableSpeakerphone     = require('./enableSpeakerphone'),
 	RTCPeerConnection      = require('./RTCPeerConnection'),
 	RTCSessionDescription  = require('./RTCSessionDescription'),
 	RTCIceCandidate        = require('./RTCIceCandidate'),
@@ -39,6 +40,7 @@ module.exports = {
 	getUserMedia:          getUserMedia,
 	enumerateDevices:      enumerateDevices,
 	getMediaDevices:       enumerateDevices,  // TMP
+	enableSpeakerphone:    enableSpeakerphone,
 	RTCPeerConnection:     RTCPeerConnection,
 	RTCSessionDescription: RTCSessionDescription,
 	RTCIceCandidate:       RTCIceCandidate,

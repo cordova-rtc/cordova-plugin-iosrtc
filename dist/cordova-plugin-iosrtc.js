@@ -467,7 +467,7 @@ function onEvent(data) {
 	}
 }
 
-},{"./MediaStreamTrack":5,"cordova/exec":undefined,"debug":17,"yaeti":23}],4:[function(_dereq_,module,exports){
+},{"./MediaStreamTrack":5,"cordova/exec":undefined,"debug":18,"yaeti":24}],4:[function(_dereq_,module,exports){
 /**
  * Expose the MediaStreamRenderer class.
  */
@@ -819,7 +819,7 @@ function getElementPositionAndSize() {
 	};
 }
 
-},{"./MediaStream":3,"cordova/exec":undefined,"debug":17,"random-number":22,"yaeti":23}],5:[function(_dereq_,module,exports){
+},{"./MediaStream":3,"cordova/exec":undefined,"debug":18,"random-number":23,"yaeti":24}],5:[function(_dereq_,module,exports){
 /**
  * Expose the MediaStreamTrack class.
  */
@@ -939,7 +939,7 @@ function onEvent(data) {
 	}
 }
 
-},{"./enumerateDevices":13,"cordova/exec":undefined,"debug":17,"yaeti":23}],6:[function(_dereq_,module,exports){
+},{"./enumerateDevices":14,"cordova/exec":undefined,"debug":18,"yaeti":24}],6:[function(_dereq_,module,exports){
 /**
  * Expose the RTCDTMFSender class.
  */
@@ -1071,7 +1071,7 @@ function onEvent(data) {
 	}
 }
 
-},{"cordova/exec":undefined,"debug":17,"random-number":22,"yaeti":23}],7:[function(_dereq_,module,exports){
+},{"cordova/exec":undefined,"debug":18,"random-number":23,"yaeti":24}],7:[function(_dereq_,module,exports){
 /**
  * Expose the RTCDataChannel class.
  */
@@ -1302,7 +1302,7 @@ function onEvent(data) {
 	}
 }
 
-},{"cordova/exec":undefined,"debug":17,"random-number":22,"yaeti":23}],8:[function(_dereq_,module,exports){
+},{"cordova/exec":undefined,"debug":18,"random-number":23,"yaeti":24}],8:[function(_dereq_,module,exports){
 /**
  * Expose the RTCIceCandidate class.
  */
@@ -2125,7 +2125,7 @@ function onEvent(data) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./Errors":1,"./MediaStream":3,"./MediaStreamTrack":5,"./RTCDTMFSender":6,"./RTCDataChannel":7,"./RTCIceCandidate":8,"./RTCSessionDescription":10,"./RTCStatsReport":11,"./RTCStatsResponse":12,"cordova/exec":undefined,"debug":17,"random-number":22,"yaeti":23}],10:[function(_dereq_,module,exports){
+},{"./Errors":1,"./MediaStream":3,"./MediaStreamTrack":5,"./RTCDTMFSender":6,"./RTCDataChannel":7,"./RTCIceCandidate":8,"./RTCSessionDescription":10,"./RTCStatsReport":11,"./RTCStatsResponse":12,"cordova/exec":undefined,"debug":18,"random-number":23,"yaeti":24}],10:[function(_dereq_,module,exports){
 /**
  * Expose the RTCSessionDescription class.
  */
@@ -2181,6 +2181,25 @@ function RTCStatsResponse(data) {
 }
 
 },{}],13:[function(_dereq_,module,exports){
+/**
+ * Expose the enableSpeakerphone function.
+ */
+module.exports = enableSpeakerphone;
+
+/**
+ * Dependencies.
+ */
+var debug = _dereq_('debug')('iosrtc:enableSpeakerphone'),
+	exec = _dereq_('cordova/exec');
+
+
+function enableSpeakerphone() {
+
+	debug('enableSpeakerphone()');
+
+	exec(null, null, 'iosrtcPlugin', 'enableSpeakerphone', []);
+}
+},{"cordova/exec":undefined,"debug":18}],14:[function(_dereq_,module,exports){
 /**
  * Expose the enumerateDevices function.
  */
@@ -2249,7 +2268,7 @@ function getMediaDeviceInfos(devices) {
 	return mediaDeviceInfos;
 }
 
-},{"./MediaDeviceInfo":2,"cordova/exec":undefined,"debug":17}],14:[function(_dereq_,module,exports){
+},{"./MediaDeviceInfo":2,"cordova/exec":undefined,"debug":18}],15:[function(_dereq_,module,exports){
 /**
  * Expose the getUserMedia function.
  */
@@ -2446,7 +2465,7 @@ function getUserMedia(constraints) {
 
 	exec(onResultOK, onResultError, 'iosrtcPlugin', 'getUserMedia', [newConstraints]);
 }
-},{"./Errors":1,"./MediaStream":3,"cordova/exec":undefined,"debug":17}],15:[function(_dereq_,module,exports){
+},{"./Errors":1,"./MediaStream":3,"cordova/exec":undefined,"debug":18}],16:[function(_dereq_,module,exports){
 (function (global){
 /**
  * Variables.
@@ -2473,6 +2492,7 @@ var
 
 	getUserMedia           = _dereq_('./getUserMedia'),
 	enumerateDevices       = _dereq_('./enumerateDevices'),
+	enableSpeakerphone     = _dereq_('./enableSpeakerphone'),
 	RTCPeerConnection      = _dereq_('./RTCPeerConnection'),
 	RTCSessionDescription  = _dereq_('./RTCSessionDescription'),
 	RTCIceCandidate        = _dereq_('./RTCIceCandidate'),
@@ -2489,6 +2509,7 @@ module.exports = {
 	getUserMedia:          getUserMedia,
 	enumerateDevices:      enumerateDevices,
 	getMediaDevices:       enumerateDevices,  // TMP
+	enableSpeakerphone:    enableSpeakerphone,
 	RTCPeerConnection:     RTCPeerConnection,
 	RTCSessionDescription: RTCSessionDescription,
 	RTCIceCandidate:       RTCIceCandidate,
@@ -2560,9 +2581,8 @@ function registerGlobals() {
 function dump() {
 	exec(null, null, 'iosrtcPlugin', 'dump', []);
 }
-
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./MediaStream":3,"./MediaStreamTrack":5,"./RTCIceCandidate":8,"./RTCPeerConnection":9,"./RTCSessionDescription":10,"./enumerateDevices":13,"./getUserMedia":14,"./videoElementsHandler":16,"cordova/exec":undefined,"debug":17,"domready":19}],16:[function(_dereq_,module,exports){
+},{"./MediaStream":3,"./MediaStreamTrack":5,"./RTCIceCandidate":8,"./RTCPeerConnection":9,"./RTCSessionDescription":10,"./enableSpeakerphone":13,"./enumerateDevices":14,"./getUserMedia":15,"./videoElementsHandler":17,"cordova/exec":undefined,"debug":18,"domready":20}],17:[function(_dereq_,module,exports){
 (function (global){
 /**
  * Expose a function that must be called when the library is loaded.
@@ -2920,7 +2940,7 @@ function releaseMediaStreamRenderer(video) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./MediaStreamRenderer":4,"debug":17}],17:[function(_dereq_,module,exports){
+},{"./MediaStreamRenderer":4,"debug":18}],18:[function(_dereq_,module,exports){
 (function (process){
 /**
  * This is the web browser implementation of `debug()`.
@@ -3109,7 +3129,7 @@ function localstorage() {
 }
 
 }).call(this,_dereq_('_process'))
-},{"./debug":18,"_process":21}],18:[function(_dereq_,module,exports){
+},{"./debug":19,"_process":22}],19:[function(_dereq_,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -3313,7 +3333,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":20}],19:[function(_dereq_,module,exports){
+},{"ms":21}],20:[function(_dereq_,module,exports){
 /*!
   * domready (c) Dustin Diaz 2014 - License MIT
   */
@@ -3345,7 +3365,7 @@ function coerce(val) {
 
 });
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 /**
  * Helpers.
  */
@@ -3499,7 +3519,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],21:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -3685,7 +3705,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],22:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 void function(root){
 
   function defaults(options){
@@ -3731,13 +3751,13 @@ void function(root){
   module.exports.defaults = defaults
 }(this)
 
-},{}],23:[function(_dereq_,module,exports){
+},{}],24:[function(_dereq_,module,exports){
 module.exports = {
 	EventTarget : _dereq_('./lib/EventTarget'),
 	Event       : _dereq_('./lib/Event')
 };
 
-},{"./lib/Event":24,"./lib/EventTarget":25}],24:[function(_dereq_,module,exports){
+},{"./lib/Event":25,"./lib/EventTarget":26}],25:[function(_dereq_,module,exports){
 (function (global){
 /**
  * In browsers export the native Event interface.
@@ -3746,7 +3766,7 @@ module.exports = {
 module.exports = global.Event;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],25:[function(_dereq_,module,exports){
+},{}],26:[function(_dereq_,module,exports){
 /**
  * Expose the _EventTarget class.
  */
@@ -3867,5 +3887,5 @@ function _dispatchEvent(event) {
 	return !event.defaultPrevented;
 }
 
-},{}]},{},[15])(15)
+},{}]},{},[16])(16)
 });
