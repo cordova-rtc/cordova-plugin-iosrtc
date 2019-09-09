@@ -16,7 +16,7 @@ var
 	debug = require('debug')('iosrtc:MediaStreamTrack'),
 	exec = require('cordova/exec'),
 	enumerateDevices = require('./enumerateDevices'),
-	EventTarget = require('yaeti').EventTarget;
+	YaetiEventTarget = require('yaeti').EventTarget;
 
 
 function MediaStreamTrack(dataFromEvent) {
@@ -25,7 +25,7 @@ function MediaStreamTrack(dataFromEvent) {
 	var self = this;
 
 	// Make this an EventTarget.
-	EventTarget.call(this);
+	YaetiEventTarget.call(this);
 
 	// Public atributes.
 	this.id = dataFromEvent.id;  // NOTE: It's a string.
@@ -45,6 +45,8 @@ function MediaStreamTrack(dataFromEvent) {
 	exec(onResultOK, null, 'iosrtcPlugin', 'MediaStreamTrack_setListener', [this.id]);
 }
 
+MediaStreamTrack.prototype = Object.create(YaetiEventTarget.prototype);
+MediaStreamTrack.prototype.constructor = MediaStreamTrack;
 
 // Setters.
 Object.defineProperty(MediaStreamTrack.prototype, 'enabled', {
