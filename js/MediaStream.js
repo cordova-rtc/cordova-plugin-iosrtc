@@ -15,7 +15,7 @@ var MediaStream = module.exports = window.Blob,
  */
 	debug = require('debug')('iosrtc:MediaStream'),
 	exec = require('cordova/exec'),
-	EventTarget = require('yaeti').EventTarget,
+	YaetiEventTarget = require('yaeti').EventTarget,
 	MediaStreamTrack = require('./MediaStreamTrack'),
 
 
@@ -27,6 +27,10 @@ var MediaStream = module.exports = window.Blob,
 	// - key: MediaStream blobId.
 	// - value: MediaStream.
 	mediaStreams;
+  Object.assign(MediaStream.prototype, YaetiEventTarget.prototype);
+
+  // MediaStream.prototype = Object.create(YaetiEventTarget.prototype);
+  MediaStream.prototype.constructor =  MediaStream;
 
 
 /**
@@ -38,6 +42,38 @@ MediaStream.setMediaStreams = function (_mediaStreams) {
 	mediaStreams = _mediaStreams;
 };
 
+function newID(){
+   return window.crypto.getRandomValues(new Uint32Array(4)).join('-');
+}
+
+MediaStream.init = function(arg, id){
+
+  debug('new MediaStream(arg) | [arg:%o]', arg);
+  var dataFromEvent;
+  if (arg === undefined){
+    // new mediastream
+    dataFromEvent = {id : id || newID(),
+                    audioTracks : {},
+                    videoTracks : {}};
+  } else if (Array.isArray(arg)){
+    //arg is array of tracks
+    var audioTracks = {};
+    var videoTracks = {};
+    for (var i=0; i<arg.length; i++){
+      var _track = arg[i];
+      if (_track.kind === "audio"){ audioTracks[_track.id] = _track;}
+      else if (_track.kind === "video") {videoTracks[_track.id] = _track;}
+    }
+    dataFromEvent = {id : id || newID(),
+                    audioTracks : audioTracks,
+                    videoTracks : videoTracks};
+  }else {
+  // arg is stream
+  // arg.id = newID();
+  dataFromEvent = arg;
+}
+return MediaStream.create(dataFromEvent);
+};
 
 MediaStream.create = function (dataFromEvent) {
 	debug('create() | [dataFromEvent:%o]', dataFromEvent);
@@ -56,7 +92,7 @@ MediaStream.create = function (dataFromEvent) {
 	mediaStreams[blobId] = stream;
 
 	// Make it an EventTarget.
-	EventTarget.call(stream);
+	YaetiEventTarget.call(stream);
 
 	// Public atributes.
 	stream.id = dataFromEvent.id;
@@ -254,9 +290,15 @@ MediaStream.prototype.emitConnected = function () {
 	}
 	this.connected = true;
 
-	setTimeout(function () {
-		self.dispatchEvent(new Event('connected'));
-	});
+
+
+  setTimeout(function (self) {
+                 var event = new Event('connected');
+                 Object.defineProperty(event, 'target', {value: self, enumerable: true});
+                 self.dispatchEvent(event);
+  	},0,self);
+
+
 };
 
 
