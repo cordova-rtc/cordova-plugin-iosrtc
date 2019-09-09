@@ -104,7 +104,7 @@ var MediaStream = module.exports = window.Blob,
  */
 	debug = _dereq_('debug')('iosrtc:MediaStream'),
 	exec = _dereq_('cordova/exec'),
-	EventTarget = _dereq_('yaeti').EventTarget,
+	YaetiEventTarget = _dereq_('yaeti').EventTarget,
 	MediaStreamTrack = _dereq_('./MediaStreamTrack'),
 
 
@@ -116,6 +116,10 @@ var MediaStream = module.exports = window.Blob,
 	// - key: MediaStream blobId.
 	// - value: MediaStream.
 	mediaStreams;
+  Object.assign(MediaStream.prototype, YaetiEventTarget.prototype);
+
+  // MediaStream.prototype = Object.create(YaetiEventTarget.prototype);
+  MediaStream.prototype.constructor =  MediaStream;
 
 
 /**
@@ -127,6 +131,38 @@ MediaStream.setMediaStreams = function (_mediaStreams) {
 	mediaStreams = _mediaStreams;
 };
 
+function newID(){
+   return window.crypto.getRandomValues(new Uint32Array(4)).join('-');
+}
+
+MediaStream.init = function(arg, id){
+
+  debug('new MediaStream(arg) | [arg:%o]', arg);
+  var dataFromEvent;
+  if (arg === undefined){
+    // new mediastream
+    dataFromEvent = {id : id || newID(),
+                    audioTracks : {},
+                    videoTracks : {}};
+  } else if (Array.isArray(arg)){
+    //arg is array of tracks
+    var audioTracks = {};
+    var videoTracks = {};
+    for (var i=0; i<arg.length; i++){
+      var _track = arg[i];
+      if (_track.kind === "audio"){ audioTracks[_track.id] = _track;}
+      else if (_track.kind === "video") {videoTracks[_track.id] = _track;}
+    }
+    dataFromEvent = {id : id || newID(),
+                    audioTracks : audioTracks,
+                    videoTracks : videoTracks};
+  }else {
+  // arg is stream
+  // arg.id = newID();
+  dataFromEvent = arg;
+}
+return MediaStream.create(dataFromEvent);
+};
 
 MediaStream.create = function (dataFromEvent) {
 	debug('create() | [dataFromEvent:%o]', dataFromEvent);
@@ -145,7 +181,7 @@ MediaStream.create = function (dataFromEvent) {
 	mediaStreams[blobId] = stream;
 
 	// Make it an EventTarget.
-	EventTarget.call(stream);
+	YaetiEventTarget.call(stream);
 
 	// Public atributes.
 	stream.id = dataFromEvent.id;
@@ -343,9 +379,15 @@ MediaStream.prototype.emitConnected = function () {
 	}
 	this.connected = true;
 
-	setTimeout(function () {
-		self.dispatchEvent(new Event('connected'));
-	});
+
+
+  setTimeout(function (self) {
+                 var event = new Event('connected');
+                 Object.defineProperty(event, 'target', {value: self, enumerable: true});
+                 self.dispatchEvent(event);
+  	},0,self);
+
+
 };
 
 
@@ -481,7 +523,7 @@ var
 	debug = _dereq_('debug')('iosrtc:MediaStreamRenderer'),
 	exec = _dereq_('cordova/exec'),
 	randomNumber = _dereq_('random-number').generator({min: 10000, max: 99999, integer: true}),
-	EventTarget = _dereq_('yaeti').EventTarget,
+	YaetiEventTarget = _dereq_('yaeti').EventTarget,
 	MediaStream = _dereq_('./MediaStream');
 
 
@@ -491,7 +533,7 @@ function MediaStreamRenderer(element) {
 	var self = this;
 
 	// Make this an EventTarget.
-	EventTarget.call(this);
+	YaetiEventTarget.call(this);
 
 	if (!(element instanceof HTMLElement)) {
 		throw new Error('a valid HTMLElement is required');
@@ -515,6 +557,8 @@ function MediaStreamRenderer(element) {
 	this.refresh(this);
 }
 
+MediaStreamRenderer.prototype = Object.create(YaetiEventTarget.prototype);
+MediaStreamRenderer.prototype.constructor = MediaStreamRenderer;
 
 MediaStreamRenderer.prototype.render = function (stream) {
 	debug('render() [stream:%o]', stream);
@@ -838,7 +882,7 @@ var
 	debug = _dereq_('debug')('iosrtc:MediaStreamTrack'),
 	exec = _dereq_('cordova/exec'),
 	enumerateDevices = _dereq_('./enumerateDevices'),
-	EventTarget = _dereq_('yaeti').EventTarget;
+	YaetiEventTarget = _dereq_('yaeti').EventTarget;
 
 
 function MediaStreamTrack(dataFromEvent) {
@@ -847,7 +891,7 @@ function MediaStreamTrack(dataFromEvent) {
 	var self = this;
 
 	// Make this an EventTarget.
-	EventTarget.call(this);
+	YaetiEventTarget.call(this);
 
 	// Public atributes.
 	this.id = dataFromEvent.id;  // NOTE: It's a string.
@@ -867,6 +911,8 @@ function MediaStreamTrack(dataFromEvent) {
 	exec(onResultOK, null, 'iosrtcPlugin', 'MediaStreamTrack_setListener', [this.id]);
 }
 
+MediaStreamTrack.prototype = Object.create(YaetiEventTarget.prototype);
+MediaStreamTrack.prototype.constructor = MediaStreamTrack;
 
 // Setters.
 Object.defineProperty(MediaStreamTrack.prototype, 'enabled', {
@@ -954,7 +1000,7 @@ var
 	debugerror = _dereq_('debug')('iosrtc:ERROR:RTCDTMFSender'),
 	exec = _dereq_('cordova/exec'),
 	randomNumber = _dereq_('random-number').generator({min: 10000, max: 99999, integer: true}),
-	EventTarget = _dereq_('yaeti').EventTarget;
+	YaetiEventTarget = _dereq_('yaeti').EventTarget;
 
 
 debugerror.log = console.warn.bind(console);
@@ -964,7 +1010,7 @@ function RTCDTMFSender(peerConnection, track) {
 	var self = this;
 
 	// Make this an EventTarget.
-	EventTarget.call(this);
+	YaetiEventTarget.call(this);
 
 	debug('new() | [track:%o]', track);
 
@@ -987,6 +1033,8 @@ function RTCDTMFSender(peerConnection, track) {
 
 }
 
+RTCDTMFSender.prototype = Object.create(YaetiEventTarget.prototype);
+RTCDTMFSender.prototype.constructor = RTCDTMFSender;
 
 Object.defineProperty(RTCDTMFSender.prototype, 'canInsertDTMF', {
 	get: function () {
@@ -1086,7 +1134,7 @@ var
 	debugerror = _dereq_('debug')('iosrtc:ERROR:RTCDataChannel'),
 	exec = _dereq_('cordova/exec'),
 	randomNumber = _dereq_('random-number').generator({min: 10000, max: 99999, integer: true}),
-	EventTarget = _dereq_('yaeti').EventTarget;
+	YaetiEventTarget = _dereq_('yaeti').EventTarget;
 
 
 debugerror.log = console.warn.bind(console);
@@ -1096,7 +1144,7 @@ function RTCDataChannel(peerConnection, label, options, dataFromEvent) {
 	var self = this;
 
 	// Make this an EventTarget.
-	EventTarget.call(this);
+	YaetiEventTarget.call(this);
 
 	// Created via pc.createDataChannel().
 	if (!dataFromEvent) {
@@ -1176,6 +1224,8 @@ function RTCDataChannel(peerConnection, label, options, dataFromEvent) {
 	}
 }
 
+RTCDataChannel.prototype = Object.create(YaetiEventTarget.prototype);
+RTCDataChannel.prototype.constructor = RTCDataChannel;
 
 // Just 'arraybuffer' binaryType is implemented in Chromium.
 Object.defineProperty(RTCDataChannel.prototype, 'binaryType', {
@@ -1334,7 +1384,7 @@ var
 	debugerror = _dereq_('debug')('iosrtc:ERROR:RTCPeerConnection'),
 	exec = _dereq_('cordova/exec'),
 	randomNumber = _dereq_('random-number').generator({min: 10000, max: 99999, integer: true}),
-	EventTarget = _dereq_('yaeti').EventTarget,
+	YaetiEventTarget = _dereq_('yaeti').EventTarget,
 	RTCSessionDescription = _dereq_('./RTCSessionDescription'),
 	RTCIceCandidate = _dereq_('./RTCIceCandidate'),
 	RTCDataChannel = _dereq_('./RTCDataChannel'),
@@ -1355,16 +1405,17 @@ function RTCPeerConnection(pcConfig, pcConstraints) {
 	var self = this;
 
 	// Make this an EventTarget.
-	EventTarget.call(this);
+	YaetiEventTarget.call(this);
+	Object.defineProperty(this, 'localDescription', { get: function() { return this._localDescription;} });
+	Object.defineProperty(this, 'connectionState', { get: function() { return this.iceConnectionState;} });
 
 	// Public atributes.
-	this.localDescription = null;
+	this._localDescription = null;
 	this.remoteDescription = null;
 	this.signalingState = 'stable';
 	this.iceGatheringState = 'new';
 	this.iceConnectionState = 'new';
 	this.pcConfig = fixPcConfig(pcConfig);
-
 	// Private attributes.
 	this.pcId = randomNumber();
 	this.localStreams = {};
@@ -1376,6 +1427,9 @@ function RTCPeerConnection(pcConfig, pcConstraints) {
 
 	exec(onResultOK, null, 'iosrtcPlugin', 'new_RTCPeerConnection', [this.pcId, this.pcConfig, pcConstraints]);
 }
+
+RTCPeerConnection.prototype = Object.create(YaetiEventTarget.prototype);
+RTCPeerConnection.prototype.constructor = RTCPeerConnection;
 
 
 RTCPeerConnection.prototype.createOffer = function () {
@@ -1419,7 +1473,7 @@ RTCPeerConnection.prototype.createOffer = function () {
 				}
 
 				debugerror('createOffer() | failure: %s', error);
-				reject(new global.DOMError(error));
+				reject(new global.DOMException(error));
 			}
 
 			exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_createOffer', [self.pcId, options]);
@@ -1444,7 +1498,7 @@ RTCPeerConnection.prototype.createOffer = function () {
 
 		debugerror('createOffer() | failure: %s', error);
 		if (typeof errback === 'function') {
-			errback(new global.DOMError(error));
+			errback(new global.DOMException(error));
 		}
 	}
 
@@ -1493,7 +1547,7 @@ RTCPeerConnection.prototype.createAnswer = function () {
 				}
 
 				debugerror('createAnswer() | failure: %s', error);
-				reject(new global.DOMError(error));
+				reject(new global.DOMException(error));
 			}
 
 			exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_createAnswer', [self.pcId, options]);
@@ -1518,7 +1572,7 @@ RTCPeerConnection.prototype.createAnswer = function () {
 
 		debugerror('createAnswer() | failure: %s', error);
 		if (typeof errback === 'function') {
-			errback(new global.DOMError(error));
+			errback(new global.DOMException(error));
 		}
 	}
 
@@ -1550,8 +1604,8 @@ RTCPeerConnection.prototype.setLocalDescription = function (desc) {
 		}
 	}
 
-	// "This is no longer necessary, however; RTCPeerConnection.setLocalDescription() and other 
-	// methods which take SDP as input now directly accept an object conforming to the RTCSessionDescriptionInit dictionary, 
+	// "This is no longer necessary, however; RTCPeerConnection.setLocalDescription() and other
+	// methods which take SDP as input now directly accept an object conforming to the RTCSessionDescriptionInit dictionary,
 	// so you don't have to instantiate an RTCSessionDescription yourself.""
 	// Source: https://developer.mozilla.org/en-US/docs/Web/API/RTCSessionDescription/RTCSessionDescription#Example
 	// Still we do instnanciate RTCSessionDescription, so internal object is used properly.
@@ -1638,8 +1692,8 @@ RTCPeerConnection.prototype.setRemoteDescription = function (desc) {
 
 	debug('setRemoteDescription() [desc:%o]', desc);
 
-	// "This is no longer necessary, however; RTCPeerConnection.setLocalDescription() and other 
-	// methods which take SDP as input now directly accept an object conforming to the RTCSessionDescriptionInit dictionary, 
+	// "This is no longer necessary, however; RTCPeerConnection.setLocalDescription() and other
+	// methods which take SDP as input now directly accept an object conforming to the RTCSessionDescriptionInit dictionary,
 	// so you don't have to instantiate an RTCSessionDescription yourself.""
 	// Source: https://developer.mozilla.org/en-US/docs/Web/API/RTCSessionDescription/RTCSessionDescription#Example
 	// Still we do instnanciate RTCSessionDescription so internal object is used properly.
@@ -1730,11 +1784,11 @@ RTCPeerConnection.prototype.addIceCandidate = function (candidate) {
 	if (typeof candidate !== 'object') {
 		if (isPromise) {
 			return new Promise(function (resolve, reject) {
-				reject(new global.DOMError('addIceCandidate() must be called with a RTCIceCandidate instance or RTCIceCandidateInit object as argument'));
+				reject(new global.DOMException('addIceCandidate() must be called with a RTCIceCandidate instance or RTCIceCandidateInit object as argument'));
 			});
 		} else {
 			if (typeof errback === 'function') {
-				errback(new global.DOMError('addIceCandidate() must be called with a RTCIceCandidate instance or RTCIceCandidateInit object as argument'));
+				errback(new global.DOMException('addIceCandidate() must be called with a RTCIceCandidate instance or RTCIceCandidateInit object as argument'));
 			}
 			return;
 		}
@@ -1764,7 +1818,7 @@ RTCPeerConnection.prototype.addIceCandidate = function (candidate) {
 				}
 
 				debugerror('addIceCandidate() | failure');
-				reject(new global.DOMError('addIceCandidate() failed'));
+				reject(new global.DOMException('addIceCandidate() failed'));
 			}
 
 			exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_addIceCandidate', [self.pcId, candidate]);
@@ -1794,7 +1848,7 @@ RTCPeerConnection.prototype.addIceCandidate = function (candidate) {
 
 		debugerror('addIceCandidate() | failure');
 		if (typeof errback === 'function') {
-			errback(new global.DOMError('addIceCandidate() failed'));
+			errback(new global.DOMException('addIceCandidate() failed'));
 		}
 	}
 
@@ -1959,7 +2013,7 @@ RTCPeerConnection.prototype.getStats = function () {
 				}
 
 				debugerror('getStats() | failure: %s', error);
-				reject(new global.DOMError(error));
+				reject(new global.DOMException(error));
 			}
 
 			exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_getStats', [self.pcId, selector ? selector.id : null]);
@@ -1985,7 +2039,7 @@ RTCPeerConnection.prototype.getStats = function () {
 
 		debugerror('getStats() | failure: %s', error);
 		if (typeof errback === 'function') {
-			errback(new global.DOMError(error));
+			errback(new global.DOMException(error));
 		}
 	}
 
@@ -2047,10 +2101,12 @@ function isClosed() {
 
 function onEvent(data) {
 	var type = data.type,
+   self = this,
 		event = new Event(type),
 		stream,
 		dataChannel,
 		id;
+		Object.defineProperty(event, 'target', {value: self, enumerable: true});
 
 	debug('onEvent() | [type:%s, data:%o]', type, data);
 
@@ -2083,11 +2139,11 @@ function onEvent(data) {
 				event.candidate = null;
 			}
 			// Update localDescription.
-			if (this.localDescription) {
-				this.localDescription.type = data.localDescription.type;
-				this.localDescription.sdp = data.localDescription.sdp;
+			if (this._localDescription) {
+				this._localDescription.type = data.localDescription.type;
+				this._localDescription.sdp = data.localDescription.sdp;
 			} else {
-				this.localDescription = new RTCSessionDescription(data);
+				this._localDescription = new RTCSessionDescription(data);
 			}
 			break;
 
@@ -3754,9 +3810,9 @@ module.exports = _EventTarget;
 
 function _EventTarget() {
 	// Do nothing if called for a native EventTarget object..
-	if (typeof this.addEventListener === 'function') {
-		return;
-	}
+	// if (typeof this.addEventListener === 'function') {
+	// 	return;
+	// }
 
 	this._listeners = {};
 
