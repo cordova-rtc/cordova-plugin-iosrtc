@@ -11,7 +11,7 @@ var
 	debug = require('debug')('iosrtc:MediaStreamRenderer'),
 	exec = require('cordova/exec'),
 	randomNumber = require('random-number').generator({min: 10000, max: 99999, integer: true}),
-	EventTarget = require('yaeti').EventTarget,
+	YaetiEventTarget = require('yaeti').EventTarget,
 	MediaStream = require('./MediaStream');
 
 
@@ -21,7 +21,7 @@ function MediaStreamRenderer(element) {
 	var self = this;
 
 	// Make this an EventTarget.
-	EventTarget.call(this);
+	YaetiEventTarget.call(this);
 
 	if (!(element instanceof HTMLElement)) {
 		throw new Error('a valid HTMLElement is required');
@@ -45,6 +45,8 @@ function MediaStreamRenderer(element) {
 	this.refresh(this);
 }
 
+MediaStreamRenderer.prototype = Object.create(YaetiEventTarget.prototype);
+MediaStreamRenderer.prototype.constructor = MediaStreamRenderer;
 
 MediaStreamRenderer.prototype.render = function (stream) {
 	debug('render() [stream:%o]', stream);
