@@ -12,7 +12,7 @@ var
 	debugerror = require('debug')('iosrtc:ERROR:RTCPeerConnection'),
 	exec = require('cordova/exec'),
 	randomNumber = require('random-number').generator({min: 10000, max: 99999, integer: true}),
-	EventTarget = require('yaeti').EventTarget,
+	YaetiEventTarget = require('yaeti').EventTarget,
 	RTCSessionDescription = require('./RTCSessionDescription'),
 	RTCIceCandidate = require('./RTCIceCandidate'),
 	RTCDataChannel = require('./RTCDataChannel'),
@@ -33,16 +33,17 @@ function RTCPeerConnection(pcConfig, pcConstraints) {
 	var self = this;
 
 	// Make this an EventTarget.
-	EventTarget.call(this);
+	YaetiEventTarget.call(this);
+	Object.defineProperty(this, 'localDescription', { get: function() { return this._localDescription;} });
+	Object.defineProperty(this, 'connectionState', { get: function() { return this.iceConnectionState;} });
 
 	// Public atributes.
-	this.localDescription = null;
+	this._localDescription = null;
 	this.remoteDescription = null;
 	this.signalingState = 'stable';
 	this.iceGatheringState = 'new';
 	this.iceConnectionState = 'new';
 	this.pcConfig = fixPcConfig(pcConfig);
-
 	// Private attributes.
 	this.pcId = randomNumber();
 	this.localStreams = {};
@@ -54,6 +55,9 @@ function RTCPeerConnection(pcConfig, pcConstraints) {
 
 	exec(onResultOK, null, 'iosrtcPlugin', 'new_RTCPeerConnection', [this.pcId, this.pcConfig, pcConstraints]);
 }
+
+RTCPeerConnection.prototype = Object.create(YaetiEventTarget.prototype);
+RTCPeerConnection.prototype.constructor = RTCPeerConnection;
 
 
 RTCPeerConnection.prototype.createOffer = function () {
@@ -97,7 +101,7 @@ RTCPeerConnection.prototype.createOffer = function () {
 				}
 
 				debugerror('createOffer() | failure: %s', error);
-				reject(new global.DOMError(error));
+				reject(new global.DOMException(error));
 			}
 
 			exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_createOffer', [self.pcId, options]);
@@ -122,7 +126,7 @@ RTCPeerConnection.prototype.createOffer = function () {
 
 		debugerror('createOffer() | failure: %s', error);
 		if (typeof errback === 'function') {
-			errback(new global.DOMError(error));
+			errback(new global.DOMException(error));
 		}
 	}
 
@@ -171,7 +175,7 @@ RTCPeerConnection.prototype.createAnswer = function () {
 				}
 
 				debugerror('createAnswer() | failure: %s', error);
-				reject(new global.DOMError(error));
+				reject(new global.DOMException(error));
 			}
 
 			exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_createAnswer', [self.pcId, options]);
@@ -196,7 +200,7 @@ RTCPeerConnection.prototype.createAnswer = function () {
 
 		debugerror('createAnswer() | failure: %s', error);
 		if (typeof errback === 'function') {
-			errback(new global.DOMError(error));
+			errback(new global.DOMException(error));
 		}
 	}
 
@@ -228,8 +232,8 @@ RTCPeerConnection.prototype.setLocalDescription = function (desc) {
 		}
 	}
 
-	// "This is no longer necessary, however; RTCPeerConnection.setLocalDescription() and other 
-	// methods which take SDP as input now directly accept an object conforming to the RTCSessionDescriptionInit dictionary, 
+	// "This is no longer necessary, however; RTCPeerConnection.setLocalDescription() and other
+	// methods which take SDP as input now directly accept an object conforming to the RTCSessionDescriptionInit dictionary,
 	// so you don't have to instantiate an RTCSessionDescription yourself.""
 	// Source: https://developer.mozilla.org/en-US/docs/Web/API/RTCSessionDescription/RTCSessionDescription#Example
 	// Still we do instnanciate RTCSessionDescription, so internal object is used properly.
@@ -316,8 +320,8 @@ RTCPeerConnection.prototype.setRemoteDescription = function (desc) {
 
 	debug('setRemoteDescription() [desc:%o]', desc);
 
-	// "This is no longer necessary, however; RTCPeerConnection.setLocalDescription() and other 
-	// methods which take SDP as input now directly accept an object conforming to the RTCSessionDescriptionInit dictionary, 
+	// "This is no longer necessary, however; RTCPeerConnection.setLocalDescription() and other
+	// methods which take SDP as input now directly accept an object conforming to the RTCSessionDescriptionInit dictionary,
 	// so you don't have to instantiate an RTCSessionDescription yourself.""
 	// Source: https://developer.mozilla.org/en-US/docs/Web/API/RTCSessionDescription/RTCSessionDescription#Example
 	// Still we do instnanciate RTCSessionDescription so internal object is used properly.
@@ -408,11 +412,11 @@ RTCPeerConnection.prototype.addIceCandidate = function (candidate) {
 	if (typeof candidate !== 'object') {
 		if (isPromise) {
 			return new Promise(function (resolve, reject) {
-				reject(new global.DOMError('addIceCandidate() must be called with a RTCIceCandidate instance or RTCIceCandidateInit object as argument'));
+				reject(new global.DOMException('addIceCandidate() must be called with a RTCIceCandidate instance or RTCIceCandidateInit object as argument'));
 			});
 		} else {
 			if (typeof errback === 'function') {
-				errback(new global.DOMError('addIceCandidate() must be called with a RTCIceCandidate instance or RTCIceCandidateInit object as argument'));
+				errback(new global.DOMException('addIceCandidate() must be called with a RTCIceCandidate instance or RTCIceCandidateInit object as argument'));
 			}
 			return;
 		}
@@ -442,7 +446,7 @@ RTCPeerConnection.prototype.addIceCandidate = function (candidate) {
 				}
 
 				debugerror('addIceCandidate() | failure');
-				reject(new global.DOMError('addIceCandidate() failed'));
+				reject(new global.DOMException('addIceCandidate() failed'));
 			}
 
 			exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_addIceCandidate', [self.pcId, candidate]);
@@ -472,7 +476,7 @@ RTCPeerConnection.prototype.addIceCandidate = function (candidate) {
 
 		debugerror('addIceCandidate() | failure');
 		if (typeof errback === 'function') {
-			errback(new global.DOMError('addIceCandidate() failed'));
+			errback(new global.DOMException('addIceCandidate() failed'));
 		}
 	}
 
@@ -637,7 +641,7 @@ RTCPeerConnection.prototype.getStats = function () {
 				}
 
 				debugerror('getStats() | failure: %s', error);
-				reject(new global.DOMError(error));
+				reject(new global.DOMException(error));
 			}
 
 			exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_getStats', [self.pcId, selector ? selector.id : null]);
@@ -663,7 +667,7 @@ RTCPeerConnection.prototype.getStats = function () {
 
 		debugerror('getStats() | failure: %s', error);
 		if (typeof errback === 'function') {
-			errback(new global.DOMError(error));
+			errback(new global.DOMException(error));
 		}
 	}
 
@@ -725,10 +729,12 @@ function isClosed() {
 
 function onEvent(data) {
 	var type = data.type,
+   self = this,
 		event = new Event(type),
 		stream,
 		dataChannel,
 		id;
+		Object.defineProperty(event, 'target', {value: self, enumerable: true});
 
 	debug('onEvent() | [type:%s, data:%o]', type, data);
 
@@ -761,11 +767,11 @@ function onEvent(data) {
 				event.candidate = null;
 			}
 			// Update localDescription.
-			if (this.localDescription) {
-				this.localDescription.type = data.localDescription.type;
-				this.localDescription.sdp = data.localDescription.sdp;
+			if (this._localDescription) {
+				this._localDescription.type = data.localDescription.type;
+				this._localDescription.sdp = data.localDescription.sdp;
 			} else {
-				this.localDescription = new RTCSessionDescription(data);
+				this._localDescription = new RTCSessionDescription(data);
 			}
 			break;
 
