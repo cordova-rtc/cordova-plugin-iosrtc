@@ -12,7 +12,7 @@ var
 	debugerror = require('debug')('iosrtc:ERROR:RTCDTMFSender'),
 	exec = require('cordova/exec'),
 	randomNumber = require('random-number').generator({min: 10000, max: 99999, integer: true}),
-	EventTarget = require('yaeti').EventTarget;
+	YaetiEventTarget = require('yaeti').EventTarget;
 
 
 debugerror.log = console.warn.bind(console);
@@ -22,7 +22,7 @@ function RTCDTMFSender(peerConnection, track) {
 	var self = this;
 
 	// Make this an EventTarget.
-	EventTarget.call(this);
+	YaetiEventTarget.call(this);
 
 	debug('new() | [track:%o]', track);
 
@@ -45,6 +45,8 @@ function RTCDTMFSender(peerConnection, track) {
 
 }
 
+RTCDTMFSender.prototype = Object.create(YaetiEventTarget.prototype);
+RTCDTMFSender.prototype.constructor = RTCDTMFSender;
 
 Object.defineProperty(RTCDTMFSender.prototype, 'canInsertDTMF', {
 	get: function () {
