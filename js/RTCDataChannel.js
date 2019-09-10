@@ -12,7 +12,7 @@ var
 	debugerror = require('debug')('iosrtc:ERROR:RTCDataChannel'),
 	exec = require('cordova/exec'),
 	randomNumber = require('random-number').generator({min: 10000, max: 99999, integer: true}),
-	EventTarget = require('yaeti').EventTarget;
+	YaetiEventTarget = require('yaeti').EventTarget;
 
 
 debugerror.log = console.warn.bind(console);
@@ -22,7 +22,7 @@ function RTCDataChannel(peerConnection, label, options, dataFromEvent) {
 	var self = this;
 
 	// Make this an EventTarget.
-	EventTarget.call(this);
+	YaetiEventTarget.call(this);
 
 	// Created via pc.createDataChannel().
 	if (!dataFromEvent) {
@@ -102,6 +102,8 @@ function RTCDataChannel(peerConnection, label, options, dataFromEvent) {
 	}
 }
 
+RTCDataChannel.prototype = Object.create(YaetiEventTarget.prototype);
+RTCDataChannel.prototype.constructor = RTCDataChannel;
 
 // Just 'arraybuffer' binaryType is implemented in Chromium.
 Object.defineProperty(RTCDataChannel.prototype, 'binaryType', {
