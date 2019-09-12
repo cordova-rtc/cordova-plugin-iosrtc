@@ -1,4 +1,4 @@
-/* global RTCPeerConnection, MediaStream */
+/* global RTCPeerConnection */
 
 //
 // Camera and Microphone Authorization   
@@ -175,15 +175,13 @@ var pc1 = new RTCPeerConnection(),
 function TestRTCPeerConnection(localStream) {
 
   // TODO Deprecated
-  pc1.addStream(localStream);
+  //pc1.addStream(localStream);
 
   // TODO
-  /*
   localStream.getTracks().forEach(function (track) {
     pc1.addTrack(track);
   });
-  */
-
+  
   function onAddIceCandidate(pc, can) {
     return can && pc.addIceCandidate(can).catch(function (err) {
       console.log('addIceCandidateError', err);
