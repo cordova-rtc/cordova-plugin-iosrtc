@@ -12,7 +12,7 @@ var
 	debugerror = require('debug')('iosrtc:ERROR:RTCPeerConnection'),
 	exec = require('cordova/exec'),
 	randomNumber = require('random-number').generator({min: 10000, max: 99999, integer: true}),
-	EventTarget = require('yaeti').EventTarget,
+	EventTarget = require('./EventTarget'),
 	RTCSessionDescription = require('./RTCSessionDescription'),
 	RTCIceCandidate = require('./RTCIceCandidate'),
 	RTCDataChannel = require('./RTCDataChannel'),
@@ -33,8 +33,6 @@ function deprecateWarning(method, newMethod) {
 	}
 }
 
-
-
 function RTCPeerConnection(pcConfig, pcConstraints) {
 	debug('new() | [pcConfig:%o, pcConstraints:%o]', pcConfig, pcConstraints);
 
@@ -44,7 +42,7 @@ function RTCPeerConnection(pcConfig, pcConstraints) {
 	EventTarget.call(this);
 
 	// Public atributes.
-	this.localDescription = null;
+	this._localDescription = null;
 	this.remoteDescription = null;
 	this.signalingState = 'stable';
 	this.iceGatheringState = 'new';
@@ -55,6 +53,10 @@ function RTCPeerConnection(pcConfig, pcConstraints) {
 	this.pcId = randomNumber();
 	this.localStreams = {};
 	this.remoteStreams = {};
+
+	// Expose Getter
+	Object.defineProperty(this, 'localDescription', { get: function() { return this._localDescription;} });
+	Object.defineProperty(this, 'connectionState', { get: function() { return this.iceConnectionState;} });
 
 	function onResultOK(data) {
 		onEvent.call(self, data);
@@ -105,7 +107,7 @@ RTCPeerConnection.prototype.createOffer = function () {
 				}
 
 				debugerror('createOffer() | failure: %s', error);
-				reject(new global.DOMError(error));
+				reject(new global.DOMException(error));
 			}
 
 			exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_createOffer', [self.pcId, options]);
@@ -130,7 +132,7 @@ RTCPeerConnection.prototype.createOffer = function () {
 
 		debugerror('createOffer() | failure: %s', error);
 		if (typeof errback === 'function') {
-			errback(new global.DOMError(error));
+			errback(new global.DOMException(error));
 		}
 	}
 
@@ -179,7 +181,7 @@ RTCPeerConnection.prototype.createAnswer = function () {
 				}
 
 				debugerror('createAnswer() | failure: %s', error);
-				reject(new global.DOMError(error));
+				reject(new global.DOMException(error));
 			}
 
 			exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_createAnswer', [self.pcId, options]);
@@ -204,7 +206,7 @@ RTCPeerConnection.prototype.createAnswer = function () {
 
 		debugerror('createAnswer() | failure: %s', error);
 		if (typeof errback === 'function') {
-			errback(new global.DOMError(error));
+			errback(new global.DOMException(error));
 		}
 	}
 
@@ -255,7 +257,7 @@ RTCPeerConnection.prototype.setLocalDescription = function (desc) {
 
 				debug('setLocalDescription() | success');
 				// Update localDescription.
-				self.localDescription = new RTCSessionDescription(data);
+				self._localDescription = new RTCSessionDescription(data);
 				resolve();
 			}
 
@@ -279,7 +281,7 @@ RTCPeerConnection.prototype.setLocalDescription = function (desc) {
 
 		debug('setLocalDescription() | success');
 		// Update localDescription.
-		self.localDescription = new RTCSessionDescription(data);
+		self._localDescription = new RTCSessionDescription(data);
 		callback();
 	}
 
@@ -416,11 +418,11 @@ RTCPeerConnection.prototype.addIceCandidate = function (candidate) {
 	if (typeof candidate !== 'object') {
 		if (isPromise) {
 			return new Promise(function (resolve, reject) {
-				reject(new global.DOMError('addIceCandidate() must be called with a RTCIceCandidate instance or RTCIceCandidateInit object as argument'));
+				reject(new global.DOMException('addIceCandidate() must be called with a RTCIceCandidate instance or RTCIceCandidateInit object as argument'));
 			});
 		} else {
 			if (typeof errback === 'function') {
-				errback(new global.DOMError('addIceCandidate() must be called with a RTCIceCandidate instance or RTCIceCandidateInit object as argument'));
+				errback(new global.DOMException('addIceCandidate() must be called with a RTCIceCandidate instance or RTCIceCandidateInit object as argument'));
 			}
 			return;
 		}
@@ -450,7 +452,7 @@ RTCPeerConnection.prototype.addIceCandidate = function (candidate) {
 				}
 
 				debugerror('addIceCandidate() | failure');
-				reject(new global.DOMError('addIceCandidate() failed'));
+				reject(new global.DOMException('addIceCandidate() failed'));
 			}
 
 			exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_addIceCandidate', [self.pcId, candidate]);
@@ -480,7 +482,7 @@ RTCPeerConnection.prototype.addIceCandidate = function (candidate) {
 
 		debugerror('addIceCandidate() | failure');
 		if (typeof errback === 'function') {
-			errback(new global.DOMError('addIceCandidate() failed'));
+			errback(new global.DOMException('addIceCandidate() failed'));
 		}
 	}
 
@@ -714,7 +716,7 @@ RTCPeerConnection.prototype.getStats = function () {
 				}
 
 				debugerror('getStats() | failure: %s', error);
-				reject(new global.DOMError(error));
+				reject(new global.DOMException(error));
 			}
 
 			exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_getStats', [self.pcId, selector ? selector.id : null]);
@@ -740,7 +742,7 @@ RTCPeerConnection.prototype.getStats = function () {
 
 		debugerror('getStats() | failure: %s', error);
 		if (typeof errback === 'function') {
-			errback(new global.DOMError(error));
+			errback(new global.DOMException(error));
 		}
 	}
 
@@ -802,10 +804,13 @@ function isClosed() {
 
 function onEvent(data) {
 	var type = data.type,
+		self = this,
 		event = new Event(type),
 		stream,
 		dataChannel,
 		id;
+
+	Object.defineProperty(event, 'target', {value: self, enumerable: true});
 
 	debug('onEvent() | [type:%s, data:%o]', type, data);
 
@@ -837,12 +842,12 @@ function onEvent(data) {
 			} else {
 				event.candidate = null;
 			}
-			// Update localDescription.
-			if (this.localDescription) {
-				this.localDescription.type = data.localDescription.type;
-				this.localDescription.sdp = data.localDescription.sdp;
+			// Update _localDescription.
+			if (this._localDescription) {
+				this._localDescription.type = data.localDescription.type;
+				this._localDescription.sdp = data.localDescription.sdp;
 			} else {
-				this.localDescription = new RTCSessionDescription(data);
+				this._localDescription = new RTCSessionDescription(data);
 			}
 			break;
 
