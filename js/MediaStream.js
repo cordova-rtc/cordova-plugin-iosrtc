@@ -43,11 +43,11 @@ function MediaStream(arg, id) {
 	// new MediaStream([]) // tracks
 	// new MediaStream() // empty
 
-	var stream = new (Function.prototype.bind.apply(originalMediaStream.bind(this), [])); // jshint ignore:line
-	stream._size = 0;
-	stream._type = 'stream';
+	// TODO detect originalMediaStream usage and skip SHIM
+	// TODO attempt CustomMediaStream extend.
 
 	// Extend returned MediaTream with custom MediaStream
+	var stream = new (Function.prototype.bind.apply(originalMediaStream.bind(this), [])); // jshint ignore:line
 	Object.defineProperties(stream, Object.getOwnPropertyDescriptors(MediaStream.prototype));
 
 	// Make it an EventTarget.
@@ -94,16 +94,6 @@ function MediaStream(arg, id) {
 }
 
 MediaStream.prototype = Object.create(originalMediaStream.prototype, {
-	type: {
-		get: function () {
-			return this._type;
-		}
-	},
-	size: {
-		get: function () {
-			return this._size;
-		}
-	},
 	id: {
 		get: function () {
 			return this._id;
@@ -128,11 +118,9 @@ MediaStream.originalMediaStream = originalMediaStream;
  * Class methods.
  */
 
-
 MediaStream.setMediaStreams = function (_mediaStreams) {
 	mediaStreams = _mediaStreams;
 };
-
 
 MediaStream.create = function (dataFromEvent) {
 	debug('create() | [dataFromEvent:%o]', dataFromEvent);
