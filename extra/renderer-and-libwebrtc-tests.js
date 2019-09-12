@@ -88,21 +88,30 @@ navigator.mediaDevices.getUserMedia({
     exact: 'Built-In Microphone'
   }*/
 }).then(function (stream) {
-  
-  localStream = stream;
-  localVideoEl.srcObject = localStream;
 
   console.log('getUserMedia.stream', stream);
   console.log('getUserMedia.stream.getTracks', stream.getTracks());
+
+  var srcObjectStream;
+  try {
+
+    localStream = stream;
+    srcObjectStream = localVideoEl.srcObject = localStream;
+    //localVideoEl.src = window.URL.createObjectURL(stream);
+  
+  } catch (err) {
+    console.log('srcObject.err', err);
+  }
 
   if (cordova && cordova.plugins && cordova.plugins.iosrtc) {
     cordova.plugins.iosrtc.observeVideo(localVideoEl);
   }
 
-  //localVideoEl.src = window.URL.createObjectURL(stream);
+  if (srcObjectStream) {
 
-  TestPluginMediaStreamRenderer(localVideoEl);
-  TestRTCPeerConnection(localStream);
+    TestPluginMediaStreamRenderer(localVideoEl);
+    TestRTCPeerConnection(localStream); 
+  }
  
 }).catch(function (err) {
   console.log('getUserMediaError', err, err.stack);
