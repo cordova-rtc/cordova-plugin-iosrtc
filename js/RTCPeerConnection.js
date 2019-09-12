@@ -41,6 +41,10 @@ function RTCPeerConnection(pcConfig, pcConstraints) {
 	// Make this an EventTarget.
 	EventTarget.call(this);
 
+	// Restore corrupted RTCPeerConnection.prototype
+	// TODO find why adapter prevent events onnegotiationneeded to be trigger.
+	Object.defineProperties(this, RTCPeerConnection.prototype_descriptor);
+	
 	// Public atributes.
 	this._localDescription = null;
 	this.remoteDescription = null;
@@ -800,6 +804,8 @@ RTCPeerConnection.prototype.close = function () {
 	exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_close', [this.pcId]);
 };
 
+// Save current RTCPeerConnection.prototype
+RTCPeerConnection.prototype_descriptor = Object.getOwnPropertyDescriptors(RTCPeerConnection.prototype);
 
 /**
  * Private API.
