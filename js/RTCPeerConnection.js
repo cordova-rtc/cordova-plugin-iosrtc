@@ -556,6 +556,12 @@ RTCPeerConnection.prototype.getSenders = function () {
 
 RTCPeerConnection.prototype.addTrack = function (track, stream) {
 	var id;
+
+	// Add localStreams if missing
+	if (Object.keys(this.localStreams).length === 0) {
+		this.addStream(new MediaStream());
+	}
+
 	for (id in this.localStreams) {
 		if (this.localStreams.hasOwnProperty(id)) {
 			if (
