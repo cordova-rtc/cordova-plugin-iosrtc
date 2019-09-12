@@ -1,23 +1,20 @@
 /**
  * Expose the MediaStream class.
- * Make MediaStream be a Blob so it can be consumed by URL.createObjectURL().
  */
-var MediaStream = module.exports = window.Blob,
-
+module.exports = MediaStream;
 
 /**
  * Spec: http://w3c.github.io/mediacapture-main/#mediastream
  */
 
-
 /**
  * Dependencies.
  */
+var
 	debug = require('debug')('iosrtc:MediaStream'),
 	exec = require('cordova/exec'),
 	EventTarget = require('yaeti').EventTarget,
 	MediaStreamTrack = require('./MediaStreamTrack'),
-
 
 /**
  * Local variables.
@@ -28,6 +25,86 @@ var MediaStream = module.exports = window.Blob,
 	// - value: MediaStream.
 	mediaStreams;
 
+function newMediaStreamId() {
+   return window.crypto.getRandomValues(new Uint32Array(4)).join('-');
+}
+
+/**
+ * Expose the MediaStream class.
+ * Make MediaStream be a Blob so it can be consumed by URL.createObjectURL().
+ */
+function MediaStream(arg, id) {
+	debug('new MediaStream(arg) | [arg:%o]', arg);
+
+	// new MediaStream(new MediaStream()) // stream
+	// new MediaStream([]) // tracks
+	// new MediaStream() // empty
+
+	var stream = this;
+
+	var blob = stream.blob = new (Function.prototype.bind.apply(Blob, [])); // jshint ignore:line
+	blob._size = 0;
+	blob._type = 'stream';
+
+	// Make it an EventTarget.
+	EventTarget.call(stream);
+
+	// Public atributes.
+	stream.id = id || newMediaStreamId();
+	stream.active = true;
+
+	// Public but internal attributes.
+	stream.connected = false;
+
+	// Private attributes.
+	stream._audioTracks = {};
+	stream._videoTracks = {};
+
+	// Store the stream into the dictionary.
+	var blobId = 'MediaStream_' + stream.id;
+	mediaStreams[blobId] = stream;
+
+
+	var tracks = (arg instanceof MediaStream) ? arg.getTracks() : 
+					Array.isArray(arg) ? arg : arg;
+
+	if (Array.isArray(tracks)) {
+		tracks.forEach(function (track) {
+			stream.addTrack(track);
+		});
+	} else {
+		throw new TypeError("Failed to construct 'MediaStream': No matching constructor signature.");
+	}
+
+	function onResultOK(data) {
+		onEvent.call(stream, data);
+	}
+
+	exec(onResultOK, null, 'iosrtcPlugin', 'MediaStream_setListener', [this.id]);
+
+	return this;
+}
+
+MediaStream.prototype = Object.create(Blob.prototype, {
+	type: {
+		get: function () {
+			return this.blob._type;
+		}
+	},
+	size: {
+		get: function () {
+			return this.blob._size;
+		}
+	},
+	// Backwards compatibility.
+	label: {
+		get: function () {
+			return this.id;
+		}
+	}
+});
+
+MediaStream.prototype.constructor = MediaStream;
 
 /**
  * Class methods.
@@ -42,64 +119,8 @@ MediaStream.setMediaStreams = function (_mediaStreams) {
 MediaStream.create = function (dataFromEvent) {
 	debug('create() | [dataFromEvent:%o]', dataFromEvent);
 
-	var stream,
-		blobId = 'MediaStream_' + dataFromEvent.id,
-		trackId,
-		track;
-
-	// Note that this is the Blob constructor.
-	stream = new MediaStream([blobId], {
-		type: 'stream'
-	});
-
-	// Store the stream into the dictionary.
-	mediaStreams[blobId] = stream;
-
-	// Make it an EventTarget.
-	EventTarget.call(stream);
-
-	// Public atributes.
-	stream.id = dataFromEvent.id;
-	stream.label = dataFromEvent.id;  // Backwards compatibility.
-	stream.active = true;
-
-	// Public but internal attributes.
-	stream.connected = false;
-
-	// Private attributes.
-	stream._blobId = blobId;
-	stream._audioTracks = {};
-	stream._videoTracks = {};
-
-	// NOTE: videoTracks on MediaStream from swift while JavaScript object use _videoTracks
-	// This function is for "Native" stream tracks to Javascript stream tracks mapping.
-	for (trackId in dataFromEvent.audioTracks) {
-		if (dataFromEvent.audioTracks.hasOwnProperty(trackId)) {
-			track = new MediaStreamTrack(dataFromEvent.audioTracks[trackId]);
-
-			stream._audioTracks[track.id] = track;
-
-			addListenerForTrackEnded.call(stream, track);
-		}
-	}
-
-	// NOTE: videoTracks on MediaStream from swift while JavaScript object use _videoTracks
-	// This function is for "Native" stream tracks to Javascript stream tracks mapping.
-	for (trackId in dataFromEvent.videoTracks) {
-		if (dataFromEvent.videoTracks.hasOwnProperty(trackId)) {
-			track = new MediaStreamTrack(dataFromEvent.videoTracks[trackId]);
-
-			stream._videoTracks[track.id] = track;
-
-			addListenerForTrackEnded.call(stream, track);
-		}
-	}
-
-	function onResultOK(data) {
-		onEvent.call(stream, data);
-	}
-
-	exec(onResultOK, null, 'iosrtcPlugin', 'MediaStream_setListener', [stream.id]);
+	var tracks = [].contcat(Object.values(dataFromEvent.videoTracks), Object.values(dataFromEvent.videoTracks));
+	var stream = new MediaStream(tracks, dataFromEvent.id);
 
 	return stream;
 };
@@ -381,3 +402,5 @@ function onEvent(data) {
 			break;
 	}
 }
+
+module.exports = MediaStream;
