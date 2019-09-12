@@ -25,13 +25,13 @@ cordova.plugins.diagnostic.requestCameraAuthorization(function (status) {
     console.log(new Error('AuthorizationFailed: ' + err));   
 });
 */
-var useWebRTCAdapter = false;
 
 var cordova = window.cordova;
 
 // Expose WebRTC Globals
 if (cordova && cordova.plugins && cordova.plugins.iosrtc) {
   cordova.plugins.iosrtc.registerGlobals();
+  cordova.plugins.iosrtc.debug.enabled;
 }
 
 
@@ -118,6 +118,7 @@ function TestGetUserMedia() {
   });
 }
 
+var useAnimateVideo = false;
 function TestPluginMediaStreamRenderer(localVideoEl) {
 
   // Animate video position
@@ -126,23 +127,26 @@ function TestPluginMediaStreamRenderer(localVideoEl) {
     y: 0
   };
 
-  var animateTimer;
-  function animateVideo() {
-    
-    currentPosition.x = currentPosition.x < (window.innerWidth - parseInt(localVideoEl.style.width, 10)) ? currentPosition.x + 1 : 0;
-    currentPosition.y = currentPosition.y < (window.innerHeight - parseInt(localVideoEl.style.height, 10)) ? currentPosition.y + 1 : 0;
+  if (useAnimateVideo) {
 
-    localVideoEl.style.top = currentPosition.y + 'px';
-    localVideoEl.style.left = currentPosition.x + 'px';
+    var animateTimer;
+    function animateVideo() {
+      
+      currentPosition.x = currentPosition.x < (window.innerWidth - parseInt(localVideoEl.style.width, 10)) ? currentPosition.x + 1 : 0;
+      currentPosition.y = currentPosition.y < (window.innerHeight - parseInt(localVideoEl.style.height, 10)) ? currentPosition.y + 1 : 0;
 
-    if (cordova && cordova.plugins && cordova.plugins.iosrtc) {
-      cordova.plugins.iosrtc.refreshVideos();
+      localVideoEl.style.top = currentPosition.y + 'px';
+      localVideoEl.style.left = currentPosition.x + 'px';
+
+      if (cordova && cordova.plugins && cordova.plugins.iosrtc) {
+        cordova.plugins.iosrtc.refreshVideos();
+      }
+
+      return (animateTimer = requestAnimationFrame(animateVideo));
     }
 
-    return (animateTimer = requestAnimationFrame(animateVideo));
+    animateTimer = animateVideo(); 
   }
-
-  animateTimer = animateVideo();
 
   //
   // Test Video behind Element
@@ -241,7 +245,7 @@ function TestRTCPeerConnection(localStream) {
   };
 
   pc1.onnegotiationneeded = function (e) {
-    //console.log('pc1.negotiatioNeeded', e);
+    console.log('pc1.negotiatioNeeded', e);
 
     return pc1.createOffer().then(function (d) {
       return pc1.setLocalDescription(d);
@@ -265,19 +269,26 @@ function TestRTCPeerConnection(localStream) {
   };
 }
 
+var useWebRTCAdapter = true;
+
 // Expose webrtc-adapter
-if (useWebRTCAdapter) {
+if (useWebRTCAdapter && typeof window.adapter === 'undefined') {
 
     // load adapter.js
+    var version = 'latest';
     var script = document.createElement("script");
     script.type = "text/javascript";
     //script.src = "adapter-latest.js";
-    script.src = "https://webrtc.github.io/adapter/adapter-latest.js";
-    script.async = true;
+    script.src = "https://webrtc.github.io/adapter/adapter-" + version + ".js";
+    script.async = false;
     document.getElementsByTagName("head")[0].appendChild(script);
     script.onload = function () {
+      console.log('useWebRTCAdapter.loaded', script.src);
       TestGetUserMedia();
     };
 } else {
   TestGetUserMedia();
 }
+
+
+
