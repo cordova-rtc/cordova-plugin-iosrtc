@@ -235,15 +235,19 @@ function TestRTCPeerConnection(localStream) {
     return pc1.createOffer().then(function (d) {
       return pc1.setLocalDescription(d);
     }).then(function () {
-      console.log('pc2.setRemoteDescription', pc1.localDescription);
-      return pc2.setRemoteDescription(pc1.localDescription);
+      return pc2.setRemoteDescription({
+        type: pc1.localDescription.type,
+        sdp: pc1.localDescription.sdp
+      });
     }).then(function () {
       return pc2.createAnswer();
     }).then(function (d) {
       return pc2.setLocalDescription(d);
     }).then(function () {
-      console.log('pc1.setRemoteDescription', pc1.localDescription);
-      return pc1.setRemoteDescription(pc2.localDescription);
+      return pc1.setRemoteDescription({
+        type: pc2.localDescription.type,
+        sdp: pc2.localDescription.sdp
+      });
     }).catch(function (err) {
       console.log('pc1.createOfferError', err);
     });
