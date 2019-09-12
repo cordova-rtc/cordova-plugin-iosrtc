@@ -54,10 +54,6 @@ function RTCPeerConnection(pcConfig, pcConstraints) {
 	this.localStreams = {};
 	this.remoteStreams = {};
 
-	// Expose Getter
-	Object.defineProperty(this, 'localDescription', { get: function() { return this._localDescription;} });
-	Object.defineProperty(this, 'connectionState', { get: function() { return this.iceConnectionState;} });
-
 	function onResultOK(data) {
 		onEvent.call(self, data);
 	}
@@ -65,6 +61,51 @@ function RTCPeerConnection(pcConfig, pcConstraints) {
 	exec(onResultOK, null, 'iosrtcPlugin', 'new_RTCPeerConnection', [this.pcId, this.pcConfig, pcConstraints]);
 }
 
+RTCPeerConnection.prototype = Object.create(EventTarget.prototype);
+RTCPeerConnection.prototype.constructor = RTCPeerConnection;
+
+Object.defineProperties(RTCPeerConnection.prototype, {
+	'localDescription': { 
+		// Fix webrtc-adapter TypeError: Attempting to change the getter of an unconfigurable property.
+		configurable: true,
+		get: function() { 
+			return this._localDescription;
+		}
+	},
+	'connectionState': { 
+		get: function() { 
+			return this.iceConnectionState;
+		} 
+	},
+	'onicecandidate': {
+		// Fix webrtc-adapter TypeError: Attempting to change the getter of an unconfigurable property.
+		configurable: true,
+		set: function (callback) {
+			return this.addEventListener('icecandidate', callback);
+		}
+	},
+	'onaddstream': {
+		// Fix webrtc-adapter TypeError: Attempting to change the getter of an unconfigurable property.
+		configurable: true,
+		set: function (callback) {
+			return this.addEventListener('addstream', callback);
+		}
+	},
+	'oniceconnectionstatechange': {
+		// Fix webrtc-adapter TypeError: Attempting to change the getter of an unconfigurable property.
+		configurable: true,
+		set: function (callback) {
+			return this.addEventListener('iceconnectionstatechange', callback);
+		}
+	},
+	'onnegotiationneeded': {
+		// Fix webrtc-adapter TypeError: Attempting to change the getter of an unconfigurable property.
+		configurable: true,
+		set: function (callback) {
+			return this.addEventListener('negotiationneeded', callback);
+		}
+	}
+});
 
 RTCPeerConnection.prototype.createOffer = function () {
 	var self = this,
@@ -612,7 +653,7 @@ RTCPeerConnection.prototype.addStream = function (stream) {
 
 	debug('addStream()');
 
-	if (!(stream instanceof MediaStream)) {
+	if (!(stream instanceof MediaStream.originalMediaStream)) {
 		throw new Error('addStream() must be called with a MediaStream instance as argument');
 	}
 
@@ -634,7 +675,7 @@ RTCPeerConnection.prototype.removeStream = function (stream) {
 
 	debug('removeStream()');
 
-	if (!(stream instanceof MediaStream)) {
+	if (!(stream instanceof MediaStream.originalMediaStream)) {
 		throw new Error('removeStream() must be called with a MediaStream instance as argument');
 	}
 

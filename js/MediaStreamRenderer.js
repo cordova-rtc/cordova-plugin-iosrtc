@@ -45,13 +45,15 @@ function MediaStreamRenderer(element) {
 	this.refresh(this);
 }
 
+MediaStreamRenderer.prototype = Object.create(EventTarget.prototype);
+MediaStreamRenderer.prototype.constructor = MediaStreamRenderer;
 
 MediaStreamRenderer.prototype.render = function (stream) {
 	debug('render() [stream:%o]', stream);
 
 	var self = this;
 
-	if (!(stream instanceof MediaStream)) {
+	if (!(stream instanceof MediaStream.originalMediaStream)) {
 		throw new Error('render() requires a MediaStream instance as argument');
 	}
 

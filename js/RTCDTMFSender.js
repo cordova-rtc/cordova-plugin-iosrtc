@@ -45,6 +45,8 @@ function RTCDTMFSender(peerConnection, track) {
 
 }
 
+RTCDTMFSender.prototype = Object.create(EventTarget.prototype);
+RTCDTMFSender.prototype.constructor = RTCDTMFSender;
 
 Object.defineProperty(RTCDTMFSender.prototype, 'canInsertDTMF', {
 	get: function () {

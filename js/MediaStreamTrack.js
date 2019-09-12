@@ -45,6 +45,8 @@ function MediaStreamTrack(dataFromEvent) {
 	exec(onResultOK, null, 'iosrtcPlugin', 'MediaStreamTrack_setListener', [this.id]);
 }
 
+MediaStreamTrack.prototype = Object.create(EventTarget.prototype);
+MediaStreamTrack.prototype.constructor = MediaStreamTrack;
 
 // Setters.
 Object.defineProperty(MediaStreamTrack.prototype, 'enabled', {

@@ -102,6 +102,8 @@ function RTCDataChannel(peerConnection, label, options, dataFromEvent) {
 	}
 }
 
+RTCDataChannel.prototype = Object.create(EventTarget.prototype);
+RTCDataChannel.prototype.constructor = RTCDataChannel;
 
 // Just 'arraybuffer' binaryType is implemented in Chromium.
 Object.defineProperty(RTCDataChannel.prototype, 'binaryType', {
