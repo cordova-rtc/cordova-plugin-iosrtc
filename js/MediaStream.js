@@ -29,6 +29,9 @@ function newMediaStreamId() {
    return window.crypto.getRandomValues(new Uint32Array(4)).join('-');
 }
 
+// Save original MediaStream, use Blob if not available
+var originalMediaStream = window.MediaStream || window.Blob;
+
 /**
  * Expose the MediaStream class.
  * Make MediaStream be a Blob so it can be consumed by URL.createObjectURL().
@@ -40,20 +43,18 @@ function MediaStream(arg, id) {
 	// new MediaStream([]) // tracks
 	// new MediaStream() // empty
 
-	var stream = this;
-
-	var stream = new (Function.prototype.bind.apply(Blob, [])); // jshint ignore:line
+	var stream = new (Function.prototype.bind.apply(originalMediaStream.bind(this), [])); // jshint ignore:line
 	stream._size = 0;
 	stream._type = 'stream';
 
-	// Extend returned Blob with MediaStream
+	// Extend returned MediaTream with custom MediaStream
 	Object.defineProperties(stream, Object.getOwnPropertyDescriptors(MediaStream.prototype));
 
 	// Make it an EventTarget.
 	EventTarget.call(stream);
 
 	// Public atributes.
-	stream.id = id || newMediaStreamId();
+	stream._id = id || newMediaStreamId();
 	stream.active = true;
 
 	// Public but internal attributes.
@@ -64,15 +65,19 @@ function MediaStream(arg, id) {
 	stream._videoTracks = {};
 
 	// Store the stream into the dictionary.
-	var blobId = 'MediaStream_' + stream.id;
-	mediaStreams[blobId] = stream;
+	stream._blobId = 'MediaStream_' + stream.id;
+	mediaStreams[stream._blobId] = stream;
 
+	// Convert arg to array of tracks if possible
+	if (
+		(arg instanceof MediaStream) || 
+			(arg instanceof MediaStream.originalMediaStream)
+	) {
+		arg = arg.getTracks();
+	}
 
-	var tracks = (arg instanceof MediaStream) ? arg.getTracks() : 
-					Array.isArray(arg) ? arg : arg;
-
-	if (Array.isArray(tracks)) {
-		tracks.forEach(function (track) {
+	if (Array.isArray(arg)) {
+		arg.forEach(function (track) {
 			stream.addTrack(track);
 		});
 	} else if (typeof arg !== 'undefined') {
@@ -88,7 +93,7 @@ function MediaStream(arg, id) {
 	return stream;
 }
 
-MediaStream.prototype = Object.create(Blob.prototype, {
+MediaStream.prototype = Object.create(originalMediaStream.prototype, {
 	type: {
 		get: function () {
 			return this._type;
@@ -99,10 +104,15 @@ MediaStream.prototype = Object.create(Blob.prototype, {
 			return this._size;
 		}
 	},
+	id: {
+		get: function () {
+			return this._id;
+		}
+	},
 	// Backwards compatibility.
 	label: {
 		get: function () {
-			return this.id;
+			return this._id;
 		}
 	}
 });
@@ -110,6 +120,9 @@ MediaStream.prototype = Object.create(Blob.prototype, {
 Object.defineProperties(MediaStream.prototype, Object.getOwnPropertyDescriptors(EventTarget.prototype));
 
 MediaStream.prototype.constructor = MediaStream;
+
+// Static reference to original MediaStream
+MediaStream.originalMediaStream = originalMediaStream;
 
 /**
  * Class methods.
