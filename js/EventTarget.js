@@ -4,7 +4,12 @@
 var 
 	YaetiEventTarget = require('yaeti').EventTarget;
 
-var EventTarget = YaetiEventTarget;
+var EventTarget = function () {
+	YaetiEventTarget.call(this);	
+};
+
+EventTarget.prototype = Object.create(YaetiEventTarget.prototype);
+EventTarget.prototype.constructor = EventTarget;
 
 /**
  * Expose the EventTarget class.
