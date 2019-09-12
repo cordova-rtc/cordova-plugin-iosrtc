@@ -71,9 +71,11 @@ MediaStream.create = function (dataFromEvent) {
 	stream._audioTracks = {};
 	stream._videoTracks = {};
 
-	for (trackId in dataFromEvent._audioTracks) {
-		if (dataFromEvent._audioTracks.hasOwnProperty(trackId)) {
-			track = new MediaStreamTrack(dataFromEvent._audioTracks[trackId]);
+	// NOTE: videoTracks on MediaStream from swift while JavaScript object use _videoTracks
+	// This function is for "Native" stream tracks to Javascript stream tracks mapping.
+	for (trackId in dataFromEvent.audioTracks) {
+		if (dataFromEvent.audioTracks.hasOwnProperty(trackId)) {
+			track = new MediaStreamTrack(dataFromEvent.audioTracks[trackId]);
 
 			stream._audioTracks[track.id] = track;
 
@@ -81,9 +83,11 @@ MediaStream.create = function (dataFromEvent) {
 		}
 	}
 
-	for (trackId in dataFromEvent._videoTracks) {
-		if (dataFromEvent._videoTracks.hasOwnProperty(trackId)) {
-			track = new MediaStreamTrack(dataFromEvent._videoTracks[trackId]);
+	// NOTE: videoTracks on MediaStream from swift while JavaScript object use _videoTracks
+	// This function is for "Native" stream tracks to Javascript stream tracks mapping.
+	for (trackId in dataFromEvent.videoTracks) {
+		if (dataFromEvent.videoTracks.hasOwnProperty(trackId)) {
+			track = new MediaStreamTrack(dataFromEvent.videoTracks[trackId]);
 
 			stream._videoTracks[track.id] = track;
 
