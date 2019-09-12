@@ -31,7 +31,7 @@ var cordova = window.cordova;
 // Expose WebRTC Globals
 if (cordova && cordova.plugins && cordova.plugins.iosrtc) {
   cordova.plugins.iosrtc.registerGlobals();
-  cordova.plugins.iosrtc.debug.enabled;
+  cordova.plugins.iosrtc.debug.enabled = true;
 }
 
 
@@ -127,24 +127,23 @@ function TestPluginMediaStreamRenderer(localVideoEl) {
     y: 0
   };
 
-  if (useAnimateVideo) {
+  var animateTimer;
+  function animateVideo() {
+    
+    currentPosition.x = currentPosition.x < (window.innerWidth - parseInt(localVideoEl.style.width, 10)) ? currentPosition.x + 1 : 0;
+    currentPosition.y = currentPosition.y < (window.innerHeight - parseInt(localVideoEl.style.height, 10)) ? currentPosition.y + 1 : 0;
 
-    var animateTimer;
-    function animateVideo() {
-      
-      currentPosition.x = currentPosition.x < (window.innerWidth - parseInt(localVideoEl.style.width, 10)) ? currentPosition.x + 1 : 0;
-      currentPosition.y = currentPosition.y < (window.innerHeight - parseInt(localVideoEl.style.height, 10)) ? currentPosition.y + 1 : 0;
+    localVideoEl.style.top = currentPosition.y + 'px';
+    localVideoEl.style.left = currentPosition.x + 'px';
 
-      localVideoEl.style.top = currentPosition.y + 'px';
-      localVideoEl.style.left = currentPosition.x + 'px';
-
-      if (cordova && cordova.plugins && cordova.plugins.iosrtc) {
-        cordova.plugins.iosrtc.refreshVideos();
-      }
-
-      return (animateTimer = requestAnimationFrame(animateVideo));
+    if (cordova && cordova.plugins && cordova.plugins.iosrtc) {
+      cordova.plugins.iosrtc.refreshVideos();
     }
 
+    return (animateTimer = requestAnimationFrame(animateVideo));
+  }
+
+  if (useAnimateVideo) {
     animateTimer = animateVideo(); 
   }
 
@@ -202,7 +201,7 @@ function TestRTCPeerConnection(localStream) {
   
   function onAddIceCandidate(pc, can) {
     console.log('onAddIceCandidate', pc, can);
-    can && pc.addIceCandidate(can).catch(function (err) {
+    return can && pc.addIceCandidate(can).catch(function (err) {
       console.log('addIceCandidateError', err);
     });
   }
