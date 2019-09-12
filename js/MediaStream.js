@@ -13,7 +13,7 @@ module.exports = MediaStream;
 var
 	debug = require('debug')('iosrtc:MediaStream'),
 	exec = require('cordova/exec'),
-	EventTarget = require('yaeti').EventTarget,
+	EventTarget = require('./EventTarget'),
 	MediaStreamTrack = require('./MediaStreamTrack'),
 
 /**
@@ -42,9 +42,12 @@ function MediaStream(arg, id) {
 
 	var stream = this;
 
-	var blob = stream.blob = new (Function.prototype.bind.apply(Blob, [])); // jshint ignore:line
-	blob._size = 0;
-	blob._type = 'stream';
+	var stream = new (Function.prototype.bind.apply(Blob, [])); // jshint ignore:line
+	stream._size = 0;
+	stream._type = 'stream';
+
+	// Extend returned Blob with MediaStream
+	Object.defineProperties(stream, Object.getOwnPropertyDescriptors(MediaStream.prototype));
 
 	// Make it an EventTarget.
 	EventTarget.call(stream);
@@ -72,7 +75,7 @@ function MediaStream(arg, id) {
 		tracks.forEach(function (track) {
 			stream.addTrack(track);
 		});
-	} else {
+	} else if (typeof arg !== 'undefined') {
 		throw new TypeError("Failed to construct 'MediaStream': No matching constructor signature.");
 	}
 
@@ -80,20 +83,20 @@ function MediaStream(arg, id) {
 		onEvent.call(stream, data);
 	}
 
-	exec(onResultOK, null, 'iosrtcPlugin', 'MediaStream_setListener', [this.id]);
+	exec(onResultOK, null, 'iosrtcPlugin', 'MediaStream_setListener', [stream.id]);
 
-	return this;
+	return stream;
 }
 
 MediaStream.prototype = Object.create(Blob.prototype, {
 	type: {
 		get: function () {
-			return this.blob._type;
+			return this._type;
 		}
 	},
 	size: {
 		get: function () {
-			return this.blob._size;
+			return this._size;
 		}
 	},
 	// Backwards compatibility.
@@ -103,6 +106,8 @@ MediaStream.prototype = Object.create(Blob.prototype, {
 		}
 	}
 });
+
+Object.defineProperties(MediaStream.prototype, Object.getOwnPropertyDescriptors(EventTarget.prototype));
 
 MediaStream.prototype.constructor = MediaStream;
 
@@ -119,7 +124,9 @@ MediaStream.setMediaStreams = function (_mediaStreams) {
 MediaStream.create = function (dataFromEvent) {
 	debug('create() | [dataFromEvent:%o]', dataFromEvent);
 
-	var tracks = [].contcat(Object.values(dataFromEvent.videoTracks), Object.values(dataFromEvent.videoTracks));
+	var tracks = [].concat(Object.values(dataFromEvent.audioTracks), Object.values(dataFromEvent.videoTracks)).map(function (trackDataFromEvent) {
+		return new MediaStreamTrack(trackDataFromEvent);
+	});
 	var stream = new MediaStream(tracks, dataFromEvent.id);
 
 	return stream;
@@ -279,9 +286,11 @@ MediaStream.prototype.emitConnected = function () {
 	}
 	this.connected = true;
 
-	setTimeout(function () {
-		self.dispatchEvent(new Event('connected'));
-	});
+	setTimeout(function (self) {
+		var event = new Event('connected');
+		Object.defineProperty(event, 'target', {value: self, enumerable: true});
+		self.dispatchEvent(event);
+	}, 0, self);
 };
 
 
@@ -402,5 +411,3 @@ function onEvent(data) {
 			break;
 	}
 }
-
-module.exports = MediaStream;
