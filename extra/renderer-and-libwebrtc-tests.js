@@ -73,6 +73,9 @@ navigator.mediaDevices.enumerateDevices().then(function (devices) {
 var localStream;
 
 navigator.mediaDevices.getUserMedia({
+  video: true,
+  audio: true
+  /*
   video: {
     // Test Back Camera
     //deviceId: 'com.apple.avfoundation.avcapturedevice.built-in_video:0'
@@ -83,7 +86,7 @@ navigator.mediaDevices.getUserMedia({
   }, 
   audio: {
     exact: 'Built-In Microphone'
-  }
+  }*/
 }).then(function (stream) {
   
   localStream = stream;
@@ -102,7 +105,7 @@ navigator.mediaDevices.getUserMedia({
   TestRTCPeerConnection(localStream);
  
 }).catch(function (err) {
-  console.log('getUserMediaError', err);
+  console.log('getUserMediaError', err, err.stack);
 });
 
 function TestPluginMediaStreamRenderer(localVideoEl) {
@@ -175,12 +178,13 @@ var pc1 = new RTCPeerConnection(),
 function TestRTCPeerConnection(localStream) {
 
   // TODO Deprecated
-  //pc1.addStream(localStream);
+  pc1.addStream(localStream);
 
   // TODO
-  localStream.getTracks().forEach(function (track) {
+  /*localStream.getTracks().forEach(function (track) {
     pc1.addTrack(track);
   });
+  */
   
   function onAddIceCandidate(pc, can) {
     return can && pc.addIceCandidate(can).catch(function (err) {
@@ -231,12 +235,14 @@ function TestRTCPeerConnection(localStream) {
     return pc1.createOffer().then(function (d) {
       return pc1.setLocalDescription(d);
     }).then(function () {
+      console.log('pc2.setRemoteDescription', pc1.localDescription);
       return pc2.setRemoteDescription(pc1.localDescription);
     }).then(function () {
       return pc2.createAnswer();
     }).then(function (d) {
       return pc2.setLocalDescription(d);
     }).then(function () {
+      console.log('pc1.setRemoteDescription', pc1.localDescription);
       return pc1.setRemoteDescription(pc2.localDescription);
     }).catch(function (err) {
       console.log('pc1.createOfferError', err);
