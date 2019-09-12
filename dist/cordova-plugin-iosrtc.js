@@ -53,34 +53,17 @@ function addError(name) {
 
 },{}],2:[function(_dereq_,module,exports){
 /**
- * Expose the EventTarget class.
- */
-module.exports = EventTarget;
-
-/**
  * Dependencies.
  */
 var 
 	YaetiEventTarget = _dereq_('yaeti').EventTarget;
 
+var EventTarget = YaetiEventTarget;
+
 /**
  * Expose the EventTarget class.
  */
-function EventTarget() {
-
-	// Prevent yaeti doing nothing if called for a native EventTarget object..
-	if (typeof this.addEventListener === 'function') {
-		delete this.addEventListener;
-	}
-	
-	var eventTarget = YaetiEventTarget.call(this, arguments);
-
-	return eventTarget;
-}
-
-EventTarget.prototype = Object.create(YaetiEventTarget.prototype);
-
-EventTarget.prototype.constructor = EventTarget;
+module.exports = EventTarget;
 },{"yaeti":24}],3:[function(_dereq_,module,exports){
 /**
  * Expose the MediaDeviceInfo class.
@@ -148,6 +131,9 @@ function newMediaStreamId() {
    return window.crypto.getRandomValues(new Uint32Array(4)).join('-');
 }
 
+// Save original MediaStream, use Blob if not available
+var originalMediaStream = window.MediaStream || window.Blob;
+
 /**
  * Expose the MediaStream class.
  * Make MediaStream be a Blob so it can be consumed by URL.createObjectURL().
@@ -159,20 +145,18 @@ function MediaStream(arg, id) {
 	// new MediaStream([]) // tracks
 	// new MediaStream() // empty
 
-	var stream = this;
-
-	var stream = new (Function.prototype.bind.apply(Blob, [])); // jshint ignore:line
+	var stream = new (Function.prototype.bind.apply(originalMediaStream.bind(this), [])); // jshint ignore:line
 	stream._size = 0;
 	stream._type = 'stream';
 
-	// Extend returned Blob with MediaStream
+	// Extend returned MediaTream with custom MediaStream
 	Object.defineProperties(stream, Object.getOwnPropertyDescriptors(MediaStream.prototype));
 
 	// Make it an EventTarget.
 	EventTarget.call(stream);
 
 	// Public atributes.
-	stream.id = id || newMediaStreamId();
+	stream._id = id || newMediaStreamId();
 	stream.active = true;
 
 	// Public but internal attributes.
@@ -183,15 +167,19 @@ function MediaStream(arg, id) {
 	stream._videoTracks = {};
 
 	// Store the stream into the dictionary.
-	var blobId = 'MediaStream_' + stream.id;
-	mediaStreams[blobId] = stream;
+	stream._blobId = 'MediaStream_' + stream.id;
+	mediaStreams[stream._blobId] = stream;
 
+	// Convert arg to array of tracks if possible
+	if (
+		(arg instanceof MediaStream) || 
+			(arg instanceof MediaStream.originalMediaStream)
+	) {
+		arg = arg.getTracks();
+	}
 
-	var tracks = (arg instanceof MediaStream) ? arg.getTracks() : 
-					Array.isArray(arg) ? arg : arg;
-
-	if (Array.isArray(tracks)) {
-		tracks.forEach(function (track) {
+	if (Array.isArray(arg)) {
+		arg.forEach(function (track) {
 			stream.addTrack(track);
 		});
 	} else if (typeof arg !== 'undefined') {
@@ -207,7 +195,7 @@ function MediaStream(arg, id) {
 	return stream;
 }
 
-MediaStream.prototype = Object.create(Blob.prototype, {
+MediaStream.prototype = Object.create(originalMediaStream.prototype, {
 	type: {
 		get: function () {
 			return this._type;
@@ -218,10 +206,15 @@ MediaStream.prototype = Object.create(Blob.prototype, {
 			return this._size;
 		}
 	},
+	id: {
+		get: function () {
+			return this._id;
+		}
+	},
 	// Backwards compatibility.
 	label: {
 		get: function () {
-			return this.id;
+			return this._id;
 		}
 	}
 });
@@ -229,6 +222,9 @@ MediaStream.prototype = Object.create(Blob.prototype, {
 Object.defineProperties(MediaStream.prototype, Object.getOwnPropertyDescriptors(EventTarget.prototype));
 
 MediaStream.prototype.constructor = MediaStream;
+
+// Static reference to original MediaStream
+MediaStream.originalMediaStream = originalMediaStream;
 
 /**
  * Class methods.
@@ -579,13 +575,15 @@ function MediaStreamRenderer(element) {
 	this.refresh(this);
 }
 
+MediaStreamRenderer.prototype = Object.create(EventTarget.prototype);
+MediaStreamRenderer.prototype.constructor = MediaStreamRenderer;
 
 MediaStreamRenderer.prototype.render = function (stream) {
 	debug('render() [stream:%o]', stream);
 
 	var self = this;
 
-	if (!(stream instanceof MediaStream)) {
+	if (!(stream instanceof MediaStream.originalMediaStream)) {
 		throw new Error('render() requires a MediaStream instance as argument');
 	}
 
@@ -931,6 +929,8 @@ function MediaStreamTrack(dataFromEvent) {
 	exec(onResultOK, null, 'iosrtcPlugin', 'MediaStreamTrack_setListener', [this.id]);
 }
 
+MediaStreamTrack.prototype = Object.create(EventTarget.prototype);
+MediaStreamTrack.prototype.constructor = MediaStreamTrack;
 
 // Setters.
 Object.defineProperty(MediaStreamTrack.prototype, 'enabled', {
@@ -1051,6 +1051,8 @@ function RTCDTMFSender(peerConnection, track) {
 
 }
 
+RTCDTMFSender.prototype = Object.create(EventTarget.prototype);
+RTCDTMFSender.prototype.constructor = RTCDTMFSender;
 
 Object.defineProperty(RTCDTMFSender.prototype, 'canInsertDTMF', {
 	get: function () {
@@ -1240,6 +1242,8 @@ function RTCDataChannel(peerConnection, label, options, dataFromEvent) {
 	}
 }
 
+RTCDataChannel.prototype = Object.create(EventTarget.prototype);
+RTCDataChannel.prototype.constructor = RTCDataChannel;
 
 // Just 'arraybuffer' binaryType is implemented in Chromium.
 Object.defineProperty(RTCDataChannel.prototype, 'binaryType', {
@@ -1440,10 +1444,6 @@ function RTCPeerConnection(pcConfig, pcConstraints) {
 	this.localStreams = {};
 	this.remoteStreams = {};
 
-	// Expose Getter
-	Object.defineProperty(this, 'localDescription', { get: function() { return this._localDescription;} });
-	Object.defineProperty(this, 'connectionState', { get: function() { return this.iceConnectionState;} });
-
 	function onResultOK(data) {
 		onEvent.call(self, data);
 	}
@@ -1451,6 +1451,51 @@ function RTCPeerConnection(pcConfig, pcConstraints) {
 	exec(onResultOK, null, 'iosrtcPlugin', 'new_RTCPeerConnection', [this.pcId, this.pcConfig, pcConstraints]);
 }
 
+RTCPeerConnection.prototype = Object.create(EventTarget.prototype);
+RTCPeerConnection.prototype.constructor = RTCPeerConnection;
+
+Object.defineProperties(RTCPeerConnection.prototype, {
+	'localDescription': { 
+		// Fix webrtc-adapter TypeError: Attempting to change the getter of an unconfigurable property.
+		configurable: true,
+		get: function() { 
+			return this._localDescription;
+		}
+	},
+	'connectionState': { 
+		get: function() { 
+			return this.iceConnectionState;
+		} 
+	},
+	'onicecandidate': {
+		// Fix webrtc-adapter TypeError: Attempting to change the getter of an unconfigurable property.
+		configurable: true,
+		set: function (callback) {
+			return this.addEventListener('icecandidate', callback);
+		}
+	},
+	'onaddstream': {
+		// Fix webrtc-adapter TypeError: Attempting to change the getter of an unconfigurable property.
+		configurable: true,
+		set: function (callback) {
+			return this.addEventListener('addstream', callback);
+		}
+	},
+	'oniceconnectionstatechange': {
+		// Fix webrtc-adapter TypeError: Attempting to change the getter of an unconfigurable property.
+		configurable: true,
+		set: function (callback) {
+			return this.addEventListener('iceconnectionstatechange', callback);
+		}
+	},
+	'onnegotiationneeded': {
+		// Fix webrtc-adapter TypeError: Attempting to change the getter of an unconfigurable property.
+		configurable: true,
+		set: function (callback) {
+			return this.addEventListener('negotiationneeded', callback);
+		}
+	}
+});
 
 RTCPeerConnection.prototype.createOffer = function () {
 	var self = this,
@@ -1998,7 +2043,7 @@ RTCPeerConnection.prototype.addStream = function (stream) {
 
 	debug('addStream()');
 
-	if (!(stream instanceof MediaStream)) {
+	if (!(stream instanceof MediaStream.originalMediaStream)) {
 		throw new Error('addStream() must be called with a MediaStream instance as argument');
 	}
 
@@ -2020,7 +2065,7 @@ RTCPeerConnection.prototype.removeStream = function (stream) {
 
 	debug('removeStream()');
 
-	if (!(stream instanceof MediaStream)) {
+	if (!(stream instanceof MediaStream.originalMediaStream)) {
 		throw new Error('removeStream() must be called with a MediaStream instance as argument');
 	}
 
@@ -3882,7 +3927,8 @@ void function(root){
 }(this)
 
 },{}],24:[function(_dereq_,module,exports){
-module.exports = {
+module.exports =
+{
 	EventTarget : _dereq_('./lib/EventTarget'),
 	Event       : _dereq_('./lib/Event')
 };
@@ -3897,125 +3943,139 @@ module.exports = global.Event;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],26:[function(_dereq_,module,exports){
-/**
- * Expose the _EventTarget class.
- */
-module.exports = _EventTarget;
-
-function _EventTarget() {
-	// Do nothing if called for a native EventTarget object..
-	if (typeof this.addEventListener === 'function') {
-		return;
-	}
-
+function yaetiEventTarget()
+{
 	this._listeners = {};
-
-	this.addEventListener = _addEventListener;
-	this.removeEventListener = _removeEventListener;
-	this.dispatchEvent = _dispatchEvent;
 }
 
-Object.defineProperties(_EventTarget.prototype, {
-	listeners: {
-		get: function () {
-			return this._listeners;
+Object.defineProperties(yaetiEventTarget.prototype,
+	{
+		listeners:
+		{
+			get: function()
+			{
+				return this._listeners;
+			}
 		}
-	}
-});
+	});
 
-function _addEventListener(type, newListener) {
-	var
-		listenersType,
-		i, listener;
+yaetiEventTarget.prototype.addEventListener = function(type, newListener)
+{
+	var listenersType;
+	var i;
+	var listener;
 
-	if (!type || !newListener) {
+	if (!type || !newListener)
 		return;
-	}
 
 	listenersType = this._listeners[type];
-	if (listenersType === undefined) {
-		this._listeners[type] = listenersType = [];
-	}
 
-	for (i = 0; !!(listener = listenersType[i]); i++) {
-		if (listener === newListener) {
+	if (listenersType === undefined)
+		this._listeners[type] = listenersType = [];
+
+	for (i = 0; !!(listener = listenersType[i]); i++)
+	{
+		if (listener === newListener)
 			return;
-		}
 	}
 
 	listenersType.push(newListener);
-}
+};
 
-function _removeEventListener(type, oldListener) {
-	var
-		listenersType,
-		i, listener;
+yaetiEventTarget.prototype.removeEventListener = function(type, oldListener)
+{
+	var listenersType;
+	var i;
+	var listener;
 
-	if (!type || !oldListener) {
+	if (!type || !oldListener)
 		return;
-	}
 
 	listenersType = this._listeners[type];
-	if (listenersType === undefined) {
-		return;
-	}
 
-	for (i = 0; !!(listener = listenersType[i]); i++) {
-		if (listener === oldListener) {
+	if (listenersType === undefined)
+		return;
+
+	for (i = 0; !!(listener = listenersType[i]); i++)
+	{
+		if (listener === oldListener)
+		{
 			listenersType.splice(i, 1);
 			break;
 		}
 	}
 
-	if (listenersType.length === 0) {
+	if (listenersType.length === 0)
 		delete this._listeners[type];
-	}
-}
+};
 
-function _dispatchEvent(event) {
-	var
-		type,
-		listenersType,
-		dummyListener,
-		stopImmediatePropagation = false,
-		i, listener;
+yaetiEventTarget.prototype.dispatchEvent = function(event)
+{
+	var type;
+	var listenersType;
+	var dummyListener;
+	var stopImmediatePropagation = false;
+	var i;
+	var listener;
 
-	if (!event || typeof event.type !== 'string') {
+	if (!event || typeof event.type !== 'string')
 		throw new Error('`event` must have a valid `type` property');
-	}
 
 	// Do some stuff to emulate DOM Event behavior (just if this is not a
-	// DOM Event object)
-	if (event._yaeti) {
+	// DOM Event object).
+	if (event._yaeti)
+	{
 		event.target = this;
 		event.cancelable = true;
 	}
 
-	// Attempt to override the stopImmediatePropagation() method
-	try {
-		event.stopImmediatePropagation = function () {
+	// Attempt to override the stopImmediatePropagation() method.
+	try
+	{
+		event.stopImmediatePropagation = function()
+		{
 			stopImmediatePropagation = true;
 		};
-	} catch (error) {}
+	}
+	catch (error)
+	{}
 
 	type = event.type;
 	listenersType = (this._listeners[type] || []);
 
 	dummyListener = this['on' + type];
-	if (typeof dummyListener === 'function') {
-		dummyListener.call(this, event);
+
+	if (typeof dummyListener === 'function')
+	{
+		try
+		{
+			dummyListener.call(this, event);
+		}
+		catch (error)
+		{
+			console.error(error);
+		}
 	}
 
-	for (i = 0; !!(listener = listenersType[i]); i++) {
-		if (stopImmediatePropagation) {
+	for (i = 0; !!(listener = listenersType[i]); i++)
+	{
+		if (stopImmediatePropagation)
 			break;
-		}
 
-		listener.call(this, event);
+		try
+		{
+			listener.call(this, event);
+		}
+		catch (error)
+		{
+			console.error(error);
+		}
 	}
 
 	return !event.defaultPrevented;
-}
+};
+
+module.exports = yaetiEventTarget;
 
 },{}]},{},[16])(16)
 });
