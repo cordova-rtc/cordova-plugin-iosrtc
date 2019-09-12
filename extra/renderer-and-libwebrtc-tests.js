@@ -61,8 +61,6 @@ localVideoEl.style.height = "100px";
 localVideoEl.style.transform = "scaleX(-1)";
 appContainer.appendChild(localVideoEl);
 
-var localStream;
-
 navigator.mediaDevices.enumerateDevices().then(function (devices) {
     console.log('getMediaDevices.ok', devices);
     devices.forEach(function (device, idx) {
@@ -72,7 +70,9 @@ navigator.mediaDevices.enumerateDevices().then(function (devices) {
     console.log('getMediaDevices.err', err);
 });
 
-navigator.mediaDevices.getUserMedia({ 
+var localStream;
+
+navigator.mediaDevices.getUserMedia({
   video: {
     // Test Back Camera
     //deviceId: 'com.apple.avfoundation.avcapturedevice.built-in_video:0'
@@ -81,11 +81,16 @@ navigator.mediaDevices.getUserMedia({
       exact: 'com.apple.avfoundation.avcapturedevice.built-in_video:0'
     }
   }, 
-  audio: true 
+  audio: {
+    exact: 'Built-In Microphone'
+  }
 }).then(function (stream) {
   
   localStream = stream;
   localVideoEl.srcObject = localStream;
+
+  console.log('getUserMedia.stream', stream);
+  console.log('getUserMedia.stream.getTracks', stream.getTracks());
 
   if (cordova && cordova.plugins && cordova.plugins.iosrtc) {
     cordova.plugins.iosrtc.observeVideo(localVideoEl);
@@ -169,7 +174,15 @@ var pc1 = new RTCPeerConnection(),
 
 function TestRTCPeerConnection(localStream) {
 
-  pc1.addStream(MediaStream.create(localStream));
+  // TODO Deprecated
+  pc1.addStream(localStream);
+
+  // TODO
+  /*
+  localStream.getTracks().forEach(function (track) {
+    pc1.addTrack(track);
+  });
+  */
 
   function onAddIceCandidate(pc, can) {
     return can && pc.addIceCandidate(can).catch(function (err) {
@@ -196,7 +209,7 @@ function TestRTCPeerConnection(localStream) {
   appContainer.appendChild(peerVideoEl);
 
   pc2.onaddstream = function (e) {
-    console.log('onAddStream', e);
+    console.log('pc2.onAddStream', e);
 
     peerVideoEl.srcObject = e.stream;
 
@@ -206,11 +219,16 @@ function TestRTCPeerConnection(localStream) {
   };
 
   pc1.oniceconnectionstatechange = function (e) {
-    return console.log('iceConnectionState', e, pc1.iceConnectionState);
+    console.log('pc1.iceConnectionState', e, pc1.iceConnectionState);
+
+    if (pc1.iceConnectionState === 'completed') {      
+      console.log('pc1.getSenders', pc1.getSenders());
+      console.log('pc2.getReceivers', pc2.getReceivers());
+    }
   };
 
   pc1.onnegotiationneeded = function (e) {
-    console.log('negotiatioNeeded', e);
+    console.log('pc1.negotiatioNeeded', e);
 
     return pc1.createOffer().then(function (d) {
       return pc1.setLocalDescription(d);
@@ -223,7 +241,7 @@ function TestRTCPeerConnection(localStream) {
     }).then(function () {
       return pc1.setRemoteDescription(pc2.localDescription);
     }).catch(function (err) {
-      console.log('createOfferError', err);
+      console.log('pc1.createOfferError', err);
     });
   };
 }
