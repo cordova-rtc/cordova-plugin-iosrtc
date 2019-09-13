@@ -20,7 +20,7 @@ var
  * Local variables.
  */
 
-	// Dictionary of MediaStreams (provided via setMediaStreams() class method).
+	// Dictionary of MediaStreams (provided via getMediaStreams() class method).
 	// - key: MediaStream blobId.
 	// - value: MediaStream.
 	mediaStreams;
@@ -120,6 +120,10 @@ MediaStream.originalMediaStream = originalMediaStream;
 
 MediaStream.setMediaStreams = function (_mediaStreams) {
 	mediaStreams = _mediaStreams;
+};
+
+MediaStream.getMediaStreams = function () {
+	return mediaStreams;
 };
 
 MediaStream.create = function (dataFromEvent) {
