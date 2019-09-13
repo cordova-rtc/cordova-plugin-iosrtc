@@ -18,6 +18,8 @@ var
 	enumerateDevices = require('./enumerateDevices'),
 	EventTarget = require('./EventTarget');
 
+// Save original MediaStreamTrack
+var originalMediaStreamTrack = window.MediaStreamTrack;
 
 function MediaStreamTrack(dataFromEvent) {
 	debug('new() | [dataFromEvent:%o]', dataFromEvent);
@@ -47,6 +49,9 @@ function MediaStreamTrack(dataFromEvent) {
 
 MediaStreamTrack.prototype = Object.create(EventTarget.prototype);
 MediaStreamTrack.prototype.constructor = MediaStreamTrack;
+
+// Static reference to original MediaStreamTrack
+MediaStreamTrack.originalMediaStreamTrack = originalMediaStreamTrack;
 
 // Setters.
 Object.defineProperty(MediaStreamTrack.prototype, 'enabled', {
