@@ -3,7 +3,6 @@
  */
 module.exports = MediaDeviceInfo;
 
-
 function MediaDeviceInfo(data) {
 	data = data || {};
 

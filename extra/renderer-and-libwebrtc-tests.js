@@ -268,7 +268,7 @@ function TestRTCPeerConnection(localStream) {
   };
 }
 
-var useWebRTCAdapter = true;
+var useWebRTCAdapter = false;
 
 // Expose webrtc-adapter
 if (useWebRTCAdapter && typeof window.adapter === 'undefined') {

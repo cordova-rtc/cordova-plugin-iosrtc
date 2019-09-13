@@ -75,7 +75,6 @@ module.exports = EventTarget;
  */
 module.exports = MediaDeviceInfo;
 
-
 function MediaDeviceInfo(data) {
 	data = data || {};
 
@@ -1494,21 +1493,8 @@ Object.defineProperties(RTCPeerConnection.prototype, {
 	}
 });
 
-RTCPeerConnection.prototype.createOffer = function () {
-	var self = this,
-		isPromise,
-		options,
-		callback, errback;
-
-	if (typeof arguments[0] !== 'function') {
-		isPromise = true;
-		options = arguments[0];
-	} else {
-		isPromise = false;
-		callback = arguments[0];
-		errback = arguments[1];
-		options = arguments[2];
-	}
+RTCPeerConnection.prototype.createOffer = function (options) {
+	var self = this;
 
 	if (isClosed.call(this)) {
 		return;
@@ -1516,73 +1502,34 @@ RTCPeerConnection.prototype.createOffer = function () {
 
 	debug('createOffer() [options:%o]', options);
 
-	if (isPromise) {
-		return new Promise(function (resolve, reject) {
-			function onResultOK(data) {
-				if (isClosed.call(self)) {
-					return;
-				}
-
-				var desc = new RTCSessionDescription(data);
-
-				debug('createOffer() | success [desc:%o]', desc);
-				resolve(desc);
+	return new Promise(function (resolve, reject) {
+		function onResultOK(data) {
+			if (isClosed.call(self)) {
+				return;
 			}
 
-			function onResultError(error) {
-				if (isClosed.call(self)) {
-					return;
-				}
+			var desc = new RTCSessionDescription(data);
 
-				debugerror('createOffer() | failure: %s', error);
-				reject(new global.DOMException(error));
+			debug('createOffer() | success [desc:%o]', desc);
+			resolve(desc);
+		}
+
+		function onResultError(error) {
+			if (isClosed.call(self)) {
+				return;
 			}
 
-			exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_createOffer', [self.pcId, options]);
-		});
-	}
-
-	function onResultOK(data) {
-		if (isClosed.call(self)) {
-			return;
+			debugerror('createOffer() | failure: %s', error);
+			reject(new global.DOMException(error));
 		}
 
-		var desc = new RTCSessionDescription(data);
-
-		debug('createOffer() | success [desc:%o]', desc);
-		callback(desc);
-	}
-
-	function onResultError(error) {
-		if (isClosed.call(self)) {
-			return;
-		}
-
-		debugerror('createOffer() | failure: %s', error);
-		if (typeof errback === 'function') {
-			errback(new global.DOMException(error));
-		}
-	}
-
-	exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_createOffer', [this.pcId, options]);
+		exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_createOffer', [self.pcId, options]);
+	});
 };
 
 
-RTCPeerConnection.prototype.createAnswer = function () {
-	var self = this,
-		isPromise,
-		options,
-		callback, errback;
-
-	if (typeof arguments[0] !== 'function') {
-		isPromise = true;
-		options = arguments[0];
-	} else {
-		isPromise = false;
-		callback = arguments[0];
-		errback = arguments[1];
-		options = arguments[2];
-	}
+RTCPeerConnection.prototype.createAnswer = function (options) {
+	var self = this;
 
 	if (isClosed.call(this)) {
 		return;
@@ -1590,80 +1537,38 @@ RTCPeerConnection.prototype.createAnswer = function () {
 
 	debug('createAnswer() [options:%o]', options);
 
-	if (isPromise) {
-		return new Promise(function (resolve, reject) {
-			function onResultOK(data) {
-				if (isClosed.call(self)) {
-					return;
-				}
-
-				var desc = new RTCSessionDescription(data);
-
-				debug('createAnswer() | success [desc:%o]', desc);
-				resolve(desc);
+	return new Promise(function (resolve, reject) {
+		function onResultOK(data) {
+			if (isClosed.call(self)) {
+				return;
 			}
 
-			function onResultError(error) {
-				if (isClosed.call(self)) {
-					return;
-				}
+			var desc = new RTCSessionDescription(data);
 
-				debugerror('createAnswer() | failure: %s', error);
-				reject(new global.DOMException(error));
+			debug('createAnswer() | success [desc:%o]', desc);
+			resolve(desc);
+		}
+
+		function onResultError(error) {
+			if (isClosed.call(self)) {
+				return;
 			}
 
-			exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_createAnswer', [self.pcId, options]);
-		});
-	}
-
-	function onResultOK(data) {
-		if (isClosed.call(self)) {
-			return;
+			debugerror('createAnswer() | failure: %s', error);
+			reject(new global.DOMException(error));
 		}
 
-		var desc = new RTCSessionDescription(data);
-
-		debug('createAnswer() | success [desc:%o]', desc);
-		callback(desc);
-	}
-
-	function onResultError(error) {
-		if (isClosed.call(self)) {
-			return;
-		}
-
-		debugerror('createAnswer() | failure: %s', error);
-		if (typeof errback === 'function') {
-			errback(new global.DOMException(error));
-		}
-	}
-
-	exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_createAnswer', [this.pcId, options]);
+		exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_createAnswer', [self.pcId, options]);
+	});
 };
 
-
-
 RTCPeerConnection.prototype.setLocalDescription = function (desc) {
-	var self = this,
-		isPromise,
-		callback, errback;
-
-	if (typeof arguments[1] !== 'function') {
-		isPromise = true;
-	} else {
-		isPromise = false;
-		callback = arguments[1];
-		errback = arguments[2];
-	}
+	var self = this;
 
 	if (isClosed.call(this)) {
-		if (isPromise) {
-			return new Promise(function (resolve, reject) {
-				reject(new Errors.InvalidStateError('peerconnection is closed'));
-			});
-		} else {
-			throw new Errors.InvalidStateError('peerconnection is closed');
-		}
+		return new Promise(function (resolve, reject) {
+			reject(new Errors.InvalidStateError('peerconnection is closed'));
+		});
 	}
 
 	// "This is no longer necessary, however; RTCPeerConnection.setLocalDescription() and other 
@@ -1676,80 +1581,38 @@ RTCPeerConnection.prototype.setLocalDescription = function (desc) {
 		desc = new RTCSessionDescription(desc);
 	}
 
-	if (isPromise) {
-		return new Promise(function (resolve, reject) {
-			function onResultOK(data) {
-				if (isClosed.call(self)) {
-					return;
-				}
-
-				debug('setLocalDescription() | success');
-				// Update localDescription.
-				self._localDescription = new RTCSessionDescription(data);
-				resolve();
+	return new Promise(function (resolve, reject) {
+		function onResultOK(data) {
+			if (isClosed.call(self)) {
+				return;
 			}
 
-			function onResultError(error) {
-				if (isClosed.call(self)) {
-					return;
-				}
+			debug('setLocalDescription() | success');
+			// Update localDescription.
+			self._localDescription = new RTCSessionDescription(data);
+			resolve();
+		}
 
-				debugerror('setLocalDescription() | failure: %s', error);
-				reject(new Errors.InvalidSessionDescriptionError('setLocalDescription() failed: ' + error));
+		function onResultError(error) {
+			if (isClosed.call(self)) {
+				return;
 			}
 
-			exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_setLocalDescription', [self.pcId, desc]);
-		});
-	}
-
-	function onResultOK(data) {
-		if (isClosed.call(self)) {
-			return;
+			debugerror('setLocalDescription() | failure: %s', error);
+			reject(new Errors.InvalidSessionDescriptionError('setLocalDescription() failed: ' + error));
 		}
 
-		debug('setLocalDescription() | success');
-		// Update localDescription.
-		self._localDescription = new RTCSessionDescription(data);
-		callback();
-	}
-
-	function onResultError(error) {
-		if (isClosed.call(self)) {
-			return;
-		}
-
-		debugerror('setLocalDescription() | failure: %s', error);
-
-		if (typeof errback === 'function') {
-			errback(new Errors.InvalidSessionDescriptionError('setLocalDescription() failed: ' + error));
-		}
-	}
-
-	exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_setLocalDescription', [this.pcId, desc]);
+		exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_setLocalDescription', [self.pcId, desc]);
+	});
 };
 
-
 RTCPeerConnection.prototype.setRemoteDescription = function (desc) {
-	var self = this,
-		isPromise,
-		callback, errback;
-
-	if (typeof arguments[1] !== 'function') {
-		isPromise = true;
-	} else {
-		isPromise = false;
-		callback = arguments[1];
-		errback = arguments[2];
-	}
+	var self = this;
 
 	if (isClosed.call(this)) {
-		if (isPromise) {
-			return new Promise(function (resolve, reject) {
-				reject(new Errors.InvalidStateError('peerconnection is closed'));
-			});
-		} else {
-			throw new Errors.InvalidStateError('peerconnection is closed');
-		}
+		return new Promise(function (resolve, reject) {
+			reject(new Errors.InvalidStateError('peerconnection is closed'));
+		});
 	}
 
 	debug('setRemoteDescription() [desc:%o]', desc);
@@ -1764,166 +1627,83 @@ RTCPeerConnection.prototype.setRemoteDescription = function (desc) {
 		desc = new RTCSessionDescription(desc);
 	}
 
-	if (isPromise) {
-		return new Promise(function (resolve, reject) {
-			function onResultOK(data) {
-				if (isClosed.call(self)) {
-					return;
-				}
-
-				debug('setRemoteDescription() | success');
-				// Update remoteDescription.
-				self.remoteDescription = new RTCSessionDescription(data);
-				resolve();
+	return new Promise(function (resolve, reject) {
+		function onResultOK(data) {
+			if (isClosed.call(self)) {
+				return;
 			}
 
-			function onResultError(error) {
-				if (isClosed.call(self)) {
-					return;
-				}
+			debug('setRemoteDescription() | success');
+			// Update remoteDescription.
+			self.remoteDescription = new RTCSessionDescription(data);
+			resolve();
+		}
 
-				debugerror('setRemoteDescription() | failure: %s', error);
-				reject(new Errors.InvalidSessionDescriptionError('setRemoteDescription() failed: ' + error));
+		function onResultError(error) {
+			if (isClosed.call(self)) {
+				return;
 			}
 
-			exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_setRemoteDescription', [self.pcId, desc]);
-		});
-	}
-
-	function onResultOK(data) {
-		if (isClosed.call(self)) {
-			return;
+			debugerror('setRemoteDescription() | failure: %s', error);
+			reject(new Errors.InvalidSessionDescriptionError('setRemoteDescription() failed: ' + error));
 		}
 
-		debug('setRemoteDescription() | success');
-		// Update remoteDescription.
-		self.remoteDescription = new RTCSessionDescription(data);
-		callback();
-	}
-
-	function onResultError(error) {
-		if (isClosed.call(self)) {
-			return;
-		}
-
-		debugerror('setRemoteDescription() | failure: %s', error);
-
-		if (typeof errback === 'function') {
-			errback(new Errors.InvalidSessionDescriptionError('setRemoteDescription() failed: ' + error));
-		}
-	}
-
-	exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_setRemoteDescription', [this.pcId, desc]);
+		exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_setRemoteDescription', [self.pcId, desc]);
+	});
 };
 
-
-
 RTCPeerConnection.prototype.addIceCandidate = function (candidate) {
-	var self = this,
-		isPromise,
-		callback, errback;
-
-	if (typeof arguments[1] !== 'function') {
-		isPromise = true;
-	} else {
-		isPromise = false;
-		callback = arguments[1];
-		errback = arguments[2];
-	}
+	var self = this;
 
 	if (isClosed.call(this)) {
-		if (isPromise) {
-			return new Promise(function (resolve, reject) {
-				reject(new Errors.InvalidStateError('peerconnection is closed'));
-			});
-		} else {
-			throw new Errors.InvalidStateError('peerconnection is closed');
-		}
+		return new Promise(function (resolve, reject) {
+			reject(new Errors.InvalidStateError('peerconnection is closed'));
+		});
 	}
 
 	debug('addIceCandidate() | [candidate:%o]', candidate);
 
 	if (typeof candidate !== 'object') {
-		if (isPromise) {
-			return new Promise(function (resolve, reject) {
-				reject(new global.DOMException('addIceCandidate() must be called with a RTCIceCandidate instance or RTCIceCandidateInit object as argument'));
-			});
-		} else {
-			if (typeof errback === 'function') {
-				errback(new global.DOMException('addIceCandidate() must be called with a RTCIceCandidate instance or RTCIceCandidateInit object as argument'));
-			}
-			return;
-		}
-	}
-
-	if (isPromise) {
 		return new Promise(function (resolve, reject) {
-			function onResultOK(data) {
-				if (isClosed.call(self)) {
-					return;
-				}
-
-				debug('addIceCandidate() | success');
-				// Update remoteDescription.
-				if (self.remoteDescription && data.remoteDescription) {
-					self.remoteDescription.type = data.remoteDescription.type;
-					self.remoteDescription.sdp = data.remoteDescription.sdp;
-				} else if (data.remoteDescription) {
-					self.remoteDescription = new RTCSessionDescription(data.remoteDescription);
-				}
-				resolve();
-			}
-
-			function onResultError() {
-				if (isClosed.call(self)) {
-					return;
-				}
-
-				debugerror('addIceCandidate() | failure');
-				reject(new global.DOMException('addIceCandidate() failed'));
-			}
-
-			exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_addIceCandidate', [self.pcId, candidate]);
+			reject(new global.DOMException('addIceCandidate() must be called with a RTCIceCandidate instance or RTCIceCandidateInit object as argument'));
 		});
 	}
 
-	function onResultOK(data) {
-		if (isClosed.call(self)) {
-			return;
+	return new Promise(function (resolve, reject) {
+		function onResultOK(data) {
+			if (isClosed.call(self)) {
+				return;
+			}
+
+			debug('addIceCandidate() | success');
+			// Update remoteDescription.
+			if (self.remoteDescription && data.remoteDescription) {
+				self.remoteDescription.type = data.remoteDescription.type;
+				self.remoteDescription.sdp = data.remoteDescription.sdp;
+			} else if (data.remoteDescription) {
+				self.remoteDescription = new RTCSessionDescription(data.remoteDescription);
+			}
+			resolve();
 		}
 
-		debug('addIceCandidate() | success');
-		// Update remoteDescription.
-		if (self.remoteDescription && data.remoteDescription) {
-			self.remoteDescription.type = data.remoteDescription.type;
-			self.remoteDescription.sdp = data.remoteDescription.sdp;
-		} else if (data.remoteDescription) {
-			self.remoteDescription = new RTCSessionDescription(data.remoteDescription);
-		}
-		callback();
-	}
+		function onResultError() {
+			if (isClosed.call(self)) {
+				return;
+			}
 
-	function onResultError() {
-		if (isClosed.call(self)) {
-			return;
+			debugerror('addIceCandidate() | failure');
+			reject(new global.DOMException('addIceCandidate() failed'));
 		}
 
-		debugerror('addIceCandidate() | failure');
-		if (typeof errback === 'function') {
-			errback(new global.DOMException('addIceCandidate() failed'));
-		}
-	}
-
-	exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_addIceCandidate', [this.pcId, candidate]);
+		exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_addIceCandidate', [self.pcId, candidate]);
+	});
 };
-
 
 RTCPeerConnection.prototype.getConfiguration = function () {
 	debug('getConfiguration()');
 
 	return this.pcConfig;
 };
-
 
 RTCPeerConnection.prototype.getLocalStreams = function () {
 	debug('getLocalStreams()');
@@ -2098,21 +1878,8 @@ RTCPeerConnection.prototype.createDTMFSender = function (track) {
 	return new RTCDTMFSender(this, track);
 };
 
-RTCPeerConnection.prototype.getStats = function () {
-	var self = this,
-		isPromise,
-		selector,
-		callback, errback;
-
-	if (typeof arguments[0] !== 'function') {
-		isPromise = true;
-		selector = arguments[0];
-	} else {
-		isPromise = false;
-		callback = arguments[0];
-		selector = arguments[1];
-		errback = arguments[2];
-	}
+RTCPeerConnection.prototype.getStats = function (selector) {
+	var self = this;
 
 	if (selector && !(selector instanceof MediaStreamTrack)) {
 		throw new Error('getStats() must be called with null or a valid MediaStreamTrack instance as argument');
@@ -2124,57 +1891,30 @@ RTCPeerConnection.prototype.getStats = function () {
 
 	debug('getStats() [selector:%o]', selector);
 
-	if (isPromise) {
-		return new Promise(function (resolve, reject) {
-			function onResultOK(array) {
-				if (isClosed.call(self)) {
-					return;
-				}
-
-				var res = [];
-				array.forEach(function (stat) {
-					res.push(new RTCStatsReport(stat));
-				});
-				resolve(new RTCStatsResponse(res));
+	return new Promise(function (resolve, reject) {
+		function onResultOK(array) {
+			if (isClosed.call(self)) {
+				return;
 			}
 
-			function onResultError(error) {
-				if (isClosed.call(self)) {
-					return;
-				}
+			var res = [];
+			array.forEach(function (stat) {
+				res.push(new RTCStatsReport(stat));
+			});
+			resolve(new RTCStatsResponse(res));
+		}
 
-				debugerror('getStats() | failure: %s', error);
-				reject(new global.DOMException(error));
+		function onResultError(error) {
+			if (isClosed.call(self)) {
+				return;
 			}
 
-			exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_getStats', [self.pcId, selector ? selector.id : null]);
-		});
-	}
-
-	function onResultOK(array) {
-		if (isClosed.call(self)) {
-			return;
+			debugerror('getStats() | failure: %s', error);
+			reject(new global.DOMException(error));
 		}
 
-		var res = [];
-		array.forEach(function (stat) {
-			res.push(new RTCStatsReport(stat));
-		});
-		callback(new RTCStatsResponse(res));
-	}
-
-	function onResultError(error) {
-		if (isClosed.call(self)) {
-			return;
-		}
-
-		debugerror('getStats() | failure: %s', error);
-		if (typeof errback === 'function') {
-			errback(new global.DOMException(error));
-		}
-	}
-
-	exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_getStats', [this.pcId, selector ? selector.id : null]);
+		exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_getStats', [self.pcId, selector ? selector.id : null]);
+	});
 };
 
 RTCPeerConnection.prototype.close = function () {
@@ -2193,8 +1933,6 @@ RTCPeerConnection.prototype_descriptor = Object.getOwnPropertyDescriptors(RTCPee
 /**
  * Private API.
  */
-
-
 function fixPcConfig(pcConfig) {
 	if (!pcConfig) {
 		return {
@@ -2391,35 +2129,15 @@ var
 
 
 function enumerateDevices() {
-	debug('');
 
-	var isPromise,
-		callback;
+	return new Promise(function (resolve) {
+		function onResultOK(data) {
+			debug('enumerateDevices() | success');
+			resolve(getMediaDeviceInfos(data.devices));
+		}
 
-	if (typeof arguments[0] !== 'function') {
-		isPromise = true;
-	} else {
-		isPromise = false;
-		callback = arguments[0];
-	}
-
-	if (isPromise) {
-		return new Promise(function (resolve) {
-			function onResultOK(data) {
-				debug('enumerateDevices() | success');
-				resolve(getMediaDeviceInfos(data.devices));
-			}
-
-			exec(onResultOK, null, 'iosrtcPlugin', 'enumerateDevices', []);
-		});
-	}
-
-	function onResultOK(data) {
-		debug('enumerateDevices() | success');
-		callback(getMediaDeviceInfos(data.devices));
-	}
-
-	exec(onResultOK, null, 'iosrtcPlugin', 'enumerateDevices', []);
+		exec(onResultOK, null, 'iosrtcPlugin', 'enumerateDevices', []);
+	});
 }
 
 
@@ -2460,9 +2178,6 @@ var
 	MediaStream = _dereq_('./MediaStream'),
 	Errors = _dereq_('./Errors');
 
-debugerror.log = console.warn.bind(console);
-
-
 function isPositiveInteger(number) {
 	return typeof number === 'number' && number >= 0 && number % 1 === 0;
 }
@@ -2471,13 +2186,10 @@ function isPositiveFloat(number) {
 	return typeof number === 'number' && number >= 0;
 }
 
-
 function getUserMedia(constraints) {
 	debug('[original constraints:%o]', constraints);
 
 	var
-		isPromise,
-		callback, errback,
 		audioRequested = false,
 		videoRequested = false,
 		newConstraints = {
@@ -2485,28 +2197,13 @@ function getUserMedia(constraints) {
 			video: false
 		};
 
-	if (typeof arguments[1] !== 'function') {
-		isPromise = true;
-	} else {
-		isPromise = false;
-		callback = arguments[1];
-		errback = arguments[2];
-	}
-
 	if (
 		typeof constraints !== 'object' ||
 		(!constraints.hasOwnProperty('audio') && !constraints.hasOwnProperty('video'))
 	) {
-		if (isPromise) {
-			return new Promise(function (resolve, reject) {
-				reject(new Errors.MediaStreamError('constraints must be an object with at least "audio" or "video" keys'));
-			});
-		} else {
-			if (typeof errback === 'function') {
-				errback(new Errors.MediaStreamError('constraints must be an object with at least "audio" or "video" keys'));
-			}
-			return;
-		}
+		return new Promise(function (resolve, reject) {
+			reject(new Errors.MediaStreamError('constraints must be an object with at least "audio" or "video" keys'));
+		});
 	}
 
 	if (constraints.audio) {
@@ -2600,45 +2297,22 @@ function getUserMedia(constraints) {
 
 	debug('[computed constraints:%o]', newConstraints);
 
-	if (isPromise) {
-		return new Promise(function (resolve, reject) {
-			function onResultOK(data) {
-				debug('getUserMedia() | success');
-				var stream = MediaStream.create(data.stream);
-				resolve(stream);
-				// Emit "connected" on the stream.
-				stream.emitConnected();
-			}
-
-			function onResultError(error) {
-				debugerror('getUserMedia() | failure: %s', error);
-				reject(new Errors.MediaStreamError('getUserMedia() failed: ' + error));
-			}
-
-			exec(onResultOK, onResultError, 'iosrtcPlugin', 'getUserMedia', [newConstraints]);
-		});
-	}
-
-	function onResultOK(data) {
-		debug('getUserMedia() | success');
-
-		var stream = MediaStream.create(data.stream);
-
-		callback(stream);
-
-		// Emit "connected" on the stream.
-		stream.emitConnected();
-	}
-
-	function onResultError(error) {
-		debugerror('getUserMedia() | failure: %s', error);
-
-		if (typeof errback === 'function') {
-			errback(new Errors.MediaStreamError('getUserMedia() failed: ' + error));
+	return new Promise(function (resolve, reject) {
+		function onResultOK(data) {
+			debug('getUserMedia() | success');
+			var stream = MediaStream.create(data.stream);
+			resolve(stream);
+			// Emit "connected" on the stream.
+			stream.emitConnected();
 		}
-	}
 
-	exec(onResultOK, onResultError, 'iosrtcPlugin', 'getUserMedia', [newConstraints]);
+		function onResultError(error) {
+			debugerror('getUserMedia() | failure: %s', error);
+			reject(new Errors.MediaStreamError('getUserMedia() failed: ' + error));
+		}
+
+		exec(onResultOK, onResultError, 'iosrtcPlugin', 'getUserMedia', [newConstraints]);
+	});
 }
 },{"./Errors":1,"./MediaStream":4,"cordova/exec":undefined,"debug":18}],16:[function(_dereq_,module,exports){
 (function (global){
