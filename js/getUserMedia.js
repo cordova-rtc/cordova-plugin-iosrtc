@@ -81,7 +81,27 @@ function getUserMedia(constraints) {
 			if (Array.isArray(newConstraints.videoDeviceId)) {
 				newConstraints.videoDeviceId = newConstraints.videoDeviceId[0];
 			}
+
+		// https://codereview.chromium.org/84723004
+		} else if (
+			(constraints.video.optional &&
+				constraints.video.optional[0] &&
+				typeof constraints.video.optional[0].sourceId === 'string') ||
+			(constraints.video.mandatory &&
+				constraints.video.mandatory[0] &&
+				typeof constraints.video.mandatory[0].sourceId === 'string')
+		) {
+			newConstraints.videoDeviceId = constraints.video.mandatory ? constraints.video.mandatory[0].sourceId : constraints.video.optional[0].sourceId;
 		}
+
+		// TODO facingMode
+		// ios side: https://gitlab.dev.symmedia.de/apps/forks/react-native-webrtc/commit/32fb1004432ae19f0c3af3c319e37264e254ffd0
+		
+		// TODO minAspectRatio/maxAspectRatio
+		// See https://github.com/cordova-rtc/cordova-plugin-iosrtc/issues/287
+
+		// TODO mandatory.(minframeRate|maxframeRate)
+		// See https://github.com/cordova-rtc/cordova-plugin-iosrtc/issues/286
 
 		// Get requested min/max width.
 		if (typeof constraints.video.width === 'object') {
