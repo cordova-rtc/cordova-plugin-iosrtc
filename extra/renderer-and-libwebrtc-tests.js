@@ -46,6 +46,7 @@ var appContainer = document.body;
 // getUserMedia
 //
 
+var localStream;
 function TestGetUserMedia() {
 
   var localVideoEl = document.createElement('video');
@@ -69,8 +70,6 @@ function TestGetUserMedia() {
   }, function (err) {
       console.log('getMediaDevices.err', err);
   });
-
-  var localStream;
 
   navigator.mediaDevices.getUserMedia({
     video: true,
@@ -191,13 +190,14 @@ var pc1 = new RTCPeerConnection(),
 function TestRTCPeerConnection(localStream) {
 
   // TODO Deprecated
-  pc1.addStream(localStream);
+  //pc1.addStream(localStream);
 
   // TODO
   // NotSupportedError: The adapter.js addTrack polyfill only supports a single stream which is associated with the specified track.
-  /*localStream.getTracks().forEach(function (track) {
+  localStream.getTracks().forEach(function (track) {
+    console.log('addTrack', track);
     pc1.addTrack(track);
-  });*/
+  });
   
   function onAddIceCandidate(pc, can) {
     console.log('onAddIceCandidate', pc, can);
