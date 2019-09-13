@@ -192,6 +192,9 @@ function TestRTCPeerConnection(localStream) {
   // TODO Deprecated
   //pc1.addStream(localStream);
 
+  // To Test removeStream
+  // pc1.removeStream(pc1.getLocalStreams()[0])
+
   // TODO
   // NotSupportedError: The adapter.js addTrack polyfill only supports a single stream which is associated with the specified track.
   localStream.getTracks().forEach(function (track) {
