@@ -137,8 +137,9 @@ function newMediaStreamId() {
    return window.crypto.getRandomValues(new Uint32Array(4)).join('-');
 }
 
-// Save original MediaStream, use Blob if not available
-var originalMediaStream = window.MediaStream || window.Blob;
+// Save original MediaStream
+var originalMediaStream = window.MediaStream;
+var originalMediaStreamTrack = MediaStreamTrack.originalMediaStreamTrack;
 
 /**
  * Expose the MediaStream class.
@@ -147,13 +148,21 @@ var originalMediaStream = window.MediaStream || window.Blob;
 function MediaStream(arg, id) {
 	debug('new MediaStream(arg) | [arg:%o]', arg);
 
-	// new MediaStream(new MediaStream()) // stream
-	// new MediaStream([]) // tracks
+	// Detect native MediaStream usage	
+	// new MediaStream(originalMediaStream) // stream
+	// new MediaStream(originalMediaStreamTrack[]) // tracks		
+	if (
+		arg instanceof originalMediaStream || 
+			(Array.isArray(arg) && arg[0] instanceof originalMediaStreamTrack)
+	) {
+		return new originalMediaStream(arg);
+	}
+
+	// new MediaStream(MediaStream) // stream
+	// new MediaStream(MediaStreamTrack[]) // tracks
 	// new MediaStream() // empty
 
-	// TODO detect originalMediaStream usage and skip SHIM
 	// TODO attempt CustomMediaStream extend.
-
 	// Extend returned MediaTream with custom MediaStream
 	var stream = new (Function.prototype.bind.apply(originalMediaStream.bind(this), [])); // jshint ignore:line
 	Object.defineProperties(stream, Object.getOwnPropertyDescriptors(MediaStream.prototype));
@@ -902,6 +911,8 @@ var
 	enumerateDevices = _dereq_('./enumerateDevices'),
 	EventTarget = _dereq_('./EventTarget');
 
+// Save original MediaStreamTrack
+var originalMediaStreamTrack = window.MediaStreamTrack;
 
 function MediaStreamTrack(dataFromEvent) {
 	debug('new() | [dataFromEvent:%o]', dataFromEvent);
@@ -931,6 +942,9 @@ function MediaStreamTrack(dataFromEvent) {
 
 MediaStreamTrack.prototype = Object.create(EventTarget.prototype);
 MediaStreamTrack.prototype.constructor = MediaStreamTrack;
+
+// Static reference to original MediaStreamTrack
+MediaStreamTrack.originalMediaStreamTrack = originalMediaStreamTrack;
 
 // Setters.
 Object.defineProperty(MediaStreamTrack.prototype, 'enabled', {
@@ -1433,7 +1447,11 @@ function RTCPeerConnection(pcConfig, pcConstraints) {
 
 	// Restore corrupted RTCPeerConnection.prototype
 	// TODO find why adapter prevent events onnegotiationneeded to be trigger.
-	Object.defineProperties(this, RTCPeerConnection.prototype_descriptor);
+	// Object.defineProperties(this, RTCPeerConnection.prototype_descriptor);
+
+	// Fix webrtc-adapter bad SHIM on addTrack causing error when original does support multiple streams.
+	// NotSupportedError: The adapter.js addTrack polyfill only supports a single stream which is associated with the specified track.
+	Object.defineProperty(this, 'addTrack', RTCPeerConnection.prototype_descriptor.addTrack);
 	
 	// Public atributes.
 	this._localDescription = null;
@@ -2039,7 +2057,7 @@ function onEvent(data) {
 			break;
 
 		case 'addtrack':
-			event.track = track;
+			event.track = data.track;
 			break;
 
 		case 'addstream':
