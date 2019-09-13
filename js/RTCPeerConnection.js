@@ -606,7 +606,8 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 
 	// Add localStreams if missing
 	if (Object.keys(this.localStreams).length === 0) {
-		this.addStream(new MediaStream());
+		stream = new MediaStream();
+		this.addStream(stream);
 	}
 
 	for (id in this.localStreams) {
@@ -615,7 +616,10 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 				!stream || // No stream target
 					(stream && stream.id === id) // Stream target by id
 			) {
-				this.localStreams[id].addTrack(track);
+				stream = this.localStreams[id];
+				stream.addTrack(track);
+
+				exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [this.pcId, track.id, stream.id]);
 				break;
 			}
 		}
@@ -624,6 +628,7 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 
 RTCPeerConnection.prototype.removeTrack = function (track) {
 	var id,
+		stream,
 		hasTrack;
 
 	function matchLocalTrack(localTrack) {
@@ -636,7 +641,10 @@ RTCPeerConnection.prototype.removeTrack = function (track) {
 			hasTrack = (this.localStreams[id].getTracks().filter(matchLocalTrack).length > 0);
 
 			if (hasTrack) {
-				this.localStreams[id].removeTrack(track);
+				stream = this.localStreams[id];
+				stream.removeTrack(track);
+
+				exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_removeTrack', [this.pcId, track.id, stream.id]);
 				break;
 			}
 		}
@@ -901,8 +909,8 @@ function onEvent(data) {
 		case 'negotiationneeded':
 			break;
 
-		case 'ontrack':
-			// TODO
+		case 'addtrack':
+			event.track = track;
 			break;
 
 		case 'addstream':
