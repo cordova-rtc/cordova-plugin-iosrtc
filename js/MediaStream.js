@@ -25,6 +25,8 @@ var
 	// - value: MediaStream.
 	mediaStreams;
 
+// TODO longer UUID like native call
+// - "4021904575-2849079001-3048689102-1644344044-4021904575-2849079001-3048689102-1644344044"
 function newMediaStreamId() {
    return window.crypto.getRandomValues(new Uint32Array(4)).join('-');
 }
@@ -57,6 +59,9 @@ function MediaStream(arg, id) {
 	stream._id = id || newMediaStreamId();
 	stream.active = true;
 
+	// Init Stream by Id
+	exec(null, null, 'iosrtcPlugin', 'MediaStream_init', [stream.id]);
+
 	// Public but internal attributes.
 	stream.connected = false;
 
@@ -87,7 +92,6 @@ function MediaStream(arg, id) {
 	function onResultOK(data) {
 		onEvent.call(stream, data);
 	}
-
 	exec(onResultOK, null, 'iosrtcPlugin', 'MediaStream_setListener', [stream.id]);
 
 	return stream;
