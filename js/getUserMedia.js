@@ -14,9 +14,6 @@ var
 	MediaStream = require('./MediaStream'),
 	Errors = require('./Errors');
 
-debugerror.log = console.warn.bind(console);
-
-
 function isPositiveInteger(number) {
 	return typeof number === 'number' && number >= 0 && number % 1 === 0;
 }
@@ -25,13 +22,10 @@ function isPositiveFloat(number) {
 	return typeof number === 'number' && number >= 0;
 }
 
-
 function getUserMedia(constraints) {
 	debug('[original constraints:%o]', constraints);
 
 	var
-		isPromise,
-		callback, errback,
 		audioRequested = false,
 		videoRequested = false,
 		newConstraints = {
@@ -39,28 +33,13 @@ function getUserMedia(constraints) {
 			video: false
 		};
 
-	if (typeof arguments[1] !== 'function') {
-		isPromise = true;
-	} else {
-		isPromise = false;
-		callback = arguments[1];
-		errback = arguments[2];
-	}
-
 	if (
 		typeof constraints !== 'object' ||
 		(!constraints.hasOwnProperty('audio') && !constraints.hasOwnProperty('video'))
 	) {
-		if (isPromise) {
-			return new Promise(function (resolve, reject) {
-				reject(new Errors.MediaStreamError('constraints must be an object with at least "audio" or "video" keys'));
-			});
-		} else {
-			if (typeof errback === 'function') {
-				errback(new Errors.MediaStreamError('constraints must be an object with at least "audio" or "video" keys'));
-			}
-			return;
-		}
+		return new Promise(function (resolve, reject) {
+			reject(new Errors.MediaStreamError('constraints must be an object with at least "audio" or "video" keys'));
+		});
 	}
 
 	if (constraints.audio) {
@@ -154,43 +133,20 @@ function getUserMedia(constraints) {
 
 	debug('[computed constraints:%o]', newConstraints);
 
-	if (isPromise) {
-		return new Promise(function (resolve, reject) {
-			function onResultOK(data) {
-				debug('getUserMedia() | success');
-				var stream = MediaStream.create(data.stream);
-				resolve(stream);
-				// Emit "connected" on the stream.
-				stream.emitConnected();
-			}
-
-			function onResultError(error) {
-				debugerror('getUserMedia() | failure: %s', error);
-				reject(new Errors.MediaStreamError('getUserMedia() failed: ' + error));
-			}
-
-			exec(onResultOK, onResultError, 'iosrtcPlugin', 'getUserMedia', [newConstraints]);
-		});
-	}
-
-	function onResultOK(data) {
-		debug('getUserMedia() | success');
-
-		var stream = MediaStream.create(data.stream);
-
-		callback(stream);
-
-		// Emit "connected" on the stream.
-		stream.emitConnected();
-	}
-
-	function onResultError(error) {
-		debugerror('getUserMedia() | failure: %s', error);
-
-		if (typeof errback === 'function') {
-			errback(new Errors.MediaStreamError('getUserMedia() failed: ' + error));
+	return new Promise(function (resolve, reject) {
+		function onResultOK(data) {
+			debug('getUserMedia() | success');
+			var stream = MediaStream.create(data.stream);
+			resolve(stream);
+			// Emit "connected" on the stream.
+			stream.emitConnected();
 		}
-	}
 
-	exec(onResultOK, onResultError, 'iosrtcPlugin', 'getUserMedia', [newConstraints]);
+		function onResultError(error) {
+			debugerror('getUserMedia() | failure: %s', error);
+			reject(new Errors.MediaStreamError('getUserMedia() failed: ' + error));
+		}
+
+		exec(onResultOK, onResultError, 'iosrtcPlugin', 'getUserMedia', [newConstraints]);
+	});
 }
