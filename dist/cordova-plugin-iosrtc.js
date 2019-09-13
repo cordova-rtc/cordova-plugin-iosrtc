@@ -126,11 +126,13 @@ var
  * Local variables.
  */
 
-	// Dictionary of MediaStreams (provided via setMediaStreams() class method).
+	// Dictionary of MediaStreams (provided via getMediaStreams() class method).
 	// - key: MediaStream blobId.
 	// - value: MediaStream.
 	mediaStreams;
 
+// TODO longer UUID like native call
+// - "4021904575-2849079001-3048689102-1644344044-4021904575-2849079001-3048689102-1644344044"
 function newMediaStreamId() {
    return window.crypto.getRandomValues(new Uint32Array(4)).join('-');
 }
@@ -163,6 +165,9 @@ function MediaStream(arg, id) {
 	stream._id = id || newMediaStreamId();
 	stream.active = true;
 
+	// Init Stream by Id
+	exec(null, null, 'iosrtcPlugin', 'MediaStream_init', [stream.id]);
+
 	// Public but internal attributes.
 	stream.connected = false;
 
@@ -193,7 +198,6 @@ function MediaStream(arg, id) {
 	function onResultOK(data) {
 		onEvent.call(stream, data);
 	}
-
 	exec(onResultOK, null, 'iosrtcPlugin', 'MediaStream_setListener', [stream.id]);
 
 	return stream;
@@ -226,6 +230,10 @@ MediaStream.originalMediaStream = originalMediaStream;
 
 MediaStream.setMediaStreams = function (_mediaStreams) {
 	mediaStreams = _mediaStreams;
+};
+
+MediaStream.getMediaStreams = function () {
+	return mediaStreams;
 };
 
 MediaStream.create = function (dataFromEvent) {
@@ -1769,7 +1777,8 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 
 	// Add localStreams if missing
 	if (Object.keys(this.localStreams).length === 0) {
-		this.addStream(new MediaStream());
+		stream = new MediaStream();
+		this.addStream(stream);
 	}
 
 	for (id in this.localStreams) {
@@ -1778,7 +1787,10 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 				!stream || // No stream target
 					(stream && stream.id === id) // Stream target by id
 			) {
-				this.localStreams[id].addTrack(track);
+				stream = this.localStreams[id];
+				stream.addTrack(track);
+
+				exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [this.pcId, track.id, stream.id]);
 				break;
 			}
 		}
@@ -1787,6 +1799,7 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 
 RTCPeerConnection.prototype.removeTrack = function (track) {
 	var id,
+		stream,
 		hasTrack;
 
 	function matchLocalTrack(localTrack) {
@@ -1799,7 +1812,10 @@ RTCPeerConnection.prototype.removeTrack = function (track) {
 			hasTrack = (this.localStreams[id].getTracks().filter(matchLocalTrack).length > 0);
 
 			if (hasTrack) {
-				this.localStreams[id].removeTrack(track);
+				stream = this.localStreams[id];
+				stream.removeTrack(track);
+
+				exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_removeTrack', [this.pcId, track.id, stream.id]);
 				break;
 			}
 		}
@@ -2022,8 +2038,8 @@ function onEvent(data) {
 		case 'negotiationneeded':
 			break;
 
-		case 'ontrack':
-			// TODO
+		case 'addtrack':
+			event.track = track;
 			break;
 
 		case 'addstream':
