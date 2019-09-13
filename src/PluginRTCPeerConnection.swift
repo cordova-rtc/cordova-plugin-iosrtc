@@ -20,6 +20,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 	var onSetDescriptionFailureCallback: ((_ error: Error) -> Void)!
 	var onGetStatsCallback: ((_ array: NSArray) -> Void)!
 	var isAudioInputSelected: Bool = false
+	var mediaStreamIdMap: [String: String]
 
 	init(
 		rtcPeerConnectionFactory: RTCPeerConnectionFactory,
@@ -37,6 +38,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 		self.eventListener = eventListener
 		self.eventListenerForAddStream = eventListenerForAddStream
 		self.eventListenerForRemoveStream = eventListenerForRemoveStream
+		self.mediaStreamIdMap = [:]
 	}
 
 
@@ -567,10 +569,12 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 
 	func peerConnection(_ rtcPeerConnection: RTCPeerConnection!,
 		addedStream rtcMediaStream: RTCMediaStream!) {
-		NSLog("PluginRTCPeerConnection | onaddstream")
-
 		let pluginMediaStream = PluginMediaStream(rtcMediaStream: rtcMediaStream)
+        
+		NSLog("PluginRTCPeerConnection | onaddstream [" + pluginMediaStream.id + "]")
 
+		self.mediaStreamIdMap[rtcMediaStream.label] = pluginMediaStream.id
+        
 		pluginMediaStream.run()
 
 		// Let the plugin store it in its dictionary.
@@ -586,14 +590,19 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 
 	func peerConnection(_ rtcPeerConnection: RTCPeerConnection!,
 		removedStream rtcMediaStream: RTCMediaStream!) {
-		NSLog("PluginRTCPeerConnection | onremovestream")
+        
+		let streamId = self.mediaStreamIdMap[rtcMediaStream.label]!
+
+		self.mediaStreamIdMap.removeValue(forKey: rtcMediaStream.label)
+
+		NSLog("PluginRTCPeerConnection | onremovestream [" + streamId + "]")
 
 		// Let the plugin remove it from its dictionary.
 		self.eventListenerForRemoveStream(rtcMediaStream.label)
 
 		self.eventListener([
 			"type": "removestream",
-			"streamId": rtcMediaStream.label  // NOTE: No "id" property yet.
+			"streamId": streamId
 		])
 	}
 
