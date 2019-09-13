@@ -31,8 +31,9 @@ function newMediaStreamId() {
    return window.crypto.getRandomValues(new Uint32Array(4)).join('-');
 }
 
-// Save original MediaStream, use Blob if not available
-var originalMediaStream = window.MediaStream || window.Blob;
+// Save original MediaStream
+var originalMediaStream = window.MediaStream;
+var originalMediaStreamTrack = MediaStreamTrack.originalMediaStreamTrack;
 
 /**
  * Expose the MediaStream class.
@@ -41,13 +42,21 @@ var originalMediaStream = window.MediaStream || window.Blob;
 function MediaStream(arg, id) {
 	debug('new MediaStream(arg) | [arg:%o]', arg);
 
-	// new MediaStream(new MediaStream()) // stream
-	// new MediaStream([]) // tracks
+	// Detect native MediaStream usage	
+	// new MediaStream(originalMediaStream) // stream
+	// new MediaStream(originalMediaStreamTrack[]) // tracks		
+	if (
+		arg instanceof originalMediaStream || 
+			(Array.isArray(arg) && arg[0] instanceof originalMediaStreamTrack)
+	) {
+		return new originalMediaStream(arg);
+	}
+
+	// new MediaStream(MediaStream) // stream
+	// new MediaStream(MediaStreamTrack[]) // tracks
 	// new MediaStream() // empty
 
-	// TODO detect originalMediaStream usage and skip SHIM
 	// TODO attempt CustomMediaStream extend.
-
 	// Extend returned MediaTream with custom MediaStream
 	var stream = new (Function.prototype.bind.apply(originalMediaStream.bind(this), [])); // jshint ignore:line
 	Object.defineProperties(stream, Object.getOwnPropertyDescriptors(MediaStream.prototype));
