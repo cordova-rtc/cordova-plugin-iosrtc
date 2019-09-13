@@ -43,7 +43,11 @@ function RTCPeerConnection(pcConfig, pcConstraints) {
 
 	// Restore corrupted RTCPeerConnection.prototype
 	// TODO find why adapter prevent events onnegotiationneeded to be trigger.
-	Object.defineProperties(this, RTCPeerConnection.prototype_descriptor);
+	// Object.defineProperties(this, RTCPeerConnection.prototype_descriptor);
+
+	// Fix webrtc-adapter bad SHIM on addTrack causing error when original does support multiple streams.
+	// NotSupportedError: The adapter.js addTrack polyfill only supports a single stream which is associated with the specified track.
+	Object.defineProperty(this, 'addTrack', RTCPeerConnection.prototype_descriptor.addTrack);
 	
 	// Public atributes.
 	this._localDescription = null;
