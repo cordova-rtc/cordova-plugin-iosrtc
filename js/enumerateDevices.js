@@ -14,35 +14,15 @@ var
 
 
 function enumerateDevices() {
-	debug('');
 
-	var isPromise,
-		callback;
+	return new Promise(function (resolve) {
+		function onResultOK(data) {
+			debug('enumerateDevices() | success');
+			resolve(getMediaDeviceInfos(data.devices));
+		}
 
-	if (typeof arguments[0] !== 'function') {
-		isPromise = true;
-	} else {
-		isPromise = false;
-		callback = arguments[0];
-	}
-
-	if (isPromise) {
-		return new Promise(function (resolve) {
-			function onResultOK(data) {
-				debug('enumerateDevices() | success');
-				resolve(getMediaDeviceInfos(data.devices));
-			}
-
-			exec(onResultOK, null, 'iosrtcPlugin', 'enumerateDevices', []);
-		});
-	}
-
-	function onResultOK(data) {
-		debug('enumerateDevices() | success');
-		callback(getMediaDeviceInfos(data.devices));
-	}
-
-	exec(onResultOK, null, 'iosrtcPlugin', 'enumerateDevices', []);
+		exec(onResultOK, null, 'iosrtcPlugin', 'enumerateDevices', []);
+	});
 }
 
 

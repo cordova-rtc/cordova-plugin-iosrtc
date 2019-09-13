@@ -1,4 +1,4 @@
-/* global RTCPeerConnection, MediaStream */
+/* global RTCPeerConnection */
 
 //
 // Camera and Microphone Authorization   
@@ -31,75 +31,93 @@ var cordova = window.cordova;
 // Expose WebRTC Globals
 if (cordova && cordova.plugins && cordova.plugins.iosrtc) {
   cordova.plugins.iosrtc.registerGlobals();
+  cordova.plugins.iosrtc.debug.enabled = true;
 }
+
 
 //
 // Container
 //
 
-var appContainer = document.querySelector('.appx');
-if (!appContainer) {
-  document.body.innerHTML = "";
-  appContainer = document.body;
-}
-
+document.body.innerHTML = "";
+var appContainer = document.body;
 
 //
 // getUserMedia
 //
 
-var localVideoEl = document.createElement('video');
-localVideoEl.setAttribute('autoplay', 'autoplay');
-localVideoEl.setAttribute('playsinline', 'playsinline');
-// Cause zIndex - 1 failure
-//localVideoEl.style.backgroundColor = 'purple';
-localVideoEl.style.position = 'absolute';
-localVideoEl.style.top = 0;
-localVideoEl.style.left = 0;
-localVideoEl.style.width = "100px";
-localVideoEl.style.height = "100px";
-localVideoEl.style.transform = "scaleX(-1)";
-appContainer.appendChild(localVideoEl);
-
 var localStream;
+function TestGetUserMedia() {
 
-navigator.mediaDevices.enumerateDevices().then(function (devices) {
-    console.log('getMediaDevices.ok', devices);
-    devices.forEach(function (device, idx) {
-      console.log('getMediaDevices.devices', idx, device.label, device.kind, device.deviceId);
-    });
-}, function (err) {
-    console.log('getMediaDevices.err', err);
-});
+  var localVideoEl = document.createElement('video');
+  localVideoEl.setAttribute('autoplay', 'autoplay');
+  localVideoEl.setAttribute('playsinline', 'playsinline');
+  // Cause zIndex - 1 failure
+  //localVideoEl.style.backgroundColor = 'purple';
+  localVideoEl.style.position = 'absolute';
+  localVideoEl.style.top = 0;
+  localVideoEl.style.left = 0;
+  localVideoEl.style.width = "100px";
+  localVideoEl.style.height = "100px";
+  localVideoEl.style.transform = "scaleX(-1)";
+  appContainer.appendChild(localVideoEl);
 
-navigator.mediaDevices.getUserMedia({ 
-  video: {
-    // Test Back Camera
-    //deviceId: 'com.apple.avfoundation.avcapturedevice.built-in_video:0'
-    //sourceId: 'com.apple.avfoundation.avcapturedevice.built-in_video:0'
-    deviceId: {
-      exact: 'com.apple.avfoundation.avcapturedevice.built-in_video:0'
+  navigator.mediaDevices.enumerateDevices().then(function (devices) {
+      console.log('getMediaDevices.ok', devices);
+      devices.forEach(function (device, idx) {
+        console.log('getMediaDevices.devices', idx, device.label, device.kind, device.deviceId);
+      });
+  }, function (err) {
+      console.log('getMediaDevices.err', err);
+  });
+
+  navigator.mediaDevices.getUserMedia({
+    video: true,
+    audio: true
+    /*
+    video: {
+      // Test Back Camera
+      //deviceId: 'com.apple.avfoundation.avcapturedevice.built-in_video:0'
+      //sourceId: 'com.apple.avfoundation.avcapturedevice.built-in_video:0'
+      deviceId: {
+        exact: 'com.apple.avfoundation.avcapturedevice.built-in_video:0'
+      }
+    }, 
+    audio: {
+      exact: 'Built-In Microphone'
+    }*/
+  }).then(function (stream) {
+
+    console.log('getUserMedia.stream', stream);
+    console.log('getUserMedia.stream.getTracks', stream.getTracks());
+
+    var srcObjectStream;
+    try {
+
+      localStream = stream;
+      srcObjectStream = localVideoEl.srcObject = localStream;
+      //localVideoEl.src = window.URL.createObjectURL(stream);
+    
+    } catch (err) {
+      console.log('srcObject.err', err);
     }
-  }, 
-  audio: true 
-}).then(function (stream) {
-  
-  localStream = stream;
-  localVideoEl.srcObject = localStream;
 
-  if (cordova && cordova.plugins && cordova.plugins.iosrtc) {
-    cordova.plugins.iosrtc.observeVideo(localVideoEl);
-  }
+    if (cordova && cordova.plugins && cordova.plugins.iosrtc) {
+      cordova.plugins.iosrtc.observeVideo(localVideoEl);
+    }
 
-  //localVideoEl.src = window.URL.createObjectURL(stream);
+    if (srcObjectStream) {
 
-  TestPluginMediaStreamRenderer(localVideoEl);
-  TestRTCPeerConnection(localStream);
- 
-}).catch(function (err) {
-  console.log('getUserMediaError', err);
-});
+      TestPluginMediaStreamRenderer(localVideoEl);
+      TestRTCPeerConnection(localStream); 
+    }
+   
+  }).catch(function (err) {
+    console.log('getUserMediaError', err, err.stack);
+  });
+}
 
+var useAnimateVideo = false;
 function TestPluginMediaStreamRenderer(localVideoEl) {
 
   // Animate video position
@@ -124,7 +142,9 @@ function TestPluginMediaStreamRenderer(localVideoEl) {
     return (animateTimer = requestAnimationFrame(animateVideo));
   }
 
-  animateTimer = animateVideo();
+  if (useAnimateVideo) {
+    animateTimer = animateVideo(); 
+  }
 
   //
   // Test Video behind Element
@@ -169,34 +189,43 @@ var pc1 = new RTCPeerConnection(),
 
 function TestRTCPeerConnection(localStream) {
 
-  pc1.addStream(MediaStream.create(localStream));
+  // TODO Deprecated
+  //pc1.addStream(localStream);
 
+  // TODO
+  // NotSupportedError: The adapter.js addTrack polyfill only supports a single stream which is associated with the specified track.
+  localStream.getTracks().forEach(function (track) {
+    console.log('addTrack', track);
+    pc1.addTrack(track);
+  });
+  
   function onAddIceCandidate(pc, can) {
+    console.log('onAddIceCandidate', pc, can);
     return can && pc.addIceCandidate(can).catch(function (err) {
       console.log('addIceCandidateError', err);
     });
   }
 
   pc1.onicecandidate = function (e) {
-    return onAddIceCandidate(pc2, e.candidate);
+    onAddIceCandidate(pc2, e.candidate);
   };
   pc2.onicecandidate = function (e) {
-    return onAddIceCandidate(pc1, e.candidate);
+    onAddIceCandidate(pc1, e.candidate);
   };
 
-  var peerVideoEl = document.createElement('video');
-  peerVideoEl.setAttribute('autoplay', 'autoplay');
-  peerVideoEl.setAttribute('playsinline', 'playsinline');
-  peerVideoEl.style.backgroundColor = 'blue';
-  peerVideoEl.style.position = 'fixed';
-  peerVideoEl.style.width = "100px";
-  peerVideoEl.style.height = "100px";
-  peerVideoEl.style.top = 0;
-  peerVideoEl.style.left = (window.innerWidth - parseInt(peerVideoEl.style.width, 10)) + 'px';
-  appContainer.appendChild(peerVideoEl);
-
   pc2.onaddstream = function (e) {
-    console.log('onAddStream', e);
+    console.log('pc2.onAddStream', e);
+
+    var peerVideoEl = document.createElement('video');
+    peerVideoEl.setAttribute('autoplay', 'autoplay');
+    peerVideoEl.setAttribute('playsinline', 'playsinline');
+    peerVideoEl.style.backgroundColor = 'blue';
+    peerVideoEl.style.position = 'fixed';
+    peerVideoEl.style.width = "100px";
+    peerVideoEl.style.height = "100px";
+    peerVideoEl.style.top = 0;
+    peerVideoEl.style.left = (window.innerWidth - parseInt(peerVideoEl.style.width, 10)) + 'px';
+    appContainer.appendChild(peerVideoEl);
 
     peerVideoEl.srcObject = e.stream;
 
@@ -206,11 +235,16 @@ function TestRTCPeerConnection(localStream) {
   };
 
   pc1.oniceconnectionstatechange = function (e) {
-    return console.log('iceConnectionState', e, pc1.iceConnectionState);
+    console.log('pc1.iceConnectionState', e, pc1.iceConnectionState);
+
+    if (pc1.iceConnectionState === 'completed') {      
+      console.log('pc1.getSenders', pc1.getSenders());
+      console.log('pc2.getReceivers', pc2.getReceivers());
+    }
   };
 
   pc1.onnegotiationneeded = function (e) {
-    console.log('negotiatioNeeded', e);
+    console.log('pc1.negotiatioNeeded', e);
 
     return pc1.createOffer().then(function (d) {
       return pc1.setLocalDescription(d);
@@ -229,7 +263,31 @@ function TestRTCPeerConnection(localStream) {
         sdp: pc2.localDescription.sdp
       });
     }).catch(function (err) {
-      console.log('createOfferError', err);
+      console.log('pc1.createOfferError', err);
     });
   };
 }
+
+var useWebRTCAdapter = false;
+
+// Expose webrtc-adapter
+if (useWebRTCAdapter && typeof window.adapter === 'undefined') {
+
+    // load adapter.js
+    var version = 'latest';
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    //script.src = "adapter-latest.js";
+    script.src = "https://webrtc.github.io/adapter/adapter-" + version + ".js";
+    script.async = false;
+    document.getElementsByTagName("head")[0].appendChild(script);
+    script.onload = function () {
+      console.log('useWebRTCAdapter.loaded', script.src);
+      TestGetUserMedia();
+    };
+} else {
+  TestGetUserMedia();
+}
+
+
+

@@ -273,6 +273,23 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 		self.rtcPeerConnection.remove(pluginMediaStream.rtcMediaStream)
 	}
 
+	func addTrack(_ track: PluginMediaStreamTrack) -> Bool {
+		NSLog("PluginRTCPeerConnection#addTrack()")
+		
+		if self.rtcPeerConnection.signalingState.rawValue == RTCSignalingClosed.rawValue {
+			return false
+		}
+		
+		return true;
+	}
+	
+	func removeTrack(_ track: PluginMediaStreamTrack) {
+		NSLog("PluginRTCPeerConnection#removeTrack()")
+		
+		if self.rtcPeerConnection.signalingState.rawValue == RTCSignalingClosed.rawValue {
+			return
+		}
+	}
 
 	func createDataChannel(
 		_ dcId: Int,
@@ -367,7 +384,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 			statsOutputLevel: RTCStatsOutputLevelStandard) {
 				errback(NSError(domain: "Cannot get peer connection stats.", code: -1, userInfo: nil))
 		}
-    }
+	}
 
 	func close() {
 		NSLog("PluginRTCPeerConnection#close()")
@@ -651,7 +668,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate, RTCSessionD
 	/**
 	* Methods inherited from RTCStatsDelegate
 	*/
-    
+	
 	func peerConnection(_ peerConnection: RTCPeerConnection!,
 		didGetStats stats: [Any]!) {
 
