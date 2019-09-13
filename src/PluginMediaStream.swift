@@ -14,12 +14,17 @@ class PluginMediaStream : NSObject, RTCMediaStreamDelegate {
 	/**
 	 * Constructor for pc.onaddstream event and getUserMedia().
 	 */
-	init(rtcMediaStream: RTCMediaStream) {
+	init(rtcMediaStream: RTCMediaStream, id: String = "") {
 		NSLog("PluginMediaStream#init()")
 
 		self.rtcMediaStream = rtcMediaStream
+		
 		// ObjC API does not provide id property, so let's set a random one.
-		self.id = rtcMediaStream.label + "-" + UUID().uuidString
+		if (id.isEmpty) {
+			self.id = rtcMediaStream.label + "-" + UUID().uuidString
+		} else {
+			self.id = id;
+		}
 
 		for track: RTCMediaStreamTrack in (self.rtcMediaStream.audioTracks as! Array<RTCMediaStreamTrack>) {
 			let pluginMediaStreamTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: track)
