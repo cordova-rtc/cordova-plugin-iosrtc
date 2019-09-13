@@ -653,7 +653,7 @@ function onEvent(data) {
 			break;
 
 		case 'addtrack':
-			event.track = track;
+			event.track = data.track;
 			break;
 
 		case 'addstream':
