@@ -9,7 +9,7 @@
 * Upgrade packages debug to ^4.1.1 and yaeti to ^1.0.2
 * Add cordova.plugins.iosrtc.getUserMedia MediaTrackConstraints.(video|audio).deviceId.(exact|ideal) support ([PR #374](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/374) by @CSantosM).
 * Add cordova.plugins.iosrtc.getMediaDevices bluetooth and wired audio devices support ([PR #374](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/374) by @CSantosM).
-* Fix RTCPeerConnection.removeStream [PR #383](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/383) by @hthetiot via @l7s).
+* fix TypeError: undefined is not an object (evaluating 'stream.id') when removing stream [PR #383](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/383) by @hthetiot via @l7s).
 
 #### Version 5.0.1
 * fix typo on iosrtcPlugin.swift
