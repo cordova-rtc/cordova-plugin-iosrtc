@@ -136,7 +136,8 @@ class PluginGetUserMedia {
 			if(PluginGetUserMedia.rtcVideoSource == nil){
 				PluginGetUserMedia.rtcVideoSource = self.rtcPeerConnectionFactory.avFoundationVideoSource(with: constraints);
 			}
-            PluginGetUserMedia.rtcVideoSource?.useBackCamera = !usingFront
+
+			PluginGetUserMedia.rtcVideoSource?.useBackCamera = !usingFront
 			
 			// If videoSource state is "ended" it means that constraints were not satisfied so
 			// invoke the given errback.

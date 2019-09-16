@@ -41,14 +41,14 @@ class PluginMediaStream : NSObject, RTCMediaStreamDelegate {
 	deinit {
 		NSLog("PluginMediaStream#deinit()")
 		for (id, _) in audioTracks {
-            if(self.eventListenerForRemoveTrack != nil) {
-                self.eventListenerForRemoveTrack!(id)
-            }
+			if(self.eventListenerForRemoveTrack != nil) {
+			self.eventListenerForRemoveTrack!(id)
+			}
 		}
 		for (id, _) in videoTracks {
-            if(self.eventListenerForRemoveTrack != nil) {
-                self.eventListenerForRemoveTrack!(id)
-            }
+			if(self.eventListenerForRemoveTrack != nil) {
+			self.eventListenerForRemoveTrack!(id)
+			}
 		}
 	}
 
@@ -143,9 +143,9 @@ class PluginMediaStream : NSObject, RTCMediaStreamDelegate {
 		self.audioTracks[pluginMediaStreamTrack.id] = pluginMediaStreamTrack
 
 		if self.eventListener != nil {
-            if self.eventListenerForAddTrack != nil {
-                self.eventListenerForAddTrack!(pluginMediaStreamTrack)
-            }
+			if self.eventListenerForAddTrack != nil {
+				self.eventListenerForAddTrack!(pluginMediaStreamTrack)
+			}
 
 			self.eventListener!([
 				"type": "addtrack",
@@ -164,9 +164,9 @@ class PluginMediaStream : NSObject, RTCMediaStreamDelegate {
 		self.videoTracks[pluginMediaStreamTrack.id] = pluginMediaStreamTrack
 
 		if self.eventListener != nil {
-            if self.eventListenerForAddTrack != nil {
-                self.eventListenerForAddTrack!(pluginMediaStreamTrack)
-            }
+			if self.eventListenerForAddTrack != nil {
+				self.eventListenerForAddTrack!(pluginMediaStreamTrack)
+			}
 
 			self.eventListener!([
 				"type": "addtrack",
@@ -187,9 +187,9 @@ class PluginMediaStream : NSObject, RTCMediaStreamDelegate {
 		self.audioTracks[track.trackId] = nil
 
 		if self.eventListener != nil {
-            if self.eventListenerForRemoveTrack != nil {
-                self.eventListenerForRemoveTrack!(track.trackId)
-            }
+			if self.eventListenerForRemoveTrack != nil {
+				self.eventListenerForRemoveTrack!(track.trackId)
+			}
 
 			self.eventListener!([
 				"type": "removetrack",
@@ -213,9 +213,9 @@ class PluginMediaStream : NSObject, RTCMediaStreamDelegate {
 		self.videoTracks[track.trackId] = nil
 
 		if self.eventListener != nil {
-            if self.eventListenerForRemoveTrack != nil {
-                self.eventListenerForRemoveTrack!(track.trackId)
-            }
+			if self.eventListenerForRemoveTrack != nil {
+				self.eventListenerForRemoveTrack!(track.trackId)
+			}
 
 			self.eventListener!([
 				"type": "removetrack",

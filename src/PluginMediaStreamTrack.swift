@@ -68,9 +68,9 @@ class PluginMediaStreamTrack : NSObject, RTCMediaStreamTrackDelegate {
 			])
 
 			if readyState == "ended" {
-                if(self.eventListenerForEnded != nil) {
-                    self.eventListenerForEnded!()
-                }
+				if(self.eventListenerForEnded != nil) {
+					self.eventListenerForEnded!()
+				}
 			}
 		}
 		self.lostStates.removeAll()
@@ -86,7 +86,7 @@ class PluginMediaStreamTrack : NSObject, RTCMediaStreamTrackDelegate {
 
 
 	// TODO: No way to stop the track.
-	// Check https://github.com/BasqueVoIPMafia/cordova-plugin-iosrtc/issues/140
+	// Check https://github.com/cordova-rtc/cordova-plugin-iosrtc/issues/140
 	func stop() {
 		NSLog("PluginMediaStreamTrack#stop() [kind:%@, id:%@]", String(self.kind), String(self.id))
 
@@ -116,9 +116,9 @@ class PluginMediaStreamTrack : NSObject, RTCMediaStreamTrackDelegate {
 			])
 
 			if self.rtcMediaStreamTrack.readyState.rawValue == RTCMediaStreamTrackState.ended.rawValue {
-                if self.eventListenerForEnded != nil {
-                    self.eventListenerForEnded!()
-                }
+				if self.eventListenerForEnded != nil {
+					self.eventListenerForEnded!()
+				}
 			}
 		} else {
 			// It may happen that the eventListener is not yet set, so store the lost states.
