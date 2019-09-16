@@ -112,7 +112,6 @@ MediaStreamRenderer.prototype.render = function (stream) {
 };
 
 MediaStreamRenderer.prototype.save = function (callback) {
-	console.log("TakeScreen");
 	debug('save()');
 
 	if (!this.stream) {
