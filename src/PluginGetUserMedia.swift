@@ -52,7 +52,7 @@ class PluginGetUserMedia {
 		var constraints: RTCMediaConstraints
 
 		if videoRequested == true {
-			switch AVCaptureDevice.authorizationStatus(forMediaType: AVMediaTypeVideo) {
+			switch AVCaptureDevice.authorizationStatus(for: AVMediaType.video) {
 			case AVAuthorizationStatus.notDetermined:
 				NSLog("PluginGetUserMedia#call() | video authorization: not determined")
 			case AVAuthorizationStatus.authorized:
@@ -69,7 +69,7 @@ class PluginGetUserMedia {
 		}
 
 		if audioRequested == true {
-			switch AVCaptureDevice.authorizationStatus(forMediaType: AVMediaTypeAudio) {
+			switch AVCaptureDevice.authorizationStatus(for: AVMediaType.audio) {
 			case AVAuthorizationStatus.notDetermined:
 				NSLog("PluginGetUserMedia#call() | audio authorization: not determined")
 			case AVAuthorizationStatus.authorized:
@@ -94,7 +94,7 @@ class PluginGetUserMedia {
 				let videoDevices: [AVCaptureDevice] = AVCaptureDevice.DiscoverySession.init(deviceTypes: [AVCaptureDevice.DeviceType.builtInWideAngleCamera, AVCaptureDevice.DeviceType.builtInDualCamera], mediaType: AVMediaType.video, position: AVCaptureDevice.Position.unspecified).devices
 				for device: AVCaptureDevice in videoDevices {
 					if device.uniqueID == videoDeviceId {
-						if device.position == AVCaptureDevicePosition.back {
+						if device.position == AVCaptureDevice.Position.back {
 							usingFront = false
 							break
 						}
