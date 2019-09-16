@@ -221,7 +221,7 @@ class PluginMediaStreamRenderer : NSObject, RTCVideoRenderer, RTCEAGLVideoViewDe
 
 		// if the zIndex is 0 (the default) bring the view to the top, last one wins
 		if zIndex == 0 {
-			self.webView?.superview?.bringSubview(toFront: self.elementView)
+			self.webView?.superview?.bringSubviewToFront(self.elementView)
 		}
 
 		if !mirrored {
@@ -245,9 +245,9 @@ class PluginMediaStreamRenderer : NSObject, RTCVideoRenderer, RTCEAGLVideoViewDe
 		elementView.drawHierarchy(in: elementView.bounds, afterScreenUpdates: false)
 		let snapshotImageFromMyView = UIGraphicsGetImageFromCurrentImageContext()
 		UIGraphicsEndImageContext()
-		let imageData:NSData = UIImageJPEGRepresentation(snapshotImageFromMyView!, 0.25)! as NSData
-		let strBase64 = imageData.base64EncodedString(options: .lineLength64Characters)
-		return strBase64;
+		let imageData = snapshotImageFromMyView?.jpegData(compressionQuality: 0.25)
+		let strBase64 = imageData?.base64EncodedString(options: .lineLength64Characters)
+		return strBase64!;
 	}
 
 	func close() {
