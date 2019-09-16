@@ -5,24 +5,8 @@
 //
 
 /*
-cordova.plugins.diagnostic.requestMicrophoneAuthorization(function (status) {
-    if(status === cordova.plugins.diagnostic.permissionStatus.GRANTED) {
-        console.log('GRANTED');
-    } else {
-        console.log(new Error('AuthorizationDenied'));   
-    }
-}, function (err) {
-    console.log(new Error('AuthorizationFailed: ' + err));   
-});
-
-cordova.plugins.diagnostic.requestCameraAuthorization(function (status) {
-    if(status === cordova.plugins.diagnostic.permissionStatus.GRANTED) {
-        console.log('GRANTED');
-    } else {
-        console.log(new Error('AuthorizationDenied'));   
-    }
-}, function (err) {
-    console.log(new Error('AuthorizationFailed: ' + err));   
+cordova.plugins.iosrtc.requestPermission(true, true, function (result) {
+  console.log('requestPermission.result', result)
 });
 */
 
@@ -47,9 +31,9 @@ var appContainer = document.body;
 //
 
 var localStream;
+var localVideoEl = document.createElement('video');
 function TestGetUserMedia() {
 
-  var localVideoEl = document.createElement('video');
   localVideoEl.setAttribute('autoplay', 'autoplay');
   localVideoEl.setAttribute('playsinline', 'playsinline');
   // Cause zIndex - 1 failure
@@ -107,7 +91,6 @@ function TestGetUserMedia() {
     }
 
     if (srcObjectStream) {
-
       TestPluginMediaStreamRenderer(localVideoEl);
       TestRTCPeerConnection(localStream); 
     }
@@ -117,7 +100,8 @@ function TestGetUserMedia() {
   });
 }
 
-var useAnimateVideo = false;
+
+var useAnimateVideo = true;
 function TestPluginMediaStreamRenderer(localVideoEl) {
 
   // Animate video position
@@ -179,14 +163,32 @@ function TestPluginMediaStreamRenderer(localVideoEl) {
 
 }
 
+var canvasEl = document.createElement('canvas');
+function TestMediaRenderCatpure(videoEl) {
+  var ctx = canvasEl.getContext("2d");
+  canvasEl.width = "100";
+  canvasEl.height = "100";
+  canvasEl.style.position = 'absolute';
+  canvasEl.style.left = 0;
+  canvasEl.style.bottom = 0;
+  appContainer.appendChild(canvasEl);
+  var image = new Image();
+  image.onload = function() {
+    ctx.drawImage(image, 0, 0);
+  };
+  videoEl.render.save(function (data) {
+    image.src = "data:image/jpg;base64," + data;
+  });
+} 
+
 //
 // Test RTCPeerConnection
 // 
 
-
 var pc1 = new RTCPeerConnection(),
     pc2 = new RTCPeerConnection();
 
+var peerVideoEl = document.createElement('video');
 function TestRTCPeerConnection(localStream) {
 
   // TODO Deprecated
@@ -218,8 +220,6 @@ function TestRTCPeerConnection(localStream) {
 
   pc2.onaddstream = function (e) {
     console.log('pc2.onAddStream', e);
-
-    var peerVideoEl = document.createElement('video');
     peerVideoEl.setAttribute('autoplay', 'autoplay');
     peerVideoEl.setAttribute('playsinline', 'playsinline');
     peerVideoEl.style.backgroundColor = 'blue';
@@ -280,6 +280,9 @@ function TestRTCPeerConnection(localStream) {
       };
       console.log('pc1.setRemoteDescription', desc);
       return pc1.setRemoteDescription(desc);
+    }).then(function () {
+      TestMediaRenderCatpure(peerVideoEl);
+      TestMediaRenderCatpure(localVideoEl);
     }).catch(function (err) {
       console.log('pc1.createOfferError', err);
     });
@@ -307,5 +310,5 @@ if (useWebRTCAdapter && typeof window.adapter === 'undefined') {
   TestGetUserMedia();
 }
 
-
+// cordova.plugins.iosrtc.turnOnSpeaker(true, true)
 
