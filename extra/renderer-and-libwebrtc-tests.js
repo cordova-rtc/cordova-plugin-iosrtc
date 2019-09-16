@@ -15,7 +15,7 @@ var cordova = window.cordova;
 // Expose WebRTC Globals
 if (cordova && cordova.plugins && cordova.plugins.iosrtc) {
   cordova.plugins.iosrtc.registerGlobals();
-  cordova.plugins.iosrtc.debug.enabled = true;
+  cordova.plugins.iosrtc.debug.enable('*');
 }
 
 
@@ -186,8 +186,15 @@ function TestMediaRenderCatpure(videoEl) {
 // Test RTCPeerConnection
 // 
 
-var pc1 = new RTCPeerConnection(),
-    pc2 = new RTCPeerConnection();
+var peerConnectionConfig = {
+    iceServers: [     
+      {
+        urls: "stun:stun.stunprotocol.org"
+      }
+    ]
+};
+var pc1 = new RTCPeerConnection(peerConnectionConfig),
+    pc2 = new RTCPeerConnection(peerConnectionConfig);
 
 var sendChannel, receiveChannel;
 function TestPeerDataChannel() {
@@ -239,7 +246,7 @@ function TestRTCPeerConnection(localStream) {
   });
   
   function onAddIceCandidate(pc, can) {
-    console.log('onAddIceCandidate', pc, can);
+    console.log('addIceCandidate', pc, can);
     return can && pc.addIceCandidate(can).catch(function (err) {
       console.log('addIceCandidateError', err);
     });
@@ -252,8 +259,16 @@ function TestRTCPeerConnection(localStream) {
     onAddIceCandidate(pc1, e.candidate);
   };
 
+  pc2.ontrack = function (e) {
+    console.log('pc2.track', e);
+  };
+
+  pc2.onremovetrack = function (e) {
+    console.log('pc2.removeTrack', e);
+  };
+
   pc2.onaddstream = function (e) {
-    console.log('pc2.onAddStream', e);
+    console.log('pc2.addStream', e);
     peerVideoEl = document.createElement('video');
     peerVideoEl.setAttribute('autoplay', 'autoplay');
     peerVideoEl.setAttribute('playsinline', 'playsinline');
@@ -280,6 +295,10 @@ function TestRTCPeerConnection(localStream) {
       console.log('pc2.getReceivers', pc2.getReceivers());
     }
   };
+
+  pc1.onicegatheringstatechange = function (e) {
+    console.log('pc1.iceGatheringStateChange', e);
+  }
 
   pc1.onnegotiationneeded = function (e) {
     console.log('pc1.negotiatioNeeded', e);
@@ -326,7 +345,7 @@ function TestRTCPeerConnection(localStream) {
 }
 
 
-var useWebRTCAdapter = false;
+var useWebRTCAdapter = true;
 
 // Expose webrtc-adapter
 if (useWebRTCAdapter && typeof window.adapter === 'undefined') {
