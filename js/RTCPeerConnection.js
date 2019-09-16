@@ -29,7 +29,7 @@ function deprecateWarning(method, newMethod) {
 	if (!newMethod) {
 		console.warn(method + ' is deprecated.');
 	} else {
-		console.warn(method + ' method is deprecated, use ' + newMethod + 'instead.');	
+		console.warn(method + ' method is deprecated, use ' + newMethod + ' instead.');	
 	}
 }
 
