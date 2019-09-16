@@ -172,7 +172,7 @@ function MediaStream(arg, id) {
 
 	// Public atributes.
 	stream._id = id || newMediaStreamId();
-	stream.active = true;
+	stream._active = true;
 
 	// Init Stream by Id
 	exec(null, null, 'iosrtcPlugin', 'MediaStream_init', [stream.id]);
@@ -216,6 +216,11 @@ MediaStream.prototype = Object.create(originalMediaStream.prototype, {
 	id: {
 		get: function () {
 			return this._id;
+		}
+	},
+	active: {
+		get: function () {
+			return this._active;
 		}
 	},
 	// Backwards compatibility.
@@ -472,7 +477,7 @@ function checkActive() {
 	release();
 
 	function release() {
-		self.active = false;
+		self._active = false;
 		self.dispatchEvent(new Event('inactive'));
 
 		// Remove the stream from the dictionary.
@@ -651,7 +656,6 @@ MediaStreamRenderer.prototype.render = function (stream) {
 };
 
 MediaStreamRenderer.prototype.save = function (callback) {
-	console.log("TakeScreen");
 	debug('save()');
 
 	if (!this.stream) {
@@ -1480,7 +1484,7 @@ function deprecateWarning(method, newMethod) {
 	if (!newMethod) {
 		console.warn(method + ' is deprecated.');
 	} else {
-		console.warn(method + ' method is deprecated, use ' + newMethod + 'instead.');	
+		console.warn(method + ' method is deprecated, use ' + newMethod + ' instead.');	
 	}
 }
 
