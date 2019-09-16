@@ -9,15 +9,16 @@ class PluginRTCPeerConnectionConstraints {
 		NSLog("PluginRTCPeerConnectionConstraints#init()")
 
 		if pcConstraints == nil {
-			self.constraints = RTCMediaConstraints()
+			self.constraints = RTCMediaConstraints.init(mandatoryConstraints: [:], optionalConstraints: [:])
 			return
 		}
 
 		var	offerToReceiveAudio = pcConstraints?.object(forKey: "offerToReceiveAudio") as? Bool
 		var	offerToReceiveVideo = pcConstraints?.object(forKey: "offerToReceiveVideo") as? Bool
+		var iceRestart = pcConstraints?.object(forKey: "iceRestart") as? Bool
 
 		if offerToReceiveAudio == nil && offerToReceiveVideo == nil {
-			self.constraints = RTCMediaConstraints()
+			self.constraints = RTCMediaConstraints.init(mandatoryConstraints: [:], optionalConstraints: [:])
 			return
 		}
 
@@ -29,16 +30,21 @@ class PluginRTCPeerConnectionConstraints {
 			offerToReceiveVideo = false
 		}
 
-		NSLog("PluginRTCPeerConnectionConstraints#init() | [offerToReceiveAudio:%@, offerToReceiveVideo:%@]",
-			String(offerToReceiveAudio!), String(offerToReceiveVideo!))
+		if iceRestart == nil {
+			iceRestart = false
+		}
 
-		self.constraints = RTCMediaConstraints(
+		NSLog("PluginRTCPeerConnectionConstraints#init() | [offerToReceiveAudio:%@, offerToReceiveVideo:%@, iceRestart:%@]",
+			String(offerToReceiveAudio!), String(offerToReceiveVideo!), String(iceRestart!))
+
+		self.constraints = RTCMediaConstraints.init(
 			mandatoryConstraints: [
-				RTCPair(key: "OfferToReceiveAudio", value: offerToReceiveAudio == true ? "true" : "false"),
-				RTCPair(key: "OfferToReceiveVideo", value: offerToReceiveVideo == true ? "true" : "false")
+				"OfferToReceiveAudio": offerToReceiveAudio == true ? "true" : "false",
+				"OfferToReceiveVideo": offerToReceiveVideo == true ? "true" : "false",
+				"IceRestart".        : iceRestart == true ? "true" : "false"
 			],
-			optionalConstraints: []
-		)
+			optionalConstraints: [:]
+		);
 	}
 
 

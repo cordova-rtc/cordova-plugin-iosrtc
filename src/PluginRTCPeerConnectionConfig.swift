@@ -2,7 +2,7 @@ import Foundation
 
 
 class PluginRTCPeerConnectionConfig {
-	fileprivate var iceServers: [RTCICEServer] = []
+	fileprivate var iceServers: [RTCIceServer] = []
 
 
 	init(pcConfig: NSDictionary?) {
@@ -23,11 +23,7 @@ class PluginRTCPeerConnectionConfig {
 				NSLog("PluginRTCPeerConnectionConfig#init() | adding ICE server [url:'%@', username:'%@', password:'******']",
 					String(url!), String(username))
 
-				self.iceServers.append(RTCICEServer(
-					uri: URL(string: url!),
-					username: username,
-					password: password
-				))
+				self.iceServers.append(RTCIceServer.init(urlStrings: [url!], username: username, credential: password))
 			}
 		}
 	}
@@ -38,7 +34,7 @@ class PluginRTCPeerConnectionConfig {
 	}
 
 
-	func getIceServers() -> [RTCICEServer] {
+	func getIceServers() -> [RTCIceServer] {
 		NSLog("PluginRTCPeerConnectionConfig#getIceServers()")
 
 		return self.iceServers

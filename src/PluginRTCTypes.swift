@@ -1,38 +1,38 @@
 struct PluginRTCTypes {
 	static let signalingStates = [
-		RTCSignalingStable.rawValue:             "stable",
-		RTCSignalingHaveLocalOffer.rawValue:     "have-local-offer",
-		RTCSignalingHaveLocalPrAnswer.rawValue:  "have-local-pranswer",
-		RTCSignalingHaveRemoteOffer.rawValue:    "have-remote-offer",
-		RTCSignalingHaveRemotePrAnswer.rawValue: "have-remote-pranswer",
-		RTCSignalingClosed.rawValue:             "closed"
+		RTCSignalingState.stable.rawValue:             "stable",
+		RTCSignalingState.haveLocalOffer.rawValue:     "have-local-offer",
+		RTCSignalingState.haveLocalPrAnswer.rawValue:  "have-local-pranswer",
+		RTCSignalingState.haveRemoteOffer.rawValue:    "have-remote-offer",
+		RTCSignalingState.haveRemotePrAnswer.rawValue: "have-remote-pranswer",
+		RTCSignalingState.closed.rawValue:             "closed"
 	]
 
 	static let iceGatheringStates = [
-		RTCICEGatheringNew.rawValue:            "new",
-		RTCICEGatheringGathering.rawValue:      "gathering",
-		RTCICEGatheringComplete.rawValue:       "complete"
+		RTCIceGatheringState.new.rawValue:            "new",
+		RTCIceGatheringState.gathering.rawValue:      "gathering",
+		RTCIceGatheringState.complete.rawValue:       "complete"
 	]
 
 	static let iceConnectionStates = [
-		RTCICEConnectionNew.rawValue:            "new",
-		RTCICEConnectionChecking.rawValue:       "checking",
-		RTCICEConnectionConnected.rawValue:      "connected",
-		RTCICEConnectionCompleted.rawValue:      "completed",
-		RTCICEConnectionFailed.rawValue:         "failed",
-		RTCICEConnectionDisconnected.rawValue:   "disconnected",
-		RTCICEConnectionClosed.rawValue:         "closed"
+		RTCIceConnectionState.new.rawValue:            "new",
+		RTCIceConnectionState.checking.rawValue:       "checking",
+		RTCIceConnectionState.connected.rawValue:      "connected",
+		RTCIceConnectionState.completed.rawValue:      "completed",
+		RTCIceConnectionState.failed.rawValue:         "failed",
+		RTCIceConnectionState.disconnected.rawValue:   "disconnected",
+		RTCIceConnectionState.closed.rawValue:         "closed"
 	]
 
 	static let dataChannelStates = [
-		kRTCDataChannelStateConnecting.rawValue: "connecting",
-		kRTCDataChannelStateOpen.rawValue:       "open",
-		kRTCDataChannelStateClosing.rawValue:    "closing",
-		kRTCDataChannelStateClosed.rawValue:     "closed"
+		RTCDataChannelState.connecting.rawValue: "connecting",
+		RTCDataChannelState.open.rawValue:       "open",
+		RTCDataChannelState.closing.rawValue:    "closing",
+		RTCDataChannelState.closed.rawValue:     "closed"
 	]
 
-	static let mediaStreamTrackStates = [
-		RTCTrackStateLive.rawValue:              "live",
-		RTCTrackStateEnded.rawValue:             "ended"
-	]
+//	static let mediaStreamTrackStates = [
+//		RTCTrackState.live.rawValue:              "live",
+//		RTCTrackState.ended.rawValue:             "ended"
+//	]
 }

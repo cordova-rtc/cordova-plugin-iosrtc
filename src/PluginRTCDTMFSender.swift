@@ -1,8 +1,8 @@
 import Foundation
 
 
-class PluginRTCDTMFSender : NSObject, RTCDTMFSenderDelegate {
-	var rtcDTMFSender: RTCDTMFSender?
+class PluginRTCDTMFSender : NSObject { //, RTCDTMFSenderDelegate
+	//var rtcDTMFSender: RTCDTMFSender?
 	var eventListener: ((_ data: NSDictionary) -> Void)?
 
 
@@ -16,13 +16,13 @@ class PluginRTCDTMFSender : NSObject, RTCDTMFSenderDelegate {
 		) {
 		NSLog("PluginRTCDTMFSender#init()")
 
-		self.eventListener = eventListener
-		self.rtcDTMFSender = rtcPeerConnection.createDTMFSender(for: track as? RTCAudioTrack)
-
-		if self.rtcDTMFSender == nil {
-			NSLog("PluginRTCDTMFSender#init() | rtcPeerConnection.createDTMFSenderForTrack() failed")
-			return
-		}
+//		self.eventListener = eventListener
+//		self.rtcDTMFSender = rtcPeerConnection.createDTMFSender(for: (track as? RTCAudioTrack)!)
+//
+//		if self.rtcDTMFSender == nil {
+//			NSLog("PluginRTCDTMFSender#init() | rtcPeerConnection.createDTMFSenderForTrack() failed")
+//			return
+//		}
 	}
 
 
@@ -34,17 +34,17 @@ class PluginRTCDTMFSender : NSObject, RTCDTMFSenderDelegate {
 	func run() {
 		NSLog("PluginRTCDTMFSender#run()")
 
-		self.rtcDTMFSender!.delegate = self
+//		self.rtcDTMFSender!.delegate = self
 	}
 
 
 	func insertDTMF(_ tones: String, duration: Int, interToneGap: Int) {
-		NSLog("PluginRTCDTMFSender#insertDTMF()")
-
-		let result = self.rtcDTMFSender!.insertDTMF(tones, withDuration: duration, andInterToneGap: interToneGap)
-		if !result {
-			NSLog("PluginRTCDTMFSender#indertDTMF() | RTCDTMFSender#indertDTMF() failed")
-		}
+//		NSLog("PluginRTCDTMFSender#insertDTMF()")
+//
+//		let result = self.rtcDTMFSender!.insertDTMF(tones, withDuration: duration, andInterToneGap: interToneGap)
+//		if !result {
+//			NSLog("PluginRTCDTMFSender#indertDTMF() | RTCDTMFSender#indertDTMF() failed")
+//		}
 	}
 
 

@@ -14,26 +14,22 @@ class PluginMediaStream : NSObject, RTCMediaStreamDelegate {
 	/**
 	 * Constructor for pc.onaddstream event and getUserMedia().
 	 */
-	init(rtcMediaStream: RTCMediaStream, id: String = "") {
+	
+	init(rtcMediaStream: RTCMediaStream) {
 		NSLog("PluginMediaStream#init()")
-
+   
 		self.rtcMediaStream = rtcMediaStream
-		
 		// ObjC API does not provide id property, so let's set a random one.
-		if (id.isEmpty) {
-			self.id = rtcMediaStream.label + "-" + UUID().uuidString
-		} else {
-			self.id = id;
-		}
+		self.id = rtcMediaStream.streamId
 
-		for track: RTCMediaStreamTrack in (self.rtcMediaStream.audioTracks as! Array<RTCMediaStreamTrack>) {
+		for track: RTCMediaStreamTrack in (self.rtcMediaStream.audioTracks) {
 			let pluginMediaStreamTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: track)
 
 			pluginMediaStreamTrack.run()
 			self.audioTracks[pluginMediaStreamTrack.id] = pluginMediaStreamTrack
 		}
 
-		for track: RTCMediaStreamTrack in (self.rtcMediaStream.videoTracks as! Array<RTCMediaStreamTrack>) {
+		for track: RTCMediaStreamTrack in (self.rtcMediaStream.videoTracks) {
 			let pluginMediaStreamTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: track)
 
 			pluginMediaStreamTrack.run()
@@ -44,6 +40,16 @@ class PluginMediaStream : NSObject, RTCMediaStreamDelegate {
 
 	deinit {
 		NSLog("PluginMediaStream#deinit()")
+		for (id, _) in audioTracks {
+            if(self.eventListenerForRemoveTrack != nil) {
+                self.eventListenerForRemoveTrack!(id)
+            }
+		}
+		for (id, _) in videoTracks {
+            if(self.eventListenerForRemoveTrack != nil) {
+                self.eventListenerForRemoveTrack!(id)
+            }
+		}
 	}
 
 
@@ -90,50 +96,33 @@ class PluginMediaStream : NSObject, RTCMediaStreamDelegate {
 		NSLog("PluginMediaStream#addTrack()")
 
 		if pluginMediaStreamTrack.kind == "audio" {
-			if self.rtcMediaStream.addAudioTrack(pluginMediaStreamTrack.rtcMediaStreamTrack as! RTCAudioTrack) {
-				NSLog("PluginMediaStream#addTrack() | audio track added")
-				self.audioTracks[pluginMediaStreamTrack.id] = pluginMediaStreamTrack
-				return true
-			} else {
-				NSLog("PluginMediaStream#addTrack() | ERROR: audio track not added")
-				return false
-			}
+			self.rtcMediaStream.addAudioTrack(pluginMediaStreamTrack.rtcMediaStreamTrack as! RTCAudioTrack)
+			NSLog("PluginMediaStream#addTrack() | audio track added")
+			self.audioTracks[pluginMediaStreamTrack.id] = pluginMediaStreamTrack
+			return true
 		} else if pluginMediaStreamTrack.kind == "video" {
-			if self.rtcMediaStream.addVideoTrack(pluginMediaStreamTrack.rtcMediaStreamTrack as! RTCVideoTrack) {
-				NSLog("PluginMediaStream#addTrack() | video track added")
-				self.videoTracks[pluginMediaStreamTrack.id] = pluginMediaStreamTrack
-				return true
-			} else {
-				NSLog("PluginMediaStream#addTrack() | ERROR: video track not added")
-				return false
-			}
+			self.rtcMediaStream.addVideoTrack(pluginMediaStreamTrack.rtcMediaStreamTrack as! RTCVideoTrack)
+			NSLog("PluginMediaStream#addTrack() | video track added")
+			self.videoTracks[pluginMediaStreamTrack.id] = pluginMediaStreamTrack
+			return true
 		}
 
 		return false
 	}
-
 
 	func removeTrack(_ pluginMediaStreamTrack: PluginMediaStreamTrack) -> Bool {
 		NSLog("PluginMediaStream#removeTrack()")
 
 		if pluginMediaStreamTrack.kind == "audio" {
 			self.audioTracks[pluginMediaStreamTrack.id] = nil
-			if self.rtcMediaStream.removeAudioTrack(pluginMediaStreamTrack.rtcMediaStreamTrack as! RTCAudioTrack) {
-				NSLog("PluginMediaStream#removeTrack() | audio track removed")
-				return true
-			} else {
-				NSLog("PluginMediaStream#removeTrack() | ERROR: audio track not removed")
-				return false
-			}
+			self.rtcMediaStream.removeAudioTrack(pluginMediaStreamTrack.rtcMediaStreamTrack as! RTCAudioTrack)
+			NSLog("PluginMediaStream#removeTrack() | audio track removed")
+			return true
 		} else if pluginMediaStreamTrack.kind == "video" {
 			self.videoTracks[pluginMediaStreamTrack.id] = nil
-			if self.rtcMediaStream.removeVideoTrack(pluginMediaStreamTrack.rtcMediaStreamTrack as! RTCVideoTrack) {
-				NSLog("PluginMediaStream#removeTrack() | video track removed")
-				return true
-			} else {
-				NSLog("PluginMediaStream#removeTrack() | ERROR: video track not removed")
-				return false
-			}
+			self.rtcMediaStream.removeVideoTrack(pluginMediaStreamTrack.rtcMediaStreamTrack as! RTCVideoTrack)
+			NSLog("PluginMediaStream#removeTrack() | video track removed")
+			return true
 		}
 
 		return false
@@ -145,8 +134,8 @@ class PluginMediaStream : NSObject, RTCMediaStreamDelegate {
 	 */
 
 
-	func onAddAudioTrack(_ rtcMediaStream: RTCMediaStream!, track: RTCMediaStreamTrack!) {
-		NSLog("PluginMediaStream | OnAddAudioTrack [label:%@]", String(track.label))
+	func onAddAudioTrack(_ rtcMediaStream: RTCMediaStream, track: RTCMediaStreamTrack) {
+		NSLog("PluginMediaStream | OnAddAudioTrack [label:%@]", String(track.trackId))
 
 		let pluginMediaStreamTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: track)
 
@@ -154,7 +143,9 @@ class PluginMediaStream : NSObject, RTCMediaStreamDelegate {
 		self.audioTracks[pluginMediaStreamTrack.id] = pluginMediaStreamTrack
 
 		if self.eventListener != nil {
-			self.eventListenerForAddTrack!(pluginMediaStreamTrack)
+            if self.eventListenerForAddTrack != nil {
+                self.eventListenerForAddTrack!(pluginMediaStreamTrack)
+            }
 
 			self.eventListener!([
 				"type": "addtrack",
@@ -164,8 +155,8 @@ class PluginMediaStream : NSObject, RTCMediaStreamDelegate {
 	}
 
 
-	func onAddVideoTrack(_ rtcMediaStream: RTCMediaStream!, track: RTCMediaStreamTrack!) {
-		NSLog("PluginMediaStream | OnAddVideoTrack [label:%@]", String(track.label))
+	func onAddVideoTrack(_ rtcMediaStream: RTCMediaStream, track: RTCMediaStreamTrack) {
+		NSLog("PluginMediaStream | OnAddVideoTrack [label:%@]", String(track.trackId))
 
 		let pluginMediaStreamTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: track)
 
@@ -173,7 +164,9 @@ class PluginMediaStream : NSObject, RTCMediaStreamDelegate {
 		self.videoTracks[pluginMediaStreamTrack.id] = pluginMediaStreamTrack
 
 		if self.eventListener != nil {
-			self.eventListenerForAddTrack!(pluginMediaStreamTrack)
+            if self.eventListenerForAddTrack != nil {
+                self.eventListenerForAddTrack!(pluginMediaStreamTrack)
+            }
 
 			self.eventListener!([
 				"type": "addtrack",
@@ -183,23 +176,25 @@ class PluginMediaStream : NSObject, RTCMediaStreamDelegate {
 	}
 
 
-	func onRemoveAudioTrack(_ rtcMediaStream: RTCMediaStream!, track: RTCMediaStreamTrack!) {
-		NSLog("PluginMediaStream | OnRemoveAudioTrack [label:%@]", String(track.label))
+	func onRemoveAudioTrack(_ rtcMediaStream: RTCMediaStream, track: RTCMediaStreamTrack) {
+		NSLog("PluginMediaStream | OnRemoveAudioTrack [label:%@]", String(track.trackId))
 
 		// It may happen that track was removed due to user action (removeTrack()).
-		if self.audioTracks[track.label] == nil {
+		if self.audioTracks[track.trackId] == nil {
 			return
 		}
 
-		self.audioTracks[track.label] = nil
+		self.audioTracks[track.trackId] = nil
 
 		if self.eventListener != nil {
-			self.eventListenerForRemoveTrack!(track.label)
+            if self.eventListenerForRemoveTrack != nil {
+                self.eventListenerForRemoveTrack!(track.trackId)
+            }
 
 			self.eventListener!([
 				"type": "removetrack",
 				"track": [
-					"id": track.label,
+					"id": track.trackId,
 					"kind": "audio"
 				]
 			])
@@ -207,23 +202,25 @@ class PluginMediaStream : NSObject, RTCMediaStreamDelegate {
 	}
 
 
-	func onRemoveVideoTrack(_ rtcMediaStream: RTCMediaStream!, track: RTCMediaStreamTrack!) {
-		NSLog("PluginMediaStream | OnRemoveVideoTrack [label:%@]", String(track.label))
+	func onRemoveVideoTrack(_ rtcMediaStream: RTCMediaStream, track: RTCMediaStreamTrack) {
+		NSLog("PluginMediaStream | OnRemoveVideoTrack [label:%@]", String(track.trackId))
 
 		// It may happen that track was removed due to user action (removeTrack()).
-		if self.videoTracks[track.label] == nil {
+		if self.videoTracks[track.trackId] == nil {
 			return
 		}
 
-		self.videoTracks[track.label] = nil
+		self.videoTracks[track.trackId] = nil
 
 		if self.eventListener != nil {
-			self.eventListenerForRemoveTrack!(track.label)
+            if self.eventListenerForRemoveTrack != nil {
+                self.eventListenerForRemoveTrack!(track.trackId)
+            }
 
 			self.eventListener!([
 				"type": "removetrack",
 				"track": [
-					"id": track.label,
+					"id": track.trackId,
 					"kind": "video"
 				]
 			])
