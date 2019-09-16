@@ -11,23 +11,21 @@
 #import <Foundation/Foundation.h>
 
 #import "RTCMacros.h"
-
-typedef NS_ENUM(NSInteger, RTCSourceState) {
-  RTCSourceStateInitializing,
-  RTCSourceStateLive,
-  RTCSourceStateEnded,
-  RTCSourceStateMuted,
-};
+#import "RTCRtpCodecParameters.h"
+#import "RTCRtpEncodingParameters.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 RTC_EXPORT
-@interface RTCMediaSource : NSObject
+@interface RTCRtpParameters : NSObject
 
-/** The current state of the RTCMediaSource. */
-@property(nonatomic, readonly) RTCSourceState state;
+/** The currently active encodings in the order of preference. */
+@property(nonatomic, copy) NSArray<RTCRtpEncodingParameters *> *encodings;
 
-- (instancetype)init NS_UNAVAILABLE;
+/** The negotiated set of send codecs in order of preference. */
+@property(nonatomic, copy) NSArray<RTCRtpCodecParameters *> *codecs;
+
+- (instancetype)init NS_DESIGNATED_INITIALIZER;
 
 @end
 

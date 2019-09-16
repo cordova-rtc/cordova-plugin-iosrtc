@@ -1,39 +1,56 @@
 /*
- * libjingle
- * Copyright 2013 Google Inc.
+ *  Copyright 2015 The WebRTC project authors. All Rights Reserved.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  1. Redistributions of source code must retain the above copyright notice,
- *     this list of conditions and the following disclaimer.
- *  2. Redistributions in binary form must reproduce the above copyright notice,
- *     this list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
- *  3. The name of the author may not be used to endorse or promote products
- *     derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
- * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
- * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
- * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
- * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree. An additional intellectual property rights grant can be found
+ *  in the file PATENTS.  All contributing project authors may
+ *  be found in the AUTHORS file in the root of the source tree.
  */
 
 #import <Foundation/Foundation.h>
 
-// RTCMediaConstraints contains the media constraints to be used in
-// RTCPeerConnection and RTCMediaStream.
+#import "RTCMacros.h"
+
+NS_ASSUME_NONNULL_BEGIN
+
+/** Constraint keys for media sources. */
+RTC_EXTERN NSString * const kRTCMediaConstraintsMinAspectRatio;
+RTC_EXTERN NSString * const kRTCMediaConstraintsMaxAspectRatio;
+RTC_EXTERN NSString * const kRTCMediaConstraintsMaxWidth;
+RTC_EXTERN NSString * const kRTCMediaConstraintsMinWidth;
+RTC_EXTERN NSString * const kRTCMediaConstraintsMaxHeight;
+RTC_EXTERN NSString * const kRTCMediaConstraintsMinHeight;
+RTC_EXTERN NSString * const kRTCMediaConstraintsMaxFrameRate;
+RTC_EXTERN NSString * const kRTCMediaConstraintsMinFrameRate;
+RTC_EXTERN NSString * const kRTCMediaConstraintsLevelControl;
+/** The value for this key should be a base64 encoded string containing
+ *  the data from the serialized configuration proto.
+ */
+RTC_EXTERN NSString * const kRTCMediaConstraintsAudioNetworkAdaptorConfig;
+
+/** Constraint keys for generating offers and answers. */
+RTC_EXTERN NSString * const kRTCMediaConstraintsIceRestart;
+RTC_EXTERN NSString * const kRTCMediaConstraintsOfferToReceiveAudio;
+RTC_EXTERN NSString * const kRTCMediaConstraintsOfferToReceiveVideo;
+RTC_EXTERN NSString * const kRTCMediaConstraintsVoiceActivityDetection;
+
+/** Constraint values for Boolean parameters. */
+RTC_EXTERN NSString * const kRTCMediaConstraintsValueTrue;
+RTC_EXTERN NSString * const kRTCMediaConstraintsValueFalse;
+
+RTC_EXPORT
 @interface RTCMediaConstraints : NSObject
 
-// Initializer for RTCMediaConstraints.  The parameters mandatory and optional
-// contain RTCPair objects with key/value for each constrant.
-- (id)initWithMandatoryConstraints:(NSArray *)mandatory
-               optionalConstraints:(NSArray *)optional;
+- (instancetype)init NS_UNAVAILABLE;
+
+/** Initialize with mandatory and/or optional constraints. */
+- (instancetype)initWithMandatoryConstraints:
+    (nullable NSDictionary<NSString *, NSString *> *)mandatory
+                         optionalConstraints:
+    (nullable NSDictionary<NSString *, NSString *> *)optional
+    NS_DESIGNATED_INITIALIZER;
 
 @end
+
+NS_ASSUME_NONNULL_END

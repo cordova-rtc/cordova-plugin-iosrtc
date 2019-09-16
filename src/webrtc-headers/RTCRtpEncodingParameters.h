@@ -12,22 +12,23 @@
 
 #import "RTCMacros.h"
 
-typedef NS_ENUM(NSInteger, RTCSourceState) {
-  RTCSourceStateInitializing,
-  RTCSourceStateLive,
-  RTCSourceStateEnded,
-  RTCSourceStateMuted,
-};
-
 NS_ASSUME_NONNULL_BEGIN
 
 RTC_EXPORT
-@interface RTCMediaSource : NSObject
+@interface RTCRtpEncodingParameters : NSObject
 
-/** The current state of the RTCMediaSource. */
-@property(nonatomic, readonly) RTCSourceState state;
+/** Controls whether the encoding is currently transmitted. */
+@property(nonatomic, assign) BOOL isActive;
 
-- (instancetype)init NS_UNAVAILABLE;
+/** The maximum bitrate to use for the encoding, or nil if there is no
+ *  limit.
+ */
+@property(nonatomic, copy, nullable) NSNumber *maxBitrateBps;
+
+/** The SSRC being used by this encoding. */
+@property(nonatomic, readonly, nullable) NSNumber *ssrc;
+
+- (instancetype)init NS_DESIGNATED_INITIALIZER;
 
 @end
 

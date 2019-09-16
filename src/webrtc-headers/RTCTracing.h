@@ -1,5 +1,5 @@
 /*
- *  Copyright 2015 The WebRTC project authors. All Rights Reserved.
+ *  Copyright 2016 The WebRTC Project Authors. All rights reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -9,25 +9,13 @@
  */
 
 #import <Foundation/Foundation.h>
-#if TARGET_OS_IPHONE
-#import <UIKit/UIKit.h>
-#endif
 
 #import "RTCMacros.h"
 
-NS_ASSUME_NONNULL_BEGIN
-
-@class RTCVideoFrame;
-
-RTC_EXPORT
-@protocol RTCVideoRenderer <NSObject>
-
-/** The size of the frame. */
-- (void)setSize:(CGSize)size;
-
-/** The frame to be displayed. */
-- (void)renderFrame:(nullable RTCVideoFrame *)frame;
-
-@end
-
-NS_ASSUME_NONNULL_END
+RTC_EXTERN void RTCSetupInternalTracer();
+/** Starts capture to specified file. Must be a valid writable path.
+ *  Returns YES if capture starts.
+ */
+RTC_EXTERN BOOL RTCStartInternalCapture(NSString *filePath);
+RTC_EXTERN void RTCStopInternalCapture();
+RTC_EXTERN void RTCShutdownInternalTracer();

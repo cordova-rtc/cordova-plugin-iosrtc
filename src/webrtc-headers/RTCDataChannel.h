@@ -1,118 +1,134 @@
 /*
- * libjingle
- * Copyright 2014 Google Inc.
+ *  Copyright 2015 The WebRTC project authors. All Rights Reserved.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  1. Redistributions of source code must retain the above copyright notice,
- *     this list of conditions and the following disclaimer.
- *  2. Redistributions in binary form must reproduce the above copyright notice,
- *     this list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
- *  3. The name of the author may not be used to endorse or promote products
- *     derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
- * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
- * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
- * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
- * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree. An additional intellectual property rights grant can be found
+ *  in the file PATENTS.  All contributing project authors may
+ *  be found in the AUTHORS file in the root of the source tree.
  */
 
+#import <AvailabilityMacros.h>
 #import <Foundation/Foundation.h>
 
-// ObjectiveC wrapper for a DataChannelInit object.
-@interface RTCDataChannelInit : NSObject
+#import "RTCMacros.h"
 
-// Set to YES if ordered delivery is required
-@property(nonatomic) BOOL isOrdered;
-// Max period in milliseconds in which retransmissions will be sent. After this
-// time, no more retransmissions will be sent. -1 if unset.
-@property(nonatomic) NSInteger maxRetransmitTimeMs;
-// The max number of retransmissions. -1 if unset.
-@property(nonatomic) NSInteger maxRetransmits;
-// Set to YES if the channel has been externally negotiated and we do not send
-// an in-band signalling in the form of an "open" message
-@property(nonatomic) BOOL isNegotiated;
-// The stream id, or SID, for SCTP data channels. -1 if unset.
-@property(nonatomic) NSInteger streamId;
-// Set by the application and opaque to the WebRTC implementation.
-@property(nonatomic) NSString* protocol;
+NS_ASSUME_NONNULL_BEGIN
 
-@end
-
-// ObjectiveC wrapper for a DataBuffer object.
+RTC_EXPORT
 @interface RTCDataBuffer : NSObject
 
-@property(nonatomic, readonly) NSData* data;
+/** NSData representation of the underlying buffer. */
+@property(nonatomic, readonly) NSData *data;
+
+/** Indicates whether |data| contains UTF-8 or binary data. */
 @property(nonatomic, readonly) BOOL isBinary;
 
-- (instancetype)initWithData:(NSData*)data isBinary:(BOOL)isBinary;
+- (instancetype)init NS_UNAVAILABLE;
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-// Disallow init and don't add to documentation
-- (id)init __attribute__((
-    unavailable("init is not a supported initializer for this class.")));
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+/**
+ * Initialize an RTCDataBuffer from NSData. |isBinary| indicates whether |data|
+ * contains UTF-8 or binary data.
+ */
+- (instancetype)initWithData:(NSData *)data isBinary:(BOOL)isBinary;
 
 @end
 
-// Keep in sync with webrtc::DataChannelInterface::DataState
-typedef enum {
-  kRTCDataChannelStateConnecting,
-  kRTCDataChannelStateOpen,
-  kRTCDataChannelStateClosing,
-  kRTCDataChannelStateClosed
-} RTCDataChannelState;
 
 @class RTCDataChannel;
-// Protocol for receving data channel state and message events.
-@protocol RTCDataChannelDelegate<NSObject>
+RTC_EXPORT
+@protocol RTCDataChannelDelegate <NSObject>
 
-// Called when the data channel state has changed.
-- (void)channelDidChangeState:(RTCDataChannel*)channel;
+/** The data channel state changed. */
+- (void)dataChannelDidChangeState:(RTCDataChannel *)dataChannel;
 
-// Called when a data buffer was successfully received.
-- (void)channel:(RTCDataChannel*)channel
-    didReceiveMessageWithBuffer:(RTCDataBuffer*)buffer;
+/** The data channel successfully received a data buffer. */
+- (void)dataChannel:(RTCDataChannel *)dataChannel
+    didReceiveMessageWithBuffer:(RTCDataBuffer *)buffer;
 
 @optional
-
-// Called when the buffered amount has changed.
-- (void)channel:(RTCDataChannel*)channel
-    didChangeBufferedAmount:(NSUInteger)amount;
+/** The data channel's |bufferedAmount| changed. */
+- (void)dataChannel:(RTCDataChannel *)dataChannel
+    didChangeBufferedAmount:(uint64_t)amount;
 
 @end
 
-// ObjectiveC wrapper for a DataChannel object.
-// See talk/app/webrtc/datachannelinterface.h
+
+/** Represents the state of the data channel. */
+typedef NS_ENUM(NSInteger, RTCDataChannelState) {
+  RTCDataChannelStateConnecting,
+  RTCDataChannelStateOpen,
+  RTCDataChannelStateClosing,
+  RTCDataChannelStateClosed,
+};
+
+RTC_EXPORT
 @interface RTCDataChannel : NSObject
 
-@property(nonatomic, readonly) NSString* label;
-@property(nonatomic, readonly) BOOL isReliable;
+/**
+ * A label that can be used to distinguish this data channel from other data
+ * channel objects.
+ */
+@property(nonatomic, readonly) NSString *label;
+
+/** Whether the data channel can send messages in unreliable mode. */
+@property(nonatomic, readonly) BOOL isReliable DEPRECATED_ATTRIBUTE;
+
+/** Returns whether this data channel is ordered or not. */
 @property(nonatomic, readonly) BOOL isOrdered;
-@property(nonatomic, readonly) NSUInteger maxRetransmitTime;
-@property(nonatomic, readonly) NSUInteger maxRetransmits;
-@property(nonatomic, readonly) NSString* protocol;
+
+/** Deprecated. Use maxPacketLifeTime. */
+@property(nonatomic, readonly) NSUInteger maxRetransmitTime
+    DEPRECATED_ATTRIBUTE;
+
+/**
+ * The length of the time window (in milliseconds) during which transmissions
+ * and retransmissions may occur in unreliable mode.
+ */
+@property(nonatomic, readonly) uint16_t maxPacketLifeTime;
+
+/**
+ * The maximum number of retransmissions that are attempted in unreliable mode.
+ */
+@property(nonatomic, readonly) uint16_t maxRetransmits;
+
+/**
+ * The name of the sub-protocol used with this data channel, if any. Otherwise
+ * this returns an empty string.
+ */
+@property(nonatomic, readonly) NSString *protocol;
+
+/**
+ * Returns whether this data channel was negotiated by the application or not.
+ */
 @property(nonatomic, readonly) BOOL isNegotiated;
-@property(nonatomic, readonly) NSInteger streamId;
-@property(nonatomic, readonly) RTCDataChannelState state;
-@property(nonatomic, readonly) NSUInteger bufferedAmount;
+
+/** Deprecated. Use channelId. */
+@property(nonatomic, readonly) NSInteger streamId DEPRECATED_ATTRIBUTE;
+
+/** The identifier for this data channel. */
+@property(nonatomic, readonly) int channelId;
+
+/** The state of the data channel. */
+@property(nonatomic, readonly) RTCDataChannelState readyState;
+
+/**
+ * The number of bytes of application data that have been queued using
+ * |sendData:| but that have not yet been transmitted to the network.
+ */
+@property(nonatomic, readonly) uint64_t bufferedAmount;
+
+/** The delegate for this data channel. */
 @property(nonatomic, weak) id<RTCDataChannelDelegate> delegate;
 
-- (void)close;
-- (BOOL)sendData:(RTCDataBuffer*)data;
+- (instancetype)init NS_UNAVAILABLE;
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-// Disallow init and don't add to documentation
-- (id)init __attribute__((
-    unavailable("init is not a supported initializer for this class.")));
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+/** Closes the data channel. */
+- (void)close;
+
+/** Attempt to send |data| on this data channel's underlying data transport. */
+- (BOOL)sendData:(RTCDataBuffer *)data;
 
 @end
+
+NS_ASSUME_NONNULL_END

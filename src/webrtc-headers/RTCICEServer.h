@@ -1,49 +1,64 @@
 /*
- * libjingle
- * Copyright 2013 Google Inc.
+ *  Copyright 2015 The WebRTC project authors. All Rights Reserved.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  1. Redistributions of source code must retain the above copyright notice,
- *     this list of conditions and the following disclaimer.
- *  2. Redistributions in binary form must reproduce the above copyright notice,
- *     this list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
- *  3. The name of the author may not be used to endorse or promote products
- *     derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
- * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
- * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
- * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
- * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree. An additional intellectual property rights grant can be found
+ *  in the file PATENTS.  All contributing project authors may
+ *  be found in the AUTHORS file in the root of the source tree.
  */
 
 #import <Foundation/Foundation.h>
 
-// RTCICEServer allows for the creation of ICEServer structs.
-@interface RTCICEServer : NSObject
+#import "RTCMacros.h"
 
-// The server URI, username, and password.
-@property(nonatomic, strong, readonly) NSURL* URI;
-@property(nonatomic, copy, readonly) NSString* username;
-@property(nonatomic, copy, readonly) NSString* password;
+typedef NS_ENUM(NSUInteger, RTCTlsCertPolicy) {
+  RTCTlsCertPolicySecure,
+  RTCTlsCertPolicyInsecureNoCheck
+};
 
-// Initializer for RTCICEServer taking uri, username, and password.
-- (id)initWithURI:(NSURL*)URI
-         username:(NSString*)username
-         password:(NSString*)password;
+NS_ASSUME_NONNULL_BEGIN
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-// Disallow init and don't add to documentation
-- (id)init __attribute__((
-    unavailable("init is not a supported initializer for this class.")));
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+RTC_EXPORT
+@interface RTCIceServer : NSObject
+
+/** URI(s) for this server represented as NSStrings. */
+@property(nonatomic, readonly) NSArray<NSString *> *urlStrings;
+
+/** Username to use if this RTCIceServer object is a TURN server. */
+@property(nonatomic, readonly, nullable) NSString *username;
+
+/** Credential to use if this RTCIceServer object is a TURN server. */
+@property(nonatomic, readonly, nullable) NSString *credential;
+
+/**
+ * TLS certificate policy to use if this RTCIceServer object is a TURN server.
+ */
+@property(nonatomic, readonly) RTCTlsCertPolicy tlsCertPolicy;
+
+- (nonnull instancetype)init NS_UNAVAILABLE;
+
+/** Convenience initializer for a server with no authentication (e.g. STUN). */
+- (instancetype)initWithURLStrings:(NSArray<NSString *> *)urlStrings;
+
+/**
+ * Initialize an RTCIceServer with its associated URLs, optional username,
+ * optional credential, and credentialType.
+ */
+- (instancetype)initWithURLStrings:(NSArray<NSString *> *)urlStrings
+                          username:(nullable NSString *)username
+                        credential:(nullable NSString *)credential;
+
+/**
+ * Initialize an RTCIceServer with its associated URLs, optional username,
+ * optional credential, and TLS cert policy.
+ */
+- (instancetype)initWithURLStrings:(NSArray<NSString *> *)urlStrings
+                          username:(nullable NSString *)username
+                        credential:(nullable NSString *)credential
+                     tlsCertPolicy:(RTCTlsCertPolicy)tlsCertPolicy
+    NS_DESIGNATED_INITIALIZER;
 
 @end
+
+NS_ASSUME_NONNULL_END

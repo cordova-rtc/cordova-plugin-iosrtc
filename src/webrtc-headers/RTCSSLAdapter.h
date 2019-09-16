@@ -12,23 +12,9 @@
 
 #import "RTCMacros.h"
 
-typedef NS_ENUM(NSInteger, RTCSourceState) {
-  RTCSourceStateInitializing,
-  RTCSourceStateLive,
-  RTCSourceStateEnded,
-  RTCSourceStateMuted,
-};
-
-NS_ASSUME_NONNULL_BEGIN
-
-RTC_EXPORT
-@interface RTCMediaSource : NSObject
-
-/** The current state of the RTCMediaSource. */
-@property(nonatomic, readonly) RTCSourceState state;
-
-- (instancetype)init NS_UNAVAILABLE;
-
-@end
-
-NS_ASSUME_NONNULL_END
+/**
+ * Initialize and clean up the SSL library. Failure is fatal. These call the
+ * corresponding functions in webrtc/base/ssladapter.h.
+ */
+RTC_EXTERN BOOL RTCInitializeSSL();
+RTC_EXTERN BOOL RTCCleanupSSL();

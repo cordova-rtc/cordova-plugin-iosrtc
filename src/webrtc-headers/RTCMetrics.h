@@ -11,24 +11,13 @@
 #import <Foundation/Foundation.h>
 
 #import "RTCMacros.h"
+#import "RTCMetricsSampleInfo.h"
 
-typedef NS_ENUM(NSInteger, RTCSourceState) {
-  RTCSourceStateInitializing,
-  RTCSourceStateLive,
-  RTCSourceStateEnded,
-  RTCSourceStateMuted,
-};
+/**
+ * Enables gathering of metrics (which can be fetched with
+ * RTCGetAndResetMetrics). Must be called before any other call into WebRTC.
+ */
+RTC_EXTERN void RTCEnableMetrics();
 
-NS_ASSUME_NONNULL_BEGIN
-
-RTC_EXPORT
-@interface RTCMediaSource : NSObject
-
-/** The current state of the RTCMediaSource. */
-@property(nonatomic, readonly) RTCSourceState state;
-
-- (instancetype)init NS_UNAVAILABLE;
-
-@end
-
-NS_ASSUME_NONNULL_END
+/** Gets and clears native histograms. */
+RTC_EXTERN NSArray<RTCMetricsSampleInfo *> *RTCGetAndResetMetrics();
