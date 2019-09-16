@@ -17,17 +17,17 @@ class PluginRTCAudioOutputController {
 		NotificationCenter.default.addObserver(
 			self,
 			selector: #selector(self.audioRouteChangeListener(_:)),
-			name: NSNotification.Name.AVAudioSessionRouteChange,
+			name: AVAudioSession.routeChangeNotification,
 			object: nil)
 	}
 	
-	dynamic fileprivate func audioRouteChangeListener(_ notification:Notification) {
+	@objc dynamic fileprivate func audioRouteChangeListener(_ notification:Notification) {
 		let audioRouteChangeReason = notification.userInfo![AVAudioSessionRouteChangeReasonKey] as! UInt
 		
 		switch audioRouteChangeReason {
-		case AVAudioSessionRouteChangeReason.newDeviceAvailable.rawValue:
+		case AVAudioSession.RouteChangeReason.newDeviceAvailable.rawValue:
 			print("headphone plugged in")
-		case AVAudioSessionRouteChangeReason.oldDeviceUnavailable.rawValue:
+		case AVAudioSession.RouteChangeReason.oldDeviceUnavailable.rawValue:
 			print("headphone pulled out -> restore state speakerEnabled: %@ %@", speakerEnabled, recordEnabled)
 			self.setOutputSpeakerIfNeed(enabled:speakerEnabled, needRecord:recordEnabled)
 		default:
@@ -47,7 +47,7 @@ class PluginRTCAudioOutputController {
 		
 		if currentRoute.outputs.count != 0 {
 			for description in currentRoute.outputs {
-				if description.portType == AVAudioSessionPortHeadphones {
+				if description.portType == AVAudioSession.Port.headphones {
 					//headphonePluggedInStateImageView.image = headphonePluggedInImage
 					print("headphone plugged in -> do nothing")
 				} else {
@@ -67,7 +67,7 @@ class PluginRTCAudioOutputController {
 		//Needs to be Record or PlayAndRecord to use audioRouteOverride:
 		if needRecord {
 			do {
-				try AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryPlayAndRecord)
+				try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playAndRecord)
 			} catch {
 				NSLog("iosrtcPlugin#selectAudioOutputSpeaker() | ERROR \(error)")
 			};
@@ -75,7 +75,7 @@ class PluginRTCAudioOutputController {
 		}
 		else {
 			do {
-				try AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryPlayback)
+				try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback)
 			} catch {
 				NSLog("iosrtcPlugin#selectAudioOutputSpeaker() | ERROR \(error)")
 			};
@@ -86,7 +86,7 @@ class PluginRTCAudioOutputController {
 			NSLog("iosrtcPlugin#selectAudioOutputSpeaker()")
 			
 			do {
-				try AVAudioSession.sharedInstance().overrideOutputAudioPort(AVAudioSessionPortOverride.speaker)
+				try AVAudioSession.sharedInstance().overrideOutputAudioPort(AVAudioSession.PortOverride.speaker)
 			} catch {
 				NSLog("iosrtcPlugin#selectAudioOutputSpeaker() | ERROR \(error)")
 			};
@@ -97,7 +97,7 @@ class PluginRTCAudioOutputController {
 			NSLog("iosrtcPlugin#selectAudioOutputEarpiece()")
 			
 			do {
-				try AVAudioSession.sharedInstance().overrideOutputAudioPort(AVAudioSessionPortOverride.none)
+				try AVAudioSession.sharedInstance().overrideOutputAudioPort(AVAudioSession.PortOverride.none)
 			} catch {
 				NSLog("iosrtcPlugin#selectAudioOutputEarpiece() | ERROR \(error)")
 			};
