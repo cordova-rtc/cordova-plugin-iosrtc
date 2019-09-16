@@ -14,7 +14,7 @@ class PluginMediaStreamTrack : NSObject, RTCMediaStreamTrackDelegate {
 		NSLog("PluginMediaStreamTrack#init()")
 
 		self.rtcMediaStreamTrack = rtcMediaStreamTrack
-		self.id = rtcMediaStreamTrack.trackId  // NOTE: No "id" property provided.
+		self.id = rtcMediaStreamTrack.trackId
 		self.kind = rtcMediaStreamTrack.kind
 	}
 
@@ -90,7 +90,7 @@ class PluginMediaStreamTrack : NSObject, RTCMediaStreamTrackDelegate {
 	func stop() {
 		NSLog("PluginMediaStreamTrack#stop() [kind:%@, id:%@]", String(self.kind), String(self.id))
 
-		NSLog("PluginMediaStreamTrack#stop() | stop() not implemented (see: https://github.com/BasqueVoIPMafia/cordova-plugin-iosrtc/issues/140")
+		NSLog("PluginMediaStreamTrack#stop() | stop() not implemented (see: https://github.com/cordova-rtc/cordova-plugin-iosrtc/issues/140")
 
 		// Let's try setEnabled(false), but it also fails.
 		self.rtcMediaStreamTrack.isEnabled = false
