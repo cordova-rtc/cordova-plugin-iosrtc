@@ -1,5 +1,5 @@
 /*
- * cordova-plugin-iosrtc v5.0.2
+ * cordova-plugin-iosrtc v6.0.0
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015-2017 eFace2Face, Inc. (https://eface2face.com)
  * Copyright 2015-2019 BasqueVoIPMafia (https://github.com/BasqueVoIPMafia)
@@ -2511,7 +2511,7 @@ function turnOnSpeaker(isTurnOn, needRecord) {
 }
 
 function requestPermission(needMic, needCamera, callback) {
-	debug('turnOnSpeaker() | [isTurnOn:"%s", needRecord:"%s"]', needMic, needCamera);
+	debug('requestPermission() | [needMic:"%s", needCamera:"%s"]', needMic, needCamera);
 
 	function ok() {
 		callback(true);
