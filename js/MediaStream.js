@@ -66,7 +66,7 @@ function MediaStream(arg, id) {
 
 	// Public atributes.
 	stream._id = id || newMediaStreamId();
-	stream.active = true;
+	stream._active = true;
 
 	// Init Stream by Id
 	exec(null, null, 'iosrtcPlugin', 'MediaStream_init', [stream.id]);
@@ -110,6 +110,11 @@ MediaStream.prototype = Object.create(originalMediaStream.prototype, {
 	id: {
 		get: function () {
 			return this._id;
+		}
+	},
+	active: {
+		get: function () {
+			return this._active;
 		}
 	},
 	// Backwards compatibility.
@@ -366,7 +371,7 @@ function checkActive() {
 	release();
 
 	function release() {
-		self.active = false;
+		self._active = false;
 		self.dispatchEvent(new Event('inactive'));
 
 		// Remove the stream from the dictionary.
