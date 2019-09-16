@@ -31,9 +31,9 @@ var appContainer = document.body;
 //
 
 var localStream;
-var localVideoEl = document.createElement('video');
+var localVideoEl;
 function TestGetUserMedia() {
-
+  localVideoEl = document.createElement('video');
   localVideoEl.setAttribute('autoplay', 'autoplay');
   localVideoEl.setAttribute('playsinline', 'playsinline');
   // Cause zIndex - 1 failure
@@ -101,7 +101,7 @@ function TestGetUserMedia() {
 }
 
 
-var useAnimateVideo = true;
+var useAnimateVideo = false;
 function TestPluginMediaStreamRenderer(localVideoEl) {
 
   // Animate video position
@@ -120,7 +120,7 @@ function TestPluginMediaStreamRenderer(localVideoEl) {
     localVideoEl.style.left = currentPosition.x + 'px';
 
     if (cordova && cordova.plugins && cordova.plugins.iosrtc) {
-      cordova.plugins.iosrtc.refreshVideos();
+      //cordova.plugins.iosrtc.refreshVideos();
     }
 
     return (animateTimer = requestAnimationFrame(animateVideo));
@@ -163,8 +163,9 @@ function TestPluginMediaStreamRenderer(localVideoEl) {
 
 }
 
-var canvasEl = document.createElement('canvas');
+var canvasEl;
 function TestMediaRenderCatpure(videoEl) {
+  canvasEl = document.createElement('canvas');
   var ctx = canvasEl.getContext("2d");
   canvasEl.width = "100";
   canvasEl.height = "100";
@@ -188,8 +189,41 @@ function TestMediaRenderCatpure(videoEl) {
 var pc1 = new RTCPeerConnection(),
     pc2 = new RTCPeerConnection();
 
-var peerVideoEl = document.createElement('video');
+var sendChannel, receiveChannel;
+function TestPeerDataChannel() {
+  sendChannel = pc1.createDataChannel("sendChannel");
+
+  sendChannel.onmessage  = function (event) {
+    console.log('sendChannel.onmessage', event, event.data);
+  };
+
+  sendChannel.onopen = function (event) {
+      console.log('sendChannel.onopen', event);
+      sendChannel.send("data message Date: " + new Date());
+  };
+
+  sendChannel.onclose = function (event) {
+      console.log('sendChannel.onclose', event);
+  };
+
+  pc2.ondatachannel = function (event) {
+    receiveChannel = event.channel;
+    receiveChannel.onmessage  = function (event) {
+      console.log('receiveChannel.onmessage', event, event.data);
+    };
+    receiveChannel.onopen  = function (event) {
+      console.log('receiveChannel.onopen', event);
+    };
+    receiveChannel.onclose  = function (event) {
+      console.log('receiveChannel.onclose', event);
+    };
+  };
+}
+
+var peerVideoEl;
 function TestRTCPeerConnection(localStream) {
+
+  TestPeerDataChannel();
 
   // TODO Deprecated
   //pc1.addStream(localStream);
@@ -220,6 +254,7 @@ function TestRTCPeerConnection(localStream) {
 
   pc2.onaddstream = function (e) {
     console.log('pc2.onAddStream', e);
+    peerVideoEl = document.createElement('video');
     peerVideoEl.setAttribute('autoplay', 'autoplay');
     peerVideoEl.setAttribute('playsinline', 'playsinline');
     peerVideoEl.style.backgroundColor = 'blue';
@@ -283,11 +318,13 @@ function TestRTCPeerConnection(localStream) {
     }).then(function () {
       TestMediaRenderCatpure(peerVideoEl);
       TestMediaRenderCatpure(localVideoEl);
+      //TestPeerDataChannel();
     }).catch(function (err) {
       console.log('pc1.createOfferError', err);
     });
   };
 }
+
 
 var useWebRTCAdapter = false;
 
