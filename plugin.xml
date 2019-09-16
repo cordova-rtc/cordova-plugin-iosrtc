@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
 		id="cordova-plugin-iosrtc"
-		version="5.0.0">
+		version="6.0.0">
 
 	<name>iosrtc</name>
 	<description>Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs</description>
@@ -46,36 +46,51 @@
 
 		<!-- WebRTC ObjetiveC headers -->
 		<header-file src="src/webrtc-headers/RTCAVFoundationVideoSource.h" />
-		<header-file src="src/webrtc-headers/RTCAudioSource.h" />
-		<header-file src="src/webrtc-headers/RTCAudioTrack.h" />
-		<header-file src="src/webrtc-headers/RTCDataChannel.h" />
-		<header-file src="src/webrtc-headers/RTCDTMFSender.h" />
-		<header-file src="src/webrtc-headers/RTCEAGLVideoView.h" />
-		<header-file src="src/webrtc-headers/RTCFileLogger.h" />
-		<header-file src="src/webrtc-headers/RTCI420Frame.h" />
-		<header-file src="src/webrtc-headers/RTCICECandidate.h" />
-		<header-file src="src/webrtc-headers/RTCICEServer.h" />
-		<header-file src="src/webrtc-headers/RTCLogging.h" />
-		<header-file src="src/webrtc-headers/RTCMediaConstraints.h" />
-		<header-file src="src/webrtc-headers/RTCMediaSource.h" />
-		<header-file src="src/webrtc-headers/RTCMediaStream.h" />
+		<header-file src="src/webrtc-headers/RTCFieldTrials.h" />
 		<header-file src="src/webrtc-headers/RTCMediaStreamTrack.h" />
-		<header-file src="src/webrtc-headers/RTCNSGLVideoView.h" />
-		<header-file src="src/webrtc-headers/RTCOpenGLVideoRenderer.h" />
-		<header-file src="src/webrtc-headers/RTCPair.h" />
-		<header-file src="src/webrtc-headers/RTCPeerConnection.h" />
-		<header-file src="src/webrtc-headers/RTCPeerConnectionDelegate.h" />
-		<header-file src="src/webrtc-headers/RTCPeerConnectionFactory.h" />
-		<header-file src="src/webrtc-headers/RTCPeerConnectionInterface.h" />
 		<header-file src="src/webrtc-headers/RTCSessionDescription.h" />
-		<header-file src="src/webrtc-headers/RTCSessionDescriptionDelegate.h" />
-		<header-file src="src/webrtc-headers/RTCStatsDelegate.h" />
-		<header-file src="src/webrtc-headers/RTCStatsReport.h" />
-		<header-file src="src/webrtc-headers/RTCTypes.h" />
+		<header-file src="src/webrtc-headers/RTCAudioSession.h" />
+		<header-file src="src/webrtc-headers/RTCFileLogger.h" />
+		<header-file src="src/webrtc-headers/RTCMetrics.h" />
+		<header-file src="src/webrtc-headers/RTCTracing.h" />
+		<header-file src="src/webrtc-headers/RTCAudioSessionConfiguration.h" />
+		<header-file src="src/webrtc-headers/RTCICECandidate.h" />
+		<header-file src="src/webrtc-headers/RTCMetricsSampleInfo.h" />
 		<header-file src="src/webrtc-headers/RTCVideoCapturer.h" />
+		<header-file src="src/webrtc-headers/RTCAudioSource.h" />
+		<header-file src="src/webrtc-headers/RTCICEServer.h" />
+		<header-file src="src/webrtc-headers/RTCNSGLVideoView.h" />
+		<header-file src="src/webrtc-headers/RTCVideoFrame.h" />
+		<header-file src="src/webrtc-headers/RTCAudioTrack.h" />
+		<header-file src="src/webrtc-headers/RTCLegacyStatsReport.h" />
+		<header-file src="src/webrtc-headers/RTCPeerConnection.h" />
 		<header-file src="src/webrtc-headers/RTCVideoRenderer.h" />
+		<header-file src="src/webrtc-headers/RTCCameraPreviewView.h" />
+		<header-file src="src/webrtc-headers/RTCLogging.h" />
+		<header-file src="src/webrtc-headers/RTCPeerConnectionFactory.h" />
 		<header-file src="src/webrtc-headers/RTCVideoSource.h" />
+		<header-file src="src/webrtc-headers/RTCCameraVideoCapturer.h" />
+		<header-file src="src/webrtc-headers/RTCMTLNSVideoView.h" />
+		<header-file src="src/webrtc-headers/RTCRtpCodecParameters.h" />
 		<header-file src="src/webrtc-headers/RTCVideoTrack.h" />
+		<header-file src="src/webrtc-headers/RTCConfiguration.h" />
+		<header-file src="src/webrtc-headers/RTCMTLVideoView.h" />
+		<header-file src="src/webrtc-headers/RTCRtpEncodingParameters.h" />
+		<header-file src="src/webrtc-headers/RTCVideoViewShading.h" />
+		<header-file src="src/webrtc-headers/RTCDataChannel.h" />
+		<header-file src="src/webrtc-headers/RTCMacros.h" />
+		<header-file src="src/webrtc-headers/RTCRtpParameters.h" />
+		<header-file src="src/webrtc-headers/UIDevice+RTCDevice.h" />
+		<header-file src="src/webrtc-headers/RTCDataChannelConfiguration.h" />
+		<header-file src="src/webrtc-headers/RTCMediaConstraints.h" />
+		<header-file src="src/webrtc-headers/RTCRtpReceiver.h" />
+		<header-file src="src/webrtc-headers/WebRTC.h" />
+		<header-file src="src/webrtc-headers/RTCDispatcher.h" />
+		<header-file src="src/webrtc-headers/RTCMediaSource.h" />
+		<header-file src="src/webrtc-headers/RTCRtpSender.h" />
+		<header-file src="src/webrtc-headers/RTCEAGLVideoView.h" />
+		<header-file src="src/webrtc-headers/RTCMediaStream.h" />
+		<header-file src="src/webrtc-headers/RTCSSLAdapter.h" />
 
 		<!-- Bridging header for using ObjetiveC libraries in Swift -->
 		<header-file src="src/cordova-plugin-iosrtc-Bridging-Header.h" />
@@ -94,6 +109,7 @@
 		<source-file src="src/PluginEnumerateDevices.swift" />
 		<source-file src="src/PluginUtils.swift" />
 		<source-file src="src/PluginMediaStreamRenderer.swift" />
+		<source-file src="src/PluginRTCAudioOutputController.swift" />
 
 		<!-- iOS shared dependencies -->
 		<framework src="AVFoundation.framework" />
