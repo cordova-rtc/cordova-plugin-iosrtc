@@ -250,21 +250,36 @@ function TestRTCPeerConnection(localStream) {
     console.log('pc1.negotiatioNeeded', e);
 
     return pc1.createOffer().then(function (d) {
-      return pc1.setLocalDescription(d);
+      var desc = {
+        type: d.type,
+        sdp: d.sdp
+      };
+      console.log('pc1.setLocalDescription', desc);
+      return pc1.setLocalDescription(desc);
     }).then(function () {
-      return pc2.setRemoteDescription({
+      var desc = {
         type: pc1.localDescription.type,
         sdp: pc1.localDescription.sdp
-      });
+      };
+      console.log('pc2.setLocalDescription', desc);
+      return pc2.setRemoteDescription(desc);
     }).then(function () {
+      console.log('pc2.createAnswer');
       return pc2.createAnswer();
     }).then(function (d) {
+      var desc = {
+        type: d.type,
+        sdp: d.sdp
+      };
+      console.log('pc2.setLocalDescription', desc);
       return pc2.setLocalDescription(d);
     }).then(function () {
-      return pc1.setRemoteDescription({
+      var desc = {
         type: pc2.localDescription.type,
         sdp: pc2.localDescription.sdp
-      });
+      };
+      console.log('pc1.setRemoteDescription', desc);
+      return pc1.setRemoteDescription(desc);
     }).catch(function (err) {
       console.log('pc1.createOfferError', err);
     });
