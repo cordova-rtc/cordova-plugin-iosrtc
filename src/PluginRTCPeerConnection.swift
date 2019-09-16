@@ -17,6 +17,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 	var onSetDescriptionFailureCallback: ((_ error: Error) -> Void)!
 	var onGetStatsCallback: ((_ array: NSArray) -> Void)!
 	var streamIds: [String] = []
+	var isAudioInputSelected: Bool = false
 
 	init(
 		rtcPeerConnectionFactory: RTCPeerConnectionFactory,
@@ -229,6 +230,12 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		self.rtcPeerConnection.add(RTCIceCandidate.init(sdp: candidate, sdpMLineIndex: sdpMLineIndex, sdpMid: sdpMid))
 
 		let result = true
+
+		// TODO Why here and is it still needed
+		if !self.isAudioInputSelected {
+			PluginEnumerateDevices.setPreferredInput()
+			self.isAudioInputSelected = true
+		}
 
 		if result == true {
 			var data: NSDictionary
