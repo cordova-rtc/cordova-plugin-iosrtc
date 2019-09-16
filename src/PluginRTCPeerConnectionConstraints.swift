@@ -41,7 +41,7 @@ class PluginRTCPeerConnectionConstraints {
 			mandatoryConstraints: [
 				"OfferToReceiveAudio": offerToReceiveAudio == true ? "true" : "false",
 				"OfferToReceiveVideo": offerToReceiveVideo == true ? "true" : "false",
-				"IceRestart".        : iceRestart == true ? "true" : "false"
+				"IceRestart"        : iceRestart == true ? "true" : "false"
 			],
 			optionalConstraints: [:]
 		);
