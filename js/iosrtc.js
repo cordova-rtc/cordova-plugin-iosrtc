@@ -112,7 +112,7 @@ function turnOnSpeaker(isTurnOn, needRecord) {
 }
 
 function requestPermission(needMic, needCamera, callback) {
-	debug('turnOnSpeaker() | [isTurnOn:"%s", needRecord:"%s"]', needMic, needCamera);
+	debug('requestPermission() | [needMic:"%s", needCamera:"%s"]', needMic, needCamera);
 
 	function ok() {
 		callback(true);
