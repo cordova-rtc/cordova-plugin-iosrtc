@@ -23,9 +23,9 @@ class iosrtcPlugin : CDVPlugin {
 
 
 	// This is just called if <param name="onload" value="true" /> in plugin.xml.
-	override func pluginInitialize() {
+	@objc(pluginInitialize) override func pluginInitialize() {
 		NSLog("iosrtcPlugin#pluginInitialize()")
-            
+			
 		// Make the web view transparent
 		self.webView!.isOpaque = false
 		self.webView!.backgroundColor = UIColor.clear
@@ -50,18 +50,15 @@ class iosrtcPlugin : CDVPlugin {
 		self.audioOutputController = PluginRTCAudioOutputController()
 	}
 
-
-	override func onReset() {
+	@objc(onReset) override func onReset() {
 		NSLog("iosrtcPlugin#onReset() | doing nothing")
 	}
 
-
-	override func onAppTerminate() {
+	@objc(onAppTerminate) override func onAppTerminate() {
 		NSLog("iosrtcPlugin#onAppTerminate() | doing nothing")
 	}
 
-
-	func new_RTCPeerConnection(_ command: CDVInvokedUrlCommand) {
+	@objc(new_RTCPeerConnection:) func new_RTCPeerConnection(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#new_RTCPeerConnection()")
 
 		let pcId = command.argument(at: 0) as! Int
@@ -98,7 +95,7 @@ class iosrtcPlugin : CDVPlugin {
 		pluginRTCPeerConnection.run()
 	}
 
-	func RTCPeerConnection_createOffer(_ command: CDVInvokedUrlCommand) {
+	@objc(RTCPeerConnection_createOffer:) func RTCPeerConnection_createOffer(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_createOffer()")
 
 		let pcId = command.argument(at: 0) as! Int
@@ -131,8 +128,7 @@ class iosrtcPlugin : CDVPlugin {
 		}
 	}
 
-
-	func RTCPeerConnection_createAnswer(_ command: CDVInvokedUrlCommand) {
+	@objc(RTCPeerConnection_createAnswer:) func RTCPeerConnection_createAnswer(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_createAnswer()")
 
 		let pcId = command.argument(at: 0) as! Int
@@ -165,8 +161,7 @@ class iosrtcPlugin : CDVPlugin {
 		}
 	}
 
-
-	func RTCPeerConnection_setLocalDescription(_ command: CDVInvokedUrlCommand) {
+	@objc(RTCPeerConnection_setLocalDescription:) func RTCPeerConnection_setLocalDescription(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_setLocalDescription()")
 
 		let pcId = command.argument(at: 0) as! Int
@@ -194,8 +189,7 @@ class iosrtcPlugin : CDVPlugin {
 		}
 	}
 
-
-	func RTCPeerConnection_setRemoteDescription(_ command: CDVInvokedUrlCommand) {
+	@objc(RTCPeerConnection_setRemoteDescription:) func RTCPeerConnection_setRemoteDescription(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_setRemoteDescription()")
 
 		let pcId = command.argument(at: 0) as! Int
@@ -223,8 +217,7 @@ class iosrtcPlugin : CDVPlugin {
 		}
 	}
 
-
-	func RTCPeerConnection_addIceCandidate(_ command: CDVInvokedUrlCommand) {
+	@objc(RTCPeerConnection_addIceCandidate:) func RTCPeerConnection_addIceCandidate(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_addIceCandidate()")
 
 		let pcId = command.argument(at: 0) as! Int
@@ -252,8 +245,7 @@ class iosrtcPlugin : CDVPlugin {
 		}
 	}
 
-
-	func RTCPeerConnection_addStream(_ command: CDVInvokedUrlCommand) {
+	@objc(RTCPeerConnection_addStream:) func RTCPeerConnection_addStream(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_addStream()")
 
 		let pcId = command.argument(at: 0) as! Int
@@ -278,8 +270,7 @@ class iosrtcPlugin : CDVPlugin {
 		}
 	}
 
-
-	func RTCPeerConnection_removeStream(_ command: CDVInvokedUrlCommand) {
+	@objc(RTCPeerConnection_removeStream:) func RTCPeerConnection_removeStream(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_removeStream()")
 
 		let pcId = command.argument(at: 0) as! Int
@@ -302,8 +293,7 @@ class iosrtcPlugin : CDVPlugin {
 		}
 	}
 
-
-	func RTCPeerConnection_createDataChannel(_ command: CDVInvokedUrlCommand) {
+	@objc(RTCPeerConnection_createDataChannel:) func RTCPeerConnection_createDataChannel(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_createDataChannel()")
 
 		let pcId = command.argument(at: 0) as! Int
@@ -344,10 +334,10 @@ class iosrtcPlugin : CDVPlugin {
 		}
 	}
 
-	func RTCPeerConnection_getStats(_ command: CDVInvokedUrlCommand) {
+	@objc(RTCPeerConnection_getStats:) func RTCPeerConnection_getStats(_ command: CDVInvokedUrlCommand) {
 		//NSLog("iosrtcPlugin#RTCPeerConnection_getStats()")
 
-        
+		
 		let pcId = command.argument(at: 0) as! Int
 		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
 
@@ -384,7 +374,7 @@ class iosrtcPlugin : CDVPlugin {
 		}
 	}
 
-	func RTCPeerConnection_close(_ command: CDVInvokedUrlCommand) {
+	@objc(RTCPeerConnection_close:) func RTCPeerConnection_close(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_close()")
 
 		let pcId = command.argument(at: 0) as! Int
@@ -405,8 +395,7 @@ class iosrtcPlugin : CDVPlugin {
 		}
 	}
 
-
-	func RTCPeerConnection_RTCDataChannel_setListener(_ command: CDVInvokedUrlCommand) {
+	@objc(RTCPeerConnection_RTCDataChannel_setListener:) func RTCPeerConnection_RTCDataChannel_setListener(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_RTCDataChannel_setListener()")
 
 		let pcId = command.argument(at: 0) as! Int
@@ -438,8 +427,7 @@ class iosrtcPlugin : CDVPlugin {
 		}
 	}
 
-
-	func RTCPeerConnection_RTCDataChannel_sendString(_ command: CDVInvokedUrlCommand) {
+	@objc(RTCPeerConnection_RTCDataChannel_sendString:) func RTCPeerConnection_RTCDataChannel_sendString(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_RTCDataChannel_sendString()")
 
 		let pcId = command.argument(at: 0) as! Int
@@ -464,8 +452,7 @@ class iosrtcPlugin : CDVPlugin {
 		}
 	}
 
-
-	func RTCPeerConnection_RTCDataChannel_sendBinary(_ command: CDVInvokedUrlCommand) {
+	@objc(RTCPeerConnection_RTCDataChannel_sendBinary:) func RTCPeerConnection_RTCDataChannel_sendBinary(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_RTCDataChannel_sendBinary()")
 
 		let pcId = command.argument(at: 0) as! Int
@@ -490,8 +477,7 @@ class iosrtcPlugin : CDVPlugin {
 		}
 	}
 
-
-	func RTCPeerConnection_RTCDataChannel_close(_ command: CDVInvokedUrlCommand) {
+	@objc(RTCPeerConnection_RTCDataChannel_close:) func RTCPeerConnection_RTCDataChannel_close(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_RTCDataChannel_close()")
 
 		let pcId = command.argument(at: 0) as! Int
@@ -508,8 +494,7 @@ class iosrtcPlugin : CDVPlugin {
 		}
 	}
 
-
-	func RTCPeerConnection_createDTMFSender(_ command: CDVInvokedUrlCommand) {
+	@objc(RTCPeerConnection_createDTMFSender:) func RTCPeerConnection_createDTMFSender(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_createDTMFSender()")
 
 		let pcId = command.argument(at: 0) as! Int
@@ -543,8 +528,7 @@ class iosrtcPlugin : CDVPlugin {
 		}
 	}
 
-
-	func RTCPeerConnection_RTCDTMFSender_insertDTMF(_ command: CDVInvokedUrlCommand) {
+	@objc(RTCPeerConnection_RTCDTMFSender_insertDTMF:) func RTCPeerConnection_RTCDTMFSender_insertDTMF(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_RTCDTMFSender_insertDTMF()")
 
 		let pcId = command.argument(at: 0) as! Int
@@ -568,20 +552,20 @@ class iosrtcPlugin : CDVPlugin {
 		}
 	}
 
-	func MediaStream_init(_ command: CDVInvokedUrlCommand) {
+	@objc(MediaStream_init:) func MediaStream_init(_ command: CDVInvokedUrlCommand) {
 		
 		let streamId = command.argument(at: 0) as! String
 		
 		if self.pluginMediaStreams[streamId] == nil {
-			let rtcMediaStream : RTCMediaStream = self.rtcPeerConnectionFactory.mediaStream(withLabel: streamId)
-			let pluginMediaStream = PluginMediaStream(rtcMediaStream: rtcMediaStream, id: streamId)
+			let rtcMediaStream : RTCMediaStream = self.rtcPeerConnectionFactory.mediaStream(withStreamId: streamId)
+			let pluginMediaStream = PluginMediaStream(rtcMediaStream: rtcMediaStream)
 			pluginMediaStream.run()
 		
 			self.saveMediaStream(pluginMediaStream)
 		}
 	}
 
-	func MediaStream_setListener(_ command: CDVInvokedUrlCommand) {
+	@objc(MediaStream_setListener:) func MediaStream_setListener(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#MediaStream_setListener()")
 
 		let id = command.argument(at: 0) as! String
@@ -608,8 +592,7 @@ class iosrtcPlugin : CDVPlugin {
 		}
 	}
 
-
-	func MediaStream_addTrack(_ command: CDVInvokedUrlCommand) {
+	@objc(MediaStream_addTrack:) func MediaStream_addTrack(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#MediaStream_addTrack()")
 
 		let id = command.argument(at: 0) as! String
@@ -632,8 +615,7 @@ class iosrtcPlugin : CDVPlugin {
 		}
 	}
 
-
-	func MediaStream_removeTrack(_ command: CDVInvokedUrlCommand) {
+	@objc(MediaStream_removeTrack:) func MediaStream_removeTrack(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#MediaStream_removeTrack()")
 
 		let id = command.argument(at: 0) as! String
@@ -656,8 +638,7 @@ class iosrtcPlugin : CDVPlugin {
 		}
 	}
 
-
-	func MediaStream_release(_ command: CDVInvokedUrlCommand) {
+	@objc(MediaStream_release:) func MediaStream_release(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#MediaStream_release()")
 
 		let id = command.argument(at: 0) as! String
@@ -672,7 +653,7 @@ class iosrtcPlugin : CDVPlugin {
 	}
 
 
-	func MediaStreamTrack_setListener(_ command: CDVInvokedUrlCommand) {
+	@objc(MediaStreamTrack_setListener:) func MediaStreamTrack_setListener(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#MediaStreamTrack_setListener()")
 
 		let id = command.argument(at: 0) as! String
@@ -701,8 +682,7 @@ class iosrtcPlugin : CDVPlugin {
 		}
 	}
 
-
-	func MediaStreamTrack_setEnabled(_ command: CDVInvokedUrlCommand) {
+	@objc(MediaStreamTrack_setEnabled:) func MediaStreamTrack_setEnabled(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#MediaStreamTrack_setEnabled()")
 
 		let id = command.argument(at: 0) as! String
@@ -719,8 +699,7 @@ class iosrtcPlugin : CDVPlugin {
 		}
 	}
 
-
-	func MediaStreamTrack_stop(_ command: CDVInvokedUrlCommand) {
+	@objc(MediaStreamTrack_stop:) func MediaStreamTrack_stop(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#MediaStreamTrack_stop()")
 
 		let id = command.argument(at: 0) as! String
@@ -737,7 +716,7 @@ class iosrtcPlugin : CDVPlugin {
 	}
 
 
-	func new_MediaStreamRenderer(_ command: CDVInvokedUrlCommand) {
+	@objc(new_MediaStreamRenderer:) func new_MediaStreamRenderer(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#new_MediaStreamRenderer()")
 
 		let id = command.argument(at: 0) as! Int
@@ -760,8 +739,7 @@ class iosrtcPlugin : CDVPlugin {
 		pluginMediaStreamRenderer.run()
 	}
 
-
-	func MediaStreamRenderer_render(_ command: CDVInvokedUrlCommand) {
+	@objc(MediaStreamRenderer_render:) func MediaStreamRenderer_render(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#MediaStreamRenderer_render()")
 
 		let id = command.argument(at: 0) as! Int
@@ -782,8 +760,7 @@ class iosrtcPlugin : CDVPlugin {
 		pluginMediaStreamRenderer!.render(pluginMediaStream!)
 	}
 
-
-	func MediaStreamRenderer_mediaStreamChanged(_ command: CDVInvokedUrlCommand) {
+	@objc(MediaStreamRenderer_mediaStreamChanged:) func MediaStreamRenderer_mediaStreamChanged(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#MediaStreamRenderer_mediaStreamChanged()")
 
 		let id = command.argument(at: 0) as! Int
@@ -797,8 +774,7 @@ class iosrtcPlugin : CDVPlugin {
 		pluginMediaStreamRenderer!.mediaStreamChanged()
 	}
 
-
-	func MediaStreamRenderer_refresh(_ command: CDVInvokedUrlCommand) {
+	@objc(MediaStreamRenderer_refresh:) func MediaStreamRenderer_refresh(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#MediaStreamRenderer_refresh()")
 
 		let id = command.argument(at: 0) as! Int
@@ -813,25 +789,24 @@ class iosrtcPlugin : CDVPlugin {
 		pluginMediaStreamRenderer!.refresh(data)
 	}
 
-	func MediaStreamRenderer_save(_ command: CDVInvokedUrlCommand) {
-        NSLog("iosrtcPlugin#MediaStreamRenderer_save()")
-        
-        let id = command.argument(at: 0) as! Int
-        let pluginMediaStreamRenderer = self.pluginMediaStreamRenderers[id]
-        
-        if pluginMediaStreamRenderer == nil {
-            NSLog("iosrtcPlugin#MediaStreamRenderer_save() | ERROR: pluginMediaStreamRenderer with id=%@ does not exist", String(id))
-            return;
-        }
-        
-        let based64 = pluginMediaStreamRenderer!.save()
-        self.emit(command.callbackId,
-                  result: CDVPluginResult(status: CDVCommandStatus_OK, messageAs: based64)
-        )
-    }
+	@objc(MediaStreamRenderer_save:) func MediaStreamRenderer_save(_ command: CDVInvokedUrlCommand) {
+		NSLog("iosrtcPlugin#MediaStreamRenderer_save()")
+		
+		let id = command.argument(at: 0) as! Int
+		let pluginMediaStreamRenderer = self.pluginMediaStreamRenderers[id]
+		
+		if pluginMediaStreamRenderer == nil {
+			NSLog("iosrtcPlugin#MediaStreamRenderer_save() | ERROR: pluginMediaStreamRenderer with id=%@ does not exist", String(id))
+			return;
+		}
+		
+		let based64 = pluginMediaStreamRenderer!.save()
+		self.emit(command.callbackId,
+				  result: CDVPluginResult(status: CDVCommandStatus_OK, messageAs: based64)
+		)
+	}
 
-
-	func MediaStreamRenderer_close(_ command: CDVInvokedUrlCommand) {
+	@objc(MediaStreamRenderer_close:) func MediaStreamRenderer_close(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#MediaStreamRenderer_close()")
 
 		let id = command.argument(at: 0) as! Int
@@ -848,8 +823,7 @@ class iosrtcPlugin : CDVPlugin {
 		self.pluginMediaStreamRenderers[id] = nil
 	}
 
-
-	func getUserMedia(_ command: CDVInvokedUrlCommand) {
+	@objc(getUserMedia:) func getUserMedia(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#getUserMedia()")
 
 		let constraints = command.argument(at: 0) as! NSDictionary
@@ -869,8 +843,7 @@ class iosrtcPlugin : CDVPlugin {
 		)
 	}
 
-
-	func enumerateDevices(_ command: CDVInvokedUrlCommand) {
+	@objc(enumerateDevices:) func enumerateDevices(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#enumerateDevices()")
 
 		self.queue.async {
@@ -883,65 +856,65 @@ class iosrtcPlugin : CDVPlugin {
 			)
 		}
 	}
-    
-    func RTCRequestPermission(_ command: CDVInvokedUrlCommand) {
-        DispatchQueue.main.async {
-            let audioRequested: Bool = CBool(command.arguments[0] as! Bool)
-            let videoRequested: Bool = CBool(command.arguments[1] as! Bool)
-            var status: Bool = true
-            
-            if videoRequested == true {
-                switch AVCaptureDevice.authorizationStatus(forMediaType: AVMediaTypeVideo) {
-                case AVAuthorizationStatus.notDetermined:
-                    NSLog("PluginGetUserMedia#call() | video authorization: not determined")
-                case AVAuthorizationStatus.authorized:
-                    NSLog("PluginGetUserMedia#call() | video authorization: authorized")
-                case AVAuthorizationStatus.denied:
-                    
-                    NSLog("PluginGetUserMedia#call() | video authorization: denied")
-                    status = false
-                case AVAuthorizationStatus.restricted:
-                    NSLog("PluginGetUserMedia#call() | video authorization: restricted")
-                    status = false
-                }
-            }
-            
-            if audioRequested == true {
-                switch AVCaptureDevice.authorizationStatus(forMediaType: AVMediaTypeAudio) {
-                case AVAuthorizationStatus.notDetermined:
-                    NSLog("PluginGetUserMedia#call() | audio authorization: not determined")
-                case AVAuthorizationStatus.authorized:
-                    NSLog("PluginGetUserMedia#call() | audio authorization: authorized")
-                case AVAuthorizationStatus.denied:
-                    NSLog("PluginGetUserMedia#call() | audio authorization: denied")
-                    status = false
-                case AVAuthorizationStatus.restricted:
-                    NSLog("PluginGetUserMedia#call() | audio authorization: restricted")
-                    status = false
-                }
-            }
-            
-            if(status){
-                self.emit(command.callbackId,result: CDVPluginResult(status: CDVCommandStatus_OK))
-            }else{
-                self.emit(command.callbackId,result: CDVPluginResult(status: CDVCommandStatus_ERROR))
-            }
-        }
-    }
+	
+	@objc(RTCRequestPermission:) func RTCRequestPermission(_ command: CDVInvokedUrlCommand) {
+		DispatchQueue.main.async {
+			let audioRequested: Bool = CBool(command.arguments[0] as! Bool)
+			let videoRequested: Bool = CBool(command.arguments[1] as! Bool)
+			var status: Bool = true
+			
+			if videoRequested == true {
+				switch AVCaptureDevice.authorizationStatus(for: AVMediaType.video) {
+				case AVAuthorizationStatus.notDetermined:
+					NSLog("PluginGetUserMedia#call() | video authorization: not determined")
+				case AVAuthorizationStatus.authorized:
+					NSLog("PluginGetUserMedia#call() | video authorization: authorized")
+				case AVAuthorizationStatus.denied:
+					
+					NSLog("PluginGetUserMedia#call() | video authorization: denied")
+					status = false
+				case AVAuthorizationStatus.restricted:
+					NSLog("PluginGetUserMedia#call() | video authorization: restricted")
+					status = false
+				}
+			}
+			
+			if audioRequested == true {
+				switch AVCaptureDevice.authorizationStatus(for: AVMediaType.audio) {
+				case AVAuthorizationStatus.notDetermined:
+					NSLog("PluginGetUserMedia#call() | audio authorization: not determined")
+				case AVAuthorizationStatus.authorized:
+					NSLog("PluginGetUserMedia#call() | audio authorization: authorized")
+				case AVAuthorizationStatus.denied:
+					NSLog("PluginGetUserMedia#call() | audio authorization: denied")
+					status = false
+				case AVAuthorizationStatus.restricted:
+					NSLog("PluginGetUserMedia#call() | audio authorization: restricted")
+					status = false
+				}
+			}
+			
+			if(status){
+				self.emit(command.callbackId,result: CDVPluginResult(status: CDVCommandStatus_OK))
+			}else{
+				self.emit(command.callbackId,result: CDVPluginResult(status: CDVCommandStatus_ERROR))
+			}
+		}
+	}
 
-	func RTCTurnOnSpeaker(_ command: CDVInvokedUrlCommand) {
-        DispatchQueue.main.async {
-            let isTurnOn: Bool = CBool(command.arguments[0] as! Bool)
-            var isNeedRecord: Bool = true
-            if command.arguments.count >= 2 {
-                isNeedRecord = CBool(command.arguments[1] as! Bool)
-            }
-            self.audioOutputController.setOuputAudioMode(speaker: isTurnOn, record: isNeedRecord)
-            self.emit(command.callbackId,
-                result: CDVPluginResult(status: CDVCommandStatus_OK)
-            )
-        }
-    }
+	@objc(RTCTurnOnSpeaker:) func RTCTurnOnSpeaker(_ command: CDVInvokedUrlCommand) {
+		DispatchQueue.main.async {
+			let isTurnOn: Bool = CBool(command.arguments[0] as! Bool)
+			var isNeedRecord: Bool = true
+			if command.arguments.count >= 2 {
+				isNeedRecord = CBool(command.arguments[1] as! Bool)
+			}
+			self.audioOutputController.setOuputAudioMode(speaker: isTurnOn, record: isNeedRecord)
+			self.emit(command.callbackId,
+				result: CDVPluginResult(status: CDVCommandStatus_OK)
+			)
+		}
+	}
 
 
 	func dump(_ command: CDVInvokedUrlCommand) {
