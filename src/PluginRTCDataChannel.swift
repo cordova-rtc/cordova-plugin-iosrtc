@@ -92,12 +92,14 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 			"type": "new",
 			"channel": [
 				"ordered": self.rtcDataChannel!.isOrdered,
-				"maxPacketLifeTime": self.rtcDataChannel!.maxRetransmitTime,
+				"maxPacketLifeTime": self.rtcDataChannel!.maxPacketLifeTime,
 				"maxRetransmits": self.rtcDataChannel!.maxRetransmits,
 				"protocol": self.rtcDataChannel!.`protocol`,
 				"negotiated": self.rtcDataChannel!.isNegotiated,
-				"id": self.rtcDataChannel!.streamId,
-				"readyState": self.rtcDataChannel!.readyState,
+				"id": self.rtcDataChannel!.channelId,
+				//"readyState": self.rtcDataChannel!.readyState,
+				//"readyState": PluginRTCTypes.dataChannelStates[self.rtcDataChannel!.readyState.rawValue] as String!,
+				"readyState": PluginRTCDataChannel.stateToString(state: self.rtcDataChannel!.readyState),
 				"bufferedAmount": self.rtcDataChannel!.bufferedAmount
 			]
 		])
