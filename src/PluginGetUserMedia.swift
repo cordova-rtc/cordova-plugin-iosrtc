@@ -35,6 +35,7 @@ class PluginGetUserMedia {
 		let	audioRequested = constraints.object(forKey: "audio") as? Bool ?? false
 		let	videoRequested = constraints.object(forKey: "video") as? Bool ?? false
 		let	videoDeviceId = constraints.object(forKey: "videoDeviceId") as? String
+		let	audioDeviceId = constraints.object(forKey: "audioDeviceId") as? String
 		let	videoMinWidth = constraints.object(forKey: "videoMinWidth") as? Int ?? 0
 		let	videoMaxWidth = constraints.object(forKey: "videoMaxWidth") as? Int ?? 640
 		let	videoMinHeight = constraints.object(forKey: "videoMinHeight") as? Int ?? 0
@@ -90,8 +91,8 @@ class PluginGetUserMedia {
 			// Video device specified.
 			if videoDeviceId != nil {
 				NSLog("PluginGetUserMedia#call() | video requested (specified device id: '%@')", String(videoDeviceId!))
-
-				for device: AVCaptureDevice in (AVCaptureDevice.devices(withMediaType: AVMediaTypeVideo) as! Array<AVCaptureDevice>) {
+				let videoDevices: [AVCaptureDevice] = AVCaptureDevice.DiscoverySession.init(deviceTypes: [AVCaptureDevice.DeviceType.builtInWideAngleCamera, AVCaptureDevice.DeviceType.builtInDualCamera], mediaType: AVMediaType.video, position: AVCaptureDevice.Position.unspecified).devices
+				for device: AVCaptureDevice in videoDevices {
 					if device.uniqueID == videoDeviceId {
 						if device.position == AVCaptureDevicePosition.back {
 							usingFront = false
@@ -156,9 +157,15 @@ class PluginGetUserMedia {
 		if audioRequested == true {
 			NSLog("PluginGetUserMedia#call() | audio requested")
 
+			// TODO source: rtcAudioSource
 			rtcAudioTrack = self.rtcPeerConnectionFactory.audioTrack(withTrackId: UUID().uuidString)
 
 			rtcMediaStream.addAudioTrack(rtcAudioTrack!)
+
+			// TODO do we save
+			if (audioDeviceId != nil) {
+				PluginEnumerateDevices.saveAudioDevice(inputDeviceUID: audioDeviceId!)
+			}
 		}
 
 		pluginMediaStream = PluginMediaStream(rtcMediaStream: rtcMediaStream)
