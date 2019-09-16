@@ -170,7 +170,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 
 			let data = [
 				"type": self.rtcSdpTypeToString(type: self.rtcPeerConnection.localDescription!.type),
-				"sdp": self.rtcPeerConnection.localDescription!.description
+				"sdp": self.rtcPeerConnection.localDescription!.sdp
 			]
 
 			callback(data as NSDictionary)
@@ -204,7 +204,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 
 			let data = [
 				"type": self.rtcSdpTypeToString(type: self.rtcPeerConnection.remoteDescription!.type),
-				"sdp": self.rtcPeerConnection.remoteDescription!.description
+				"sdp": self.rtcPeerConnection.remoteDescription!.sdp
 			]
 
 			callback(data as NSDictionary)
@@ -258,7 +258,6 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		}
 	}
 
-
 	func addStream(_ pluginMediaStream: PluginMediaStream) -> Bool {
 		NSLog("PluginRTCPeerConnection#addStream()")
 
@@ -270,7 +269,6 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		return true
 	}
 
-
 	func removeStream(_ pluginMediaStream: PluginMediaStream) {
 		NSLog("PluginRTCPeerConnection#removeStream()")
 
@@ -281,6 +279,23 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		self.rtcPeerConnection.remove(pluginMediaStream.rtcMediaStream)
 	}
 
+    func addTrack(_ track: PluginMediaStreamTrack) -> Bool {
+        NSLog("PluginRTCPeerConnection#addTrack()")
+        
+        if self.rtcPeerConnection.signalingState.rawValue == RTCSignalingState.closed.rawValue {
+            return false
+        }
+        
+        return true;
+    }
+    
+    func removeTrack(_ track: PluginMediaStreamTrack) {
+        NSLog("PluginRTCPeerConnection#removeTrack()")
+        
+        if self.rtcPeerConnection.signalingState.rawValue == RTCSignalingState.closed.rawValue {
+            return
+        }
+    }
 
 	func createDataChannel(
 		_ dcId: Int,
@@ -309,7 +324,6 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		// Run it.
 		pluginRTCDataChannel.run()
 	}
-
 
 	func RTCDataChannel_setListener(
 		_ dcId: Int,
