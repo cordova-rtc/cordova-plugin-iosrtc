@@ -153,14 +153,14 @@ class PluginMediaStreamRenderer : NSObject, RTCVideoRenderer, RTCEAGLVideoViewDe
 		let elementTop = data.object(forKey: "elementTop") as? Float ?? 0
 		let elementWidth = data.object(forKey: "elementWidth") as? Float ?? 0
 		let elementHeight = data.object(forKey: "elementHeight") as? Float ?? 0
-		var videoViewWidth: Float = Float(videoSize.width)//data.object(forKey: "videoViewWidth") as? Float ?? 0
-		var videoViewHeight: Float = Float(videoSize.height)//data.object(forKey: "videoViewHeight") as? Float ?? 0
+		var videoViewWidth: Float = Float(videoSize.width)
+		var videoViewHeight: Float = Float(videoSize.height)
 		let opacity = data.object(forKey: "opacity") as? Float ?? 1
 		let zIndex = data.object(forKey: "zIndex") as? Float ?? 0
 		let mirrored = data.object(forKey: "mirrored") as? Bool ?? false
 		let clip = data.object(forKey: "clip") as? Bool ?? false
 		let borderRadius = data.object(forKey: "borderRadius") as? Float ?? 0
-		let visible = zIndex < 0 ? true : data.object(forKey: "visible") as? Bool ?? true
+		let visible = data.object(forKey: "visible") as? Bool ?? true
         
 		NSLog("PluginMediaStreamRenderer#refresh() [elementLeft:%@, elementTop:%@, elementWidth:%@, elementHeight:%@, videoViewWidth:%@, videoViewHeight:%@, visible:%@, opacity:%@, zIndex:%@, mirrored:%@, clip:%@, borderRadius:%@]",
 			  String(elementLeft), String(elementTop), String(elementWidth), String(elementHeight),
@@ -178,7 +178,7 @@ class PluginMediaStreamRenderer : NSObject, RTCVideoRenderer, RTCEAGLVideoViewDe
 			if(ratio_condition){
 				videoViewWidth = elementWidth;
 				videoViewHeight = videoViewWidth/ratio;
-			}else{
+			} else {
 				videoViewHeight = elementHeight;
 				videoViewWidth = videoViewHeight*ratio;
 			}
@@ -202,12 +202,18 @@ class PluginMediaStreamRenderer : NSObject, RTCVideoRenderer, RTCEAGLVideoViewDe
 		}
 
 		// NOTE: Avoid a zero-size UIView for the video (the library complains).
-		if (!visible || videoViewWidth == 0 || videoViewHeight == 0) {
+		if (videoViewWidth == 0 || videoViewHeight == 0) {
 			videoViewWidth = 1
 			videoViewHeight = 1
 			self.videoView.isHidden = true
 		} else {
 			self.videoView.isHidden = false
+		}
+        
+		if (visible) {
+			self.elementView.isHidden = false
+		} else {
+			self.elementView.isHidden = true
 		}
 
 		self.elementView.alpha = CGFloat(opacity)
