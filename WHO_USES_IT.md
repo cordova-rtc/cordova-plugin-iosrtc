@@ -4,10 +4,20 @@ If your company is using *cordova-plugin-iosrtc* we would love to heard back fro
 
 Below a list of companies using *cordova-plugin-iostc*:
 
+### [Sylaps](https://sylaps.com)
+
+![sylaps-picture](https://raw.githubusercontent.com/cordova-rtc/cordova-plugin-iosrtc/master/art/sylaps-picture.jpg)
+
+*Instantaneous, Audio and Video meeting collaboration*
+
+At [Sylaps](https://sylaps.com) we use **cordova-plugin-iosrtc** for the iOS version of our application, becoming a web/mobile/tablet HTML5 hybrid solution.
+
+You can test the Sylaps iOS application that use iosrtc here:
+- https://apps.apple.com/us/app/sylaps/id954016392 
 
 ### [eFace2Face](https://eface2face.com)
 
-![eface2face-picture](https://raw.githubusercontent.com/eface2face/cordova-plugin-iosrtc/master/art/eface2face-picture.jpg)
+![eface2face-picture](https://raw.githubusercontent.com/cordova-rtc/cordova-plugin-iosrtc/master/art/eface2face-picture.jpg)
 
 *The world's only complete web-based video calling and e-sign solution.*
 
