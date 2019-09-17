@@ -1,6 +1,8 @@
 #### Version 5.0.3
 
-* Deprecate usage of `video.src = URL.createObjectURL(stream)` in favor of `video.srcObject = stream` only MediaStream are not Blob anymore.
+* Fix MediaStream.active getter issue.
+* Deprecate usage of `video.src = URL.createObjectURL(stream)` in favor of `video.srcObject = stream` only MediaStream are not Blob anymore. ([PR #388](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/388) by @hthetiot).
+* Update audio input priority to Wired microphone > Wireless microphone > built-in microphone. ([PR #387](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/387) by @CSantosM).
 
 #### Version 5.0.2
 
