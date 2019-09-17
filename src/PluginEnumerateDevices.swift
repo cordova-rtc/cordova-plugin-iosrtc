@@ -23,7 +23,7 @@ class PluginEnumerateDevices {
 		NSLog("PluginEnumerateDevices#call()")
 		initAudioDevices()
 		var audioDevices: [MediaDeviceInfo] = getAllAudioDevices()
-		let devices: [AVCaptureDevice] = AVCaptureDevice.DiscoverySession.init( deviceTypes: [ AVCaptureDevice.DeviceType.builtInMicrophone, AVCaptureDevice.DeviceType.builtInWideAngleCamera], mediaType: nil, position: AVCaptureDevice.Position.unspecified).devices  
+		let devices: [AVCaptureDevice] = AVCaptureDevice.DiscoverySession.init( deviceTypes: [ AVCaptureDevice.DeviceType.builtInMicrophone, AVCaptureDevice.DeviceType.builtInWideAngleCamera], mediaType: nil, position: AVCaptureDevice.Position.unspecified).devices
 		let json: NSMutableDictionary = [
 			"devices": NSMutableDictionary()
 		]
@@ -88,14 +88,38 @@ fileprivate func getAllAudioDevices() -> [MediaDeviceInfo] {
 	let audioSession: AVAudioSession = AVAudioSession.sharedInstance()
 	var audioDevicesArr : [MediaDeviceInfo] = []
 	let audioInputDevices: [AVAudioSessionPortDescription] = audioSession.availableInputs!
+	var bluetoothDevice: AVAudioSessionPortDescription? = nil
+	var isBluetoothConnected : Bool = false
+	var wiredDevice: AVAudioSessionPortDescription? = nil
+	var isWiredConnected : Bool = false
+	var builtMicDevice: AVAudioSessionPortDescription? = nil
 	
 	for audioInput in audioInputDevices {
 		audioDevicesArr.append(MediaDeviceInfo(deviceId: audioInput.uid, kind: "audioinput", label: audioInput.portName))
 		
 		// Initialize audioInputSelected. Default Built-In Microphone
 		if audioInput.portType == AVAudioSession.Port.builtInMic {
-			PluginEnumerateDevices.saveAudioDevice(inputDeviceUID: audioInput.uid)
+			builtMicDevice = audioInput
 		}
+		
+		if audioInput.portType == .bluetoothHFP || audioInput.portType == .bluetoothA2DP {
+			bluetoothDevice = audioInput
+			isBluetoothConnected = true
+		}
+		
+		if audioInput.portType == .usbAudio || audioInput.portType == .headsetMic {
+			wiredDevice = audioInput
+			isWiredConnected = true
+		}
+	}
+	
+	// Initialize audioInputSelected. Priority: [Wired - Wireless - Built-In Microphone]
+	if isWiredConnected {
+		PluginEnumerateDevices.saveAudioDevice(inputDeviceUID: wiredDevice!.uid)
+	}else if isBluetoothConnected{
+		PluginEnumerateDevices.saveAudioDevice(inputDeviceUID: bluetoothDevice!.uid)
+	} else {
+		PluginEnumerateDevices.saveAudioDevice(inputDeviceUID: builtMicDevice!.uid)
 	}
 	return audioDevicesArr
 }
