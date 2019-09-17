@@ -15,7 +15,7 @@ var cordova = window.cordova;
 // Expose WebRTC Globals
 if (cordova && cordova.plugins && cordova.plugins.iosrtc) {
   cordova.plugins.iosrtc.registerGlobals();
-  cordova.plugins.iosrtc.debug.enabled = true;
+  cordova.plugins.iosrtc.debug.enable('*', true);
 }
 
 
