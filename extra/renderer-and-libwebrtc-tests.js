@@ -80,7 +80,6 @@ function TestGetUserMedia() {
 
       localStream = stream;
       srcObjectStream = localVideoEl.srcObject = localStream;
-      //localVideoEl.src = window.URL.createObjectURL(stream);
     
     } catch (err) {
       console.log('srcObject.err', err);

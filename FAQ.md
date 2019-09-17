@@ -1,6 +1,6 @@
 # FAQ
 
-**Q:** What about `<video>` elements and `video.src = URL.createObjectURL(stream)`? do I need custom HTML tags or functions to display WebRTC videos?
+**Q:** What about `<video>` elements and `video.srcObject = stream`? do I need custom HTML tags or functions to display WebRTC videos?
 
 **A:** No. Just use an HTML video element as usual, really. The plugin will properly place a native *UIView* layer on top of it by respecting (most of) its [CSS properties](docs/videoCSS.md).
 
