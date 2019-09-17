@@ -1,4 +1,9 @@
+#### Version 5.0.3
+
+* Deprecate usage of `video.src = URL.createObjectURL(stream)` in favor of `video.srcObject = stream` only MediaStream are not Blob anymore.
+
 #### Version 5.0.2
+
 * Set default deployment target to 10.2
 * Remove callback based API
 * Implement RTCPeerConnection.getSenders|getReceivers|addTrack|removeTrack
@@ -12,6 +17,7 @@
 * fix TypeError: undefined is not an object (evaluating 'stream.id') when removing stream [PR #383](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/383) by @hthetiot via @l7s).
 
 #### Version 5.0.1
+
 * fix typo on iosrtcPlugin.swift
 
 #### Version 5.0.0

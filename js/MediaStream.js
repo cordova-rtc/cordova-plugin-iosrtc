@@ -37,7 +37,6 @@ var originalMediaStreamTrack = MediaStreamTrack.originalMediaStreamTrack;
 
 /**
  * Expose the MediaStream class.
- * Make MediaStream be a Blob so it can be consumed by URL.createObjectURL().
  */
 function MediaStream(arg, id) {
 	debug('new MediaStream(arg) | [arg:%o]', arg);
