@@ -3,8 +3,8 @@ import AVFoundation
 
 
 /**
-* Doc: https://developer.apple.com/library/mac/documentation/AVFoundation/Reference/AVCaptureDevice_Class/index.html
-*/
+ * Doc: https://developer.apple.com/library/mac/documentation/AVFoundation/Reference/AVCaptureDevice_Class/index.html
+ */
 
 struct MediaDeviceInfo {
 	let deviceId, groupId, kind, label: String
@@ -23,7 +23,12 @@ class PluginEnumerateDevices {
 		NSLog("PluginEnumerateDevices#call()")
 		initAudioDevices()
 		var audioDevices: [MediaDeviceInfo] = getAllAudioDevices()
-		let devices: [AVCaptureDevice] = AVCaptureDevice.DiscoverySession.init( deviceTypes: [ AVCaptureDevice.DeviceType.builtInMicrophone, AVCaptureDevice.DeviceType.builtInWideAngleCamera], mediaType: nil, position: AVCaptureDevice.Position.unspecified).devices
+		let devices: [AVCaptureDevice] = AVCaptureDevice.DiscoverySession.init(
+			deviceTypes: [AVCaptureDevice.DeviceType.builtInMicrophone, AVCaptureDevice.DeviceType.builtInWideAngleCamera],
+			mediaType: nil,
+			position: AVCaptureDevice.Position.unspecified
+		).devices
+		
 		let json: NSMutableDictionary = [
 			"devices": NSMutableDictionary()
 		]
@@ -62,7 +67,8 @@ class PluginEnumerateDevices {
 	// Setter function inserted by save specific audio device
 	class func saveAudioDevice(inputDeviceUID: String) -> Void {
 		let audioSession: AVAudioSession = AVAudioSession.sharedInstance()
-		let audioInput: AVAudioSessionPortDescription = audioSession.availableInputs!.filter({ (value:AVAudioSessionPortDescription) -> Bool in
+		let audioInput: AVAudioSessionPortDescription = audioSession.availableInputs!.filter({
+			(value:AVAudioSessionPortDescription) -> Bool in
 			return value.uid == inputDeviceUID
 		})[0]
 		
@@ -116,7 +122,7 @@ fileprivate func getAllAudioDevices() -> [MediaDeviceInfo] {
 	// Initialize audioInputSelected. Priority: [Wired - Wireless - Built-In Microphone]
 	if isWiredConnected {
 		PluginEnumerateDevices.saveAudioDevice(inputDeviceUID: wiredDevice!.uid)
-	}else if isBluetoothConnected{
+	} else if isBluetoothConnected{
 		PluginEnumerateDevices.saveAudioDevice(inputDeviceUID: bluetoothDevice!.uid)
 	} else {
 		PluginEnumerateDevices.saveAudioDevice(inputDeviceUID: builtMicDevice!.uid)
