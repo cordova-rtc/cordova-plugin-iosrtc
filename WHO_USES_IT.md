@@ -6,7 +6,7 @@ Below a list of companies using *cordova-plugin-iostc*:
 
 ### [Sylaps](https://sylaps.com)
 
-![sylaps-picture](https://raw.githubusercontent.com/cordova-rtc/cordova-plugin-iosrtc/master/art/sylaps-picture.jpg)
+![sylaps-picture](https://raw.githubusercontent.com/cordova-rtc/cordova-plugin-iosrtc/master/art/sylaps-picture.png)
 
 *Instantaneous, Audio and Video meeting collaboration*
 
