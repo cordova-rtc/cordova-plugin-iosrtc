@@ -297,7 +297,7 @@ function TestRTCPeerConnection(localStream) {
 
   pc1.onicegatheringstatechange = function (e) {
     console.log('pc1.iceGatheringStateChange', e);
-  }
+  };
 
   pc1.onnegotiationneeded = function (e) {
     console.log('pc1.negotiatioNeeded', e);
