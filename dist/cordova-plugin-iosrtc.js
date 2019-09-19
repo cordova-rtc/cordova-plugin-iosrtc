@@ -2693,7 +2693,7 @@ function handleVideo(video) {
 		stream;
 
 	// The app has set video.srcObject.
-	if (video.srcObject) {
+	if (video.srcObject && typeof video.getBlobId === 'function') {
 		stream = video.srcObject;
 
 		if (!stream.getBlobId()) {
