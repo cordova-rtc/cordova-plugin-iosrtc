@@ -2693,17 +2693,19 @@ function handleVideo(video) {
 		stream;
 
 	// The app has set video.srcObject.
-	if (video.srcObject && typeof video.getBlobId === 'function') {
+	if (video.srcObject) {
 		stream = video.srcObject;
+		if (stream && typeof stream.getBlobId === 'function') {
 
-		if (!stream.getBlobId()) {
-			// If this video element was previously handling a MediaStreamRenderer, release it.
-			releaseMediaStreamRenderer(video);
+			if (!stream.getBlobId()) {
+				// If this video element was previously handling a MediaStreamRenderer, release it.
+				releaseMediaStreamRenderer(video);
 
-			return;
+				return;
+			}
+
+			provideMediaStreamRenderer(video, stream.getBlobId());
 		}
-
-		provideMediaStreamRenderer(video, stream.getBlobId());
 	}
 }
 
