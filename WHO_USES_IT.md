@@ -4,6 +4,15 @@ If your company is using *cordova-plugin-iosrtc* we would love to heard back fro
 
 Below a list of companies using *cordova-plugin-iostc*:
 
+
+### [OpenVidu](https://openvidu.io)
+
+![openvidu-picture](https://openvidu.io/img/logos/openvidu_vert_grey_bg_transp_cropped.png)
+
+*Easy videoconference in your web or mobile app*
+
+Using **cordova-plugin-iosrtc** in our Ionic iOS [openvidu-ionic](https://openvidu.io/docs/tutorials/openvidu-ionic/) and [openvidu-call-ionic](https://openvidu.io/docs/demos/openvidu-call-ionic/) apps.
+
 ### [Sylaps](https://sylaps.com)
 
 ![sylaps-picture](https://raw.githubusercontent.com/cordova-rtc/cordova-plugin-iosrtc/master/art/sylaps-picture.png)
