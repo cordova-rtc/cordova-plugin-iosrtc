@@ -134,7 +134,7 @@ fileprivate func initAudioDevices() -> Void {
 	let audioSession: AVAudioSession = AVAudioSession.sharedInstance()
 	
 	do {
-		try audioSession.setCategory(AVAudioSession.Category.playAndRecord, options: .allowBluetooth)
+		try audioSession.setCategory(AVAudioSession.Category.playAndRecord, mode: AVAudioSession.Mode.default, options: .allowBluetooth)
 		try audioSession.setActive(true)
 	} catch  {
 		print("Error messing with audio session: \(error)")
