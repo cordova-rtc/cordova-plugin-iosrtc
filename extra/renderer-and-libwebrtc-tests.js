@@ -31,7 +31,7 @@ var cordova = window.cordova;
 // Expose WebRTC Globals
 if (cordova && cordova.plugins && cordova.plugins.iosrtc) {
   cordova.plugins.iosrtc.registerGlobals();
-  cordova.plugins.iosrtc.debug.enabled = true;
+  cordova.plugins.iosrtc.debug.enable('*', true);
 }
 
 
@@ -46,10 +46,11 @@ var appContainer = document.body;
 // getUserMedia
 //
 
-var localStream;
-function TestGetUserMedia() {
 
-  var localVideoEl = document.createElement('video');
+var localStream;
+var localVideoEl;
+function TestGetUserMedia() {
+  localVideoEl = document.createElement('video');
   localVideoEl.setAttribute('autoplay', 'autoplay');
   localVideoEl.setAttribute('playsinline', 'playsinline');
   // Cause zIndex - 1 failure
@@ -91,26 +92,11 @@ function TestGetUserMedia() {
     console.log('getUserMedia.stream', stream);
     console.log('getUserMedia.stream.getTracks', stream.getTracks());
 
-    var srcObjectStream;
-    try {
+    localStream = stream;
+    localVideoEl.srcObject = localStream;
 
-      localStream = stream;
-      srcObjectStream = localVideoEl.srcObject = localStream;
-      //localVideoEl.src = window.URL.createObjectURL(stream);
-    
-    } catch (err) {
-      console.log('srcObject.err', err);
-    }
-
-    if (cordova && cordova.plugins && cordova.plugins.iosrtc) {
-      cordova.plugins.iosrtc.observeVideo(localVideoEl);
-    }
-
-    if (srcObjectStream) {
-
-      TestPluginMediaStreamRenderer(localVideoEl);
-      TestRTCPeerConnection(localStream); 
-    }
+    TestPluginMediaStreamRenderer(localVideoEl);
+    TestRTCPeerConnection(localStream); 
    
   }).catch(function (err) {
     console.log('getUserMediaError', err, err.stack);
@@ -183,24 +169,26 @@ function TestPluginMediaStreamRenderer(localVideoEl) {
 // Test RTCPeerConnection
 // 
 
-
 var pc1 = new RTCPeerConnection(),
     pc2 = new RTCPeerConnection();
 
+var peerVideoEl;
+var peerStream;
 function TestRTCPeerConnection(localStream) {
 
-  // TODO Deprecated
+  // Note: Deprecated TestaddStream
   //pc1.addStream(localStream);
 
-  // TODO
-  // NotSupportedError: The adapter.js addTrack polyfill only supports a single stream which is associated with the specified track.
+  // Note: Deprecated Test removeStream
+  // pc1.removeStream(pc1.getLocalStreams()[0])
+
   localStream.getTracks().forEach(function (track) {
     console.log('addTrack', track);
     pc1.addTrack(track);
   });
   
   function onAddIceCandidate(pc, can) {
-    console.log('onAddIceCandidate', pc, can);
+    console.log('addIceCandidate', pc, can);
     return can && pc.addIceCandidate(can).catch(function (err) {
       console.log('addIceCandidateError', err);
     });
@@ -209,14 +197,14 @@ function TestRTCPeerConnection(localStream) {
   pc1.onicecandidate = function (e) {
     onAddIceCandidate(pc2, e.candidate);
   };
+  
   pc2.onicecandidate = function (e) {
     onAddIceCandidate(pc1, e.candidate);
   };
 
   pc2.onaddstream = function (e) {
-    console.log('pc2.onAddStream', e);
-
-    var peerVideoEl = document.createElement('video');
+    console.log('pc2.addStream', e);
+    peerVideoEl = document.createElement('video');
     peerVideoEl.setAttribute('autoplay', 'autoplay');
     peerVideoEl.setAttribute('playsinline', 'playsinline');
     peerVideoEl.style.backgroundColor = 'blue';
@@ -227,11 +215,8 @@ function TestRTCPeerConnection(localStream) {
     peerVideoEl.style.left = (window.innerWidth - parseInt(peerVideoEl.style.width, 10)) + 'px';
     appContainer.appendChild(peerVideoEl);
 
-    peerVideoEl.srcObject = e.stream;
-
-    if (cordova && cordova.plugins && cordova.plugins.iosrtc) {
-      cordova.plugins.iosrtc.observeVideo(peerVideoEl);
-    }
+    peerStream = e.stream;
+    peerVideoEl.srcObject = peerStream;
   };
 
   pc1.oniceconnectionstatechange = function (e) {
@@ -243,25 +228,44 @@ function TestRTCPeerConnection(localStream) {
     }
   };
 
+  pc1.onicegatheringstatechange = function (e) {
+    console.log('pc1.iceGatheringStateChange', e);
+  };
+
   pc1.onnegotiationneeded = function (e) {
     console.log('pc1.negotiatioNeeded', e);
 
     return pc1.createOffer().then(function (d) {
-      return pc1.setLocalDescription(d);
+      var desc = {
+        type: d.type,
+        sdp: d.sdp
+      };
+      console.log('pc1.setLocalDescription', desc);
+      return pc1.setLocalDescription(desc);
     }).then(function () {
-      return pc2.setRemoteDescription({
+      var desc = {
         type: pc1.localDescription.type,
         sdp: pc1.localDescription.sdp
-      });
+      };
+      console.log('pc2.setLocalDescription', desc);
+      return pc2.setRemoteDescription(desc);
     }).then(function () {
+      console.log('pc2.createAnswer');
       return pc2.createAnswer();
     }).then(function (d) {
+      var desc = {
+        type: d.type,
+        sdp: d.sdp
+      };
+      console.log('pc2.setLocalDescription', desc);
       return pc2.setLocalDescription(d);
     }).then(function () {
-      return pc1.setRemoteDescription({
+      var desc = {
         type: pc2.localDescription.type,
         sdp: pc2.localDescription.sdp
-      });
+      };
+      console.log('pc1.setRemoteDescription', desc);
+      return pc1.setRemoteDescription(desc);
     }).catch(function (err) {
       console.log('pc1.createOfferError', err);
     });
@@ -288,6 +292,5 @@ if (useWebRTCAdapter && typeof window.adapter === 'undefined') {
 } else {
   TestGetUserMedia();
 }
-
 
 

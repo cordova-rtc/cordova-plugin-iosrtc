@@ -163,7 +163,7 @@ peerconnection.addEventListener('addstream', function (event) {
   cordova.plugins.iosrtc.observeVideo(video);
 
   // Attach the MediaStream to it.
-  video.src = URL.createObjectURL(event.stream);
+  video.srcObject = event.stream;
 
   // When the stream is ready to be rendered then append the video
   // element to the DOM.
