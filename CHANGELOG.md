@@ -1,6 +1,8 @@
 #### Version 5.0.3
 
 * Fix MediaStream.active getter issue.
+* Fix cordova.plugins.iosrtc.observeVideo MutationObserver issue with srcObject using loadstart and emptied events that does get triggered.
+* Add NSBluetoothAlwaysUsageDescription to Info.plist for wireless headphones and microphone consent.
 * Deprecate usage of `video.src = URL.createObjectURL(stream)` in favor of `video.srcObject = stream` only MediaStream are not Blob anymore. ([PR #388](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/388) by @hthetiot).
 * Update audio input priority to Wired microphone > Wireless microphone > built-in microphone. ([PR #387](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/387) by @CSantosM).
 

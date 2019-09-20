@@ -39,6 +39,9 @@
 		<config-file parent="NSMicrophoneUsageDescription" target="*-Info.plist">
 			<string>This Application uses your microphone to make calls.</string>
 		</config-file>
+		<config-file parent="NSBluetoothAlwaysUsageDescription" target="*-Info.plist">
+			<string>This Application uses your wireless headphones and microphone to make calls.</string>
+		</config-file>
 
 		<js-module src="dist/cordova-plugin-iosrtc.js" name="Plugin">
 			<clobbers target="cordova.plugins.iosrtc" />

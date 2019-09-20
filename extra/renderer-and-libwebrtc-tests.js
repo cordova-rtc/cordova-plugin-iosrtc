@@ -16,6 +16,7 @@ var cordova = window.cordova;
 if (cordova && cordova.plugins && cordova.plugins.iosrtc) {
   cordova.plugins.iosrtc.registerGlobals();
   cordova.plugins.iosrtc.debug.enable('*', true);
+  //cordova.plugins.iosrtc.turnOnSpeaker(true, true)
 }
 
 
@@ -29,6 +30,7 @@ var appContainer = document.body;
 //
 // getUserMedia
 //
+
 
 var localStream;
 var localVideoEl;
@@ -75,24 +77,11 @@ function TestGetUserMedia() {
     console.log('getUserMedia.stream', stream);
     console.log('getUserMedia.stream.getTracks', stream.getTracks());
 
-    var srcObjectStream;
-    try {
+    localStream = stream;
+    localVideoEl.srcObject = localStream;
 
-      localStream = stream;
-      srcObjectStream = localVideoEl.srcObject = localStream;
-    
-    } catch (err) {
-      console.log('srcObject.err', err);
-    }
-
-    if (cordova && cordova.plugins && cordova.plugins.iosrtc) {
-      cordova.plugins.iosrtc.observeVideo(localVideoEl);
-    }
-
-    if (srcObjectStream) {
-      TestPluginMediaStreamRenderer(localVideoEl);
-      TestRTCPeerConnection(localStream); 
-    }
+    TestPluginMediaStreamRenderer(localVideoEl);
+    TestRTCPeerConnection(localStream); 
    
   }).catch(function (err) {
     console.log('getUserMediaError', err, err.stack);
@@ -227,18 +216,17 @@ function TestPeerDataChannel() {
 }
 
 var peerVideoEl;
+var peerStream;
 function TestRTCPeerConnection(localStream) {
 
   TestPeerDataChannel();
 
-  // TODO Deprecated
+  // Note: Deprecated TestaddStream
   //pc1.addStream(localStream);
 
-  // To Test removeStream
+  // Note: Deprecated Test removeStream
   // pc1.removeStream(pc1.getLocalStreams()[0])
 
-  // TODO
-  // NotSupportedError: The adapter.js addTrack polyfill only supports a single stream which is associated with the specified track.
   localStream.getTracks().forEach(function (track) {
     console.log('addTrack', track);
     pc1.addTrack(track);
@@ -254,6 +242,7 @@ function TestRTCPeerConnection(localStream) {
   pc1.onicecandidate = function (e) {
     onAddIceCandidate(pc2, e.candidate);
   };
+  
   pc2.onicecandidate = function (e) {
     onAddIceCandidate(pc1, e.candidate);
   };
@@ -279,11 +268,8 @@ function TestRTCPeerConnection(localStream) {
     peerVideoEl.style.left = (window.innerWidth - parseInt(peerVideoEl.style.width, 10)) + 'px';
     appContainer.appendChild(peerVideoEl);
 
-    peerVideoEl.srcObject = e.stream;
-
-    if (cordova && cordova.plugins && cordova.plugins.iosrtc) {
-      cordova.plugins.iosrtc.observeVideo(peerVideoEl);
-    }
+    peerStream = e.stream;
+    peerVideoEl.srcObject = peerStream;
   };
 
   pc1.oniceconnectionstatechange = function (e) {
@@ -365,5 +351,5 @@ if (useWebRTCAdapter && typeof window.adapter === 'undefined') {
   TestGetUserMedia();
 }
 
-// cordova.plugins.iosrtc.turnOnSpeaker(true, true)
+
 

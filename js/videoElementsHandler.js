@@ -189,7 +189,26 @@ function observeVideo(video) {
 		characterDataOldValue: false,
 		// Set to an array of attribute local names (without namespace) if not all attribute mutations
 		// need to be observed.
+		// srcObject DO not trigger MutationObserver
 		attributeFilter: ['srcObject']
+	});
+
+	// MutationObserver fail to trigger when using srcObject on ony tested browser.
+	// But video.srcObject = new MediaStream() will trigger onloadstart and
+	// video.srcObject = null will trigger onemptied events.
+
+	video.addEventListener('loadstart', function () {
+		if (video.srcObject && !video._iosrtcMediaStreamRendererId) {
+			// If this video element was NOT previously handling a MediaStreamRenderer, release it.
+			handleVideo(video);
+		}
+	});
+
+	video.addEventListener('emptied', function () {
+		if (!video.srcObject && video._iosrtcMediaStreamRendererId) {
+			// If this video element was previously handling a MediaStreamRenderer, release it.
+			releaseMediaStreamRenderer(video);
+		}
 	});
 }
 
@@ -205,15 +224,17 @@ function handleVideo(video) {
 	// The app has set video.srcObject.
 	if (video.srcObject) {
 		stream = video.srcObject;
+		if (stream && typeof stream.getBlobId === 'function') {
 
-		if (!stream.getBlobId()) {
-			// If this video element was previously handling a MediaStreamRenderer, release it.
-			releaseMediaStreamRenderer(video);
+			if (!stream.getBlobId()) {
+				// If this video element was previously handling a MediaStreamRenderer, release it.
+				releaseMediaStreamRenderer(video);
 
-			return;
+				return;
+			}
+
+			provideMediaStreamRenderer(video, stream.getBlobId());
 		}
-
-		provideMediaStreamRenderer(video, stream.getBlobId());
 	}
 }
 
