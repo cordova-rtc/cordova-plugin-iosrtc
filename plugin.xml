@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
 		id="cordova-plugin-iosrtc"
-		version="5.0.0">
+		version="5.0.3">
 
 	<name>iosrtc</name>
 	<description>Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs</description>
@@ -38,6 +38,9 @@
 		</config-file>
 		<config-file parent="NSMicrophoneUsageDescription" target="*-Info.plist">
 			<string>This Application uses your microphone to make calls.</string>
+		</config-file>
+		<config-file parent="NSBluetoothAlwaysUsageDescription" target="*-Info.plist">
+			<string>This Application uses your wireless headphones and microphone to make calls.</string>
 		</config-file>
 
 		<js-module src="dist/cordova-plugin-iosrtc.js" name="Plugin">

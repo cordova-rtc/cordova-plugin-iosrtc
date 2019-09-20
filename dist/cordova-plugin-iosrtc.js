@@ -1,9 +1,9 @@
 /*
- * cordova-plugin-iosrtc v5.0.0
+ * cordova-plugin-iosrtc v5.0.3
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015-2017 eFace2Face, Inc. (https://eface2face.com)
- * Copyright 2017-2019 BasqueVoIPMafia (https://github.com/BasqueVoIPMafia)
- * Copyright 2019 Cordova-RTC (https://github.com/cordova-rtc)
+ * Copyright 2015-2019 BasqueVoIPMafia (https://github.com/BasqueVoIPMafia)
+ * Copyright 2017-2019 Cordova-RTC (https://github.com/cordova-rtc)
  * License MIT
  */
 
@@ -53,10 +53,27 @@ function addError(name) {
 
 },{}],2:[function(_dereq_,module,exports){
 /**
+ * Dependencies.
+ */
+var 
+	YaetiEventTarget = _dereq_('yaeti').EventTarget;
+
+var EventTarget = function () {
+	YaetiEventTarget.call(this);	
+};
+
+EventTarget.prototype = Object.create(YaetiEventTarget.prototype);
+EventTarget.prototype.constructor = EventTarget;
+
+/**
+ * Expose the EventTarget class.
+ */
+module.exports = EventTarget;
+},{"yaeti":24}],3:[function(_dereq_,module,exports){
+/**
  * Expose the MediaDeviceInfo class.
  */
 module.exports = MediaDeviceInfo;
-
 
 function MediaDeviceInfo(data) {
 	data = data || {};
@@ -86,105 +103,159 @@ function MediaDeviceInfo(data) {
 	});
 }
 
-},{}],3:[function(_dereq_,module,exports){
+},{}],4:[function(_dereq_,module,exports){
 /**
  * Expose the MediaStream class.
- * Make MediaStream be a Blob so it can be consumed by URL.createObjectURL().
  */
-var MediaStream = module.exports = window.Blob,
-
+module.exports = MediaStream;
 
 /**
  * Spec: http://w3c.github.io/mediacapture-main/#mediastream
  */
 
-
 /**
  * Dependencies.
  */
+var
 	debug = _dereq_('debug')('iosrtc:MediaStream'),
 	exec = _dereq_('cordova/exec'),
-	EventTarget = _dereq_('yaeti').EventTarget,
+	EventTarget = _dereq_('./EventTarget'),
 	MediaStreamTrack = _dereq_('./MediaStreamTrack'),
-
 
 /**
  * Local variables.
  */
 
-	// Dictionary of MediaStreams (provided via setMediaStreams() class method).
+	// Dictionary of MediaStreams (provided via getMediaStreams() class method).
 	// - key: MediaStream blobId.
 	// - value: MediaStream.
 	mediaStreams;
 
+// TODO longer UUID like native call
+// - "4021904575-2849079001-3048689102-1644344044-4021904575-2849079001-3048689102-1644344044"
+function newMediaStreamId() {
+   return window.crypto.getRandomValues(new Uint32Array(4)).join('-');
+}
+
+// Save original MediaStream
+var originalMediaStream = window.MediaStream;
+var originalMediaStreamTrack = MediaStreamTrack.originalMediaStreamTrack;
 
 /**
- * Class methods.
+ * Expose the MediaStream class.
  */
+function MediaStream(arg, id) {
+	debug('new MediaStream(arg) | [arg:%o]', arg);
 
+	// Detect native MediaStream usage	
+	// new MediaStream(originalMediaStream) // stream
+	// new MediaStream(originalMediaStreamTrack[]) // tracks		
+	if (
+		arg instanceof originalMediaStream || 
+			(Array.isArray(arg) && arg[0] instanceof originalMediaStreamTrack)
+	) {
+		return new originalMediaStream(arg);
+	}
 
-MediaStream.setMediaStreams = function (_mediaStreams) {
-	mediaStreams = _mediaStreams;
-};
+	// new MediaStream(MediaStream) // stream
+	// new MediaStream(MediaStreamTrack[]) // tracks
+	// new MediaStream() // empty
 
-
-MediaStream.create = function (dataFromEvent) {
-	debug('create() | [dataFromEvent:%o]', dataFromEvent);
-
-	var stream,
-		blobId = 'MediaStream_' + dataFromEvent.id,
-		trackId,
-		track;
-
-	// Note that this is the Blob constructor.
-	stream = new MediaStream([blobId], {
-		type: 'stream'
-	});
-
-	// Store the stream into the dictionary.
-	mediaStreams[blobId] = stream;
+	// TODO attempt CustomMediaStream extend.
+	// Extend returned MediaTream with custom MediaStream
+	var stream = new (Function.prototype.bind.apply(originalMediaStream.bind(this), [])); // jshint ignore:line
+	Object.defineProperties(stream, Object.getOwnPropertyDescriptors(MediaStream.prototype));
 
 	// Make it an EventTarget.
 	EventTarget.call(stream);
 
 	// Public atributes.
-	stream.id = dataFromEvent.id;
-	stream.label = dataFromEvent.id;  // Backwards compatibility.
-	stream.active = true;
+	stream._id = id || newMediaStreamId();
+	stream._active = true;
+
+	// Init Stream by Id
+	exec(null, null, 'iosrtcPlugin', 'MediaStream_init', [stream.id]);
 
 	// Public but internal attributes.
 	stream.connected = false;
 
 	// Private attributes.
-	stream._blobId = blobId;
 	stream._audioTracks = {};
 	stream._videoTracks = {};
 
-	for (trackId in dataFromEvent.audioTracks) {
-		if (dataFromEvent.audioTracks.hasOwnProperty(trackId)) {
-			track = new MediaStreamTrack(dataFromEvent.audioTracks[trackId]);
+	// Store the stream into the dictionary.
+	stream._blobId = 'MediaStream_' + stream.id;
+	mediaStreams[stream._blobId] = stream;
 
-			stream._audioTracks[track.id] = track;
-
-			addListenerForTrackEnded.call(stream, track);
-		}
+	// Convert arg to array of tracks if possible
+	if (
+		(arg instanceof MediaStream) || 
+			(arg instanceof MediaStream.originalMediaStream)
+	) {
+		arg = arg.getTracks();
 	}
 
-	for (trackId in dataFromEvent.videoTracks) {
-		if (dataFromEvent.videoTracks.hasOwnProperty(trackId)) {
-			track = new MediaStreamTrack(dataFromEvent.videoTracks[trackId]);
-
-			stream._videoTracks[track.id] = track;
-
-			addListenerForTrackEnded.call(stream, track);
-		}
+	if (Array.isArray(arg)) {
+		arg.forEach(function (track) {
+			stream.addTrack(track);
+		});
+	} else if (typeof arg !== 'undefined') {
+		throw new TypeError("Failed to construct 'MediaStream': No matching constructor signature.");
 	}
 
 	function onResultOK(data) {
 		onEvent.call(stream, data);
 	}
-
 	exec(onResultOK, null, 'iosrtcPlugin', 'MediaStream_setListener', [stream.id]);
+
+	return stream;
+}
+
+MediaStream.prototype = Object.create(originalMediaStream.prototype, {
+	id: {
+		get: function () {
+			return this._id;
+		}
+	},
+	active: {
+		get: function () {
+			return this._active;
+		}
+	},
+	// Backwards compatibility.
+	label: {
+		get: function () {
+			return this._id;
+		}
+	}
+});
+
+Object.defineProperties(MediaStream.prototype, Object.getOwnPropertyDescriptors(EventTarget.prototype));
+
+MediaStream.prototype.constructor = MediaStream;
+
+// Static reference to original MediaStream
+MediaStream.originalMediaStream = originalMediaStream;
+
+/**
+ * Class methods.
+ */
+
+MediaStream.setMediaStreams = function (_mediaStreams) {
+	mediaStreams = _mediaStreams;
+};
+
+MediaStream.getMediaStreams = function () {
+	return mediaStreams;
+};
+
+MediaStream.create = function (dataFromEvent) {
+	debug('create() | [dataFromEvent:%o]', dataFromEvent);
+
+	var tracks = [].concat(Object.values(dataFromEvent.audioTracks), Object.values(dataFromEvent.videoTracks)).map(function (trackDataFromEvent) {
+		return new MediaStreamTrack(trackDataFromEvent);
+	});
+	var stream = new MediaStream(tracks, dataFromEvent.id);
 
 	return stream;
 };
@@ -343,9 +414,11 @@ MediaStream.prototype.emitConnected = function () {
 	}
 	this.connected = true;
 
-	setTimeout(function () {
-		self.dispatchEvent(new Event('connected'));
-	});
+	setTimeout(function (self) {
+		var event = new Event('connected');
+		Object.defineProperty(event, 'target', {value: self, enumerable: true});
+		self.dispatchEvent(event);
+	}, 0, self);
 };
 
 
@@ -403,7 +476,7 @@ function checkActive() {
 	release();
 
 	function release() {
-		self.active = false;
+		self._active = false;
 		self.dispatchEvent(new Event('inactive'));
 
 		// Remove the stream from the dictionary.
@@ -467,7 +540,7 @@ function onEvent(data) {
 	}
 }
 
-},{"./MediaStreamTrack":5,"cordova/exec":undefined,"debug":17,"yaeti":23}],4:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"./MediaStreamTrack":6,"cordova/exec":undefined,"debug":18}],5:[function(_dereq_,module,exports){
 /**
  * Expose the MediaStreamRenderer class.
  */
@@ -481,7 +554,7 @@ var
 	debug = _dereq_('debug')('iosrtc:MediaStreamRenderer'),
 	exec = _dereq_('cordova/exec'),
 	randomNumber = _dereq_('random-number').generator({min: 10000, max: 99999, integer: true}),
-	EventTarget = _dereq_('yaeti').EventTarget,
+	EventTarget = _dereq_('./EventTarget'),
 	MediaStream = _dereq_('./MediaStream');
 
 
@@ -515,13 +588,15 @@ function MediaStreamRenderer(element) {
 	this.refresh(this);
 }
 
+MediaStreamRenderer.prototype = Object.create(EventTarget.prototype);
+MediaStreamRenderer.prototype.constructor = MediaStreamRenderer;
 
 MediaStreamRenderer.prototype.render = function (stream) {
 	debug('render() [stream:%o]', stream);
 
 	var self = this;
 
-	if (!(stream instanceof MediaStream)) {
+	if (!(stream instanceof MediaStream.originalMediaStream)) {
 		throw new Error('render() requires a MediaStream instance as argument');
 	}
 
@@ -819,7 +894,7 @@ function getElementPositionAndSize() {
 	};
 }
 
-},{"./MediaStream":3,"cordova/exec":undefined,"debug":17,"random-number":22,"yaeti":23}],5:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"./MediaStream":4,"cordova/exec":undefined,"debug":18,"random-number":23}],6:[function(_dereq_,module,exports){
 /**
  * Expose the MediaStreamTrack class.
  */
@@ -838,8 +913,10 @@ var
 	debug = _dereq_('debug')('iosrtc:MediaStreamTrack'),
 	exec = _dereq_('cordova/exec'),
 	enumerateDevices = _dereq_('./enumerateDevices'),
-	EventTarget = _dereq_('yaeti').EventTarget;
+	EventTarget = _dereq_('./EventTarget');
 
+// Save original MediaStreamTrack
+var originalMediaStreamTrack = window.MediaStreamTrack;
 
 function MediaStreamTrack(dataFromEvent) {
 	debug('new() | [dataFromEvent:%o]', dataFromEvent);
@@ -867,6 +944,11 @@ function MediaStreamTrack(dataFromEvent) {
 	exec(onResultOK, null, 'iosrtcPlugin', 'MediaStreamTrack_setListener', [this.id]);
 }
 
+MediaStreamTrack.prototype = Object.create(EventTarget.prototype);
+MediaStreamTrack.prototype.constructor = MediaStreamTrack;
+
+// Static reference to original MediaStreamTrack
+MediaStreamTrack.originalMediaStreamTrack = originalMediaStreamTrack;
 
 // Setters.
 Object.defineProperty(MediaStreamTrack.prototype, 'enabled', {
@@ -939,7 +1021,7 @@ function onEvent(data) {
 	}
 }
 
-},{"./enumerateDevices":13,"cordova/exec":undefined,"debug":17,"yaeti":23}],6:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"./enumerateDevices":14,"cordova/exec":undefined,"debug":18}],7:[function(_dereq_,module,exports){
 /**
  * Expose the RTCDTMFSender class.
  */
@@ -954,7 +1036,7 @@ var
 	debugerror = _dereq_('debug')('iosrtc:ERROR:RTCDTMFSender'),
 	exec = _dereq_('cordova/exec'),
 	randomNumber = _dereq_('random-number').generator({min: 10000, max: 99999, integer: true}),
-	EventTarget = _dereq_('yaeti').EventTarget;
+	EventTarget = _dereq_('./EventTarget');
 
 
 debugerror.log = console.warn.bind(console);
@@ -987,6 +1069,8 @@ function RTCDTMFSender(peerConnection, track) {
 
 }
 
+RTCDTMFSender.prototype = Object.create(EventTarget.prototype);
+RTCDTMFSender.prototype.constructor = RTCDTMFSender;
 
 Object.defineProperty(RTCDTMFSender.prototype, 'canInsertDTMF', {
 	get: function () {
@@ -1071,7 +1155,7 @@ function onEvent(data) {
 	}
 }
 
-},{"cordova/exec":undefined,"debug":17,"random-number":22,"yaeti":23}],7:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"cordova/exec":undefined,"debug":18,"random-number":23}],8:[function(_dereq_,module,exports){
 /**
  * Expose the RTCDataChannel class.
  */
@@ -1086,7 +1170,7 @@ var
 	debugerror = _dereq_('debug')('iosrtc:ERROR:RTCDataChannel'),
 	exec = _dereq_('cordova/exec'),
 	randomNumber = _dereq_('random-number').generator({min: 10000, max: 99999, integer: true}),
-	EventTarget = _dereq_('yaeti').EventTarget;
+	EventTarget = _dereq_('./EventTarget');
 
 
 debugerror.log = console.warn.bind(console);
@@ -1176,6 +1260,8 @@ function RTCDataChannel(peerConnection, label, options, dataFromEvent) {
 	}
 }
 
+RTCDataChannel.prototype = Object.create(EventTarget.prototype);
+RTCDataChannel.prototype.constructor = RTCDataChannel;
 
 // Just 'arraybuffer' binaryType is implemented in Chromium.
 Object.defineProperty(RTCDataChannel.prototype, 'binaryType', {
@@ -1302,7 +1388,7 @@ function onEvent(data) {
 	}
 }
 
-},{"cordova/exec":undefined,"debug":17,"random-number":22,"yaeti":23}],8:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"cordova/exec":undefined,"debug":18,"random-number":23}],9:[function(_dereq_,module,exports){
 /**
  * Expose the RTCIceCandidate class.
  */
@@ -1318,7 +1404,7 @@ function RTCIceCandidate(data) {
 	this.candidate = data.candidate;
 }
 
-},{}],9:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 (function (global){
 /**
  * Expose the RTCPeerConnection class.
@@ -1329,12 +1415,12 @@ module.exports = RTCPeerConnection;
 /**
  * Dependencies.
  */
-var
+var 
 	debug = _dereq_('debug')('iosrtc:RTCPeerConnection'),
 	debugerror = _dereq_('debug')('iosrtc:ERROR:RTCPeerConnection'),
 	exec = _dereq_('cordova/exec'),
 	randomNumber = _dereq_('random-number').generator({min: 10000, max: 99999, integer: true}),
-	EventTarget = _dereq_('yaeti').EventTarget,
+	EventTarget = _dereq_('./EventTarget'),
 	RTCSessionDescription = _dereq_('./RTCSessionDescription'),
 	RTCIceCandidate = _dereq_('./RTCIceCandidate'),
 	RTCDataChannel = _dereq_('./RTCDataChannel'),
@@ -1345,9 +1431,15 @@ var
 	MediaStreamTrack = _dereq_('./MediaStreamTrack'),
 	Errors = _dereq_('./Errors');
 
-
 debugerror.log = console.warn.bind(console);
 
+function deprecateWarning(method, newMethod) {
+	if (!newMethod) {
+		console.warn(method + ' is deprecated.');
+	} else {
+		console.warn(method + ' method is deprecated, use ' + newMethod + ' instead.');	
+	}
+}
 
 function RTCPeerConnection(pcConfig, pcConstraints) {
 	debug('new() | [pcConfig:%o, pcConstraints:%o]', pcConfig, pcConstraints);
@@ -1357,8 +1449,16 @@ function RTCPeerConnection(pcConfig, pcConstraints) {
 	// Make this an EventTarget.
 	EventTarget.call(this);
 
+	// Restore corrupted RTCPeerConnection.prototype
+	// TODO find why adapter prevent events onnegotiationneeded to be trigger.
+	// Object.defineProperties(this, RTCPeerConnection.prototype_descriptor);
+
+	// Fix webrtc-adapter bad SHIM on addTrack causing error when original does support multiple streams.
+	// NotSupportedError: The adapter.js addTrack polyfill only supports a single stream which is associated with the specified track.
+	Object.defineProperty(this, 'addTrack', RTCPeerConnection.prototype_descriptor.addTrack);
+	
 	// Public atributes.
-	this.localDescription = null;
+	this._localDescription = null;
 	this.remoteDescription = null;
 	this.signalingState = 'stable';
 	this.iceGatheringState = 'new';
@@ -1377,22 +1477,54 @@ function RTCPeerConnection(pcConfig, pcConstraints) {
 	exec(onResultOK, null, 'iosrtcPlugin', 'new_RTCPeerConnection', [this.pcId, this.pcConfig, pcConstraints]);
 }
 
+RTCPeerConnection.prototype = Object.create(EventTarget.prototype);
+RTCPeerConnection.prototype.constructor = RTCPeerConnection;
 
-RTCPeerConnection.prototype.createOffer = function () {
-	var self = this,
-		isPromise,
-		options,
-		callback, errback;
-
-	if (typeof arguments[0] !== 'function') {
-		isPromise = true;
-		options = arguments[0];
-	} else {
-		isPromise = false;
-		callback = arguments[0];
-		errback = arguments[1];
-		options = arguments[2];
+Object.defineProperties(RTCPeerConnection.prototype, {
+	'localDescription': { 
+		// Fix webrtc-adapter TypeError: Attempting to change the getter of an unconfigurable property.
+		configurable: true,
+		get: function() { 
+			return this._localDescription;
+		}
+	},
+	'connectionState': { 
+		get: function() { 
+			return this.iceConnectionState;
+		} 
+	},
+	'onicecandidate': {
+		// Fix webrtc-adapter TypeError: Attempting to change the getter of an unconfigurable property.
+		configurable: true,
+		set: function (callback) {
+			return this.addEventListener('icecandidate', callback);
+		}
+	},
+	'onaddstream': {
+		// Fix webrtc-adapter TypeError: Attempting to change the getter of an unconfigurable property.
+		configurable: true,
+		set: function (callback) {
+			return this.addEventListener('addstream', callback);
+		}
+	},
+	'oniceconnectionstatechange': {
+		// Fix webrtc-adapter TypeError: Attempting to change the getter of an unconfigurable property.
+		configurable: true,
+		set: function (callback) {
+			return this.addEventListener('iceconnectionstatechange', callback);
+		}
+	},
+	'onnegotiationneeded': {
+		// Fix webrtc-adapter TypeError: Attempting to change the getter of an unconfigurable property.
+		configurable: true,
+		set: function (callback) {
+			return this.addEventListener('negotiationneeded', callback);
+		}
 	}
+});
+
+RTCPeerConnection.prototype.createOffer = function (options) {
+	var self = this;
 
 	if (isClosed.call(this)) {
 		return;
@@ -1400,73 +1532,34 @@ RTCPeerConnection.prototype.createOffer = function () {
 
 	debug('createOffer() [options:%o]', options);
 
-	if (isPromise) {
-		return new Promise(function (resolve, reject) {
-			function onResultOK(data) {
-				if (isClosed.call(self)) {
-					return;
-				}
-
-				var desc = new RTCSessionDescription(data);
-
-				debug('createOffer() | success [desc:%o]', desc);
-				resolve(desc);
+	return new Promise(function (resolve, reject) {
+		function onResultOK(data) {
+			if (isClosed.call(self)) {
+				return;
 			}
 
-			function onResultError(error) {
-				if (isClosed.call(self)) {
-					return;
-				}
+			var desc = new RTCSessionDescription(data);
 
-				debugerror('createOffer() | failure: %s', error);
-				reject(new global.DOMError(error));
+			debug('createOffer() | success [desc:%o]', desc);
+			resolve(desc);
+		}
+
+		function onResultError(error) {
+			if (isClosed.call(self)) {
+				return;
 			}
 
-			exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_createOffer', [self.pcId, options]);
-		});
-	}
-
-	function onResultOK(data) {
-		if (isClosed.call(self)) {
-			return;
+			debugerror('createOffer() | failure: %s', error);
+			reject(new global.DOMException(error));
 		}
 
-		var desc = new RTCSessionDescription(data);
-
-		debug('createOffer() | success [desc:%o]', desc);
-		callback(desc);
-	}
-
-	function onResultError(error) {
-		if (isClosed.call(self)) {
-			return;
-		}
-
-		debugerror('createOffer() | failure: %s', error);
-		if (typeof errback === 'function') {
-			errback(new global.DOMError(error));
-		}
-	}
-
-	exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_createOffer', [this.pcId, options]);
+		exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_createOffer', [self.pcId, options]);
+	});
 };
 
 
-RTCPeerConnection.prototype.createAnswer = function () {
-	var self = this,
-		isPromise,
-		options,
-		callback, errback;
-
-	if (typeof arguments[0] !== 'function') {
-		isPromise = true;
-		options = arguments[0];
-	} else {
-		isPromise = false;
-		callback = arguments[0];
-		errback = arguments[1];
-		options = arguments[2];
-	}
+RTCPeerConnection.prototype.createAnswer = function (options) {
+	var self = this;
 
 	if (isClosed.call(this)) {
 		return;
@@ -1474,341 +1567,167 @@ RTCPeerConnection.prototype.createAnswer = function () {
 
 	debug('createAnswer() [options:%o]', options);
 
-	if (isPromise) {
-		return new Promise(function (resolve, reject) {
-			function onResultOK(data) {
-				if (isClosed.call(self)) {
-					return;
-				}
-
-				var desc = new RTCSessionDescription(data);
-
-				debug('createAnswer() | success [desc:%o]', desc);
-				resolve(desc);
+	return new Promise(function (resolve, reject) {
+		function onResultOK(data) {
+			if (isClosed.call(self)) {
+				return;
 			}
 
-			function onResultError(error) {
-				if (isClosed.call(self)) {
-					return;
-				}
+			var desc = new RTCSessionDescription(data);
 
-				debugerror('createAnswer() | failure: %s', error);
-				reject(new global.DOMError(error));
+			debug('createAnswer() | success [desc:%o]', desc);
+			resolve(desc);
+		}
+
+		function onResultError(error) {
+			if (isClosed.call(self)) {
+				return;
 			}
 
-			exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_createAnswer', [self.pcId, options]);
-		});
-	}
-
-	function onResultOK(data) {
-		if (isClosed.call(self)) {
-			return;
+			debugerror('createAnswer() | failure: %s', error);
+			reject(new global.DOMException(error));
 		}
 
-		var desc = new RTCSessionDescription(data);
-
-		debug('createAnswer() | success [desc:%o]', desc);
-		callback(desc);
-	}
-
-	function onResultError(error) {
-		if (isClosed.call(self)) {
-			return;
-		}
-
-		debugerror('createAnswer() | failure: %s', error);
-		if (typeof errback === 'function') {
-			errback(new global.DOMError(error));
-		}
-	}
-
-	exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_createAnswer', [this.pcId, options]);
+		exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_createAnswer', [self.pcId, options]);
+	});
 };
-
-
 
 RTCPeerConnection.prototype.setLocalDescription = function (desc) {
-	var self = this,
-		isPromise,
-		callback, errback;
-
-	if (typeof arguments[1] !== 'function') {
-		isPromise = true;
-	} else {
-		isPromise = false;
-		callback = arguments[1];
-		errback = arguments[2];
-	}
+	var self = this;
 
 	if (isClosed.call(this)) {
-		if (isPromise) {
-			return new Promise(function (resolve, reject) {
-				reject(new Errors.InvalidStateError('peerconnection is closed'));
-			});
-		} else {
-			throw new Errors.InvalidStateError('peerconnection is closed');
-		}
-	}
-
-	debug('setLocalDescription() [desc:%o]', desc);
-
-	if (!(desc instanceof RTCSessionDescription)) {
-		if (isPromise) {
-			return new Promise(function (resolve, reject) {
-				reject(new Errors.InvalidSessionDescriptionError('setLocalDescription() must be called with a RTCSessionDescription instance as first argument'));
-			});
-		} else {
-			if (typeof errback === 'function') {
-				errback(new Errors.InvalidSessionDescriptionError('setLocalDescription() must be called with a RTCSessionDescription instance as first argument'));
-			}
-			return;
-		}
-	}
-
-	if (isPromise) {
 		return new Promise(function (resolve, reject) {
-			function onResultOK(data) {
-				if (isClosed.call(self)) {
-					return;
-				}
-
-				debug('setLocalDescription() | success');
-				// Update localDescription.
-				self.localDescription = new RTCSessionDescription(data);
-				resolve();
-			}
-
-			function onResultError(error) {
-				if (isClosed.call(self)) {
-					return;
-				}
-
-				debugerror('setLocalDescription() | failure: %s', error);
-				reject(new Errors.InvalidSessionDescriptionError('setLocalDescription() failed: ' + error));
-			}
-
-			exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_setLocalDescription', [self.pcId, desc]);
+			reject(new Errors.InvalidStateError('peerconnection is closed'));
 		});
 	}
 
-	function onResultOK(data) {
-		if (isClosed.call(self)) {
-			return;
-		}
+	// "This is no longer necessary, however; RTCPeerConnection.setLocalDescription() and other 
+	// methods which take SDP as input now directly accept an object conforming to the RTCSessionDescriptionInit dictionary, 
+	// so you don't have to instantiate an RTCSessionDescription yourself.""
+	// Source: https://developer.mozilla.org/en-US/docs/Web/API/RTCSessionDescription/RTCSessionDescription#Example
+	// Still we do instnanciate RTCSessionDescription, so internal object is used properly.
 
-		debug('setLocalDescription() | success');
-		// Update localDescription.
-		self.localDescription = new RTCSessionDescription(data);
-		callback();
+	if (!(desc instanceof RTCSessionDescription)) {
+		desc = new RTCSessionDescription(desc);
 	}
 
-	function onResultError(error) {
-		if (isClosed.call(self)) {
-			return;
+	return new Promise(function (resolve, reject) {
+		function onResultOK(data) {
+			if (isClosed.call(self)) {
+				return;
+			}
+
+			debug('setLocalDescription() | success');
+			// Update localDescription.
+			self._localDescription = new RTCSessionDescription(data);
+			resolve();
 		}
 
-		debugerror('setLocalDescription() | failure: %s', error);
+		function onResultError(error) {
+			if (isClosed.call(self)) {
+				return;
+			}
 
-		if (typeof errback === 'function') {
-			errback(new Errors.InvalidSessionDescriptionError('setLocalDescription() failed: ' + error));
+			debugerror('setLocalDescription() | failure: %s', error);
+			reject(new Errors.InvalidSessionDescriptionError('setLocalDescription() failed: ' + error));
 		}
-	}
 
-	exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_setLocalDescription', [this.pcId, desc]);
+		exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_setLocalDescription', [self.pcId, desc]);
+	});
 };
 
-
 RTCPeerConnection.prototype.setRemoteDescription = function (desc) {
-	var self = this,
-		isPromise,
-		callback, errback;
-
-	if (typeof arguments[1] !== 'function') {
-		isPromise = true;
-	} else {
-		isPromise = false;
-		callback = arguments[1];
-		errback = arguments[2];
-	}
+	var self = this;
 
 	if (isClosed.call(this)) {
-		if (isPromise) {
-			return new Promise(function (resolve, reject) {
-				reject(new Errors.InvalidStateError('peerconnection is closed'));
-			});
-		} else {
-			throw new Errors.InvalidStateError('peerconnection is closed');
-		}
+		return new Promise(function (resolve, reject) {
+			reject(new Errors.InvalidStateError('peerconnection is closed'));
+		});
 	}
 
 	debug('setRemoteDescription() [desc:%o]', desc);
 
+	// "This is no longer necessary, however; RTCPeerConnection.setLocalDescription() and other 
+	// methods which take SDP as input now directly accept an object conforming to the RTCSessionDescriptionInit dictionary, 
+	// so you don't have to instantiate an RTCSessionDescription yourself.""
+	// Source: https://developer.mozilla.org/en-US/docs/Web/API/RTCSessionDescription/RTCSessionDescription#Example
+	// Still we do instnanciate RTCSessionDescription so internal object is used properly.
+
 	if (!(desc instanceof RTCSessionDescription)) {
-		if (isPromise) {
-			return new Promise(function (resolve, reject) {
-				reject(new Errors.InvalidSessionDescriptionError('setRemoteDescription() must be called with a RTCSessionDescription instance as first argument'));
-			});
-		} else {
-			if (typeof errback === 'function') {
-				errback(new Errors.InvalidSessionDescriptionError('setRemoteDescription() must be called with a RTCSessionDescription instance as first argument'));
-			}
-			return;
-		}
+		desc = new RTCSessionDescription(desc);
 	}
 
-	if (isPromise) {
-		return new Promise(function (resolve, reject) {
-			function onResultOK(data) {
-				if (isClosed.call(self)) {
-					return;
-				}
-
-				debug('setRemoteDescription() | success');
-				// Update remoteDescription.
-				self.remoteDescription = new RTCSessionDescription(data);
-				resolve();
+	return new Promise(function (resolve, reject) {
+		function onResultOK(data) {
+			if (isClosed.call(self)) {
+				return;
 			}
 
-			function onResultError(error) {
-				if (isClosed.call(self)) {
-					return;
-				}
+			debug('setRemoteDescription() | success');
+			// Update remoteDescription.
+			self.remoteDescription = new RTCSessionDescription(data);
+			resolve();
+		}
 
-				debugerror('setRemoteDescription() | failure: %s', error);
-				reject(new Errors.InvalidSessionDescriptionError('setRemoteDescription() failed: ' + error));
+		function onResultError(error) {
+			if (isClosed.call(self)) {
+				return;
 			}
 
-			exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_setRemoteDescription', [self.pcId, desc]);
-		});
-	}
-
-	function onResultOK(data) {
-		if (isClosed.call(self)) {
-			return;
+			debugerror('setRemoteDescription() | failure: %s', error);
+			reject(new Errors.InvalidSessionDescriptionError('setRemoteDescription() failed: ' + error));
 		}
 
-		debug('setRemoteDescription() | success');
-		// Update remoteDescription.
-		self.remoteDescription = new RTCSessionDescription(data);
-		callback();
-	}
-
-	function onResultError(error) {
-		if (isClosed.call(self)) {
-			return;
-		}
-
-		debugerror('setRemoteDescription() | failure: %s', error);
-
-		if (typeof errback === 'function') {
-			errback(new Errors.InvalidSessionDescriptionError('setRemoteDescription() failed: ' + error));
-		}
-	}
-
-	exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_setRemoteDescription', [this.pcId, desc]);
+		exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_setRemoteDescription', [self.pcId, desc]);
+	});
 };
 
-
-
 RTCPeerConnection.prototype.addIceCandidate = function (candidate) {
-	var self = this,
-		isPromise,
-		callback, errback;
-
-	if (typeof arguments[1] !== 'function') {
-		isPromise = true;
-	} else {
-		isPromise = false;
-		callback = arguments[1];
-		errback = arguments[2];
-	}
+	var self = this;
 
 	if (isClosed.call(this)) {
-		if (isPromise) {
-			return new Promise(function (resolve, reject) {
-				reject(new Errors.InvalidStateError('peerconnection is closed'));
-			});
-		} else {
-			throw new Errors.InvalidStateError('peerconnection is closed');
-		}
+		return new Promise(function (resolve, reject) {
+			reject(new Errors.InvalidStateError('peerconnection is closed'));
+		});
 	}
 
 	debug('addIceCandidate() | [candidate:%o]', candidate);
 
 	if (typeof candidate !== 'object') {
-		if (isPromise) {
-			return new Promise(function (resolve, reject) {
-				reject(new global.DOMError('addIceCandidate() must be called with a RTCIceCandidate instance or RTCIceCandidateInit object as argument'));
-			});
-		} else {
-			if (typeof errback === 'function') {
-				errback(new global.DOMError('addIceCandidate() must be called with a RTCIceCandidate instance or RTCIceCandidateInit object as argument'));
-			}
-			return;
-		}
-	}
-
-	if (isPromise) {
 		return new Promise(function (resolve, reject) {
-			function onResultOK(data) {
-				if (isClosed.call(self)) {
-					return;
-				}
-
-				debug('addIceCandidate() | success');
-				// Update remoteDescription.
-				if (self.remoteDescription && data.remoteDescription) {
-					self.remoteDescription.type = data.remoteDescription.type;
-					self.remoteDescription.sdp = data.remoteDescription.sdp;
-				} else if (data.remoteDescription) {
-					self.remoteDescription = new RTCSessionDescription(data.remoteDescription);
-				}
-				resolve();
-			}
-
-			function onResultError() {
-				if (isClosed.call(self)) {
-					return;
-				}
-
-				debugerror('addIceCandidate() | failure');
-				reject(new global.DOMError('addIceCandidate() failed'));
-			}
-
-			exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_addIceCandidate', [self.pcId, candidate]);
+			reject(new global.DOMException('addIceCandidate() must be called with a RTCIceCandidate instance or RTCIceCandidateInit object as argument'));
 		});
 	}
 
-	function onResultOK(data) {
-		if (isClosed.call(self)) {
-			return;
+	return new Promise(function (resolve, reject) {
+		function onResultOK(data) {
+			if (isClosed.call(self)) {
+				return;
+			}
+
+			debug('addIceCandidate() | success');
+			// Update remoteDescription.
+			if (self.remoteDescription && data.remoteDescription) {
+				self.remoteDescription.type = data.remoteDescription.type;
+				self.remoteDescription.sdp = data.remoteDescription.sdp;
+			} else if (data.remoteDescription) {
+				self.remoteDescription = new RTCSessionDescription(data.remoteDescription);
+			}
+			resolve();
 		}
 
-		debug('addIceCandidate() | success');
-		// Update remoteDescription.
-		if (self.remoteDescription && data.remoteDescription) {
-			self.remoteDescription.type = data.remoteDescription.type;
-			self.remoteDescription.sdp = data.remoteDescription.sdp;
-		} else if (data.remoteDescription) {
-			self.remoteDescription = new RTCSessionDescription(data.remoteDescription);
-		}
-		callback();
-	}
+		function onResultError() {
+			if (isClosed.call(self)) {
+				return;
+			}
 
-	function onResultError() {
-		if (isClosed.call(self)) {
-			return;
+			debugerror('addIceCandidate() | failure');
+			reject(new global.DOMException('addIceCandidate() failed'));
 		}
 
-		debugerror('addIceCandidate() | failure');
-		if (typeof errback === 'function') {
-			errback(new global.DOMError('addIceCandidate() failed'));
-		}
-	}
-
-	exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_addIceCandidate', [this.pcId, candidate]);
+		exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_addIceCandidate', [self.pcId, candidate]);
+	});
 };
-
 
 RTCPeerConnection.prototype.getConfiguration = function () {
 	debug('getConfiguration()');
@@ -1816,9 +1735,9 @@ RTCPeerConnection.prototype.getConfiguration = function () {
 	return this.pcConfig;
 };
 
-
 RTCPeerConnection.prototype.getLocalStreams = function () {
 	debug('getLocalStreams()');
+	deprecateWarning('getLocalStreams', 'getSenders');
 
 	var streams = [],
 		id;
@@ -1835,6 +1754,7 @@ RTCPeerConnection.prototype.getLocalStreams = function () {
 
 RTCPeerConnection.prototype.getRemoteStreams = function () {
 	debug('getRemoteStreams()');
+	deprecateWarning('getRemoteStreams', 'getReceivers');
 
 	var streams = [],
 		id;
@@ -1848,6 +1768,81 @@ RTCPeerConnection.prototype.getRemoteStreams = function () {
 	return streams;
 };
 
+RTCPeerConnection.prototype.getReceivers = function () {
+	var tracks = [],
+		id;
+
+	for (id in this.remoteStreams) {
+		if (this.remoteStreams.hasOwnProperty(id)) {
+			tracks = tracks.concat(this.remoteStreams[id].getTracks());
+		}
+	}
+
+	return tracks;
+};
+
+RTCPeerConnection.prototype.getSenders = function () {
+	var tracks = [],
+		id;
+
+	for (id in this.localStreams) {
+		if (this.localStreams.hasOwnProperty(id)) {
+			tracks = tracks.concat(this.localStreams[id].getTracks());
+		}
+	}
+
+	return tracks;
+};
+
+RTCPeerConnection.prototype.addTrack = function (track, stream) {
+	var id;
+
+	// Add localStreams if missing
+	if (Object.keys(this.localStreams).length === 0) {
+		stream = new MediaStream();
+		this.addStream(stream);
+	}
+
+	for (id in this.localStreams) {
+		if (this.localStreams.hasOwnProperty(id)) {
+			if (
+				!stream || // No stream target
+					(stream && stream.id === id) // Stream target by id
+			) {
+				stream = this.localStreams[id];
+				stream.addTrack(track);
+
+				exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [this.pcId, track.id, stream.id]);
+				break;
+			}
+		}
+	}
+};
+
+RTCPeerConnection.prototype.removeTrack = function (track) {
+	var id,
+		stream,
+		hasTrack;
+
+	function matchLocalTrack(localTrack) {
+		return localTrack.id === track.id;
+	}
+
+	for (id in this.localStreams) {
+		if (this.localStreams.hasOwnProperty(id)) {
+			// Check if track is belong to stream
+			hasTrack = (this.localStreams[id].getTracks().filter(matchLocalTrack).length > 0);
+
+			if (hasTrack) {
+				stream = this.localStreams[id];
+				stream.removeTrack(track);
+
+				exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_removeTrack', [this.pcId, track.id, stream.id]);
+				break;
+			}
+		}
+	}
+};
 
 RTCPeerConnection.prototype.getStreamById = function (id) {
 	debug('getStreamById()');
@@ -1863,7 +1858,7 @@ RTCPeerConnection.prototype.addStream = function (stream) {
 
 	debug('addStream()');
 
-	if (!(stream instanceof MediaStream)) {
+	if (!(stream instanceof MediaStream.originalMediaStream)) {
 		throw new Error('addStream() must be called with a MediaStream instance as argument');
 	}
 
@@ -1885,7 +1880,7 @@ RTCPeerConnection.prototype.removeStream = function (stream) {
 
 	debug('removeStream()');
 
-	if (!(stream instanceof MediaStream)) {
+	if (!(stream instanceof MediaStream.originalMediaStream)) {
 		throw new Error('removeStream() must be called with a MediaStream instance as argument');
 	}
 
@@ -1921,21 +1916,8 @@ RTCPeerConnection.prototype.createDTMFSender = function (track) {
 	return new RTCDTMFSender(this, track);
 };
 
-RTCPeerConnection.prototype.getStats = function () {
-	var self = this,
-		isPromise,
-		selector,
-		callback, errback;
-
-	if (typeof arguments[0] !== 'function') {
-		isPromise = true;
-		selector = arguments[0];
-	} else {
-		isPromise = false;
-		callback = arguments[0];
-		selector = arguments[1];
-		errback = arguments[2];
-	}
+RTCPeerConnection.prototype.getStats = function (selector) {
+	var self = this;
 
 	if (selector && !(selector instanceof MediaStreamTrack)) {
 		throw new Error('getStats() must be called with null or a valid MediaStreamTrack instance as argument');
@@ -1947,57 +1929,30 @@ RTCPeerConnection.prototype.getStats = function () {
 
 	debug('getStats() [selector:%o]', selector);
 
-	if (isPromise) {
-		return new Promise(function (resolve, reject) {
-			function onResultOK(array) {
-				if (isClosed.call(self)) {
-					return;
-				}
-
-				var res = [];
-				array.forEach(function (stat) {
-					res.push(new RTCStatsReport(stat));
-				});
-				resolve(new RTCStatsResponse(res));
+	return new Promise(function (resolve, reject) {
+		function onResultOK(array) {
+			if (isClosed.call(self)) {
+				return;
 			}
 
-			function onResultError(error) {
-				if (isClosed.call(self)) {
-					return;
-				}
+			var res = [];
+			array.forEach(function (stat) {
+				res.push(new RTCStatsReport(stat));
+			});
+			resolve(new RTCStatsResponse(res));
+		}
 
-				debugerror('getStats() | failure: %s', error);
-				reject(new global.DOMError(error));
+		function onResultError(error) {
+			if (isClosed.call(self)) {
+				return;
 			}
 
-			exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_getStats', [self.pcId, selector ? selector.id : null]);
-		});
-	}
-
-	function onResultOK(array) {
-		if (isClosed.call(self)) {
-			return;
+			debugerror('getStats() | failure: %s', error);
+			reject(new global.DOMException(error));
 		}
 
-		var res = [];
-		array.forEach(function (stat) {
-			res.push(new RTCStatsReport(stat));
-		});
-		callback(new RTCStatsResponse(res));
-	}
-
-	function onResultError(error) {
-		if (isClosed.call(self)) {
-			return;
-		}
-
-		debugerror('getStats() | failure: %s', error);
-		if (typeof errback === 'function') {
-			errback(new global.DOMError(error));
-		}
-	}
-
-	exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_getStats', [this.pcId, selector ? selector.id : null]);
+		exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_getStats', [self.pcId, selector ? selector.id : null]);
+	});
 };
 
 RTCPeerConnection.prototype.close = function () {
@@ -2010,12 +1965,12 @@ RTCPeerConnection.prototype.close = function () {
 	exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_close', [this.pcId]);
 };
 
+// Save current RTCPeerConnection.prototype
+RTCPeerConnection.prototype_descriptor = Object.getOwnPropertyDescriptors(RTCPeerConnection.prototype);
 
 /**
  * Private API.
  */
-
-
 function fixPcConfig(pcConfig) {
 	if (!pcConfig) {
 		return {
@@ -2055,10 +2010,13 @@ function isClosed() {
 
 function onEvent(data) {
 	var type = data.type,
+		self = this,
 		event = new Event(type),
 		stream,
 		dataChannel,
 		id;
+
+	Object.defineProperty(event, 'target', {value: self, enumerable: true});
 
 	debug('onEvent() | [type:%s, data:%o]', type, data);
 
@@ -2090,16 +2048,20 @@ function onEvent(data) {
 			} else {
 				event.candidate = null;
 			}
-			// Update localDescription.
-			if (this.localDescription) {
-				this.localDescription.type = data.localDescription.type;
-				this.localDescription.sdp = data.localDescription.sdp;
+			// Update _localDescription.
+			if (this._localDescription) {
+				this._localDescription.type = data.localDescription.type;
+				this._localDescription.sdp = data.localDescription.sdp;
 			} else {
-				this.localDescription = new RTCSessionDescription(data);
+				this._localDescription = new RTCSessionDescription(data);
 			}
 			break;
 
 		case 'negotiationneeded':
+			break;
+
+		case 'addtrack':
+			event.track = data.track;
 			break;
 
 		case 'addstream':
@@ -2133,7 +2095,7 @@ function onEvent(data) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./Errors":1,"./MediaStream":3,"./MediaStreamTrack":5,"./RTCDTMFSender":6,"./RTCDataChannel":7,"./RTCIceCandidate":8,"./RTCSessionDescription":10,"./RTCStatsReport":11,"./RTCStatsResponse":12,"cordova/exec":undefined,"debug":17,"random-number":22,"yaeti":23}],10:[function(_dereq_,module,exports){
+},{"./Errors":1,"./EventTarget":2,"./MediaStream":4,"./MediaStreamTrack":6,"./RTCDTMFSender":7,"./RTCDataChannel":8,"./RTCIceCandidate":9,"./RTCSessionDescription":11,"./RTCStatsReport":12,"./RTCStatsResponse":13,"cordova/exec":undefined,"debug":18,"random-number":23}],11:[function(_dereq_,module,exports){
 /**
  * Expose the RTCSessionDescription class.
  */
@@ -2148,7 +2110,7 @@ function RTCSessionDescription(data) {
 	this.sdp = data.sdp;
 }
 
-},{}],11:[function(_dereq_,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 /**
  * Expose the RTCStatsReport class.
  */
@@ -2170,7 +2132,7 @@ function RTCStatsReport(data) {
 	};
 }
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
 /**
  * Expose the RTCStatsResponse class.
  */
@@ -2188,7 +2150,7 @@ function RTCStatsResponse(data) {
 	};
 }
 
-},{}],13:[function(_dereq_,module,exports){
+},{}],14:[function(_dereq_,module,exports){
 /**
  * Expose the enumerateDevices function.
  */
@@ -2205,35 +2167,15 @@ var
 
 
 function enumerateDevices() {
-	debug('');
 
-	var isPromise,
-		callback;
+	return new Promise(function (resolve) {
+		function onResultOK(data) {
+			debug('enumerateDevices() | success');
+			resolve(getMediaDeviceInfos(data.devices));
+		}
 
-	if (typeof arguments[0] !== 'function') {
-		isPromise = true;
-	} else {
-		isPromise = false;
-		callback = arguments[0];
-	}
-
-	if (isPromise) {
-		return new Promise(function (resolve) {
-			function onResultOK(data) {
-				debug('enumerateDevices() | success');
-				resolve(getMediaDeviceInfos(data.devices));
-			}
-
-			exec(onResultOK, null, 'iosrtcPlugin', 'enumerateDevices', []);
-		});
-	}
-
-	function onResultOK(data) {
-		debug('enumerateDevices() | success');
-		callback(getMediaDeviceInfos(data.devices));
-	}
-
-	exec(onResultOK, null, 'iosrtcPlugin', 'enumerateDevices', []);
+		exec(onResultOK, null, 'iosrtcPlugin', 'enumerateDevices', []);
+	});
 }
 
 
@@ -2257,7 +2199,7 @@ function getMediaDeviceInfos(devices) {
 	return mediaDeviceInfos;
 }
 
-},{"./MediaDeviceInfo":2,"cordova/exec":undefined,"debug":17}],14:[function(_dereq_,module,exports){
+},{"./MediaDeviceInfo":3,"cordova/exec":undefined,"debug":18}],15:[function(_dereq_,module,exports){
 /**
  * Expose the getUserMedia function.
  */
@@ -2274,9 +2216,6 @@ var
 	MediaStream = _dereq_('./MediaStream'),
 	Errors = _dereq_('./Errors');
 
-debugerror.log = console.warn.bind(console);
-
-
 function isPositiveInteger(number) {
 	return typeof number === 'number' && number >= 0 && number % 1 === 0;
 }
@@ -2285,13 +2224,10 @@ function isPositiveFloat(number) {
 	return typeof number === 'number' && number >= 0;
 }
 
-
 function getUserMedia(constraints) {
 	debug('[original constraints:%o]', constraints);
 
 	var
-		isPromise,
-		callback, errback,
 		audioRequested = false,
 		videoRequested = false,
 		newConstraints = {
@@ -2299,28 +2235,13 @@ function getUserMedia(constraints) {
 			video: false
 		};
 
-	if (typeof arguments[1] !== 'function') {
-		isPromise = true;
-	} else {
-		isPromise = false;
-		callback = arguments[1];
-		errback = arguments[2];
-	}
-
 	if (
 		typeof constraints !== 'object' ||
 		(!constraints.hasOwnProperty('audio') && !constraints.hasOwnProperty('video'))
 	) {
-		if (isPromise) {
-			return new Promise(function (resolve, reject) {
-				reject(new Errors.MediaStreamError('constraints must be an object with at least "audio" or "video" keys'));
-			});
-		} else {
-			if (typeof errback === 'function') {
-				errback(new Errors.MediaStreamError('constraints must be an object with at least "audio" or "video" keys'));
-			}
-			return;
-		}
+		return new Promise(function (resolve, reject) {
+			reject(new Errors.MediaStreamError('constraints must be an object with at least "audio" or "video" keys'));
+		});
 	}
 
 	if (constraints.audio) {
@@ -2357,6 +2278,11 @@ function getUserMedia(constraints) {
 		// Also check sourceId (mangled by adapter.js).
 		} else if (typeof constraints.video.sourceId === 'string') {
 			newConstraints.videoDeviceId = constraints.video.sourceId;
+		} else if (typeof constraints.video.deviceId === 'object') {
+			newConstraints.videoDeviceId = !!constraints.video.deviceId.exact ? constraints.video.deviceId.exact : constraints.video.deviceId.ideal;
+			if (Array.isArray(newConstraints.videoDeviceId)) {
+				newConstraints.videoDeviceId = newConstraints.videoDeviceId[0];
+			}
 		}
 
 		// Get requested min/max width.
@@ -2391,50 +2317,42 @@ function getUserMedia(constraints) {
 		}
 	}
 
-	debug('[computed constraints:%o]', newConstraints);
-
-	if (isPromise) {
-		return new Promise(function (resolve, reject) {
-			function onResultOK(data) {
-				debug('getUserMedia() | success');
-				var stream = MediaStream.create(data.stream);
-				resolve(stream);
-				// Emit "connected" on the stream.
-				stream.emitConnected();
+	// Get audio constraints
+	if (audioRequested) {
+		// Get requested audio deviceId.
+		if (typeof constraints.audio.deviceId === 'string') {
+			newConstraints.audioDeviceId = constraints.audio.deviceId;
+		// Also check sourceId (mangled by adapter.js).
+		} else if (typeof constraints.audio.sourceId === 'string') {
+			newConstraints.audioDeviceId = constraints.audio.sourceId;
+		} else if (typeof constraints.audio.deviceId === 'object') {
+			newConstraints.audioDeviceId = !!constraints.audio.deviceId.exact ? constraints.audio.deviceId.exact : constraints.audio.deviceId.ideal;
+			if (Array.isArray(newConstraints.audioDeviceId)) {
+				newConstraints.audioDeviceId = newConstraints.audioDeviceId[0];
 			}
-
-			function onResultError(error) {
-				debugerror('getUserMedia() | failure: %s', error);
-				reject(new Errors.MediaStreamError('getUserMedia() failed: ' + error));
-			}
-
-			exec(onResultOK, onResultError, 'iosrtcPlugin', 'getUserMedia', [newConstraints]);
-		});
-	}
-
-	function onResultOK(data) {
-		debug('getUserMedia() | success');
-
-		var stream = MediaStream.create(data.stream);
-
-		callback(stream);
-
-		// Emit "connected" on the stream.
-		stream.emitConnected();
-	}
-
-	function onResultError(error) {
-		debugerror('getUserMedia() | failure: %s', error);
-
-		if (typeof errback === 'function') {
-			errback(new Errors.MediaStreamError('getUserMedia() failed: ' + error));
 		}
 	}
 
-	exec(onResultOK, onResultError, 'iosrtcPlugin', 'getUserMedia', [newConstraints]);
-}
+	debug('[computed constraints:%o]', newConstraints);
 
-},{"./Errors":1,"./MediaStream":3,"cordova/exec":undefined,"debug":17}],15:[function(_dereq_,module,exports){
+	return new Promise(function (resolve, reject) {
+		function onResultOK(data) {
+			debug('getUserMedia() | success');
+			var stream = MediaStream.create(data.stream);
+			resolve(stream);
+			// Emit "connected" on the stream.
+			stream.emitConnected();
+		}
+
+		function onResultError(error) {
+			debugerror('getUserMedia() | failure: %s', error);
+			reject(new Errors.MediaStreamError('getUserMedia() failed: ' + error));
+		}
+
+		exec(onResultOK, onResultError, 'iosrtcPlugin', 'getUserMedia', [newConstraints]);
+	});
+}
+},{"./Errors":1,"./MediaStream":4,"cordova/exec":undefined,"debug":18}],16:[function(_dereq_,module,exports){
 (function (global){
 /**
  * Variables.
@@ -2550,8 +2468,7 @@ function dump() {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./MediaStream":3,"./MediaStreamTrack":5,"./RTCIceCandidate":8,"./RTCPeerConnection":9,"./RTCSessionDescription":10,"./enumerateDevices":13,"./getUserMedia":14,"./videoElementsHandler":16,"cordova/exec":undefined,"debug":17,"domready":19}],16:[function(_dereq_,module,exports){
-(function (global){
+},{"./MediaStream":4,"./MediaStreamTrack":6,"./RTCIceCandidate":9,"./RTCPeerConnection":10,"./RTCSessionDescription":11,"./enumerateDevices":14,"./getUserMedia":15,"./videoElementsHandler":17,"cordova/exec":undefined,"debug":18,"domready":20}],17:[function(_dereq_,module,exports){
 /**
  * Expose a function that must be called when the library is loaded.
  * And also a helper function.
@@ -2571,12 +2488,6 @@ var
 /**
  * Local variables.
  */
-
-	// RegExp for MediaStream blobId.
-	MEDIASTREAM_ID_REGEXP = new RegExp(/^MediaStream_/),
-
-	// RegExp for Blob URI.
-	BLOB_URI_REGEX = new RegExp(/^blob:/),
 
 	// Dictionary of MediaStreamRenderers (provided via module argument).
 	// - key: MediaStreamRenderer id.
@@ -2598,8 +2509,8 @@ var
 			// HTML video element.
 			video = mutation.target;
 
-			// .src or .srcObject removed.
-			if (!video.src && !video.srcObject) {
+			// .srcObject removed.
+			if (!video.srcObject) {
 				// If this video element was previously handling a MediaStreamRenderer, release it.
 				releaseMediaStreamRenderer(video);
 				continue;
@@ -2724,13 +2635,13 @@ function videoElementsHandler(_mediaStreams, _mediaStreamRenderers) {
 function observeVideo(video) {
 	debug('observeVideo()');
 
-	// If the video already has a src/srcObject property but is not yet handled by the plugin
+	// If the video already has a srcObject property but is not yet handled by the plugin
 	// then handle it now.
-	if ((video.src || video.srcObject) && !video._iosrtcMediaStreamRendererId) {
+	if ((video.srcObject) && !video._iosrtcMediaStreamRendererId) {
 		handleVideo(video);
 	}
 
-	// Add .src observer to the video element.
+	// Add .srcObject observer to the video element.
 	videoObserver.observe(video, {
 		// Set to true if additions and removals of the target node's child elements (including text
 		// nodes) are to be observed.
@@ -2749,15 +2660,25 @@ function observeVideo(video) {
 		characterDataOldValue: false,
 		// Set to an array of attribute local names (without namespace) if not all attribute mutations
 		// need to be observed.
-		attributeFilter: ['src', 'srcObject']
+		// srcObject DO not trigger MutationObserver
+		attributeFilter: ['srcObject']
 	});
 
-	// Intercept video 'error' events if it's due to the attached MediaStream.
-	video.addEventListener('error', function (event) {
-		if (video.error.code === global.MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED && BLOB_URI_REGEX.test(video.src)) {
-			debug('stopping "error" event propagation for video element');
+	// MutationObserver fail to trigger when using srcObject on ony tested browser.
+	// But video.srcObject = new MediaStream() will trigger onloadstart and
+	// video.srcObject = null will trigger onemptied events.
 
-			event.stopImmediatePropagation();
+	video.addEventListener('loadstart', function () {
+		if (video.srcObject && !video._iosrtcMediaStreamRendererId) {
+			// If this video element was NOT previously handling a MediaStreamRenderer, release it.
+			handleVideo(video);
+		}
+	});
+
+	video.addEventListener('emptied', function () {
+		if (!video.srcObject && video._iosrtcMediaStreamRendererId) {
+			// If this video element was previously handling a MediaStreamRenderer, release it.
+			releaseMediaStreamRenderer(video);
 		}
 	});
 }
@@ -2769,61 +2690,22 @@ function observeVideo(video) {
 
 function handleVideo(video) {
 	var
-		xhr = new XMLHttpRequest(),
 		stream;
 
-	// The app has set video.src.
-	if (video.src) {
-		xhr.open('GET', video.src, true);
-		xhr.responseType = 'blob';
-		xhr.onload = function () {
-			if (xhr.status !== 200) {
+	// The app has set video.srcObject.
+	if (video.srcObject) {
+		stream = video.srcObject;
+		if (stream && typeof stream.getBlobId === 'function') {
+
+			if (!stream.getBlobId()) {
 				// If this video element was previously handling a MediaStreamRenderer, release it.
 				releaseMediaStreamRenderer(video);
 
 				return;
 			}
 
-			var reader = new FileReader();
-
-			// Some versions of Safari fail to set onloadend property, some others do not react
-			// on 'loadend' event. Try everything here.
-			try {
-				reader.onloadend = onloadend;
-			} catch (error) {
-				reader.addEventListener('loadend', onloadend);
-			}
-			reader.readAsText(xhr.response);
-
-			function onloadend() {
-				var mediaStreamBlobId = reader.result;
-
-				// The retrieved URL does not point to a MediaStream.
-				if (!mediaStreamBlobId || typeof mediaStreamBlobId !== 'string' || !MEDIASTREAM_ID_REGEXP.test(mediaStreamBlobId)) {
-					// If this video element was previously handling a MediaStreamRenderer, release it.
-					releaseMediaStreamRenderer(video);
-
-					return;
-				}
-
-				provideMediaStreamRenderer(video, mediaStreamBlobId);
-			}
-		};
-		xhr.send();
-	}
-
-	// The app has set video.srcObject.
-	else if (video.srcObject) {
-		stream = video.srcObject;
-
-		if (!stream.getBlobId()) {
-			// If this video element was previously handling a MediaStreamRenderer, release it.
-			releaseMediaStreamRenderer(video);
-
-			return;
+			provideMediaStreamRenderer(video, stream.getBlobId());
 		}
-
-		provideMediaStreamRenderer(video, stream.getBlobId());
 	}
 }
 
@@ -2886,7 +2768,6 @@ function provideMediaStreamRenderer(video, mediaStreamBlobId) {
 	});
 }
 
-
 function releaseMediaStreamRenderer(video) {
 	if (!video._iosrtcMediaStreamRendererId) {
 		return;
@@ -2907,37 +2788,102 @@ function releaseMediaStreamRenderer(video) {
 	delete video.readyState;
 }
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./MediaStreamRenderer":4,"debug":17}],17:[function(_dereq_,module,exports){
+},{"./MediaStreamRenderer":5,"debug":18}],18:[function(_dereq_,module,exports){
 (function (process){
+/* eslint-env browser */
+
 /**
  * This is the web browser implementation of `debug()`.
- *
- * Expose `debug()` as the module.
  */
 
-exports = module.exports = _dereq_('./debug');
 exports.log = log;
 exports.formatArgs = formatArgs;
 exports.save = save;
 exports.load = load;
 exports.useColors = useColors;
-exports.storage = 'undefined' != typeof chrome
-               && 'undefined' != typeof chrome.storage
-                  ? chrome.storage.local
-                  : localstorage();
+exports.storage = localstorage();
 
 /**
  * Colors.
  */
 
 exports.colors = [
-  'lightseagreen',
-  'forestgreen',
-  'goldenrod',
-  'dodgerblue',
-  'darkorchid',
-  'crimson'
+	'#0000CC',
+	'#0000FF',
+	'#0033CC',
+	'#0033FF',
+	'#0066CC',
+	'#0066FF',
+	'#0099CC',
+	'#0099FF',
+	'#00CC00',
+	'#00CC33',
+	'#00CC66',
+	'#00CC99',
+	'#00CCCC',
+	'#00CCFF',
+	'#3300CC',
+	'#3300FF',
+	'#3333CC',
+	'#3333FF',
+	'#3366CC',
+	'#3366FF',
+	'#3399CC',
+	'#3399FF',
+	'#33CC00',
+	'#33CC33',
+	'#33CC66',
+	'#33CC99',
+	'#33CCCC',
+	'#33CCFF',
+	'#6600CC',
+	'#6600FF',
+	'#6633CC',
+	'#6633FF',
+	'#66CC00',
+	'#66CC33',
+	'#9900CC',
+	'#9900FF',
+	'#9933CC',
+	'#9933FF',
+	'#99CC00',
+	'#99CC33',
+	'#CC0000',
+	'#CC0033',
+	'#CC0066',
+	'#CC0099',
+	'#CC00CC',
+	'#CC00FF',
+	'#CC3300',
+	'#CC3333',
+	'#CC3366',
+	'#CC3399',
+	'#CC33CC',
+	'#CC33FF',
+	'#CC6600',
+	'#CC6633',
+	'#CC9900',
+	'#CC9933',
+	'#CCCC00',
+	'#CCCC33',
+	'#FF0000',
+	'#FF0033',
+	'#FF0066',
+	'#FF0099',
+	'#FF00CC',
+	'#FF00FF',
+	'#FF3300',
+	'#FF3333',
+	'#FF3366',
+	'#FF3399',
+	'#FF33CC',
+	'#FF33FF',
+	'#FF6600',
+	'#FF6633',
+	'#FF9900',
+	'#FF9933',
+	'#FFCC00',
+	'#FFCC33'
 ];
 
 /**
@@ -2948,38 +2894,31 @@ exports.colors = [
  * TODO: add a `localStorage` variable to explicitly enable/disable colors
  */
 
+// eslint-disable-next-line complexity
 function useColors() {
-  // NB: In an Electron preload script, document will be defined but not fully
-  // initialized. Since we know we're in Chrome, we'll just detect this case
-  // explicitly
-  if (typeof window !== 'undefined' && window.process && window.process.type === 'renderer') {
-    return true;
-  }
+	// NB: In an Electron preload script, document will be defined but not fully
+	// initialized. Since we know we're in Chrome, we'll just detect this case
+	// explicitly
+	if (typeof window !== 'undefined' && window.process && (window.process.type === 'renderer' || window.process.__nwjs)) {
+		return true;
+	}
 
-  // is webkit? http://stackoverflow.com/a/16459606/376773
-  // document is undefined in react-native: https://github.com/facebook/react-native/pull/1632
-  return (typeof document !== 'undefined' && document.documentElement && document.documentElement.style && document.documentElement.style.WebkitAppearance) ||
-    // is firebug? http://stackoverflow.com/a/398120/376773
-    (typeof window !== 'undefined' && window.console && (window.console.firebug || (window.console.exception && window.console.table))) ||
-    // is firefox >= v31?
-    // https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
-    (typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31) ||
-    // double check webkit in userAgent just in case we are in a worker
-    (typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/));
+	// Internet Explorer and Edge do not support colors.
+	if (typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/(edge|trident)\/(\d+)/)) {
+		return false;
+	}
+
+	// Is webkit? http://stackoverflow.com/a/16459606/376773
+	// document is undefined in react-native: https://github.com/facebook/react-native/pull/1632
+	return (typeof document !== 'undefined' && document.documentElement && document.documentElement.style && document.documentElement.style.WebkitAppearance) ||
+		// Is firebug? http://stackoverflow.com/a/398120/376773
+		(typeof window !== 'undefined' && window.console && (window.console.firebug || (window.console.exception && window.console.table))) ||
+		// Is firefox >= v31?
+		// https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
+		(typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31) ||
+		// Double check webkit in userAgent just in case we are in a worker
+		(typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/));
 }
-
-/**
- * Map %j to `JSON.stringify()`, since no Web Inspectors do that by default.
- */
-
-exports.formatters.j = function(v) {
-  try {
-    return JSON.stringify(v);
-  } catch (err) {
-    return '[UnexpectedJSONParseError]: ' + err.message;
-  }
-};
-
 
 /**
  * Colorize log arguments if enabled.
@@ -2988,36 +2927,38 @@ exports.formatters.j = function(v) {
  */
 
 function formatArgs(args) {
-  var useColors = this.useColors;
+	args[0] = (this.useColors ? '%c' : '') +
+		this.namespace +
+		(this.useColors ? ' %c' : ' ') +
+		args[0] +
+		(this.useColors ? '%c ' : ' ') +
+		'+' + module.exports.humanize(this.diff);
 
-  args[0] = (useColors ? '%c' : '')
-    + this.namespace
-    + (useColors ? ' %c' : ' ')
-    + args[0]
-    + (useColors ? '%c ' : ' ')
-    + '+' + exports.humanize(this.diff);
+	if (!this.useColors) {
+		return;
+	}
 
-  if (!useColors) return;
+	const c = 'color: ' + this.color;
+	args.splice(1, 0, c, 'color: inherit');
 
-  var c = 'color: ' + this.color;
-  args.splice(1, 0, c, 'color: inherit')
+	// The final "%c" is somewhat tricky, because there could be other
+	// arguments passed either before or after the %c, so we need to
+	// figure out the correct index to insert the CSS into
+	let index = 0;
+	let lastC = 0;
+	args[0].replace(/%[a-zA-Z%]/g, match => {
+		if (match === '%%') {
+			return;
+		}
+		index++;
+		if (match === '%c') {
+			// We only are interested in the *last* %c
+			// (the user may have provided their own)
+			lastC = index;
+		}
+	});
 
-  // the final "%c" is somewhat tricky, because there could be other
-  // arguments passed either before or after the %c, so we need to
-  // figure out the correct index to insert the CSS into
-  var index = 0;
-  var lastC = 0;
-  args[0].replace(/%[a-zA-Z%]/g, function(match) {
-    if ('%%' === match) return;
-    index++;
-    if ('%c' === match) {
-      // we only are interested in the *last* %c
-      // (the user may have provided their own)
-      lastC = index;
-    }
-  });
-
-  args.splice(lastC, 0, c);
+	args.splice(lastC, 0, c);
 }
 
 /**
@@ -3026,13 +2967,12 @@ function formatArgs(args) {
  *
  * @api public
  */
-
-function log() {
-  // this hackery is required for IE8/9, where
-  // the `console.log` function doesn't have 'apply'
-  return 'object' === typeof console
-    && console.log
-    && Function.prototype.apply.call(console.log, console, arguments);
+function log(...args) {
+	// This hackery is required for IE8/9, where
+	// the `console.log` function doesn't have 'apply'
+	return typeof console === 'object' &&
+		console.log &&
+		console.log(...args);
 }
 
 /**
@@ -3041,15 +2981,17 @@ function log() {
  * @param {String} namespaces
  * @api private
  */
-
 function save(namespaces) {
-  try {
-    if (null == namespaces) {
-      exports.storage.removeItem('debug');
-    } else {
-      exports.storage.debug = namespaces;
-    }
-  } catch(e) {}
+	try {
+		if (namespaces) {
+			exports.storage.setItem('debug', namespaces);
+		} else {
+			exports.storage.removeItem('debug');
+		}
+	} catch (error) {
+		// Swallow
+		// XXX (@Qix-) should we be logging these?
+	}
 }
 
 /**
@@ -3058,26 +3000,22 @@ function save(namespaces) {
  * @return {String} returns the previously persisted debug modes
  * @api private
  */
-
 function load() {
-  var r;
-  try {
-    r = exports.storage.debug;
-  } catch(e) {}
+	let r;
+	try {
+		r = exports.storage.getItem('debug');
+	} catch (error) {
+		// Swallow
+		// XXX (@Qix-) should we be logging these?
+	}
 
-  // If debug isn't set in LS, and we're in Electron, try to load $DEBUG
-  if (!r && typeof process !== 'undefined' && 'env' in process) {
-    r = process.env.DEBUG;
-  }
+	// If debug isn't set in LS, and we're in Electron, try to load $DEBUG
+	if (!r && typeof process !== 'undefined' && 'env' in process) {
+		r = process.env.DEBUG;
+	}
 
-  return r;
+	return r;
 }
-
-/**
- * Enable namespaces listed in `localStorage.debug` initially.
- */
-
-exports.enable(load());
 
 /**
  * Localstorage attempts to return the localstorage.
@@ -3091,217 +3029,302 @@ exports.enable(load());
  */
 
 function localstorage() {
-  try {
-    return window.localStorage;
-  } catch (e) {}
+	try {
+		// TVMLKit (Apple TV JS Runtime) does not have a window object, just localStorage in the global context
+		// The Browser also has localStorage in the global context.
+		return localStorage;
+	} catch (error) {
+		// Swallow
+		// XXX (@Qix-) should we be logging these?
+	}
 }
 
+module.exports = _dereq_('./common')(exports);
+
+const {formatters} = module.exports;
+
+/**
+ * Map %j to `JSON.stringify()`, since no Web Inspectors do that by default.
+ */
+
+formatters.j = function (v) {
+	try {
+		return JSON.stringify(v);
+	} catch (error) {
+		return '[UnexpectedJSONParseError]: ' + error.message;
+	}
+};
+
 }).call(this,_dereq_('_process'))
-},{"./debug":18,"_process":21}],18:[function(_dereq_,module,exports){
+},{"./common":19,"_process":22}],19:[function(_dereq_,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
  * implementations of `debug()`.
- *
- * Expose `debug()` as the module.
  */
 
-exports = module.exports = createDebug.debug = createDebug['default'] = createDebug;
-exports.coerce = coerce;
-exports.disable = disable;
-exports.enable = enable;
-exports.enabled = enabled;
-exports.humanize = _dereq_('ms');
+function setup(env) {
+	createDebug.debug = createDebug;
+	createDebug.default = createDebug;
+	createDebug.coerce = coerce;
+	createDebug.disable = disable;
+	createDebug.enable = enable;
+	createDebug.enabled = enabled;
+	createDebug.humanize = _dereq_('ms');
 
-/**
- * The currently active debug mode names, and names to skip.
- */
+	Object.keys(env).forEach(key => {
+		createDebug[key] = env[key];
+	});
 
-exports.names = [];
-exports.skips = [];
+	/**
+	* Active `debug` instances.
+	*/
+	createDebug.instances = [];
 
-/**
- * Map of special "%n" handling functions, for the debug "format" argument.
- *
- * Valid key names are a single, lower or upper-case letter, i.e. "n" and "N".
- */
+	/**
+	* The currently active debug mode names, and names to skip.
+	*/
 
-exports.formatters = {};
+	createDebug.names = [];
+	createDebug.skips = [];
 
-/**
- * Previous log timestamp.
- */
+	/**
+	* Map of special "%n" handling functions, for the debug "format" argument.
+	*
+	* Valid key names are a single, lower or upper-case letter, i.e. "n" and "N".
+	*/
+	createDebug.formatters = {};
 
-var prevTime;
+	/**
+	* Selects a color for a debug namespace
+	* @param {String} namespace The namespace string for the for the debug instance to be colored
+	* @return {Number|String} An ANSI color code for the given namespace
+	* @api private
+	*/
+	function selectColor(namespace) {
+		let hash = 0;
 
-/**
- * Select a color.
- * @param {String} namespace
- * @return {Number}
- * @api private
- */
+		for (let i = 0; i < namespace.length; i++) {
+			hash = ((hash << 5) - hash) + namespace.charCodeAt(i);
+			hash |= 0; // Convert to 32bit integer
+		}
 
-function selectColor(namespace) {
-  var hash = 0, i;
+		return createDebug.colors[Math.abs(hash) % createDebug.colors.length];
+	}
+	createDebug.selectColor = selectColor;
 
-  for (i in namespace) {
-    hash  = ((hash << 5) - hash) + namespace.charCodeAt(i);
-    hash |= 0; // Convert to 32bit integer
-  }
+	/**
+	* Create a debugger with the given `namespace`.
+	*
+	* @param {String} namespace
+	* @return {Function}
+	* @api public
+	*/
+	function createDebug(namespace) {
+		let prevTime;
 
-  return exports.colors[Math.abs(hash) % exports.colors.length];
+		function debug(...args) {
+			// Disabled?
+			if (!debug.enabled) {
+				return;
+			}
+
+			const self = debug;
+
+			// Set `diff` timestamp
+			const curr = Number(new Date());
+			const ms = curr - (prevTime || curr);
+			self.diff = ms;
+			self.prev = prevTime;
+			self.curr = curr;
+			prevTime = curr;
+
+			args[0] = createDebug.coerce(args[0]);
+
+			if (typeof args[0] !== 'string') {
+				// Anything else let's inspect with %O
+				args.unshift('%O');
+			}
+
+			// Apply any `formatters` transformations
+			let index = 0;
+			args[0] = args[0].replace(/%([a-zA-Z%])/g, (match, format) => {
+				// If we encounter an escaped % then don't increase the array index
+				if (match === '%%') {
+					return match;
+				}
+				index++;
+				const formatter = createDebug.formatters[format];
+				if (typeof formatter === 'function') {
+					const val = args[index];
+					match = formatter.call(self, val);
+
+					// Now we need to remove `args[index]` since it's inlined in the `format`
+					args.splice(index, 1);
+					index--;
+				}
+				return match;
+			});
+
+			// Apply env-specific formatting (colors, etc.)
+			createDebug.formatArgs.call(self, args);
+
+			const logFn = self.log || createDebug.log;
+			logFn.apply(self, args);
+		}
+
+		debug.namespace = namespace;
+		debug.enabled = createDebug.enabled(namespace);
+		debug.useColors = createDebug.useColors();
+		debug.color = selectColor(namespace);
+		debug.destroy = destroy;
+		debug.extend = extend;
+		// Debug.formatArgs = formatArgs;
+		// debug.rawLog = rawLog;
+
+		// env-specific initialization logic for debug instances
+		if (typeof createDebug.init === 'function') {
+			createDebug.init(debug);
+		}
+
+		createDebug.instances.push(debug);
+
+		return debug;
+	}
+
+	function destroy() {
+		const index = createDebug.instances.indexOf(this);
+		if (index !== -1) {
+			createDebug.instances.splice(index, 1);
+			return true;
+		}
+		return false;
+	}
+
+	function extend(namespace, delimiter) {
+		const newDebug = createDebug(this.namespace + (typeof delimiter === 'undefined' ? ':' : delimiter) + namespace);
+		newDebug.log = this.log;
+		return newDebug;
+	}
+
+	/**
+	* Enables a debug mode by namespaces. This can include modes
+	* separated by a colon and wildcards.
+	*
+	* @param {String} namespaces
+	* @api public
+	*/
+	function enable(namespaces) {
+		createDebug.save(namespaces);
+
+		createDebug.names = [];
+		createDebug.skips = [];
+
+		let i;
+		const split = (typeof namespaces === 'string' ? namespaces : '').split(/[\s,]+/);
+		const len = split.length;
+
+		for (i = 0; i < len; i++) {
+			if (!split[i]) {
+				// ignore empty strings
+				continue;
+			}
+
+			namespaces = split[i].replace(/\*/g, '.*?');
+
+			if (namespaces[0] === '-') {
+				createDebug.skips.push(new RegExp('^' + namespaces.substr(1) + '$'));
+			} else {
+				createDebug.names.push(new RegExp('^' + namespaces + '$'));
+			}
+		}
+
+		for (i = 0; i < createDebug.instances.length; i++) {
+			const instance = createDebug.instances[i];
+			instance.enabled = createDebug.enabled(instance.namespace);
+		}
+	}
+
+	/**
+	* Disable debug output.
+	*
+	* @return {String} namespaces
+	* @api public
+	*/
+	function disable() {
+		const namespaces = [
+			...createDebug.names.map(toNamespace),
+			...createDebug.skips.map(toNamespace).map(namespace => '-' + namespace)
+		].join(',');
+		createDebug.enable('');
+		return namespaces;
+	}
+
+	/**
+	* Returns true if the given mode name is enabled, false otherwise.
+	*
+	* @param {String} name
+	* @return {Boolean}
+	* @api public
+	*/
+	function enabled(name) {
+		if (name[name.length - 1] === '*') {
+			return true;
+		}
+
+		let i;
+		let len;
+
+		for (i = 0, len = createDebug.skips.length; i < len; i++) {
+			if (createDebug.skips[i].test(name)) {
+				return false;
+			}
+		}
+
+		for (i = 0, len = createDebug.names.length; i < len; i++) {
+			if (createDebug.names[i].test(name)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	* Convert regexp to namespace
+	*
+	* @param {RegExp} regxep
+	* @return {String} namespace
+	* @api private
+	*/
+	function toNamespace(regexp) {
+		return regexp.toString()
+			.substring(2, regexp.toString().length - 2)
+			.replace(/\.\*\?$/, '*');
+	}
+
+	/**
+	* Coerce `val`.
+	*
+	* @param {Mixed} val
+	* @return {Mixed}
+	* @api private
+	*/
+	function coerce(val) {
+		if (val instanceof Error) {
+			return val.stack || val.message;
+		}
+		return val;
+	}
+
+	createDebug.enable(createDebug.load());
+
+	return createDebug;
 }
 
-/**
- * Create a debugger with the given `namespace`.
- *
- * @param {String} namespace
- * @return {Function}
- * @api public
- */
+module.exports = setup;
 
-function createDebug(namespace) {
-
-  function debug() {
-    // disabled?
-    if (!debug.enabled) return;
-
-    var self = debug;
-
-    // set `diff` timestamp
-    var curr = +new Date();
-    var ms = curr - (prevTime || curr);
-    self.diff = ms;
-    self.prev = prevTime;
-    self.curr = curr;
-    prevTime = curr;
-
-    // turn the `arguments` into a proper Array
-    var args = new Array(arguments.length);
-    for (var i = 0; i < args.length; i++) {
-      args[i] = arguments[i];
-    }
-
-    args[0] = exports.coerce(args[0]);
-
-    if ('string' !== typeof args[0]) {
-      // anything else let's inspect with %O
-      args.unshift('%O');
-    }
-
-    // apply any `formatters` transformations
-    var index = 0;
-    args[0] = args[0].replace(/%([a-zA-Z%])/g, function(match, format) {
-      // if we encounter an escaped % then don't increase the array index
-      if (match === '%%') return match;
-      index++;
-      var formatter = exports.formatters[format];
-      if ('function' === typeof formatter) {
-        var val = args[index];
-        match = formatter.call(self, val);
-
-        // now we need to remove `args[index]` since it's inlined in the `format`
-        args.splice(index, 1);
-        index--;
-      }
-      return match;
-    });
-
-    // apply env-specific formatting (colors, etc.)
-    exports.formatArgs.call(self, args);
-
-    var logFn = debug.log || exports.log || console.log.bind(console);
-    logFn.apply(self, args);
-  }
-
-  debug.namespace = namespace;
-  debug.enabled = exports.enabled(namespace);
-  debug.useColors = exports.useColors();
-  debug.color = selectColor(namespace);
-
-  // env-specific initialization logic for debug instances
-  if ('function' === typeof exports.init) {
-    exports.init(debug);
-  }
-
-  return debug;
-}
-
-/**
- * Enables a debug mode by namespaces. This can include modes
- * separated by a colon and wildcards.
- *
- * @param {String} namespaces
- * @api public
- */
-
-function enable(namespaces) {
-  exports.save(namespaces);
-
-  exports.names = [];
-  exports.skips = [];
-
-  var split = (typeof namespaces === 'string' ? namespaces : '').split(/[\s,]+/);
-  var len = split.length;
-
-  for (var i = 0; i < len; i++) {
-    if (!split[i]) continue; // ignore empty strings
-    namespaces = split[i].replace(/\*/g, '.*?');
-    if (namespaces[0] === '-') {
-      exports.skips.push(new RegExp('^' + namespaces.substr(1) + '$'));
-    } else {
-      exports.names.push(new RegExp('^' + namespaces + '$'));
-    }
-  }
-}
-
-/**
- * Disable debug output.
- *
- * @api public
- */
-
-function disable() {
-  exports.enable('');
-}
-
-/**
- * Returns true if the given mode name is enabled, false otherwise.
- *
- * @param {String} name
- * @return {Boolean}
- * @api public
- */
-
-function enabled(name) {
-  var i, len;
-  for (i = 0, len = exports.skips.length; i < len; i++) {
-    if (exports.skips[i].test(name)) {
-      return false;
-    }
-  }
-  for (i = 0, len = exports.names.length; i < len; i++) {
-    if (exports.names[i].test(name)) {
-      return true;
-    }
-  }
-  return false;
-}
-
-/**
- * Coerce `val`.
- *
- * @param {Mixed} val
- * @return {Mixed}
- * @api private
- */
-
-function coerce(val) {
-  if (val instanceof Error) return val.stack || val.message;
-  return val;
-}
-
-},{"ms":20}],19:[function(_dereq_,module,exports){
+},{"ms":21}],20:[function(_dereq_,module,exports){
 /*!
   * domready (c) Dustin Diaz 2014 - License MIT
   */
@@ -3333,7 +3356,7 @@ function coerce(val) {
 
 });
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 /**
  * Helpers.
  */
@@ -3342,6 +3365,7 @@ var s = 1000;
 var m = s * 60;
 var h = m * 60;
 var d = h * 24;
+var w = d * 7;
 var y = d * 365.25;
 
 /**
@@ -3363,7 +3387,7 @@ module.exports = function(val, options) {
   var type = typeof val;
   if (type === 'string' && val.length > 0) {
     return parse(val);
-  } else if (type === 'number' && isNaN(val) === false) {
+  } else if (type === 'number' && isFinite(val)) {
     return options.long ? fmtLong(val) : fmtShort(val);
   }
   throw new Error(
@@ -3385,7 +3409,7 @@ function parse(str) {
   if (str.length > 100) {
     return;
   }
-  var match = /^((?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|years?|yrs?|y)?$/i.exec(
+  var match = /^(-?(?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|weeks?|w|years?|yrs?|y)?$/i.exec(
     str
   );
   if (!match) {
@@ -3400,6 +3424,10 @@ function parse(str) {
     case 'yr':
     case 'y':
       return n * y;
+    case 'weeks':
+    case 'week':
+    case 'w':
+      return n * w;
     case 'days':
     case 'day':
     case 'd':
@@ -3442,16 +3470,17 @@ function parse(str) {
  */
 
 function fmtShort(ms) {
-  if (ms >= d) {
+  var msAbs = Math.abs(ms);
+  if (msAbs >= d) {
     return Math.round(ms / d) + 'd';
   }
-  if (ms >= h) {
+  if (msAbs >= h) {
     return Math.round(ms / h) + 'h';
   }
-  if (ms >= m) {
+  if (msAbs >= m) {
     return Math.round(ms / m) + 'm';
   }
-  if (ms >= s) {
+  if (msAbs >= s) {
     return Math.round(ms / s) + 's';
   }
   return ms + 'ms';
@@ -3466,28 +3495,32 @@ function fmtShort(ms) {
  */
 
 function fmtLong(ms) {
-  return plural(ms, d, 'day') ||
-    plural(ms, h, 'hour') ||
-    plural(ms, m, 'minute') ||
-    plural(ms, s, 'second') ||
-    ms + ' ms';
+  var msAbs = Math.abs(ms);
+  if (msAbs >= d) {
+    return plural(ms, msAbs, d, 'day');
+  }
+  if (msAbs >= h) {
+    return plural(ms, msAbs, h, 'hour');
+  }
+  if (msAbs >= m) {
+    return plural(ms, msAbs, m, 'minute');
+  }
+  if (msAbs >= s) {
+    return plural(ms, msAbs, s, 'second');
+  }
+  return ms + ' ms';
 }
 
 /**
  * Pluralization helper.
  */
 
-function plural(ms, n, name) {
-  if (ms < n) {
-    return;
-  }
-  if (ms < n * 1.5) {
-    return Math.floor(ms / n) + ' ' + name;
-  }
-  return Math.ceil(ms / n) + ' ' + name + 's';
+function plural(ms, msAbs, n, name) {
+  var isPlural = msAbs >= n * 1.5;
+  return Math.round(ms / n) + ' ' + name + (isPlural ? 's' : '');
 }
 
-},{}],21:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -3673,7 +3706,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],22:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 void function(root){
 
   function defaults(options){
@@ -3719,13 +3752,14 @@ void function(root){
   module.exports.defaults = defaults
 }(this)
 
-},{}],23:[function(_dereq_,module,exports){
-module.exports = {
+},{}],24:[function(_dereq_,module,exports){
+module.exports =
+{
 	EventTarget : _dereq_('./lib/EventTarget'),
 	Event       : _dereq_('./lib/Event')
 };
 
-},{"./lib/Event":24,"./lib/EventTarget":25}],24:[function(_dereq_,module,exports){
+},{"./lib/Event":25,"./lib/EventTarget":26}],25:[function(_dereq_,module,exports){
 (function (global){
 /**
  * In browsers export the native Event interface.
@@ -3734,126 +3768,140 @@ module.exports = {
 module.exports = global.Event;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],25:[function(_dereq_,module,exports){
-/**
- * Expose the _EventTarget class.
- */
-module.exports = _EventTarget;
-
-function _EventTarget() {
-	// Do nothing if called for a native EventTarget object..
-	if (typeof this.addEventListener === 'function') {
-		return;
-	}
-
+},{}],26:[function(_dereq_,module,exports){
+function yaetiEventTarget()
+{
 	this._listeners = {};
-
-	this.addEventListener = _addEventListener;
-	this.removeEventListener = _removeEventListener;
-	this.dispatchEvent = _dispatchEvent;
 }
 
-Object.defineProperties(_EventTarget.prototype, {
-	listeners: {
-		get: function () {
-			return this._listeners;
+Object.defineProperties(yaetiEventTarget.prototype,
+	{
+		listeners:
+		{
+			get: function()
+			{
+				return this._listeners;
+			}
 		}
-	}
-});
+	});
 
-function _addEventListener(type, newListener) {
-	var
-		listenersType,
-		i, listener;
+yaetiEventTarget.prototype.addEventListener = function(type, newListener)
+{
+	var listenersType;
+	var i;
+	var listener;
 
-	if (!type || !newListener) {
+	if (!type || !newListener)
 		return;
-	}
 
 	listenersType = this._listeners[type];
-	if (listenersType === undefined) {
-		this._listeners[type] = listenersType = [];
-	}
 
-	for (i = 0; !!(listener = listenersType[i]); i++) {
-		if (listener === newListener) {
+	if (listenersType === undefined)
+		this._listeners[type] = listenersType = [];
+
+	for (i = 0; !!(listener = listenersType[i]); i++)
+	{
+		if (listener === newListener)
 			return;
-		}
 	}
 
 	listenersType.push(newListener);
-}
+};
 
-function _removeEventListener(type, oldListener) {
-	var
-		listenersType,
-		i, listener;
+yaetiEventTarget.prototype.removeEventListener = function(type, oldListener)
+{
+	var listenersType;
+	var i;
+	var listener;
 
-	if (!type || !oldListener) {
+	if (!type || !oldListener)
 		return;
-	}
 
 	listenersType = this._listeners[type];
-	if (listenersType === undefined) {
-		return;
-	}
 
-	for (i = 0; !!(listener = listenersType[i]); i++) {
-		if (listener === oldListener) {
+	if (listenersType === undefined)
+		return;
+
+	for (i = 0; !!(listener = listenersType[i]); i++)
+	{
+		if (listener === oldListener)
+		{
 			listenersType.splice(i, 1);
 			break;
 		}
 	}
 
-	if (listenersType.length === 0) {
+	if (listenersType.length === 0)
 		delete this._listeners[type];
-	}
-}
+};
 
-function _dispatchEvent(event) {
-	var
-		type,
-		listenersType,
-		dummyListener,
-		stopImmediatePropagation = false,
-		i, listener;
+yaetiEventTarget.prototype.dispatchEvent = function(event)
+{
+	var type;
+	var listenersType;
+	var dummyListener;
+	var stopImmediatePropagation = false;
+	var i;
+	var listener;
 
-	if (!event || typeof event.type !== 'string') {
+	if (!event || typeof event.type !== 'string')
 		throw new Error('`event` must have a valid `type` property');
-	}
 
 	// Do some stuff to emulate DOM Event behavior (just if this is not a
-	// DOM Event object)
-	if (event._yaeti) {
+	// DOM Event object).
+	if (event._yaeti)
+	{
 		event.target = this;
 		event.cancelable = true;
 	}
 
-	// Attempt to override the stopImmediatePropagation() method
-	try {
-		event.stopImmediatePropagation = function () {
+	// Attempt to override the stopImmediatePropagation() method.
+	try
+	{
+		event.stopImmediatePropagation = function()
+		{
 			stopImmediatePropagation = true;
 		};
-	} catch (error) {}
+	}
+	catch (error)
+	{}
 
 	type = event.type;
 	listenersType = (this._listeners[type] || []);
 
 	dummyListener = this['on' + type];
-	if (typeof dummyListener === 'function') {
-		dummyListener.call(this, event);
+
+	if (typeof dummyListener === 'function')
+	{
+		try
+		{
+			dummyListener.call(this, event);
+		}
+		catch (error)
+		{
+			console.error(error);
+		}
 	}
 
-	for (i = 0; !!(listener = listenersType[i]); i++) {
-		if (stopImmediatePropagation) {
+	for (i = 0; !!(listener = listenersType[i]); i++)
+	{
+		if (stopImmediatePropagation)
 			break;
-		}
 
-		listener.call(this, event);
+		try
+		{
+			listener.call(this, event);
+		}
+		catch (error)
+		{
+			console.error(error);
+		}
 	}
 
 	return !event.defaultPrevented;
-}
+};
 
-},{}]},{},[15])(15)
+module.exports = yaetiEventTarget;
+
+},{}]},{},[16])(16)
 });

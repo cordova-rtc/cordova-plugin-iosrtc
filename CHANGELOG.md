@@ -1,4 +1,27 @@
+#### Version 5.0.3
+
+* Fix MediaStream.active getter issue.
+* Fix cordova.plugins.iosrtc.observeVideo MutationObserver issue with srcObject using loadstart and emptied events that does get triggered.
+* Add NSBluetoothAlwaysUsageDescription to Info.plist for wireless headphones and microphone consent.
+* Deprecate usage of `video.src = URL.createObjectURL(stream)` in favor of `video.srcObject = stream` only MediaStream are not Blob anymore. ([PR #388](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/388) by @hthetiot).
+* Update audio input priority to Wired microphone > Wireless microphone > built-in microphone. ([PR #387](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/387) by @CSantosM).
+
+#### Version 5.0.2
+
+* Set default deployment target to 10.2
+* Remove callback based API
+* Implement RTCPeerConnection.getSenders|getReceivers|addTrack|removeTrack
+* Fix webrtc-adatper extenal library support
+* Fix Blob prototype pollution
+* Extend native MediaStream instead of using Blob
+* Fix RTCPeerConnection.setLocalDescription() and other methods which take SDP as input now directly accept an object
+* Upgrade packages debug to ^4.1.1 and yaeti to ^1.0.2
+* Add cordova.plugins.iosrtc.getUserMedia MediaTrackConstraints.(video|audio).deviceId.(exact|ideal) support ([PR #374](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/374) by @CSantosM).
+* Add cordova.plugins.iosrtc.getMediaDevices bluetooth and wired audio devices support ([PR #374](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/374) by @CSantosM).
+* fix TypeError: undefined is not an object (evaluating 'stream.id') when removing stream [PR #383](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/383) by @hthetiot via @l7s).
+
 #### Version 5.0.1
+
 * fix typo on iosrtcPlugin.swift
 
 #### Version 5.0.0

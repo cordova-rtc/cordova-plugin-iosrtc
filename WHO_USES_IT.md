@@ -5,24 +5,32 @@ If your company is using *cordova-plugin-iosrtc* we would love to heard back fro
 Below a list of companies using *cordova-plugin-iostc*:
 
 
+### [OpenVidu](https://openvidu.io)
+
+![openvidu-picture](https://openvidu.io/img/logos/openvidu_vert_grey_bg_transp_cropped.png)
+
+*Easy videoconference in your web or mobile app*
+
+Using **cordova-plugin-iosrtc** in our Ionic iOS [openvidu-ionic](https://openvidu.io/docs/tutorials/openvidu-ionic/) and [openvidu-call-ionic](https://openvidu.io/docs/demos/openvidu-call-ionic/) apps.
+
+### [Sylaps](https://sylaps.com)
+
+![sylaps-picture](https://raw.githubusercontent.com/cordova-rtc/cordova-plugin-iosrtc/master/art/sylaps-picture.png)
+
+*Instantaneous, Audio and Video meeting collaboration*
+
+At [Sylaps](https://sylaps.com) we use **cordova-plugin-iosrtc** for the iOS version of our application, becoming a web/mobile/tablet HTML5 hybrid solution.
+
+You can test the Sylaps iOS application that use iosrtc here:
+- https://apps.apple.com/us/app/sylaps/id954016392 
+
 ### [eFace2Face](https://eface2face.com)
 
-![eface2face-picture](https://raw.githubusercontent.com/eface2face/cordova-plugin-iosrtc/master/art/eface2face-picture.jpg)
+![eface2face-picture](https://raw.githubusercontent.com/cordova-rtc/cordova-plugin-iosrtc/master/art/eface2face-picture.jpg)
 
 *The world's only complete web-based video calling and e-sign solution.*
 
 At [eFace2Face](https://eface2face.com) we use **cordova-plugin-iosrtc** for the iOS version of our application, becoming a web/mobile/tablet HTML5 hybrid solution.
-
-
-### [syrup](https://tastesyrup.com)
-
-![eface2face-picture](https://lh3.googleusercontent.com/yxnz9RQ5yaS-O5Xuh7E1KKn0aPCKDGCduexNtlbx1BVjEU-mU6xgbGTIbjRD68Ev9JSL8tdV4w=s141-h90-e365-rw)
-
-*Online Assistance Reinvented.*
-
-Provide a superior assistance experience to your clients with text and video chat and the ability to navigate simultaneously with your experts in the same page.
-
-At [syrup](https://tastesyrup.com) we use **cordova-plugin-iosrtc** for the iOS version of our agent application, becoming a web/mobile/tablet HTML5 hybrid solution.
 
 ### [OpenTokJS Cordova Plugin](https://github.com/aoberoi/cordova-plugin-opentokjs)
 

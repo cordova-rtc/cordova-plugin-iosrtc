@@ -18,12 +18,6 @@ var
  * Local variables.
  */
 
-	// RegExp for MediaStream blobId.
-	MEDIASTREAM_ID_REGEXP = new RegExp(/^MediaStream_/),
-
-	// RegExp for Blob URI.
-	BLOB_URI_REGEX = new RegExp(/^blob:/),
-
 	// Dictionary of MediaStreamRenderers (provided via module argument).
 	// - key: MediaStreamRenderer id.
 	// - value: MediaStreamRenderer.
@@ -44,8 +38,8 @@ var
 			// HTML video element.
 			video = mutation.target;
 
-			// .src or .srcObject removed.
-			if (!video.src && !video.srcObject) {
+			// .srcObject removed.
+			if (!video.srcObject) {
 				// If this video element was previously handling a MediaStreamRenderer, release it.
 				releaseMediaStreamRenderer(video);
 				continue;
@@ -170,13 +164,13 @@ function videoElementsHandler(_mediaStreams, _mediaStreamRenderers) {
 function observeVideo(video) {
 	debug('observeVideo()');
 
-	// If the video already has a src/srcObject property but is not yet handled by the plugin
+	// If the video already has a srcObject property but is not yet handled by the plugin
 	// then handle it now.
-	if ((video.src || video.srcObject) && !video._iosrtcMediaStreamRendererId) {
+	if ((video.srcObject) && !video._iosrtcMediaStreamRendererId) {
 		handleVideo(video);
 	}
 
-	// Add .src observer to the video element.
+	// Add .srcObject observer to the video element.
 	videoObserver.observe(video, {
 		// Set to true if additions and removals of the target node's child elements (including text
 		// nodes) are to be observed.
@@ -195,15 +189,25 @@ function observeVideo(video) {
 		characterDataOldValue: false,
 		// Set to an array of attribute local names (without namespace) if not all attribute mutations
 		// need to be observed.
-		attributeFilter: ['src', 'srcObject']
+		// srcObject DO not trigger MutationObserver
+		attributeFilter: ['srcObject']
 	});
 
-	// Intercept video 'error' events if it's due to the attached MediaStream.
-	video.addEventListener('error', function (event) {
-		if (video.error.code === global.MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED && BLOB_URI_REGEX.test(video.src)) {
-			debug('stopping "error" event propagation for video element');
+	// MutationObserver fail to trigger when using srcObject on ony tested browser.
+	// But video.srcObject = new MediaStream() will trigger onloadstart and
+	// video.srcObject = null will trigger onemptied events.
 
-			event.stopImmediatePropagation();
+	video.addEventListener('loadstart', function () {
+		if (video.srcObject && !video._iosrtcMediaStreamRendererId) {
+			// If this video element was NOT previously handling a MediaStreamRenderer, release it.
+			handleVideo(video);
+		}
+	});
+
+	video.addEventListener('emptied', function () {
+		if (!video.srcObject && video._iosrtcMediaStreamRendererId) {
+			// If this video element was previously handling a MediaStreamRenderer, release it.
+			releaseMediaStreamRenderer(video);
 		}
 	});
 }
@@ -215,61 +219,22 @@ function observeVideo(video) {
 
 function handleVideo(video) {
 	var
-		xhr = new XMLHttpRequest(),
 		stream;
 
-	// The app has set video.src.
-	if (video.src) {
-		xhr.open('GET', video.src, true);
-		xhr.responseType = 'blob';
-		xhr.onload = function () {
-			if (xhr.status !== 200) {
+	// The app has set video.srcObject.
+	if (video.srcObject) {
+		stream = video.srcObject;
+		if (stream && typeof stream.getBlobId === 'function') {
+
+			if (!stream.getBlobId()) {
 				// If this video element was previously handling a MediaStreamRenderer, release it.
 				releaseMediaStreamRenderer(video);
 
 				return;
 			}
 
-			var reader = new FileReader();
-
-			// Some versions of Safari fail to set onloadend property, some others do not react
-			// on 'loadend' event. Try everything here.
-			try {
-				reader.onloadend = onloadend;
-			} catch (error) {
-				reader.addEventListener('loadend', onloadend);
-			}
-			reader.readAsText(xhr.response);
-
-			function onloadend() {
-				var mediaStreamBlobId = reader.result;
-
-				// The retrieved URL does not point to a MediaStream.
-				if (!mediaStreamBlobId || typeof mediaStreamBlobId !== 'string' || !MEDIASTREAM_ID_REGEXP.test(mediaStreamBlobId)) {
-					// If this video element was previously handling a MediaStreamRenderer, release it.
-					releaseMediaStreamRenderer(video);
-
-					return;
-				}
-
-				provideMediaStreamRenderer(video, mediaStreamBlobId);
-			}
-		};
-		xhr.send();
-	}
-
-	// The app has set video.srcObject.
-	else if (video.srcObject) {
-		stream = video.srcObject;
-
-		if (!stream.getBlobId()) {
-			// If this video element was previously handling a MediaStreamRenderer, release it.
-			releaseMediaStreamRenderer(video);
-
-			return;
+			provideMediaStreamRenderer(video, stream.getBlobId());
 		}
-
-		provideMediaStreamRenderer(video, stream.getBlobId());
 	}
 }
 
@@ -331,7 +296,6 @@ function provideMediaStreamRenderer(video, mediaStreamBlobId) {
 		}
 	});
 }
-
 
 function releaseMediaStreamRenderer(video) {
 	if (!video._iosrtcMediaStreamRendererId) {
