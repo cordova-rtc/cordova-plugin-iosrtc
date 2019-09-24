@@ -16,7 +16,7 @@
 * Set default deployment target to 10.2
 * Remove callback based API
 * Implement RTCPeerConnection.getSenders|getReceivers|addTrack|removeTrack
-* Fix webrtc-adatper extenal library support
+* Fix webrtc-adapter external library support
 * Fix Blob prototype pollution
 * Extend native MediaStream instead of using Blob
 * Fix RTCPeerConnection.setLocalDescription() and other methods which take SDP as input now directly accept an object
