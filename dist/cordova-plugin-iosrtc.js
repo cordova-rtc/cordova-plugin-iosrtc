@@ -151,7 +151,7 @@ function MediaStream(arg, id) {
 	// new MediaStream(originalMediaStream) // stream
 	// new MediaStream(originalMediaStreamTrack[]) // tracks		
 	if (
-		arg instanceof originalMediaStream || 
+		(arg instanceof originalMediaStream && typeof arg.getBlobId === 'undefined') || 
 			(Array.isArray(arg) && arg[0] instanceof originalMediaStreamTrack)
 	) {
 		return new originalMediaStream(arg);
@@ -252,14 +252,34 @@ MediaStream.getMediaStreams = function () {
 MediaStream.create = function (dataFromEvent) {
 	debug('create() | [dataFromEvent:%o]', dataFromEvent);
 
-	var tracks = [].concat(Object.values(dataFromEvent.audioTracks), Object.values(dataFromEvent.videoTracks)).map(function (trackDataFromEvent) {
-		return new MediaStreamTrack(trackDataFromEvent);
-	});
-	var stream = new MediaStream(tracks, dataFromEvent.id);
+	var trackId, track,
+		stream = new MediaStream([], dataFromEvent.id);
+
+	// We do not use addTrack to prevent false positive "ERROR: video track not added" and "ERROR: audio track not added" 
+	// cause the rtcMediaStream already has them internaly.
+
+	for (trackId in dataFromEvent.audioTracks) {
+		if (dataFromEvent.audioTracks.hasOwnProperty(trackId)) {
+			track = new MediaStreamTrack(dataFromEvent.audioTracks[trackId]);
+
+			stream._audioTracks[track.id] = track;
+
+			addListenerForTrackEnded.call(stream, track);
+		}
+	}
+
+	for (trackId in dataFromEvent.videoTracks) {
+		if (dataFromEvent.videoTracks.hasOwnProperty(trackId)) {
+			track = new MediaStreamTrack(dataFromEvent.videoTracks[trackId]);
+
+			stream._videoTracks[track.id] = track;
+
+			addListenerForTrackEnded.call(stream, track);
+		}
+	}
 
 	return stream;
 };
-
 
 MediaStream.prototype.getBlobId = function () {
 	return this._blobId;
@@ -375,6 +395,11 @@ MediaStream.prototype.removeTrack = function (track) {
 	checkActive.call(this);
 };
 
+
+MediaStream.prototype.clone = function () {
+	debug('clone()');
+	return new MediaStream(this);
+};
 
 // Backwards compatible API.
 MediaStream.prototype.stop = function () {
