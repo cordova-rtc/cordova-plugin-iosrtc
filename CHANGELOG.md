@@ -1,3 +1,8 @@
+#### Version 5.0.4
+
+* Fix MediaStream.create false positive "ERROR: video track not added" and "ERROR: audio track not added" cause the rtcMediaStream already has them internaly trigger by getUserMedia.
+* Detect callbacks usage and throw error instead of been silent to assist 5.0.1 to 5.0.2 migration from callback based API.
+
 #### Version 5.0.3
 
 * Fix MediaStream.active getter issue.
