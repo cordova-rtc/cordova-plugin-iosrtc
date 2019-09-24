@@ -151,6 +151,7 @@ function TestPluginMediaStreamRenderer(localVideoEl) {
 
 }
 
+
 var canvasEl;
 function TestMediaRenderCatpure(videoEl) {
   canvasEl = document.createElement('canvas');
@@ -169,6 +170,29 @@ function TestMediaRenderCatpure(videoEl) {
     image.src = "data:image/jpg;base64," + data;
   });
 } 
+
+/*
+// Disabled to avoid confusion with remoteStream
+var cloneStream;
+var cloneVideoEl;
+function TestPluginMediaStreamClone(mediaStream) {
+  cloneVideoEl = document.createElement('video');
+  cloneVideoEl.setAttribute('autoplay', 'autoplay');
+  cloneVideoEl.setAttribute('playsinline', 'playsinline');
+  cloneVideoEl.style.backgroundColor = 'purple';
+  cloneVideoEl.style.position = 'absolute';
+  cloneVideoEl.style.bottom = 0;
+  cloneVideoEl.style.left = 0;
+  cloneVideoEl.style.width = "100px";
+  cloneVideoEl.style.height = "100px";
+  cloneVideoEl.style.transform = "scaleX(-1)";
+
+  cloneStream = mediaStream.clone();
+  cloneVideoEl.srcObject = cloneStream;
+
+  appContainer.appendChild(cloneVideoEl);
+}
+*/
 
 //
 // Test RTCPeerConnection

@@ -51,6 +51,16 @@ function addError(name) {
 	Errors[name].prototype = new IntermediateInheritor();
 }
 
+// Detect callback usage to assist 5.0.1 to 5.0.2 migration
+// TODO remove on 6.0.0
+Errors.detectDeprecatedCallbaksUsage = function detectDeprecatedCallbaksUsage(funcName, arg) {
+	if (
+		typeof arg[1] === 'function' ||
+			typeof arg[2] === 'function'
+	) {
+		throw new Error('Callbacks are not supported by "' + funcName + '" anymore, use Promise instead.');
+	}
+};
 },{}],2:[function(_dereq_,module,exports){
 /**
  * Dependencies.
@@ -151,7 +161,7 @@ function MediaStream(arg, id) {
 	// new MediaStream(originalMediaStream) // stream
 	// new MediaStream(originalMediaStreamTrack[]) // tracks		
 	if (
-		arg instanceof originalMediaStream || 
+		(arg instanceof originalMediaStream && typeof arg.getBlobId === 'undefined') || 
 			(Array.isArray(arg) && arg[0] instanceof originalMediaStreamTrack)
 	) {
 		return new originalMediaStream(arg);
@@ -252,14 +262,34 @@ MediaStream.getMediaStreams = function () {
 MediaStream.create = function (dataFromEvent) {
 	debug('create() | [dataFromEvent:%o]', dataFromEvent);
 
-	var tracks = [].concat(Object.values(dataFromEvent.audioTracks), Object.values(dataFromEvent.videoTracks)).map(function (trackDataFromEvent) {
-		return new MediaStreamTrack(trackDataFromEvent);
-	});
-	var stream = new MediaStream(tracks, dataFromEvent.id);
+	var trackId, track,
+		stream = new MediaStream([], dataFromEvent.id);
+
+	// We do not use addTrack to prevent false positive "ERROR: video track not added" and "ERROR: audio track not added" 
+	// cause the rtcMediaStream already has them internaly.
+
+	for (trackId in dataFromEvent.audioTracks) {
+		if (dataFromEvent.audioTracks.hasOwnProperty(trackId)) {
+			track = new MediaStreamTrack(dataFromEvent.audioTracks[trackId]);
+
+			stream._audioTracks[track.id] = track;
+
+			addListenerForTrackEnded.call(stream, track);
+		}
+	}
+
+	for (trackId in dataFromEvent.videoTracks) {
+		if (dataFromEvent.videoTracks.hasOwnProperty(trackId)) {
+			track = new MediaStreamTrack(dataFromEvent.videoTracks[trackId]);
+
+			stream._videoTracks[track.id] = track;
+
+			addListenerForTrackEnded.call(stream, track);
+		}
+	}
 
 	return stream;
 };
-
 
 MediaStream.prototype.getBlobId = function () {
 	return this._blobId;
@@ -375,6 +405,11 @@ MediaStream.prototype.removeTrack = function (track) {
 	checkActive.call(this);
 };
 
+
+MediaStream.prototype.clone = function () {
+	debug('clone()');
+	return new MediaStream(this);
+};
 
 // Backwards compatible API.
 MediaStream.prototype.stop = function () {
@@ -1570,6 +1605,11 @@ Object.defineProperties(RTCPeerConnection.prototype, {
 });
 
 RTCPeerConnection.prototype.createOffer = function (options) {
+
+	// Detect callback usage to assist 5.0.1 to 5.0.2 migration
+	// TODO remove on 6.0.0
+	Errors.detectDeprecatedCallbaksUsage('RTCPeerConnection.prototype.createOffer', arguments);
+
 	var self = this;
 
 	if (isClosed.call(this)) {
@@ -1605,6 +1645,11 @@ RTCPeerConnection.prototype.createOffer = function (options) {
 
 
 RTCPeerConnection.prototype.createAnswer = function (options) {
+
+	// Detect callback usage to assist 5.0.1 to 5.0.2 migration
+	// TODO remove on 6.0.0
+	Errors.detectDeprecatedCallbaksUsage('RTCPeerConnection.prototype.createAnswer', arguments);
+
 	var self = this;
 
 	if (isClosed.call(this)) {
@@ -1639,6 +1684,11 @@ RTCPeerConnection.prototype.createAnswer = function (options) {
 };
 
 RTCPeerConnection.prototype.setLocalDescription = function (desc) {
+
+	// Detect callback usage to assist 5.0.1 to 5.0.2 migration
+	// TODO remove on 6.0.0
+	Errors.detectDeprecatedCallbaksUsage('RTCPeerConnection.prototype.setLocalDescription', arguments);
+
 	var self = this;
 
 	if (isClosed.call(this)) {
@@ -1683,6 +1733,11 @@ RTCPeerConnection.prototype.setLocalDescription = function (desc) {
 };
 
 RTCPeerConnection.prototype.setRemoteDescription = function (desc) {
+
+	// Detect callback usage to assist 5.0.1 to 5.0.2 migration
+	// TODO remove on 6.0.0
+	Errors.detectDeprecatedCallbaksUsage('RTCPeerConnection.prototype.setRemoteDescription', arguments);
+
 	var self = this;
 
 	if (isClosed.call(this)) {
@@ -1729,6 +1784,11 @@ RTCPeerConnection.prototype.setRemoteDescription = function (desc) {
 };
 
 RTCPeerConnection.prototype.addIceCandidate = function (candidate) {
+
+	// Detect callback usage to assist 5.0.1 to 5.0.2 migration
+	// TODO remove on 6.0.0
+	Errors.detectDeprecatedCallbaksUsage('RTCPeerConnection.prototype.addIceCandidate', arguments);
+
 	var self = this;
 
 	if (isClosed.call(this)) {
@@ -1963,6 +2023,11 @@ RTCPeerConnection.prototype.createDTMFSender = function (track) {
 };
 
 RTCPeerConnection.prototype.getStats = function (selector) {
+
+	// Detect callback usage to assist 5.0.1 to 5.0.2 migration
+	// TODO remove on 6.0.0
+	Errors.detectDeprecatedCallbaksUsage('RTCPeerConnection.prototype.getStats', arguments);
+
 	var self = this;
 
 	if (selector && !(selector instanceof MediaStreamTrack)) {
@@ -2209,10 +2274,15 @@ module.exports = enumerateDevices;
 var
 	debug = _dereq_('debug')('iosrtc:enumerateDevices'),
 	exec = _dereq_('cordova/exec'),
-	MediaDeviceInfo = _dereq_('./MediaDeviceInfo');
+	MediaDeviceInfo = _dereq_('./MediaDeviceInfo'),
+	Errors = _dereq_('./Errors');
 
 
 function enumerateDevices() {
+
+	// Detect callback usage to assist 5.0.1 to 5.0.2 migration
+	// TODO remove on 6.0.0
+	Errors.detectDeprecatedCallbaksUsage('cordova.plugins.iosrtc.enumerateDevices', arguments);
 
 	return new Promise(function (resolve) {
 		function onResultOK(data) {
@@ -2245,7 +2315,7 @@ function getMediaDeviceInfos(devices) {
 	return mediaDeviceInfos;
 }
 
-},{"./MediaDeviceInfo":3,"cordova/exec":undefined,"debug":18}],15:[function(_dereq_,module,exports){
+},{"./Errors":1,"./MediaDeviceInfo":3,"cordova/exec":undefined,"debug":18}],15:[function(_dereq_,module,exports){
 /**
  * Expose the getUserMedia function.
  */
@@ -2270,7 +2340,13 @@ function isPositiveFloat(number) {
 	return typeof number === 'number' && number >= 0;
 }
 
+
 function getUserMedia(constraints) {
+
+	// Detect callback usage to assist 5.0.1 to 5.0.2 migration
+	// TODO remove on 6.0.0
+	Errors.detectDeprecatedCallbaksUsage('cordova.plugins.iosrtc.getUserMedia', arguments);
+
 	debug('[original constraints:%o]', constraints);
 
 	var

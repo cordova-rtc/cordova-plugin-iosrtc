@@ -40,3 +40,14 @@ function addError(name) {
 
 	Errors[name].prototype = new IntermediateInheritor();
 }
+
+// Detect callback usage to assist 5.0.1 to 5.0.2 migration
+// TODO remove on 6.0.0
+Errors.detectDeprecatedCallbaksUsage = function detectDeprecatedCallbaksUsage(funcName, arg) {
+	if (
+		typeof arg[1] === 'function' ||
+			typeof arg[2] === 'function'
+	) {
+		throw new Error('Callbacks are not supported by "' + funcName + '" anymore, use Promise instead.');
+	}
+};

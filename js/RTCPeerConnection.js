@@ -116,6 +116,11 @@ Object.defineProperties(RTCPeerConnection.prototype, {
 });
 
 RTCPeerConnection.prototype.createOffer = function (options) {
+
+	// Detect callback usage to assist 5.0.1 to 5.0.2 migration
+	// TODO remove on 6.0.0
+	Errors.detectDeprecatedCallbaksUsage('RTCPeerConnection.prototype.createOffer', arguments);
+
 	var self = this;
 
 	if (isClosed.call(this)) {
@@ -151,6 +156,11 @@ RTCPeerConnection.prototype.createOffer = function (options) {
 
 
 RTCPeerConnection.prototype.createAnswer = function (options) {
+
+	// Detect callback usage to assist 5.0.1 to 5.0.2 migration
+	// TODO remove on 6.0.0
+	Errors.detectDeprecatedCallbaksUsage('RTCPeerConnection.prototype.createAnswer', arguments);
+
 	var self = this;
 
 	if (isClosed.call(this)) {
@@ -185,6 +195,11 @@ RTCPeerConnection.prototype.createAnswer = function (options) {
 };
 
 RTCPeerConnection.prototype.setLocalDescription = function (desc) {
+
+	// Detect callback usage to assist 5.0.1 to 5.0.2 migration
+	// TODO remove on 6.0.0
+	Errors.detectDeprecatedCallbaksUsage('RTCPeerConnection.prototype.setLocalDescription', arguments);
+
 	var self = this;
 
 	if (isClosed.call(this)) {
@@ -229,6 +244,11 @@ RTCPeerConnection.prototype.setLocalDescription = function (desc) {
 };
 
 RTCPeerConnection.prototype.setRemoteDescription = function (desc) {
+
+	// Detect callback usage to assist 5.0.1 to 5.0.2 migration
+	// TODO remove on 6.0.0
+	Errors.detectDeprecatedCallbaksUsage('RTCPeerConnection.prototype.setRemoteDescription', arguments);
+
 	var self = this;
 
 	if (isClosed.call(this)) {
@@ -275,6 +295,11 @@ RTCPeerConnection.prototype.setRemoteDescription = function (desc) {
 };
 
 RTCPeerConnection.prototype.addIceCandidate = function (candidate) {
+
+	// Detect callback usage to assist 5.0.1 to 5.0.2 migration
+	// TODO remove on 6.0.0
+	Errors.detectDeprecatedCallbaksUsage('RTCPeerConnection.prototype.addIceCandidate', arguments);
+
 	var self = this;
 
 	if (isClosed.call(this)) {
@@ -509,6 +534,11 @@ RTCPeerConnection.prototype.createDTMFSender = function (track) {
 };
 
 RTCPeerConnection.prototype.getStats = function (selector) {
+
+	// Detect callback usage to assist 5.0.1 to 5.0.2 migration
+	// TODO remove on 6.0.0
+	Errors.detectDeprecatedCallbaksUsage('RTCPeerConnection.prototype.getStats', arguments);
+
 	var self = this;
 
 	if (selector && !(selector instanceof MediaStreamTrack)) {
