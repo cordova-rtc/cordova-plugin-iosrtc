@@ -292,6 +292,67 @@ class iosrtcPlugin : CDVPlugin {
 			pluginRTCPeerConnection?.removeStream(pluginMediaStream!)
 		}
 	}
+	
+	@objc(RTCPeerConnection_addTrack:) func RTCPeerConnection_addTrack(_ command: CDVInvokedUrlCommand) {
+		
+		let pcId = command.argument(at: 0) as! Int
+		let trackId = command.argument(at: 1) as! String
+		let streamId = command.argument(at: 2) as! String
+		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
+		let pluginMediaStream = self.pluginMediaStreams[streamId]
+		let pluginMediaStreamTrack = self.pluginMediaStreamTracks[trackId]
+		
+		if pluginRTCPeerConnection == nil {
+			NSLog("iosrtcPlugin#RTCPeerConnection_addTrack() | ERROR: pluginRTCPeerConnection with pcId=%@ does not exist", String(pcId))
+			return;
+		}
+		
+		if pluginMediaStream == nil {
+			NSLog("iosrtcPlugin#RTCPeerConnection_addTrack() | ERROR: pluginMediaStream with id=%@ does not exist", String(streamId))
+			return;
+		}
+		
+		if pluginMediaStreamTrack == nil {
+			NSLog("iosrtcPlugin#RTCPeerConnection_addTrack() | ERROR: pluginMediaStreamTrack with id=\(trackId) does not exist")
+			return;
+		}
+		
+		self.queue.async { [weak pluginRTCPeerConnection, weak pluginMediaStreamTrack] in
+			if pluginRTCPeerConnection?.addTrack(pluginMediaStreamTrack!) == true {
+				self.saveMediaStreamTrack(pluginMediaStreamTrack!)
+			}
+		}
+	}
+	
+	@objc(RTCPeerConnection_removeTrack:) func RTCPeerConnection_removeTrack(_ command: CDVInvokedUrlCommand) {
+		let pcId = command.argument(at: 0) as! Int
+		let trackId = command.argument(at: 1) as! String
+		let streamId = command.argument(at: 2) as! String
+		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
+		let pluginMediaStream = self.pluginMediaStreams[streamId]
+		let pluginMediaStreamTrack = self.pluginMediaStreamTracks[trackId]
+		
+		if pluginRTCPeerConnection == nil {
+			NSLog("iosrtcPlugin#RTCPeerConnection_removeTrack() | ERROR: pluginRTCPeerConnection with pcId=%@ does not exist", String(pcId))
+			return;
+		}
+		
+		if pluginMediaStream == nil {
+			NSLog("iosrtcPlugin#RTCPeerConnection_removeTrack() | ERROR: pluginMediaStream with id=%@ does not exist", String(streamId))
+			return;
+		}
+		
+		if pluginMediaStreamTrack == nil {
+			NSLog("iosrtcPlugin#RTCPeerConnection_removeTrack() | ERROR: pluginMediaStreamTrack with id=\(trackId) does not exist")
+			return;
+		}
+		
+		self.queue.async { [weak pluginRTCPeerConnection, weak pluginMediaStreamTrack] in
+			pluginRTCPeerConnection?.removeTrack(pluginMediaStreamTrack!)
+			// TODO remove only if not used by other stream
+			self.deleteMediaStreamTrack(trackId)
+		}
+	}
 
 	@objc(RTCPeerConnection_createDataChannel:) func RTCPeerConnection_createDataChannel(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_createDataChannel()")
