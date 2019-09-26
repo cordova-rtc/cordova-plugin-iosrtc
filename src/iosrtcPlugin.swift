@@ -976,7 +976,19 @@ class iosrtcPlugin : CDVPlugin {
 			)
 		}
 	}
+	
+	@objc(selectAudioOutputEarpiece:) func selectAudioOutputEarpiece(_ command: CDVInvokedUrlCommand) {
+		NSLog("iosrtcPlugin#selectAudioOutputEarpiece()")
 
+		// TODO
+	}
+
+
+	@objc(selectAudioOutputSpeaker:) func selectAudioOutputSpeaker(_ command: CDVInvokedUrlCommand) {
+		NSLog("iosrtcPlugin#selectAudioOutputSpeaker()")
+
+		// TODO
+	}
 
 	func dump(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#dump()")
