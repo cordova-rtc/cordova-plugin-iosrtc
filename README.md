@@ -61,7 +61,7 @@ var pc = new cordova.plugins.iosrtc.RTCPeerConnection({
 
 cordova.plugins.iosrtc.getUserMedia(
   // constraints
-  { audio: true, video: true },
+  { audio: true, video: true }).then(
   // success callback
   function (stream) {
     console.log('got local MediaStream: ', stream);
