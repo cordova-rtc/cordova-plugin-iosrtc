@@ -22,7 +22,13 @@ function isPositiveFloat(number) {
 	return typeof number === 'number' && number >= 0;
 }
 
+
 function getUserMedia(constraints) {
+
+	// Detect callback usage to assist 5.0.1 to 5.0.2 migration
+	// TODO remove on 6.0.0
+	Errors.detectDeprecatedCallbaksUsage('cordova.plugins.iosrtc.getUserMedia', arguments);
+
 	debug('[original constraints:%o]', constraints);
 
 	var
