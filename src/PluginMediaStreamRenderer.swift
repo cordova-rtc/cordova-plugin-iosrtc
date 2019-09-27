@@ -3,7 +3,7 @@ import AVFoundation
 
 
 class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
-    var webView: UIView
+    weak var webView: UIView?
     var eventListener: (_ data: NSDictionary) -> Void
     var elementView: UIView
     var videoView: RTCEAGLVideoView
@@ -36,10 +36,10 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
         self.videoView.isUserInteractionEnabled = false
 
         // Place the video element view inside the WebView's superview
-        self.webView.scrollView.addSubview(self.elementView)
-        //self.webView.superview?.bringSubview(toFront: self.webView)
-        self.webView.isOpaque = false
-        self.webView.backgroundColor = UIColor.clear
+        self.webView?.scrollView.addSubview(self.elementView)
+        //self.webView?.superview?.bringSubview(toFront: self.webView)
+        self.webView?.isOpaque = false
+        self.webView?.backgroundColor = UIColor.clear
     }
 
     deinit {
@@ -189,7 +189,7 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 
         // if the zIndex is 0 (the default) bring the view to the top, last one wins
         if zIndex == 0 {
-            self.webView.superview?.bringSubviewToFront(self.elementView)
+            self.webView?.superview?.bringSubviewToFront(self.elementView)
         }
 
         if !mirrored {
