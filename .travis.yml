@@ -107,6 +107,6 @@ script:
   # Test Plugin platform build with cordova only
   - "cordova create myApp org.apache.cordova.myApp myApp; cd myApp;"
   - "cordova plugin add https://github.com/$REPO_SLUG.git#$BRANCH --verbose"
-  - "cordova platform add $CORDOVA_PLATFORM --verbose"
+  - "cordova platform add $CORDOVA_PLATFORM@latest --verbose"
   - "cordova build $CORDOVA_PLATFORM --verbose"
 
