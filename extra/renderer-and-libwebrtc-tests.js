@@ -1,22 +1,15 @@
 /* global RTCPeerConnection */
 
-//
-// Camera and Microphone Authorization   
-//
-
-/*
-cordova.plugins.iosrtc.requestPermission(true, true, function (result) {
-  console.log('requestPermission.result', result)
-});
-*/
-
 var cordova = window.cordova;
 
 // Expose WebRTC Globals
 if (cordova && cordova.plugins && cordova.plugins.iosrtc) {
   cordova.plugins.iosrtc.registerGlobals();
   cordova.plugins.iosrtc.debug.enable('*', true);
-  //cordova.plugins.iosrtc.turnOnSpeaker(true, true)
+  cordova.plugins.iosrtc.turnOnSpeaker(true, true);
+  cordova.plugins.iosrtc.requestPermission(true, true, function (result) {
+    console.log('requestPermission.result', result)
+  });
 }
 
 
@@ -30,7 +23,6 @@ var appContainer = document.body;
 //
 // getUserMedia
 //
-
 
 var localStream;
 var localVideoEl;
@@ -164,7 +156,7 @@ function TestMediaRenderCatpure(videoEl) {
   appContainer.appendChild(canvasEl);
   var image = new Image();
   image.onload = function() {
-    ctx.drawImage(image, 0, 0);
+    ctx.drawImage(image, 0, 0, 0, 0);
   };
   videoEl.render.save(function (data) {
     image.src = "data:image/jpg;base64," + data;
@@ -242,8 +234,6 @@ function TestPeerDataChannel() {
 var peerVideoEl;
 var peerStream;
 function TestRTCPeerConnection(localStream) {
-
-  TestPeerDataChannel();
 
   // Note: Deprecated TestaddStream
   //pc1.addStream(localStream);
@@ -346,7 +336,7 @@ function TestRTCPeerConnection(localStream) {
     }).then(function () {
       TestMediaRenderCatpure(peerVideoEl);
       TestMediaRenderCatpure(localVideoEl);
-      //TestPeerDataChannel();
+      TestPeerDataChannel();
     }).catch(function (err) {
       console.log('pc1.createOfferError', err);
     });
@@ -354,7 +344,7 @@ function TestRTCPeerConnection(localStream) {
 }
 
 
-var useWebRTCAdapter = true;
+var useWebRTCAdapter = false;
 
 // Expose webrtc-adapter
 if (useWebRTCAdapter && typeof window.adapter === 'undefined') {
