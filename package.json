@@ -55,7 +55,7 @@
   "engines": [
     {
       "name": "cordova-ios",
-      "version": ">=3.8.0"
+      "version": ">=5.0.1"
     }
   ]
 }
