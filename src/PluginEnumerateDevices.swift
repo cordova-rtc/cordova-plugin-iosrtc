@@ -22,36 +22,16 @@ class PluginEnumerateDevices {
 	class func call(_ callback: (_ data: NSDictionary) -> Void) {
 		NSLog("PluginEnumerateDevices#call()")
 		initAudioDevices()
-		var audioDevices: [MediaDeviceInfo] = getAllAudioDevices()
-		let devices: [AVCaptureDevice] = AVCaptureDevice.DiscoverySession.init(
-			deviceTypes: [AVCaptureDevice.DeviceType.builtInMicrophone, AVCaptureDevice.DeviceType.builtInWideAngleCamera],
-			mediaType: nil,
-			position: AVCaptureDevice.Position.unspecified
-		).devices
+		let audioDevices: [MediaDeviceInfo] = getAllAudioDevices()
+		let videoDevices: [MediaDeviceInfo] = getAllVideoDevices()
+		let allDevices = videoDevices + audioDevices;
 		
 		let json: NSMutableDictionary = [
 			"devices": NSMutableDictionary()
 		]
 		
-		for device: AVCaptureDevice in devices {
-			let hasAudio = device.hasMediaType(AVMediaType(rawValue: convertFromAVMediaType(AVMediaType.audio)))
-			let hasVideo = device.hasMediaType(AVMediaType(rawValue: convertFromAVMediaType(AVMediaType.video)))
-			
-			NSLog("- device [uniqueID:'%@', localizedName:'%@', audio:%@, video:%@, connected:%@]",
-				  String(device.uniqueID), String(device.localizedName),
-				  String(hasAudio), String(hasVideo), String(device.isConnected))
-			
-			if device.isConnected == false || (hasAudio == false && hasVideo == false) {
-				continue
-			}
-			
-			if hasAudio == false {
-				audioDevices.append(MediaDeviceInfo(deviceId: device.uniqueID, kind: "videoinput", label: device.localizedName))
-			}
-		}
-		
 		// Casting to NSMutableDictionary
-		for device: MediaDeviceInfo in audioDevices {
+		for device: MediaDeviceInfo in allDevices {
 			(json["devices"] as! NSMutableDictionary)[device.deviceId] = [
 				"deviceId": device.deviceId,
 				"kind": device.kind,
@@ -89,6 +69,58 @@ class PluginEnumerateDevices {
 	}
 }
 
+fileprivate func getAllVideoDevices() -> [MediaDeviceInfo] {
+	
+	var videoDevicesArr : [MediaDeviceInfo] = []
+	let videoDevices: [AVCaptureDevice] = AVCaptureDevice.DiscoverySession.init(
+		deviceTypes: [AVCaptureDevice.DeviceType.builtInWideAngleCamera, AVCaptureDevice.DeviceType.builtInDualCamera],
+		mediaType: AVMediaType.video,
+		position: AVCaptureDevice.Position.unspecified
+	).devices
+	
+	for device: AVCaptureDevice in videoDevices {
+		var facing: String
+		let hasAudio = device.hasMediaType(AVMediaType(rawValue: convertFromAVMediaType(AVMediaType.audio)))
+		let hasVideo = device.hasMediaType(AVMediaType(rawValue: convertFromAVMediaType(AVMediaType.video)))
+		
+		switch device.position {
+		case AVCaptureDevice.Position.unspecified:
+			facing = "unknown"
+		case AVCaptureDevice.Position.back:
+			facing = "back"
+		case AVCaptureDevice.Position.front:
+			facing = "front"
+		}
+		
+		if device.isConnected == false || (hasAudio == false && hasVideo == false) {
+			continue
+		}
+		
+		NSLog("- device [uniqueID:'%@', localizedName:'%@', facing:%@, audio:%@, video:%@, connected:%@]",
+			String(device.uniqueID), String(device.localizedName), String(facing),
+			String(hasAudio), String(hasVideo), String(device.isConnected))
+		
+		if hasAudio == false {
+			let device = MediaDeviceInfo(
+				deviceId: device.uniqueID,
+				kind: "videoinput",
+				label: device.localizedName)
+				
+			// Put Front devices at beginning of the videoDevicesArr
+			if (facing == "front") {
+				// Simple Swift 4 array unshift
+				let videoDevicesArrFirst : [MediaDeviceInfo] = [device]
+				videoDevicesArr = videoDevicesArrFirst + videoDevicesArr;
+			} else {
+				videoDevicesArr.append(device)
+			}
+		}
+	}
+	
+	
+	return videoDevicesArr
+}
+
 // Getter function inserted by get all audio devices connected
 fileprivate func getAllAudioDevices() -> [MediaDeviceInfo] {
 	let audioSession: AVAudioSession = AVAudioSession.sharedInstance()
@@ -101,7 +133,10 @@ fileprivate func getAllAudioDevices() -> [MediaDeviceInfo] {
 	var builtMicDevice: AVAudioSessionPortDescription? = nil
 	
 	for audioInput in audioInputDevices {
-		audioDevicesArr.append(MediaDeviceInfo(deviceId: audioInput.uid, kind: "audioinput", label: audioInput.portName))
+		audioDevicesArr.append(MediaDeviceInfo(
+			deviceId: audioInput.uid,
+			kind: "audioinput",
+			label: audioInput.portName))
 		
 		// Initialize audioInputSelected. Default Built-In Microphone
 		if audioInput.portType == AVAudioSession.Port.builtInMic {
@@ -145,3 +180,4 @@ fileprivate func initAudioDevices() -> Void {
 fileprivate func convertFromAVMediaType(_ input: AVMediaType) -> String {
 	return input.rawValue
 }
+
