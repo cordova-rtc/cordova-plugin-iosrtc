@@ -36,7 +36,13 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		self.videoView.isUserInteractionEnabled = false
 
 		// Place the video element view inside the WebView's superview
-		self.webView.superview?.addSubview(self.elementView)
+		if #available(iOS 11.0, *) {
+			self.webView?.scrollView.addSubview(self.elementView)
+		} else {
+			self.webView?.superview?.addSubview(self.elementView)
+		}
+		self.webView?.isOpaque = false
+		self.webView?.backgroundColor = UIColor.clear        
 	}
 
 
@@ -156,11 +162,9 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		let videoViewLeft: Double = (elementWidth - videoViewWidth) / 2;
 		let videoViewTop: Double = (elementHeight - videoViewHeight) / 2;
 		
-		let screenStatusBarHeight = CGFloat(UIApplication.shared.statusBarFrame.height);
-
 		self.elementView.frame = CGRect(
 			x: CGFloat(elementLeft),
-			y: screenStatusBarHeight + CGFloat(elementTop),
+			y: CGFloat(elementTop),
 			width: CGFloat(elementWidth),
 			height: CGFloat(elementHeight)
 		)
