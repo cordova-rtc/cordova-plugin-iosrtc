@@ -23,7 +23,7 @@ class PluginRTCPeerConnectionConstraints {
 		}
 		
 		// Handle constraints at the root of pcConstraints.optional
-		if _optionalConstraints == nil && _mandatoryConstraints != nil  {
+		if pcConstraints != nil && _optionalConstraints == nil && _mandatoryConstraints == nil  {
 			mandatoryConstraints = PluginRTCPeerConnectionConstraints.parseConstraints(constraints: pcConstraints!)
 		}
 		

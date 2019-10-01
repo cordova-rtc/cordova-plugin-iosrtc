@@ -302,7 +302,20 @@ function TestRTCPeerConnection(localStream) {
   pc1.onnegotiationneeded = function (e) {
     console.log('pc1.negotiatioNeeded', e);
 
-    return pc1.createOffer().then(function (d) {
+    return pc1.createOffer({
+      offerToReceiveAudio: true,
+      offerToReceiveVideo: true
+      /*
+      mandatory: {
+        offerToReceiveAudio: true,
+        offerToReceiveVideo: true
+      },
+      optional: {
+        offerToReceiveAudio: true,
+        offerToReceiveVideo: true
+      }
+      */
+    }).then(function (d) {
       var desc = {
         type: d.type,
         sdp: d.sdp
