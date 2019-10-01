@@ -243,7 +243,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 				data = [
 					"remoteDescription": [
 						"type": rtcSdpTypeToString(type: self.rtcPeerConnection.remoteDescription!.type),
-						"sdp": self.rtcPeerConnection.remoteDescription!.description
+						"sdp": self.rtcPeerConnection.remoteDescription!.sdp
 					]
 				]
 			} else {
@@ -586,7 +586,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 				"candidate": false,
 				"localDescription": [
 					"type": rtcSdpTypeToString(type: self.rtcPeerConnection.localDescription!.type),
-					"sdp": self.rtcPeerConnection.localDescription!.description
+					"sdp": self.rtcPeerConnection.localDescription!.sdp
 					]
 			])
 		}
@@ -610,7 +610,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 			],
 			"localDescription": [
 				"type": rtcSdpTypeToString(type: self.rtcPeerConnection.localDescription!.type),
-				"sdp": self.rtcPeerConnection.localDescription!.description
+				"sdp": self.rtcPeerConnection.localDescription!.sdp
 			]
 		])
 	}
