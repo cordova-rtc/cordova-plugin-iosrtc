@@ -1,5 +1,6 @@
 import Foundation
 
+
 class PluginRTCPeerConnectionConstraints {
 	fileprivate var constraints: RTCMediaConstraints
 
@@ -10,51 +11,20 @@ class PluginRTCPeerConnectionConstraints {
 		
 		let _mandatoryConstraints = pcConstraints?.object(forKey: "mandatory") as? NSDictionary
 		let _optionalConstraints = pcConstraints?.object(forKey: "optional") as? NSDictionary
-
+		
+		// Handle constraints at the root of pcConstraints.mandatory
 		if _mandatoryConstraints != nil {
-			for (key, value) in _mandatoryConstraints! {
-				var finalValue: String,
-					finalKey: String = key as! String;
-				
-				if value is Bool {
-					finalValue = value as! Bool ? "true" : "false"
-				} else {
-					finalValue = value as! String
-				}
-				
-				// Handle Spec for offerToReceiveAudio|offerToReceiveVideo but
-				// libwebrtc still use OfferToReceiveAudio|OfferToReceiveVideo
-				if (finalKey == "offerToReceiveAudio") {
-					finalKey =  "OfferToReceiveAudio";
-				} else if (finalKey == "offerToReceiveVideo") {
-					finalKey =  "OfferToReceiveVideo";
-				}
-				
-				mandatoryConstraints[finalKey] = finalValue
-			}
+			mandatoryConstraints = PluginRTCPeerConnectionConstraints.parseConstraints(constraints: _mandatoryConstraints!)
 		}
-
+		
+		// Handle constraints at the root of pcConstraints
 		if _optionalConstraints != nil {
-			for (key, value) in _optionalConstraints! {
-				var finalValue: String,
-					finalKey: String = key as! String;
-				
-				if value is Bool {
-					finalValue = value as! Bool ? "true" : "false"
-				} else {
-					finalValue = value as! String
-				}
-				
-				// Handle Spec for offerToReceiveAudio|offerToReceiveVideo but
-				// libwebrtc still use OfferToReceiveAudio|OfferToReceiveVideo
-				if (finalKey == "offerToReceiveAudio") {
-					finalKey =  "OfferToReceiveAudio";
-				} else if (finalKey == "offerToReceiveVideo") {
-					finalKey =  "OfferToReceiveVideo";
-				}
-				
-				optionalConstraints[finalKey] = finalValue
-			}
+			optionalConstraints = PluginRTCPeerConnectionConstraints.parseConstraints(constraints: _optionalConstraints!)
+		}
+		
+		// Handle constraints at the root of pcConstraints.optional
+		if _optionalConstraints == nil && _mandatoryConstraints != nil  {
+			mandatoryConstraints = PluginRTCPeerConnectionConstraints.parseConstraints(constraints: pcConstraints!)
 		}
 		
 		NSLog("PluginRTCPeerConnectionConstraints#init() | [mandatoryConstraints:%@, optionalConstraints:%@]",
@@ -64,6 +34,33 @@ class PluginRTCPeerConnectionConstraints {
 			mandatoryConstraints: mandatoryConstraints,
 			optionalConstraints: optionalConstraints
 		)
+	}
+	
+	fileprivate static func parseConstraints(constraints: NSDictionary) -> [String : String] {
+		var _constraints : [String : String] = [:]
+		
+		for (key, value) in constraints {
+			var finalValue: String,
+				finalKey: String = key as! String;
+			
+			if value is Bool {
+				finalValue = value as! Bool ? "true" : "false"
+			} else {
+				finalValue = value as! String
+			}
+			
+			// Handle Spec for offerToReceiveAudio|offerToReceiveVideo but
+			// libwebrtc still use OfferToReceiveAudio|OfferToReceiveVideo
+			if (finalKey == "offerToReceiveAudio") {
+				finalKey =  "OfferToReceiveAudio";
+			} else if (finalKey == "offerToReceiveVideo") {
+				finalKey =  "OfferToReceiveVideo";
+			}
+			
+			_constraints[finalKey] = finalValue
+		}
+		
+		return _constraints;
 	}
 	
 	deinit {
