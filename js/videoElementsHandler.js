@@ -203,10 +203,10 @@ function observeVideo(video) {
 			handleVideo(video);
 		} else if (video.srcObject && video._iosrtcMediaStreamRendererId) {
 			// The video element has received a new srcObject.
-			const stream = video.srcObject;
+			var stream = video.srcObject;
 			if (stream && typeof stream.getBlobId === 'function') {
-				const mediaStreamRenderer = mediaStreamRenderers[video._iosrtcMediaStreamRendererId];
-				const mediaStream = mediaStreams[stream.getBlobId()];
+				var mediaStreamRenderer = mediaStreamRenderers[video._iosrtcMediaStreamRendererId];
+				var mediaStream = mediaStreams[stream.getBlobId()];
 				if (mediaStreamRenderer && mediaStream) {
 					mediaStreamRenderer.render(mediaStream);
 				}
