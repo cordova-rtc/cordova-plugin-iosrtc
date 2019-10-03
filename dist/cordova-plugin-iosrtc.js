@@ -2748,6 +2748,16 @@ function observeVideo(video) {
 		if (video.srcObject && !video._iosrtcMediaStreamRendererId) {
 			// If this video element was NOT previously handling a MediaStreamRenderer, release it.
 			handleVideo(video);
+		} else if (video.srcObject && video._iosrtcMediaStreamRendererId) {
+			// The video element has received a new srcObject.
+			var stream = video.srcObject;
+			if (stream && typeof stream.getBlobId === 'function') {
+				var mediaStreamRenderer = mediaStreamRenderers[video._iosrtcMediaStreamRendererId];
+				var mediaStream = mediaStreams[stream.getBlobId()];
+				if (mediaStreamRenderer && mediaStream) {
+					mediaStreamRenderer.render(mediaStream);
+				}
+			}
 		}
 	});
 
