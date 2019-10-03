@@ -2756,7 +2756,7 @@ function observeVideo(video) {
 				releaseMediaStreamRenderer(video);
 				// Install new renderer
 				provideMediaStreamRenderer(video, stream.getBlobId());
-                       }
+			}
 		}
 	});
 
