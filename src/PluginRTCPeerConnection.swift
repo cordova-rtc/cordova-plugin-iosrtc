@@ -43,14 +43,14 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		self.pluginRTCDTMFSenders = [:]
 	}
 
-		
-
 	func run() {
 		NSLog("PluginRTCPeerConnection#run()")
 
-		let config = RTCConfiguration();
-		config.iceServers = self.pluginRTCPeerConnectionConfig.getIceServers();
-		self.rtcPeerConnection = self.rtcPeerConnectionFactory.peerConnection(with: config, constraints: self.pluginRTCPeerConnectionConstraints.getConstraints(), delegate: self)
+		self.rtcPeerConnection = self.rtcPeerConnectionFactory.peerConnection(
+			with: self.pluginRTCPeerConnectionConfig.getConfiguration(),
+			constraints: self.pluginRTCPeerConnectionConstraints.getConstraints(),
+			delegate: self
+		)
 	}
 
 	func createOffer(
@@ -286,23 +286,23 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		self.rtcPeerConnection.remove(pluginMediaStream.rtcMediaStream)
 	}
 
-    func addTrack(_ track: PluginMediaStreamTrack) -> Bool {
-        NSLog("PluginRTCPeerConnection#addTrack()")
-        
-        if self.rtcPeerConnection.signalingState == RTCSignalingState.closed {
-            return false
-        }
-        
-        return true;
-    }
-    
-    func removeTrack(_ track: PluginMediaStreamTrack) {
-        NSLog("PluginRTCPeerConnection#removeTrack()")
-        
-        if self.rtcPeerConnection.signalingState == RTCSignalingState.closed {
-            return
-        }
-    }
+	func addTrack(_ track: PluginMediaStreamTrack) -> Bool {
+		NSLog("PluginRTCPeerConnection#addTrack()")
+		
+		if self.rtcPeerConnection.signalingState == RTCSignalingState.closed {
+			return false
+		}
+		
+		return true;
+	}
+	
+	func removeTrack(_ track: PluginMediaStreamTrack) {
+		NSLog("PluginRTCPeerConnection#removeTrack()")
+		
+		if self.rtcPeerConnection.signalingState == RTCSignalingState.closed {
+			return
+		}
+	}
 
 	func createDataChannel(
 		_ dcId: Int,
@@ -629,7 +629,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 	}
 	 
 	/** New data channel has been opened. */
-	func peerConnection(_ peerConnection: RTCPeerConnection, didOpen rtcDataChannel: RTCDataChannel) 
+	func peerConnection(_ peerConnection: RTCPeerConnection, didOpen rtcDataChannel: RTCDataChannel) {
 		NSLog("PluginRTCPeerConnection | ondatachannel")
 
 		let dcId = PluginUtils.randomInt(10000, max:99999)
