@@ -15,7 +15,7 @@
     "webrtc",
     "ios",
     "cordova-ios",
-    "cordova:plugin",
+    "cordova:plugin"
   ],
   "main": "js/iosrtc.js",
   "homepage": "https://github.com/cordova-rtc/cordova-plugin-iosrtc",
