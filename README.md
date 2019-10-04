@@ -4,6 +4,8 @@
 
 [![npm version](https://img.shields.io/npm/v/cordova-plugin-iosrtc.svg?style=flat)](https://www.npmjs.com/package/cordova-plugin-iosrtc)
 
+[![Build Status](https://travis-ci.org/cordova-rtc/cordova-plugin-iosrtc.svg?branch=master)](https://travis-ci.org/cordova-rtc/cordova-plugin-iosrtc)
+
 [Cordova](http://cordova.apache.org/) iOS plugin exposing the  ̶f̶u̶l̶l̶ [WebRTC W3C JavaScript APIs](http://www.w3.org/TR/webrtc/).
 
 * [Public Google Group (mailing list)](https://groups.google.com/forum/#!forum/cordova-plugin-iosrtc) for questions and discussions about *cordova-plugin-iosrtc*.
