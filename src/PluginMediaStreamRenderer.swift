@@ -1,8 +1,8 @@
 import Foundation
 import AVFoundation
 
-
 class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
+	
 	weak var webView: UIView?
 	var eventListener: (_ data: NSDictionary) -> Void
 	var elementView: UIView
@@ -10,7 +10,6 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 	var pluginMediaStream: PluginMediaStream?
 	var rtcAudioTrack: RTCAudioTrack?
 	var rtcVideoTrack: RTCVideoTrack?
-
 
 	init(
 		webView: UIView,
@@ -261,8 +260,13 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 	/**
 	 * Methods inherited from RTCEAGLVideoViewDelegate.
 	 */
-
-	func videoView(_ videoView: RTCVideoRenderer!, didChangeVideoSize size: CGSize) {
+	
+	func videoView(_ videoView: RTCVideoRenderer, didChange frame: RTCVideoFrame?) {
+		// TODO
+	}
+	
+	func videoView(_ videoView: RTCVideoRenderer, didChangeVideoSize size: CGSize) {
+	
 		NSLog("PluginMediaStreamRenderer | video size changed [width:%@, height:%@]",
 			String(describing: size.width), String(describing: size.height))
 
