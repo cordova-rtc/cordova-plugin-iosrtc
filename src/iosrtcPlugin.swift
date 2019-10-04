@@ -955,9 +955,9 @@ class iosrtcPlugin : CDVPlugin {
 				}
 			}
 			
-			if(status){
+			if (status) {
 				self.emit(command.callbackId,result: CDVPluginResult(status: CDVCommandStatus_OK))
-			}else{
+			} else {
 				self.emit(command.callbackId,result: CDVPluginResult(status: CDVCommandStatus_ERROR))
 			}
 		}

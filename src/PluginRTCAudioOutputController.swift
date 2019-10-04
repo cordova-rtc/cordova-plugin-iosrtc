@@ -13,7 +13,7 @@ class PluginRTCAudioOutputController {
 	private var speakerEnabled: Bool = false
 	private var recordEnabled: Bool = false
 	
-	init(){
+	init() {
 		NotificationCenter.default.addObserver(
 			self,
 			selector: #selector(self.audioRouteChangeListener(_:)),
@@ -35,7 +35,7 @@ class PluginRTCAudioOutputController {
 		}
 	}
 	
-	func setOuputAudioMode(speaker: Bool, record: Bool){
+	func setOuputAudioMode(speaker: Bool, record: Bool) {
 		self.speakerEnabled = speaker
 		self.recordEnabled = record
 		
