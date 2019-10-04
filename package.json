@@ -10,9 +10,12 @@
   ],
   "license": "MIT",
   "keywords": [
+    "cordova",
     "ecosystem:cordova",
     "webrtc",
-    "ios"
+    "ios",
+    "cordova-ios",
+    "cordova:plugin"
   ],
   "main": "js/iosrtc.js",
   "homepage": "https://github.com/cordova-rtc/cordova-plugin-iosrtc",

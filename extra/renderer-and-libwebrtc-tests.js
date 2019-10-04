@@ -27,11 +27,26 @@ var appContainer = document.body;
 var localStream;
 var localVideoEl;
 function TestGetUserMedia() {
+
+  // Note: Support for Multiple TestRTCPeerConnection calls
+  if (localStream) {
+
+    // Close local Stream if already connected
+    localStream.stop();
+
+    // Clear local video element
+    if (localVideoEl.srcObject) {       
+      localVideoEl.srcObject = null;
+      appContainer.removeChild(localVideoEl); 
+    }
+  }
+
   localVideoEl = document.createElement('video');
   localVideoEl.setAttribute('autoplay', 'autoplay');
   localVideoEl.setAttribute('playsinline', 'playsinline');
-  // Cause zIndex - 1 failure
-  //localVideoEl.style.backgroundColor = 'purple';
+
+  // Note: Test CSS positioning
+  localVideoEl.style.backgroundColor = 'purple'; // Cause zIndex - 1 failure
   localVideoEl.style.position = 'absolute';
   localVideoEl.style.top = 0;
   localVideoEl.style.left = 0;
@@ -49,7 +64,7 @@ function TestGetUserMedia() {
       console.log('getMediaDevices.err', err);
   });
 
-  navigator.mediaDevices.getUserMedia({
+  return navigator.mediaDevices.getUserMedia({
     video: true,
     audio: true
     /*
@@ -69,11 +84,16 @@ function TestGetUserMedia() {
     console.log('getUserMedia.stream', stream);
     console.log('getUserMedia.stream.getTracks', stream.getTracks());
 
+    // Note: Expose for debug
     localStream = stream;
+
+    // Attach local stream to video element
     localVideoEl.srcObject = localStream;
 
+    // Test HTML over Video element
     TestPluginMediaStreamRenderer(localVideoEl);
-    TestRTCPeerConnection(localStream); 
+
+    return localStream;
    
   }).catch(function (err) {
     console.log('getUserMediaError', err, err.stack);
@@ -114,8 +134,10 @@ function TestPluginMediaStreamRenderer(localVideoEl) {
   // Test Video behind Element
   //
 
+  // Note: Test HTML over video requiring Z-Index -1 and transparent <html> and <body>
   document.body.style.background = "transparent";
   document.documentElement.style.background = "transparent";
+  localVideoEl.style.backgroundColor = '';
   localVideoEl.style.zIndex = -1;
 
   var overEl = document.createElement('button');
@@ -235,12 +257,36 @@ var peerVideoEl;
 var peerStream;
 function TestRTCPeerConnection(localStream) {
 
-  // Note: Deprecated TestaddStream
+  // Note: Support for Multiple TestRTCPeerConnection calls
+  if (peerStream) {
+    
+    // Close peer Stream if already connected
+    peerStream.stop();
+
+    // Clear peer video element
+    if (peerVideoEl.srcObject) {
+      peerVideoEl.srcObject = null;
+      appContainer.removeChild(peerVideoEl); 
+    }
+
+    // Disconnect peer
+    if (pc1.iceConnectionState === 'completed') {  
+      pc1.close();
+
+      // Current you cannot reuse previous RTCPeerConnection
+      pc1 = new RTCPeerConnection();
+      pc2 = new RTCPeerConnection();
+    }
+  }
+
+  // Note: Deprecated but supported
   //pc1.addStream(localStream);
 
   // Note: Deprecated Test removeStream
   // pc1.removeStream(pc1.getLocalStreams()[0])
 
+  // Note: Chrome Version 77.0.3865.90 (Official Build) still 
+  // require to use addStream without webrtc-adapter.
   localStream.getTracks().forEach(function (track) {
     console.log('addTrack', track);
     pc1.addTrack(track);
@@ -274,6 +320,11 @@ function TestRTCPeerConnection(localStream) {
     peerVideoEl = document.createElement('video');
     peerVideoEl.setAttribute('autoplay', 'autoplay');
     peerVideoEl.setAttribute('playsinline', 'playsinline');
+
+    // Note: Test Object-fix
+    peerVideoEl.style.objectFit = "cover";
+
+    // Note: Test CSS positioning
     peerVideoEl.style.backgroundColor = 'blue';
     peerVideoEl.style.position = 'fixed';
     peerVideoEl.style.width = "100px";
@@ -282,7 +333,10 @@ function TestRTCPeerConnection(localStream) {
     peerVideoEl.style.left = (window.innerWidth - parseInt(peerVideoEl.style.width, 10)) + 'px';
     appContainer.appendChild(peerVideoEl);
 
+    // Note: Expose for debug
     peerStream = e.stream;
+
+    // Attach peer stream to video element
     peerVideoEl.srcObject = peerStream;
   };
 
@@ -359,10 +413,14 @@ if (useWebRTCAdapter && typeof window.adapter === 'undefined') {
     document.getElementsByTagName("head")[0].appendChild(script);
     script.onload = function () {
       console.log('useWebRTCAdapter.loaded', script.src);
-      TestGetUserMedia();
+      TestGetUserMedia().then(function (localStream) {
+        TestRTCPeerConnection(localStream); 
+      });
     };
 } else {
-  TestGetUserMedia();
+  TestGetUserMedia().then(function (localStream) {
+    TestRTCPeerConnection(localStream); 
+  });
 }
 
 
