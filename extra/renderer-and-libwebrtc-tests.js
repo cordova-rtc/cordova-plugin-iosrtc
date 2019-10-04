@@ -249,6 +249,8 @@ function TestRTCPeerConnection(localStream) {
   // Note: Deprecated Test removeStream
   // pc1.removeStream(pc1.getLocalStreams()[0])
 
+  // Note: Chrome Version 77.0.3865.90 (Official Build) still 
+  // require to use addStream without webrtc-adapter.
   localStream.getTracks().forEach(function (track) {
     console.log('addTrack', track);
     pc1.addTrack(track);
