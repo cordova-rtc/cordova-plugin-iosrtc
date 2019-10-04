@@ -4,11 +4,11 @@ import Foundation
 fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
   switch (lhs, rhs) {
   case let (l?, r?):
-    return l < r
+	return l < r
   case (nil, _?):
-    return true
+	return true
   default:
-    return false
+	return false
   }
 }
 
@@ -17,9 +17,9 @@ fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
 fileprivate func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
   switch (lhs, rhs) {
   case let (l?, r?):
-    return l > r
+	return l > r
   default:
-    return rhs < lhs
+	return rhs < lhs
   }
 }
 
@@ -199,7 +199,7 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 
 		self.rtcDataChannel!.close()
 	}
-    
+	
 	static func stateToString(state: RTCDataChannelState) -> String {
 		switch state {
 		case RTCDataChannelState.connecting:
