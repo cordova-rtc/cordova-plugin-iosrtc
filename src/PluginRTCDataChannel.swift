@@ -274,14 +274,14 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 
 	func emitReceivedMessage(_ buffer: RTCDataBuffer) {
 		if !buffer.isBinary {
-			let string = NSString(
+			let message = NSString(
 				data: buffer.data,
 				encoding: String.Encoding.utf8.rawValue
 			)
 
 			self.eventListener!([
 				"type": "message",
-				"message": string as! String
+				"message": message! as String
 			])
 		} else {
 			self.eventListenerForBinaryMessage!(buffer.data)

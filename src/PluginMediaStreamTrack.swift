@@ -1,7 +1,7 @@
 import Foundation
 
 
-class PluginMediaStreamTrack : NSObject, RTCMediaStreamTrackDelegate {
+class PluginMediaStreamTrack : NSObject {
 	var rtcMediaStreamTrack: RTCMediaStreamTrack
 	var id: String
 	var kind: String

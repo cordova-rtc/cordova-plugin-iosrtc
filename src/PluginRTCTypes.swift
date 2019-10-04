@@ -31,8 +31,9 @@ struct PluginRTCTypes {
 		RTCDataChannelState.closed.rawValue:     "closed"
 	]
 
-//	static let mediaStreamTrackStates = [
-//		RTCTrackState.live.rawValue:              "live",
-//		RTCTrackState.ended.rawValue:             "ended"
-//	]
+	static let mediaStreamTrackStates = [
+		RTCMediaStreamTrackState.live.rawValue:		"live",
+		RTCMediaStreamTrackState.ended.rawValue:	"ended"
+	]
+
 }
