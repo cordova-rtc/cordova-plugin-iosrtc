@@ -353,7 +353,22 @@ function TestRTCPeerConnection(localStream) {
     console.log('pc1.iceGatheringStateChange', e);
   };
 
+  // https://stackoverflow.com/questions/48963787/failed-to-set-local-answer-sdp-called-in-wrong-state-kstable
+  // https://bugs.chromium.org/p/chromium/issues/detail?id=740501
+  var isNegotiating = false;
+  pc1.onsignalingstatechange = (e) => {
+    console.log('pc1.onsignalingstatechange', e);
+    isNegotiating = (pc1.signalingState != "stable")
+  };
+
   pc1.onnegotiationneeded = function (e) {
+
+    if (isNegotiating) {
+      console.log("SKIP nested negotiations");
+      return;
+    }
+    isNegotiating = true;
+
     console.log('pc1.negotiatioNeeded', e);
 
     return pc1.createOffer().then(function (d) {
