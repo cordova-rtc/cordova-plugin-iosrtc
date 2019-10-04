@@ -204,8 +204,8 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 
 		// if the zIndex is 0 (the default) bring the view to the top, last one wins
 		if zIndex == 0 {
-			self.webView?.superview?.bringSubviewToFront(self.elementView)
-			//self.webView.superview?.bringSubview(toFront: self.elementView)
+			self.webView?.bringSubviewToFront(self.elementView)
+			//self.webView?.bringSubview(toFront: self.elementView)
 		}
 
 		if !mirrored {
@@ -261,10 +261,6 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 	 * Methods inherited from RTCEAGLVideoViewDelegate.
 	 */
 	
-	func videoView(_ videoView: RTCVideoRenderer, didChange frame: RTCVideoFrame?) {
-		// TODO
-	}
-	
 	func videoView(_ videoView: RTCVideoRenderer, didChangeVideoSize size: CGSize) {
 	
 		NSLog("PluginMediaStreamRenderer | video size changed [width:%@, height:%@]",
@@ -277,5 +273,9 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 				"height": Int(size.height)
 			]
 		])
+	}
+	
+	func videoView(_ videoView: RTCVideoRenderer, didChange frame: RTCVideoFrame?) {
+		// TODO
 	}
 }

@@ -1,7 +1,7 @@
 import Foundation
 
-
 class PluginMediaStream : NSObject {
+	
 	var rtcMediaStream: RTCMediaStream
 	var id: String
 	var audioTracks: [String : PluginMediaStreamTrack] = [:]
@@ -10,16 +10,13 @@ class PluginMediaStream : NSObject {
 	var eventListenerForAddTrack: ((_ pluginMediaStreamTrack: PluginMediaStreamTrack) -> Void)?
 	var eventListenerForRemoveTrack: ((_ id: String) -> Void)?
 
-
 	/**
 	 * Constructor for pc.onaddstream event and getUserMedia().
 	 */
-	
 	init(rtcMediaStream: RTCMediaStream) {
 		NSLog("PluginMediaStream#init()")
-   
+
 		self.rtcMediaStream = rtcMediaStream
-		// ObjC API does not provide id property, so let's set a random one.
 		self.id = rtcMediaStream.streamId
 
 		for track: RTCMediaStreamTrack in (self.rtcMediaStream.audioTracks as Array<RTCMediaStreamTrack>) {
@@ -37,7 +34,6 @@ class PluginMediaStream : NSObject {
 		}
 	}
 
-
 	deinit {
 		NSLog("PluginMediaStream#deinit()")
 		for (id, _) in audioTracks {
@@ -52,13 +48,9 @@ class PluginMediaStream : NSObject {
 		}
 	}
 
-
 	func run() {
 		NSLog("PluginMediaStream#run()")
-
-		self.rtcMediaStream.delegate = self
 	}
-
 
 	func getJSON() -> NSDictionary {
 		let json: NSMutableDictionary = [
@@ -78,7 +70,6 @@ class PluginMediaStream : NSObject {
 		return json as NSDictionary
 	}
 
-
 	func setListener(
 		_ eventListener: @escaping (_ data: NSDictionary) -> Void,
 		eventListenerForAddTrack: ((_ pluginMediaStreamTrack: PluginMediaStreamTrack) -> Void)?,
@@ -90,7 +81,6 @@ class PluginMediaStream : NSObject {
 		self.eventListenerForAddTrack = eventListenerForAddTrack
 		self.eventListenerForRemoveTrack = eventListenerForRemoveTrack
 	}
-
 
 	func addTrack(_ pluginMediaStreamTrack: PluginMediaStreamTrack) -> Bool {
 		NSLog("PluginMediaStream#addTrack()")
@@ -108,7 +98,7 @@ class PluginMediaStream : NSObject {
 		}
 
 		//onAddTrack(pluginMediaStreamTrack)
-		return false
+		return true
 	}
 
 	func removeTrack(_ pluginMediaStreamTrack: PluginMediaStreamTrack) -> Bool {
@@ -130,100 +120,41 @@ class PluginMediaStream : NSObject {
 		return true
 	}
 
+	func onAddTrack(_ track: PluginMediaStreamTrack) {
+		NSLog("PluginMediaStream | OnAddTrack [label:%@]", String(track.id))
 
-	/**
-	 * Methods inherited from RTCMediaStreamDelegate.
-	 */
-
-
-	func onAddAudioTrack(_ rtcMediaStream: RTCMediaStream, track: RTCMediaStreamTrack) {
-		NSLog("PluginMediaStream | OnAddAudioTrack [label:%@]", String(track.trackId))
-
-		let pluginMediaStreamTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: track)
-
-		pluginMediaStreamTrack.run()
-		self.audioTracks[pluginMediaStreamTrack.id] = pluginMediaStreamTrack
+		track.run()
 
 		if self.eventListener != nil {
-			if self.eventListenerForAddTrack != nil {
-				self.eventListenerForAddTrack!(pluginMediaStreamTrack)
-			}
+			self.eventListenerForAddTrack!(track)
 
 			self.eventListener!([
 				"type": "addtrack",
-				"track": pluginMediaStreamTrack.getJSON()
+				"track": track.getJSON()
 			])
 		}
 	}
 
-
-	func onAddVideoTrack(_ rtcMediaStream: RTCMediaStream, track: RTCMediaStreamTrack) {
-		NSLog("PluginMediaStream | OnAddVideoTrack [label:%@]", String(track.trackId))
-
-		let pluginMediaStreamTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: track)
-
-		pluginMediaStreamTrack.run()
-		self.videoTracks[pluginMediaStreamTrack.id] = pluginMediaStreamTrack
-
-		if self.eventListener != nil {
-			if self.eventListenerForAddTrack != nil {
-				self.eventListenerForAddTrack!(pluginMediaStreamTrack)
-			}
-
-			self.eventListener!([
-				"type": "addtrack",
-				"track": pluginMediaStreamTrack.getJSON()
-			])
-		}
-	}
-
-
-	func onRemoveAudioTrack(_ rtcMediaStream: RTCMediaStream, track: RTCMediaStreamTrack) {
-		NSLog("PluginMediaStream | OnRemoveAudioTrack [label:%@]", String(track.trackId))
+	func onRemoveTrack(_ track: PluginMediaStreamTrack) {
+		NSLog("PluginMediaStream | OnRemoveTrack [label:%@]", String(track.id))
 
 		// It may happen that track was removed due to user action (removeTrack()).
-		if self.audioTracks[track.trackId] == nil {
+		if self.audioTracks[track.id] != nil {
+			self.audioTracks[track.id] = nil
+		} else if self.videoTracks[track.id] != nil {
+			self.videoTracks[track.id] = nil
+		} else {
 			return
 		}
 
-		self.audioTracks[track.trackId] = nil
-
 		if self.eventListener != nil {
-			if self.eventListenerForRemoveTrack != nil {
-				self.eventListenerForRemoveTrack!(track.trackId)
-			}
+			self.eventListenerForRemoveTrack!(track.id)
 
 			self.eventListener!([
 				"type": "removetrack",
 				"track": [
-					"id": track.trackId,
-					"kind": "audio"
-				]
-			])
-		}
-	}
-
-
-	func onRemoveVideoTrack(_ rtcMediaStream: RTCMediaStream, track: RTCMediaStreamTrack) {
-		NSLog("PluginMediaStream | OnRemoveVideoTrack [label:%@]", String(track.trackId))
-
-		// It may happen that track was removed due to user action (removeTrack()).
-		if self.videoTracks[track.trackId] == nil {
-			return
-		}
-
-		self.videoTracks[track.trackId] = nil
-
-		if self.eventListener != nil {
-			if self.eventListenerForRemoveTrack != nil {
-				self.eventListenerForRemoveTrack!(track.trackId)
-			}
-
-			self.eventListener!([
-				"type": "removetrack",
-				"track": [
-					"id": track.trackId,
-					"kind": "video"
+					"id": track.id,
+					"kind": track.kind
 				]
 			])
 		}
