@@ -1,3 +1,5 @@
+![cordova-rtc-logo](https://raw.githubusercontent.com/cordova-rtc/cordova-plugin-iosrtc/master/art/cordova-rtc-logo.png)
+
 # cordova-plugin-iosrtc
 
 [![npm version](https://img.shields.io/npm/v/cordova-plugin-iosrtc.svg?style=flat)](https://www.npmjs.com/package/cordova-plugin-iosrtc)
