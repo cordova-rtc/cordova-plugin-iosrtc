@@ -2717,10 +2717,10 @@ function selectAudioOutput(output) {
 	}
 }
 
-function turnOnSpeaker(isTurnOn, needRecord) {
-	debug('turnOnSpeaker() | [isTurnOn:"%s", needRecord:"%s"]', isTurnOn, needRecord);
+function turnOnSpeaker(isTurnOn) {
+	debug('turnOnSpeaker() | [isTurnOn:"%s"]', isTurnOn);
 
-	exec(null, null, 'iosrtcPlugin', "RTCTurnOnSpeaker", [isTurnOn, needRecord]);
+	exec(null, null, 'iosrtcPlugin', "RTCTurnOnSpeaker", [isTurnOn]);
 }
 
 function requestPermission(needMic, needCamera, callback) {
