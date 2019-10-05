@@ -2352,35 +2352,36 @@ function getUserMedia(constraints) {
 	var
 		audioRequested = false,
 		videoRequested = false,
-		newConstraints = {
-			audio: false,
-			video: false
-		};
+		newConstraints = {};
 
 	if (
 		typeof constraints !== 'object' ||
-		(!constraints.hasOwnProperty('audio') && !constraints.hasOwnProperty('video'))
+			(!constraints.hasOwnProperty('audio') && !constraints.hasOwnProperty('video'))
 	) {
 		return new Promise(function (resolve, reject) {
 			reject(new Errors.MediaStreamError('constraints must be an object with at least "audio" or "video" keys'));
 		});
 	}
 
-	if (constraints.audio) {
+	if (newConstraints.audio) {
 		audioRequested = true;
-		newConstraints.audio = true;
-	}
-	if (constraints.video) {
-		videoRequested = true;
-		newConstraints.video = true;
 	}
 
+	if (constraints.video) {
+		videoRequested = true;
+	}
+
+	// https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints
 	// Example:
 	//
 	// getUserMedia({
-	//  audio: true,
+	//  audio: {
+	//  	deviceId: 'azer-asdf-zxcv',
+	//  },
 	//  video: {
 	//  	deviceId: 'qwer-asdf-zxcv',
+	//      aspectRatio: 1.777.
+	//      facingMode: 'user',
 	//  	width: {
 	//  		min: 400,
 	//  		max: 600
@@ -2392,67 +2393,200 @@ function getUserMedia(constraints) {
 	//  }
 	// });
 
+	/*
+	// See: https://www.w3.org/TR/mediacapture-streams/#media-track-constraints
+	dictionary MediaTrackConstraintSet {
+	 ConstrainULong     width;
+	 ConstrainULong     height;
+	 ConstrainDouble    aspectRatio;
+	 ConstrainDouble    frameRate;
+	 ConstrainDOMString facingMode;
+	 ConstrainDOMString resizeMode;
+	 ConstrainULong     sampleRate;
+	 ConstrainULong     sampleSize;
+	 ConstrainBoolean   echoCancellation;
+	 ConstrainBoolean   autoGainControl;
+	 ConstrainBoolean   noiseSuppression;
+	 ConstrainDouble    latency;
+	 ConstrainULong     channelCount;
+	 ConstrainDOMString deviceId;
+	 ConstrainDOMString groupId;
+	};
+	 
+	 // typedef ([Clamp] unsigned long or ConstrainULongRange) ConstrainULong;
+	 // We convert unsigned long to ConstrainULongRange.exact
+
+	 dictionary ULongRange {
+		[Clamp] unsigned long max;
+		[Clamp] unsigned long min;
+	 };
+
+	 dictionary ConstrainULongRange : ULongRange {
+		  [Clamp] unsigned long exact;
+		  [Clamp] unsigned long ideal;
+	 };
+	 
+	 // See: https://www.w3.org/TR/mediacapture-streams/#dom-doublerange
+	 // typedef (double or ConstrainDoubleRange) ConstrainDouble;
+	 // We convert double to ConstrainDoubleRange.exact
+	 dictionary ConstrainDouble {
+		double max;
+		double min;
+	 };
+	 
+	 dictionary ConstrainDoubleRange : DoubleRange {
+		double exact;
+		double ideal;
+	 };
+	 
+	 // typedef (boolean or ConstrainBooleanParameters) ConstrainBoolean;
+	 dictionary ConstrainBooleanParameters {
+		boolean exact;
+		boolean ideal;
+	 };
+	 
+	 // typedef (DOMString or sequence<DOMString> or ConstrainDOMStringParameters) ConstrainDOMString;
+	 // We convert DOMString to ConstrainDOMStringParameters.exact
+	 dictionary ConstrainDOMStringParameters {
+		(DOMString or sequence<DOMString>) exact;
+		(DOMString or sequence<DOMString>) ideal;
+	 };
+	*/
+
 	// Get video constraints
 	if (videoRequested) {
+		// Handle object video constraints
+		newConstraints.video = {};
+
 		// Get requested video deviceId.
 		if (typeof constraints.video.deviceId === 'string') {
-			newConstraints.videoDeviceId = constraints.video.deviceId;
-		// Also check sourceId (mangled by adapter.js).
+			newConstraints.video.deviceId = {
+				exact: constraints.video.deviceId
+			};
+
+		// Also check video sourceId (mangled by adapter.js).
 		} else if (typeof constraints.video.sourceId === 'string') {
-			newConstraints.videoDeviceId = constraints.video.sourceId;
+			newConstraints.video.deviceId = {
+				exact: constraints.video.sourceId
+			};
+
+		// Also check deviceId.(exact|ideal)
 		} else if (typeof constraints.video.deviceId === 'object') {
-			newConstraints.videoDeviceId = !!constraints.video.deviceId.exact ? constraints.video.deviceId.exact : constraints.video.deviceId.ideal;
-			if (Array.isArray(newConstraints.videoDeviceId)) {
-				newConstraints.videoDeviceId = newConstraints.videoDeviceId[0];
+			if (!!constraints.video.deviceId.exact) {
+				newConstraints.video.deviceId = {
+					exact: Array.isArray(constraints.video.deviceId.exact) ? 
+						constraints.video.deviceId.exact[0] : constraints.video.deviceId.exact
+				};
+			} else if (!!constraints.video.deviceId.ideal) {
+				newConstraints.video.deviceId = {
+					ideal: Array.isArray(constraints.video.deviceId.ideal) ? 
+							constraints.video.deviceId.ideal[0] : constraints.video.deviceId.ideal
+				};
 			}
 		}
 
-		// Get requested min/max width.
+		// Get requested width min/max, exact.
 		if (typeof constraints.video.width === 'object') {
+			newConstraints.video.width = {};
 			if (isPositiveInteger(constraints.video.width.min)) {
-				newConstraints.videoMinWidth = constraints.video.width.min;
+				newConstraints.video.width.min = constraints.video.width.min;
 			}
 			if (isPositiveInteger(constraints.video.width.max)) {
-				newConstraints.videoMaxWidth = constraints.video.width.max;
+				newConstraints.video.width.max = constraints.video.width.max;
 			}
+			// TODO exact, ideal
+
+		// Get requested width long as exact
+		} else if (isPositiveFloat(constraints.video.width)) {
+			newConstraints.video.width = {
+				exact: constraints.video.width
+			};
 		}
-		// Get requested min/max height.
+
+		// Get requested height min/max, exact.
 		if (typeof constraints.video.height === 'object') {
+			newConstraints.video.height = {};
 			if (isPositiveInteger(constraints.video.height.min)) {
-				newConstraints.videoMinHeight = constraints.video.height.min;
+				newConstraints.video.height.min = constraints.video.height.min;
 			}
 			if (isPositiveInteger(constraints.video.height.max)) {
-				newConstraints.videoMaxHeight = constraints.video.height.max;
+				newConstraints.video.height.max = constraints.video.height.max;
 			}
+			// TODO exact, ideal
+
+		// Get requested height long as exact
+		} else if (isPositiveFloat(constraints.video.height)) {
+			newConstraints.video.height = {
+				exact: constraints.video.height
+			};
 		}
-		// Get requested min/max frame rate.
+
+		// Get requested frameRate min/max.
 		if (typeof constraints.video.frameRate === 'object') {
+			newConstraints.video.frameRate = {};
 			if (isPositiveFloat(constraints.video.frameRate.min)) {
-				newConstraints.videoMinFrameRate = constraints.video.frameRate.min;
+				newConstraints.video.frameRate.min = constraints.video.frameRate.min;
 			}
 			if (isPositiveFloat(constraints.video.frameRate.max)) {
-				newConstraints.videoMaxFrameRate = constraints.video.frameRate.max;
+				newConstraints.video.frameRate.max = constraints.video.frameRate.max;
 			}
+			// TODO exact, ideal
+
+		// Get requested frameRate double as exact
 		} else if (isPositiveFloat(constraints.video.frameRate)) {
-			newConstraints.videoMinFrameRate = constraints.video.frameRate;
-			newConstraints.videoMaxFrameRate = constraints.video.frameRate;
+			newConstraints.video.frameRate = {
+				exact: constraints.video.frameRate
+			};
+		}
+
+		// get aspectRatio (e.g 1.7777777777777777)
+		// TODO ConstrainDouble min, max
+		if (isPositiveFloat(constraints.video.aspectRatio)) {
+			newConstraints.video.aspectRatio = {
+				exact: constraints.video.aspectRatio
+			};
+		}
+
+		// get facingMode (e.g environment, user)
+		// TODO ConstrainDOMStringParameters ideal, exact
+		if (typeof constraints.video.facingMode === 'string') {
+			newConstraints.video.facingMode = {
+				exact: constraints.video.facingMode
+			};
 		}
 	}
 
 	// Get audio constraints
 	if (audioRequested) {
+		// Handle object audio constraints
+		newConstraints.audio = {};
+
 		// Get requested audio deviceId.
 		if (typeof constraints.audio.deviceId === 'string') {
-			newConstraints.audioDeviceId = constraints.audio.deviceId;
-		// Also check sourceId (mangled by adapter.js).
+			newConstraints.audio.deviceId = {
+				exact: constraints.audio.deviceId
+			};
+
+		// Also check audio sourceId (mangled by adapter.js).
 		} else if (typeof constraints.audio.sourceId === 'string') {
-			newConstraints.audioDeviceId = constraints.audio.sourceId;
+			newConstraints.audio.deviceId = {
+				exact: constraints.audio.sourceId
+			};
+
+		// Also check deviceId.(exact|ideal)
 		} else if (typeof constraints.audio.deviceId === 'object') {
-			newConstraints.audioDeviceId = !!constraints.audio.deviceId.exact ? constraints.audio.deviceId.exact : constraints.audio.deviceId.ideal;
-			if (Array.isArray(newConstraints.audioDeviceId)) {
-				newConstraints.audioDeviceId = newConstraints.audioDeviceId[0];
+			if (!!constraints.audio.deviceId.exact) {
+				newConstraints.audio.deviceId = {
+					exact: Array.isArray(constraints.audio.deviceId.exact) ? 
+						constraints.audio.deviceId.exact[0] : constraints.audio.deviceId.exact
+				};
+			} else if (!!constraints.audio.deviceId.ideal) {
+				newConstraints.audio.deviceId = {
+					ideal: Array.isArray(constraints.audio.deviceId.ideal) ? 
+							constraints.audio.deviceId.ideal[0] : constraints.audio.deviceId.ideal
+				};
 			}
-		}
+		}	
 	}
 
 	debug('[computed constraints:%o]', newConstraints);
