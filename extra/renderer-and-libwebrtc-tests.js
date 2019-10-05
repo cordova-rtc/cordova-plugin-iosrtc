@@ -1,4 +1,5 @@
 /* global RTCPeerConnection */
+// jshint unused:false
 
 var cordova = window.cordova;
 
@@ -164,59 +165,6 @@ function TestPluginMediaStreamRenderer(localVideoEl) {
   overEl.style.top  = ((window.innerHeight / 2) - parseInt(overEl.style.height, 10)) + 'px';
 
 }
-
-
-var canvasEl;
-function TestMediaRenderCatpure(videoEl) {
-
-  if (!canvasEl) {       
-    canvasEl = document.createElement('canvas');
-  }
-
-  var ctx = canvasEl.getContext("2d");
-  canvasEl.style.position = 'absolute';
-  canvasEl.style.left = 0;
-  canvasEl.style.bottom = 0;
-  appContainer.appendChild(canvasEl);
-  var image = new Image();
-  image.addEventListener('load', function() {
-    canvasEl.width = image.width;
-    canvasEl.height = image.height;
-    ctx.drawImage(image, 0, 0);
-  });
-  videoEl.render.save(function (data) {
-    image.src = "data:image/jpg;base64," + data;
-  });
-} 
-
-var testMediaRenderCatpureAnimateFrame
-function TestMediaRenderCatpureAnimate() {
-  TestMediaRenderCatpure(peerVideoEl)
-  testMediaRenderCatpureAnimateFrame = requestAnimationFrame(TestMediaRenderCatpureAnimate);
-}
-
-/*
-// Disabled to avoid confusion with remoteStream
-var cloneStream;
-var cloneVideoEl;
-function TestPluginMediaStreamClone(mediaStream) {
-  cloneVideoEl = document.createElement('video');
-  cloneVideoEl.setAttribute('autoplay', 'autoplay');
-  cloneVideoEl.setAttribute('playsinline', 'playsinline');
-  cloneVideoEl.style.backgroundColor = 'purple';
-  cloneVideoEl.style.position = 'absolute';
-  cloneVideoEl.style.bottom = 0;
-  cloneVideoEl.style.left = 0;
-  cloneVideoEl.style.width = "100px";
-  cloneVideoEl.style.height = "100px";
-  cloneVideoEl.style.transform = "scaleX(-1)";
-
-  cloneStream = mediaStream.clone();
-  cloneVideoEl.srcObject = cloneStream;
-
-  appContainer.appendChild(cloneVideoEl);
-}
-*/
 
 //
 // Test RTCPeerConnection
@@ -423,6 +371,56 @@ function TestRTCPeerConnection(localStream) {
   });
 }
 
+var canvasEl;
+function TestMediaRenderCatpure(videoEl) {
+
+  if (!canvasEl) {       
+    canvasEl = document.createElement('canvas');
+  }
+
+  var ctx = canvasEl.getContext("2d");
+  canvasEl.style.position = 'absolute';
+  canvasEl.style.left = 0;
+  canvasEl.style.bottom = 0;
+  appContainer.appendChild(canvasEl);
+  var image = new Image();
+  image.addEventListener('load', function() {
+    canvasEl.width = image.width;
+    canvasEl.height = image.height;
+    ctx.drawImage(image, 0, 0);
+  });
+  videoEl.render.save(function (data) {
+    image.src = "data:image/jpg;base64," + data;
+  });
+} 
+
+var testMediaRenderCatpureAnimateFrame;
+function TestMediaRenderCatpureAnimate() {
+  TestMediaRenderCatpure(peerVideoEl);
+  testMediaRenderCatpureAnimateFrame = requestAnimationFrame(TestMediaRenderCatpureAnimate);
+}
+
+
+// Disabled to avoid confusion with remoteStream
+var cloneStream;
+var cloneVideoEl;
+function TestPluginMediaStreamClone(mediaStream) {
+  cloneVideoEl = document.createElement('video');
+  cloneVideoEl.setAttribute('autoplay', 'autoplay');
+  cloneVideoEl.setAttribute('playsinline', 'playsinline');
+  cloneVideoEl.style.backgroundColor = 'purple';
+  cloneVideoEl.style.position = 'absolute';
+  cloneVideoEl.style.bottom = 0;
+  cloneVideoEl.style.left = 0;
+  cloneVideoEl.style.width = "100px";
+  cloneVideoEl.style.height = "100px";
+  cloneVideoEl.style.transform = "scaleX(-1)";
+
+  cloneStream = mediaStream.clone();
+  cloneVideoEl.srcObject = cloneStream;
+
+  appContainer.appendChild(cloneVideoEl);
+}
 
 var useWebRTCAdapter = false;
 
