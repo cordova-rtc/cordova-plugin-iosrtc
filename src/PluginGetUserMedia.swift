@@ -20,28 +20,25 @@ class PluginGetUserMedia {
 		errback: (_ error: String) -> Void,
 		eventListenerForNewStream: (_ pluginMediaStream: PluginMediaStream) -> Void
 	) {
+
 		NSLog("PluginGetUserMedia#call()")
 
-		let    audioRequested = constraints.object(forKey: "audio") as? Bool ?? false
-		let    videoRequested = constraints.object(forKey: "video") as? Bool ?? false
-		let    videoDeviceId = constraints.object(forKey: "videoDeviceId") as? String
-		let    audioDeviceId = constraints.object(forKey: "audioDeviceId") as? String
-		let    videoMinWidth = constraints.object(forKey: "videoMinWidth") as? Int ?? 0
-		let    videoMaxWidth = constraints.object(forKey: "videoMaxWidth") as? Int ?? 640
-		let    videoMinHeight = constraints.object(forKey: "videoMinHeight") as? Int ?? 0
-		let    videoMaxHeight = constraints.object(forKey: "videoMaxHeight") as? Int ?? 640
-		let    videoMinFrameRate = constraints.object(forKey: "videoMinFrameRate") as? Float ?? 0.0
-		let    videoMaxFrameRate = constraints.object(forKey: "videoMaxFrameRate") as? Float ?? 25.0
+		var videoRequested: Bool = false
+		var audioRequested: Bool = false
+
+		if (constraints.object(forKey: "video") != nil) {
+			videoRequested = true
+		}
+		
+		if constraints.object(forKey: "audio") != nil {
+			audioRequested = true
+		}
 
 		var rtcMediaStream: RTCMediaStream
 		var pluginMediaStream: PluginMediaStream?
 		var rtcAudioTrack: RTCAudioTrack?
 		var rtcVideoTrack: RTCVideoTrack?
-		var rtcVideoCapturer: RTCCameraVideoCapturer?
 		var rtcVideoSource: RTCVideoSource?
-		var videoDevice: AVCaptureDevice?
-		var mandatoryConstraints: [String: String] = [:]
-		var constraints: RTCMediaConstraints
 
 		if videoRequested == true {
 			switch AVCaptureDevice.authorizationStatus(for: AVMediaType.video) {
@@ -79,64 +76,25 @@ class PluginGetUserMedia {
 
 		rtcMediaStream = self.rtcPeerConnectionFactory.mediaStream(withStreamId: UUID().uuidString)
 
-		if videoRequested == true {
-			// No specific video device requested.
-			if videoDeviceId == nil {
-				NSLog("PluginGetUserMedia#call() | video requested (device not specified)")
-				videoDevice = AVCaptureDevice.DiscoverySession.init(deviceTypes: [AVCaptureDevice.DeviceType.builtInWideAngleCamera, AVCaptureDevice.DeviceType.builtInDualCamera], mediaType: AVMediaType.video, position: AVCaptureDevice.Position.front).devices[0]
-			}
-			// Video device specified.
-			if videoDeviceId != nil {
-				NSLog("PluginGetUserMedia#call() | video requested (specified device id: '%@')", String(videoDeviceId!))
-				let videoDevices: [AVCaptureDevice] = AVCaptureDevice.DiscoverySession.init(deviceTypes: [AVCaptureDevice.DeviceType.builtInWideAngleCamera, AVCaptureDevice.DeviceType.builtInDualCamera], mediaType: AVMediaType.video, position: AVCaptureDevice.Position.unspecified).devices
-				for device: AVCaptureDevice in videoDevices {
-					if device.uniqueID == videoDeviceId {
-						videoDevice = device
-					}
-				}
-			}
-
-			if videoDevice == nil {
-				NSLog("PluginGetUserMedia#call() | video requested but no suitable device found")
-				
-				errback("no suitable camera device found")
-				return
-			}
-
-			NSLog("PluginGetUserMedia#call() | chosen video device: %@", String(describing: videoDevice!))
-			
-			if videoMinWidth > 0 {
-				NSLog("PluginGetUserMedia#call() | adding media constraint [minWidth:%@]", String(videoMinWidth))
-				mandatoryConstraints["minWidth"] = String(videoMinWidth)
-			}
-			if videoMaxWidth > 0 {
-				NSLog("PluginGetUserMedia#call() | adding media constraint [maxWidth:%@]", String(videoMaxWidth))
-				mandatoryConstraints["maxWidth"] = String(videoMaxWidth)
-			}
-			if videoMinHeight > 0 {
-				NSLog("PluginGetUserMedia#call() | adding media constraint [minHeight:%@]", String(videoMinHeight))
-				mandatoryConstraints["minHeight"] = String(videoMinHeight)
-			}
-			if videoMaxHeight > 0 {
-				NSLog("PluginGetUserMedia#call() | adding media constraint [maxHeight:%@]", String(videoMaxHeight))
-				mandatoryConstraints["maxHeight"] = String(videoMaxHeight)
-			}
-			if videoMinFrameRate > 0 {
-				NSLog("PluginGetUserMedia#call() | adding media constraint [videoMinFrameRate:%@]", String(videoMinFrameRate))
-				mandatoryConstraints["minFrameRate"] = String(videoMinFrameRate)
-			}
-			if videoMaxFrameRate > 0 {
-				NSLog("PluginGetUserMedia#call() | adding media constraint [videoMaxFrameRate:%@]", String(videoMaxFrameRate))
-				mandatoryConstraints["maxFrameRate"] = String(videoMaxFrameRate)
-			}
-
-			constraints = RTCMediaConstraints(
-				mandatoryConstraints: mandatoryConstraints,
-				optionalConstraints: [:]
-			)
+		if videoRequested {
 
 			rtcVideoSource = self.rtcPeerConnectionFactory.videoSource()
-			
+
+			rtcVideoTrack = self.rtcPeerConnectionFactory.videoTrack(with: rtcVideoSource!, trackId: UUID().uuidString)
+
+			let videoConstraints = constraints.object(forKey: "video") as! NSDictionary
+
+			NSLog("PluginGetUserMedia#call() | chosen video constraints: %@", videoConstraints)
+
+// Ingore Simulator cause does not support Camera
+#if !TARGET_IPHONE_SIMULATOR
+			let videoCapturer: RTCCameraVideoCapturer = RTCCameraVideoCapturer(delegate: rtcVideoSource!)
+			let videoCaptureController: PluginRTCVideoCaptureController = PluginRTCVideoCaptureController(capturer: videoCapturer)
+			rtcVideoTrack!.videoCaptureController = videoCaptureController
+			videoCaptureController.setConstraints(constraints: videoConstraints)
+			videoCaptureController.startCapture()
+#endif
+
 			// If videoSource state is "ended" it means that constraints were not satisfied so
 			// invoke the given errback.
 			if (rtcVideoSource!.state == RTCSourceState.ended) {
@@ -146,33 +104,20 @@ class PluginGetUserMedia {
 				return
 			}
 
-			rtcVideoTrack = self.rtcPeerConnectionFactory.videoTrack(with: rtcVideoSource!,trackId: UUID().uuidString)
-			
-			#if !TARGET_IPHONE_SIMULATOR
-				rtcVideoCapturer = RTCCameraVideoCapturer(delegate: rtcVideoSource!)
-
-				// TODO use constraints
-				let formats: [AVCaptureDevice.Format] = RTCCameraVideoCapturer.supportedFormats(for: videoDevice!);
-				
-				rtcVideoCapturer?.startCapture(
-					with: videoDevice!,
-					format: formats[0],
-					fps: Int(videoMaxFrameRate)
-				)
-			#endif
-
 			rtcMediaStream.addVideoTrack(rtcVideoTrack!)
 		}
 
 		if audioRequested == true {
+
+			let audioConstraints = constraints.object(forKey: "audio") as! NSDictionary
+			let audioDeviceId = audioConstraints.object(forKey: "deviceId") as? String
+			
 			NSLog("PluginGetUserMedia#call() | audio requested")
 
-			// TODO source: rtcAudioSource
 			rtcAudioTrack = self.rtcPeerConnectionFactory.audioTrack(withTrackId: UUID().uuidString)
 
 			rtcMediaStream.addAudioTrack(rtcAudioTrack!)
 
-			// TODO do we save
 			if (audioDeviceId != nil) {
 				PluginEnumerateDevices.saveAudioDevice(inputDeviceUID: audioDeviceId!)
 			}

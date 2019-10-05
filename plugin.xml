@@ -65,6 +65,7 @@
 		<source-file src="src/PluginUtils.swift" />
 		<source-file src="src/PluginMediaStreamRenderer.swift" />
 		<source-file src="src/PluginRTCAudioOutputController.swift" />
+		<source-file src="src/PluginRTCVideoCaptureController.swift" />
 
 		<!-- iOS shared dependencies -->
 		<framework src="AVFoundation.framework" />
