@@ -137,8 +137,6 @@ var pc1 = new RTCPeerConnection(),
 var peerVideoEl, peerStream;
 function TestRTCPeerConnection(localStream) {
 
-  pc1.addStream(localStream);
-
   // Note: Deprecated but supported
   //pc1.addStream(localStream);
 
