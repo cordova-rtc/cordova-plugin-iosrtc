@@ -2,6 +2,7 @@ import Foundation
 
 
 class PluginRTCDTMFSender : NSObject { //, RTCDTMFSenderDelegate
+	// TODO fix "Use of undeclared type 'RTCDTMFSender'"
 	//var rtcDTMFSender: RTCDTMFSender?
 	var eventListener: ((_ data: NSDictionary) -> Void)?
 
