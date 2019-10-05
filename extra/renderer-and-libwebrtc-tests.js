@@ -168,22 +168,32 @@ function TestPluginMediaStreamRenderer(localVideoEl) {
 
 var canvasEl;
 function TestMediaRenderCatpure(videoEl) {
-  canvasEl = document.createElement('canvas');
+
+  if (!canvasEl) {       
+    canvasEl = document.createElement('canvas');
+  }
+
   var ctx = canvasEl.getContext("2d");
-  canvasEl.width = "100";
-  canvasEl.height = "100";
   canvasEl.style.position = 'absolute';
   canvasEl.style.left = 0;
   canvasEl.style.bottom = 0;
   appContainer.appendChild(canvasEl);
   var image = new Image();
-  image.onload = function() {
-    ctx.drawImage(image, 0, 0, 0, 0);
-  };
+  image.addEventListener('load', function() {
+    canvasEl.width = image.width;
+    canvasEl.height = image.height;
+    ctx.drawImage(image, 0, 0);
+  });
   videoEl.render.save(function (data) {
     image.src = "data:image/jpg;base64," + data;
   });
 } 
+
+var testMediaRenderCatpureAnimateFrame
+function TestMediaRenderCatpureAnimate() {
+  TestMediaRenderCatpure(peerVideoEl)
+  testMediaRenderCatpureAnimateFrame = requestAnimationFrame(TestMediaRenderCatpureAnimate);
+}
 
 /*
 // Disabled to avoid confusion with remoteStream
@@ -226,31 +236,31 @@ var sendChannel, receiveChannel;
 function TestPeerDataChannel() {
   sendChannel = pc1.createDataChannel("sendChannel");
 
-  sendChannel.onmessage  = function (event) {
-    console.log('sendChannel.onmessage', event, event.data);
-  };
+  sendChannel.addEventListener('message',  function (event) {
+    console.log('sendChannel.message', event, event.data);
+  });
 
-  sendChannel.onopen = function (event) {
-      console.log('sendChannel.onopen', event);
+  sendChannel.addEventListener('open', function (event) {
+      console.log('sendChannel.open', event);
       sendChannel.send("data message Date: " + new Date());
-  };
+  });
 
-  sendChannel.onclose = function (event) {
-      console.log('sendChannel.onclose', event);
-  };
+  sendChannel.addEventListener('close', function (event) {
+      console.log('sendChannel.close', event);
+  });
 
-  pc2.ondatachannel = function (event) {
+  pc2.addEventListener('datachannel', function (event) {
     receiveChannel = event.channel;
-    receiveChannel.onmessage  = function (event) {
-      console.log('receiveChannel.onmessage', event, event.data);
-    };
-    receiveChannel.onopen  = function (event) {
-      console.log('receiveChannel.onopen', event);
-    };
-    receiveChannel.onclose  = function (event) {
-      console.log('receiveChannel.onclose', event);
-    };
-  };
+    receiveChannel.addEventListener('message',  function (event) {
+      console.log('receiveChannel.message', event, event.data);
+    });
+    receiveChannel.addEventListener('open',  function (event) {
+      console.log('receiveChannel.open', event);
+    });
+    receiveChannel.addEventListener('close',  function (event) {
+      console.log('receiveChannel.close', event);
+    });
+  });
 }
 
 var peerVideoEl;
@@ -299,23 +309,23 @@ function TestRTCPeerConnection(localStream) {
     });
   }
 
-  pc1.onicecandidate = function (e) {
+  pc1.addEventListener('icecandidate', function (e) {
     onAddIceCandidate(pc2, e.candidate);
-  };
+  });
   
-  pc2.onicecandidate = function (e) {
+  pc2.addEventListener('icecandidate', function (e) {
     onAddIceCandidate(pc1, e.candidate);
-  };
+  });
 
-  pc2.ontrack = function (e) {
+  pc2.addEventListener('track', function (e) {
     console.log('pc2.track', e);
-  };
+  });
 
-  pc2.onremovetrack = function (e) {
+  pc2.addEventListener('removetrack', function (e) {
     console.log('pc2.removeTrack', e);
-  };
+  });
 
-  pc2.onaddstream = function (e) {
+  pc2.addEventListener('addstream', function (e) {
     console.log('pc2.addStream', e);
     peerVideoEl = document.createElement('video');
     peerVideoEl.setAttribute('autoplay', 'autoplay');
@@ -338,33 +348,34 @@ function TestRTCPeerConnection(localStream) {
 
     // Attach peer stream to video element
     peerVideoEl.srcObject = peerStream;
-  };
+  });
 
-  pc1.oniceconnectionstatechange = function (e) {
+  pc1.addEventListener('iceconnectionstatechange', function (e) {
     console.log('pc1.iceConnectionState', e, pc1.iceConnectionState);
 
     if (pc1.iceConnectionState === 'completed') {      
       console.log('pc1.getSenders', pc1.getSenders());
       console.log('pc2.getReceivers', pc2.getReceivers());
     }
-  };
+  });
 
-  pc1.onicegatheringstatechange = function (e) {
+  pc1.addEventListener('icegatheringstatechange', function (e) {
     console.log('pc1.iceGatheringStateChange', e);
-  };
+  });
 
   // https://stackoverflow.com/questions/48963787/failed-to-set-local-answer-sdp-called-in-wrong-state-kstable
   // https://bugs.chromium.org/p/chromium/issues/detail?id=740501
   var isNegotiating = false;
-  pc1.onsignalingstatechange = (e) => {
-    console.log('pc1.onsignalingstatechange', e);
-    isNegotiating = (pc1.signalingState != "stable")
-  };
+  pc1.addEventListener('signalingstatechange', function (e) {
+    console.log('pc1.signalingstatechange',  e);
+    isNegotiating = (pc1.signalingState !== "stable");
+  });
 
-  pc1.onnegotiationneeded = function (e) {
+  pc1.addEventListener('negotiationneeded', function (e) {
 
     if (isNegotiating) {
-      console.log("SKIP nested negotiations");
+      // Should not trigger on iosrtc cause of PluginRTCPeerConnection.swift fix
+      console.log("pc1.negotiatioNeeded", "SKIP nested negotiations");
       return;
     }
     isNegotiating = true;
@@ -409,7 +420,7 @@ function TestRTCPeerConnection(localStream) {
     }).catch(function (err) {
       console.log('pc1.createOfferError', err);
     });
-  };
+  });
 }
 
 
@@ -426,12 +437,12 @@ if (useWebRTCAdapter && typeof window.adapter === 'undefined') {
     script.src = "https://webrtc.github.io/adapter/adapter-" + version + ".js";
     script.async = false;
     document.getElementsByTagName("head")[0].appendChild(script);
-    script.onload = function () {
+    script.addEventListener('load', function () {
       console.log('useWebRTCAdapter.loaded', script.src);
       TestGetUserMedia().then(function (localStream) {
         TestRTCPeerConnection(localStream); 
       });
-    };
+    });
 } else {
   TestGetUserMedia().then(function (localStream) {
     TestRTCPeerConnection(localStream); 
