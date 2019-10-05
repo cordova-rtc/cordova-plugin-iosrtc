@@ -667,7 +667,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 				"protocol": rtcDataChannel.`protocol`,
 				"negotiated": rtcDataChannel.isNegotiated,
 				"id": rtcDataChannel.channelId,
-				"readyState": pluginRTCDataChannel.getState(),
+				"readyState": PluginRTCTypes.dataChannelStates[rtcDataChannel.readyState.rawValue] as Any,
 				"bufferedAmount": rtcDataChannel.bufferedAmount
 			]
 		])
