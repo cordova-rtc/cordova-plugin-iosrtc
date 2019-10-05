@@ -45,7 +45,7 @@ function getUserMedia(constraints) {
 		});
 	}
 
-	if (newConstraints.audio) {
+	if (constraints.audio) {
 		audioRequested = true;
 	}
 
