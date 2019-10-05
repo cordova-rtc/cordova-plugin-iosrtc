@@ -106,7 +106,7 @@ function selectAudioOutput(output) {
 }
 
 function turnOnSpeaker(isTurnOn) {
-	debug('turnOnSpeaker() | [isTurnOn:"%s", needRecord:"%s"]', isTurnOn);
+	debug('turnOnSpeaker() | [isTurnOn:"%s"]', isTurnOn);
 
 	exec(null, null, 'iosrtcPlugin', "RTCTurnOnSpeaker", [isTurnOn]);
 }
