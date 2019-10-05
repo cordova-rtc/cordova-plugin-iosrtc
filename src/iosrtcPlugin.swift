@@ -48,10 +48,10 @@ class iosrtcPlugin : CDVPlugin {
 			rtcPeerConnectionFactory: rtcPeerConnectionFactory
 		)
 
-        PluginRTCAudioController.initAudioDevices()
-        
+		PluginRTCAudioController.initAudioDevices()
+		
 		self.audioOutputController = PluginRTCAudioController()
-        
+		
 	}
 
 	@objc(onReset) override func onReset() {
@@ -741,6 +741,8 @@ class iosrtcPlugin : CDVPlugin {
 
 		self.queue.async { [weak pluginMediaStream, weak pluginMediaStreamTrack] in
 			pluginMediaStream?.removeTrack(pluginMediaStreamTrack!)
+			
+			pluginMediaStreamTrack?.rtcMediaStreamTrack.videoCaptureController?.stopCapture();
 		}
 	}
 
@@ -823,14 +825,14 @@ class iosrtcPlugin : CDVPlugin {
 			pluginMediaStreamTrack?.stop()
 		}
 	}
-
-
+	
 	@objc(new_MediaStreamRenderer:) func new_MediaStreamRenderer(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#new_MediaStreamRenderer()")
 
 		let id = command.argument(at: 0) as! Int
 
 		let pluginMediaStreamRenderer = PluginMediaStreamRenderer(
+			uuid: UUID().uuidString,
 			webView: self.webView!,
 			eventListener: { (data: NSDictionary) -> Void in
 				let result = CDVPluginResult(
@@ -1034,14 +1036,14 @@ class iosrtcPlugin : CDVPlugin {
 	@objc(selectAudioOutputEarpiece:) func selectAudioOutputEarpiece(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#selectAudioOutputEarpiece()")
 
-        self.audioOutputController.selectAudioOutputEarpiece()
+		self.audioOutputController.selectAudioOutputEarpiece()
 	}
 
 
 	@objc(selectAudioOutputSpeaker:) func selectAudioOutputSpeaker(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#selectAudioOutputSpeaker()")
-        
-        self.audioOutputController.selectAudioOutputSpeaker()
+		
+		self.audioOutputController.selectAudioOutputSpeaker()
 	}
 
 	func dump(_ command: CDVInvokedUrlCommand) {
