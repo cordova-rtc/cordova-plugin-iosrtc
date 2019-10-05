@@ -6,7 +6,7 @@ var cordova = window.cordova;
 if (cordova && cordova.plugins && cordova.plugins.iosrtc) {
   cordova.plugins.iosrtc.registerGlobals();
   //cordova.plugins.iosrtc.debug.enable('*', true);
-  //cordova.plugins.iosrtc.turnOnSpeaker(true, true);
+  cordova.plugins.iosrtc.turnOnSpeaker(true);
   cordova.plugins.iosrtc.requestPermission(true, true, function (result) {
     console.log('requestPermission.result', result);
   });
