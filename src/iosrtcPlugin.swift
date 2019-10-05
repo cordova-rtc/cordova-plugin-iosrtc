@@ -19,7 +19,7 @@ class iosrtcPlugin : CDVPlugin {
 	// Dispatch queue for serial operations.
 	var queue: DispatchQueue!
 	// Auto selecting output speaker
-	var audioOutputController: PluginRTCAudioOutputController!
+	var audioOutputController: PluginRTCAudioController!
 
 
 	// This is just called if <param name="onload" value="true" /> in plugin.xml.
@@ -48,7 +48,10 @@ class iosrtcPlugin : CDVPlugin {
 			rtcPeerConnectionFactory: rtcPeerConnectionFactory
 		)
 
-		self.audioOutputController = PluginRTCAudioOutputController()
+        PluginRTCAudioController.initAudioDevices()
+        
+		self.audioOutputController = PluginRTCAudioController()
+        
 	}
 
 	@objc(onReset) override func onReset() {
@@ -1023,28 +1026,22 @@ class iosrtcPlugin : CDVPlugin {
 	@objc(RTCTurnOnSpeaker:) func RTCTurnOnSpeaker(_ command: CDVInvokedUrlCommand) {
 		DispatchQueue.main.async {
 			let isTurnOn: Bool = CBool(command.arguments[0] as! Bool)
-			var isNeedRecord: Bool = true
-			if command.arguments.count >= 2 {
-				isNeedRecord = CBool(command.arguments[1] as! Bool)
-			}
-			self.audioOutputController.setOuputAudioMode(speaker: isTurnOn, record: isNeedRecord)
-			self.emit(command.callbackId,
-				result: CDVPluginResult(status: CDVCommandStatus_OK)
-			)
+			self.audioOutputController.setOutputSpeakerIfNeed(enabled: isTurnOn)
+			self.emit(command.callbackId, result: CDVPluginResult(status: CDVCommandStatus_OK))
 		}
 	}
 	
 	@objc(selectAudioOutputEarpiece:) func selectAudioOutputEarpiece(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#selectAudioOutputEarpiece()")
 
-		// TODO
+        self.audioOutputController.selectAudioOutputEarpiece()
 	}
 
 
 	@objc(selectAudioOutputSpeaker:) func selectAudioOutputSpeaker(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#selectAudioOutputSpeaker()")
-
-		// TODO
+        
+        self.audioOutputController.selectAudioOutputSpeaker()
 	}
 
 	func dump(_ command: CDVInvokedUrlCommand) {

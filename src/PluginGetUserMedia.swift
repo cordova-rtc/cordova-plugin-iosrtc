@@ -116,7 +116,7 @@ class PluginGetUserMedia {
 
 			rtcMediaStream.addVideoTrack(rtcVideoTrack!)
 		}
-
+		
 		if audioRequested == true {
 
 			let audioConstraints = constraints.object(forKey: "audio") as! NSDictionary
@@ -125,11 +125,10 @@ class PluginGetUserMedia {
 			NSLog("PluginGetUserMedia#call() | audio requested")
 
 			rtcAudioTrack = self.rtcPeerConnectionFactory.audioTrack(withTrackId: UUID().uuidString)
-
 			rtcMediaStream.addAudioTrack(rtcAudioTrack!)
 
 			if (audioDeviceId != nil) {
-				PluginEnumerateDevices.saveAudioDevice(inputDeviceUID: audioDeviceId!)
+				PluginRTCAudioController.saveInputAudioDevice(inputDeviceUID: audioDeviceId!)
 			}
 		}
 
