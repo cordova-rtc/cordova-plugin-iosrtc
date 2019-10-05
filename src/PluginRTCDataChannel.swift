@@ -1,4 +1,5 @@
 import Foundation
+
 // FIXME: comparison operators with optionals were removed from the Swift Standard Libary.
 // Consider refactoring the code to use the non-optional operators.
 fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
@@ -23,15 +24,12 @@ fileprivate func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
   }
 }
 
-
-
 class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 	var rtcDataChannel: RTCDataChannel?
 	var eventListener: ((_ data: NSDictionary) -> Void)?
 	var eventListenerForBinaryMessage: ((_ data: Data) -> Void)?
 	var lostStates = Array<String>()
 	var lostMessages = Array<RTCDataBuffer>()
-
 
 	/**
 	 * Constructor for pc.createDataChannel().
@@ -97,19 +95,15 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 				"protocol": self.rtcDataChannel!.`protocol`,
 				"negotiated": self.rtcDataChannel!.isNegotiated,
 				"id": self.rtcDataChannel!.channelId,
-				//"readyState": self.rtcDataChannel!.readyState,
-				//"readyState": PluginRTCTypes.dataChannelStates[self.rtcDataChannel!.readyState.rawValue] as String!,
 				"readyState": PluginRTCDataChannel.stateToString(state: self.rtcDataChannel!.readyState),
 				"bufferedAmount": self.rtcDataChannel!.bufferedAmount
 			]
 		])
 	}
 
-
 	deinit {
 		NSLog("PluginRTCDataChannel#deinit()")
 	}
-
 
 	/**
 	 * Constructor for pc.ondatachannel event.
@@ -119,7 +113,6 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 
 		self.rtcDataChannel = rtcDataChannel
 	}
-
 
 	func run() {
 		NSLog("PluginRTCDataChannel#run()")
@@ -132,7 +125,6 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 			dataChannelDidChangeState(self.rtcDataChannel!);
 		}
 	}
-
 
 	func setListener(
 		_ eventListener: @escaping (_ data: NSDictionary) -> Void,
@@ -157,7 +149,6 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 		self.lostMessages.removeAll()
 	}
 
-
 	func sendString(
 		_ data: String,
 		callback: (_ data: NSDictionary) -> Void
@@ -175,7 +166,6 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 		}
 	}
 
-
 	func sendBinary(
 		_ data: Data,
 		callback: (_ data: NSDictionary) -> Void
@@ -192,7 +182,6 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 			NSLog("PluginRTCDataChannel#sendBinary() | RTCDataChannel#sendData() failed")
 		}
 	}
-
 
 	func close() {
 		NSLog("PluginRTCDataChannel#close()")
