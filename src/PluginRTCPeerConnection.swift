@@ -246,16 +246,16 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 			sdpMLineIndex: sdpMLineIndex,
 			sdpMid: sdpMid
 		))
-
-		// TODO detect failure
+		
+		// TODO detect RTCIceCandidate failure
 		let result = true
 
-		// TODO Why here and is it still needed
+		// TODO check if it still needed or moved elsewhere
 		if !self.isAudioInputSelected {
 			PluginEnumerateDevices.setPreferredInput()
 			self.isAudioInputSelected = true
 		}
-
+		
 		if result == true {
 			var data: NSDictionary
 			if self.rtcPeerConnection.remoteDescription != nil {
@@ -518,18 +518,6 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 	 * Methods inherited from RTCPeerConnectionDelegate.
 	 */
 	
-	/** Called when the SignalingState changed. */
-	func peerConnection(_ peerConnection: RTCPeerConnection, didChange stateChanged: RTCSignalingState) {
-		let state_str = PluginRTCTypes.signalingStates[stateChanged.rawValue] as String! ?? "default"
-
-		NSLog("PluginRTCPeerConnection | onsignalingstatechange [signalingState:%@]", String(describing: state_str))
-
-		self.eventListener([
-			"type": "signalingstatechange",
-			"signalingState": state_str
-		])
-	}
-
 	/** Called when media is received on a new stream from remote peer. */
 	func peerConnection(_ peerConnection: RTCPeerConnection, didAdd stream: RTCMediaStream) {
 		NSLog("PluginRTCPeerConnection | onaddstream")
@@ -561,11 +549,37 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 			"streamId": stream.streamId
 		])
 	}
+	/** Called when the SignalingState changed. */
+	
+	// TODO: remove on M75
+	// This was already fixed in M-75, but note that "Issue 740501: RTCPeerConnection.onnegotiationneeded can sometimes fire multiple times in a row" was a prerequisite of Perfect Negotiation as well.
+	// https://stackoverflow.com/questions/48963787/failed-to-set-local-answer-sdp-called-in-wrong-state-kstable
+	// https://bugs.chromium.org/p/chromium/issues/detail?id=740501
+	// https://bugs.chromium.org/p/chromium/issues/detail?id=980872
+	var isNegotiating = false;
+	
+	func peerConnection(_ peerConnection: RTCPeerConnection, didChange stateChanged: RTCSignalingState) {
+		let state_str = PluginRTCTypes.signalingStates[stateChanged.rawValue] as String?
+
+		NSLog("PluginRTCPeerConnection | onsignalingstatechange [signalingState:%@]", String(describing: state_str))
+		
+		isNegotiating = (state_str != "stable")
+		
+		self.eventListener([
+			"type": "signalingstatechange",
+			"signalingState": state_str!
+		])
+	}
 
 	/** Called when negotiation is needed, for example ICE has restarted. */
 	func peerConnectionShouldNegotiate(_ peerConnection: RTCPeerConnection) {
 		NSLog("PluginRTCPeerConnection | onnegotiationeeded")
-
+		
+		if (isNegotiating) {
+		  NSLog("PluginRTCPeerConnection#addStream() | signalingState is stable skip nested negotiations")
+		  return;
+		}
+		
 		self.eventListener([
 			"type": "negotiationneeded"
 		])
