@@ -91,8 +91,18 @@ class PluginGetUserMedia {
 			let videoCapturer: RTCCameraVideoCapturer = RTCCameraVideoCapturer(delegate: rtcVideoSource!)
 			let videoCaptureController: PluginRTCVideoCaptureController = PluginRTCVideoCaptureController(capturer: videoCapturer)
 			rtcVideoTrack!.videoCaptureController = videoCaptureController
-			videoCaptureController.setConstraints(constraints: videoConstraints)
-			videoCaptureController.startCapture()
+			
+			let constraintsSatisfied = videoCaptureController.setConstraints(constraints: videoConstraints)
+			if (!constraintsSatisfied) {
+				errback("constraints not satisfied")
+				return
+			}
+			
+			let captureStarted = videoCaptureController.startCapture()
+			if (!captureStarted) {
+				errback("constraints failed")
+				return
+			}
 #endif
 
 			// If videoSource state is "ended" it means that constraints were not satisfied so
