@@ -37,7 +37,8 @@ class iosrtcPlugin : CDVPlugin {
 		pluginRTCPeerConnections = [:]
 
 		// Initialize DTLS stuff.
-		// RTCPeerConnectionFactory.initializeSSL()
+		RTCInitializeSSL()
+		//RTCSetMinDebugLogLevel(RTCLoggingSeverity.warning)
 
 		// Create a RTCPeerConnectionFactory.
 		self.rtcPeerConnectionFactory = RTCPeerConnectionFactory()
