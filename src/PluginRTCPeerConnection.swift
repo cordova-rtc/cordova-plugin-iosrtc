@@ -279,23 +279,23 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		self.rtcPeerConnection.remove(pluginMediaStream.rtcMediaStream)
 	}
 
-    func addTrack(_ track: PluginMediaStreamTrack) -> Bool {
-        NSLog("PluginRTCPeerConnection#addTrack()")
-        
-        if self.rtcPeerConnection.signalingState.rawValue == RTCSignalingState.closed.rawValue {
-            return false
-        }
-        
-        return true;
-    }
-    
-    func removeTrack(_ track: PluginMediaStreamTrack) {
-        NSLog("PluginRTCPeerConnection#removeTrack()")
-        
-        if self.rtcPeerConnection.signalingState.rawValue == RTCSignalingState.closed.rawValue {
-            return
-        }
-    }
+	func addTrack(_ track: PluginMediaStreamTrack) -> Bool {
+		NSLog("PluginRTCPeerConnection#addTrack()")
+		
+		if self.rtcPeerConnection.signalingState.rawValue == RTCSignalingState.closed.rawValue {
+			return false
+		}
+		
+		return true;
+	}
+	
+	func removeTrack(_ track: PluginMediaStreamTrack) {
+		NSLog("PluginRTCPeerConnection#removeTrack()")
+		
+		if self.rtcPeerConnection.signalingState.rawValue == RTCSignalingState.closed.rawValue {
+			return
+		}
+	}
 
 	func createDataChannel(
 		_ dcId: Int,
@@ -344,7 +344,6 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		)
 	}
 
-
 	func createDTMFSender(
 		_ dsId: Int,
 		track: PluginMediaStreamTrack,
@@ -352,13 +351,14 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 	) {
 		NSLog("PluginRTCPeerConnection#createDTMFSender()")
 
-		if self.rtcPeerConnection.signalingState.rawValue == RTCSignalingState.closed.rawValue {
+		if self.rtcPeerConnection.signalingState == RTCSignalingState.closed {
 			return
 		}
 
 		let pluginRTCDTMFSender = PluginRTCDTMFSender(
-			rtcPeerConnection: rtcPeerConnection,
+			rtcPeerConnection: self.rtcPeerConnection,
 			track: track.rtcMediaStreamTrack,
+			streamId: String(dsId), //TODO
 			eventListener: eventListener
 		)
 
@@ -476,12 +476,12 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 	func RTCDTMFSender_insertDTMF(
 		_ dsId: Int,
 		tones: String,
-		duration: Int,
-		interToneGap: Int
+		duration: Double,
+		interToneGap: Double
 	) {
 		NSLog("PluginRTCPeerConnection#RTCDTMFSender_insertDTMF()")
 
-		if self.rtcPeerConnection.signalingState.rawValue == RTCSignalingState.closed.rawValue {
+		if self.rtcPeerConnection.signalingState == RTCSignalingState.closed {
 			return
 		}
 
@@ -490,9 +490,8 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 			return
 		}
 
-		pluginRTCDTMFSender!.insertDTMF(tones, duration: duration, interToneGap: interToneGap)
+		pluginRTCDTMFSender!.insertDTMF(tones, duration: duration as TimeInterval, interToneGap: interToneGap as TimeInterval)
 	}
-
 
 	/**
 	 * Methods inherited from RTCPeerConnectionDelegate.

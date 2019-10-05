@@ -1,66 +1,63 @@
 import Foundation
 
 
-class PluginRTCDTMFSender : NSObject { //, RTCDTMFSenderDelegate
-	// TODO fix "Use of undeclared type 'RTCDTMFSender'"
-	//var rtcDTMFSender: RTCDTMFSender?
-	var eventListener: ((_ data: NSDictionary) -> Void)?
+class PluginRTCDTMFSender : NSObject {
+    var rtcRtpSender: RTCRtpSender?
+    var eventListener: ((_ data: NSDictionary) -> Void)?
 
+    /**
+     * Constructor for pc.createDTMFSender().
+     */
+    init(
+        rtcPeerConnection: RTCPeerConnection,
+        track: RTCMediaStreamTrack,
+        streamId: String,
+        eventListener: @escaping (_ data: NSDictionary) -> Void
+    ) {
+        NSLog("PluginRTCDTMFSender#init()")
 
-	/**
-	* Constructor for pc.createDTMFSender().
-	*/
-	init(
-		rtcPeerConnection: RTCPeerConnection,
-		track: RTCMediaStreamTrack,
-		eventListener: @escaping (_ data: NSDictionary) -> Void
-		) {
-		NSLog("PluginRTCDTMFSender#init()")
+        let streamIds = [streamId]
+        self.eventListener = eventListener
+        //self.rtcRtpSender = rtcPeerConnection.add(track, streamIds: streamIds);
 
-//		self.eventListener = eventListener
-//		self.rtcDTMFSender = rtcPeerConnection.createDTMFSender(for: (track as? RTCAudioTrack)!)
-//
-//		if self.rtcDTMFSender == nil {
-//			NSLog("PluginRTCDTMFSender#init() | rtcPeerConnection.createDTMFSenderForTrack() failed")
-//			return
-//		}
-	}
+        if self.rtcRtpSender == nil {
+            NSLog("PluginRTCDTMFSender#init() | rtcPeerConnection.createDTMFSenderForTrack() failed")
+            return
+        }
+    }
 
+    deinit {
+        NSLog("PluginRTCDTMFSender#deinit()")
+    }
 
-	deinit {
-		NSLog("PluginRTCDTMFSender#deinit()")
-	}
+    func run() {
+        NSLog("PluginRTCDTMFSender#run()")
+    }
 
+    func insertDTMF(_ tones: String, duration: TimeInterval, interToneGap: TimeInterval) {
+        NSLog("PluginRTCDTMFSender#insertDTMF()")
 
-	func run() {
-		NSLog("PluginRTCDTMFSender#run()")
+        
+        //let dtmfSender = self.rtcRtpSender?.dtmfSender
+        //let result = dtmfSender!.insertDtmf(tones, duration: duration, interToneGap: interToneGap)
+        let result = false;
+        
+        if !result {
+            NSLog("PluginRTCDTMFSender#indertDTMF() | RTCDTMFSender#indertDTMF() failed")
+        }
+    }
 
-//		self.rtcDTMFSender!.delegate = self
-	}
+    /**
+     * Methods inherited from RTCDTMFSenderDelegate.
+     */
+    func toneChange(_ tone: String) {
+        NSLog("PluginRTCDTMFSender | tone change [tone:%@]", tone)
 
-
-	func insertDTMF(_ tones: String, duration: Int, interToneGap: Int) {
-//		NSLog("PluginRTCDTMFSender#insertDTMF()")
-//
-//		let result = self.rtcDTMFSender!.insertDTMF(tones, withDuration: duration, andInterToneGap: interToneGap)
-//		if !result {
-//			NSLog("PluginRTCDTMFSender#indertDTMF() | RTCDTMFSender#indertDTMF() failed")
-//		}
-	}
-
-
-	/**
-	* Methods inherited from RTCDTMFSenderDelegate.
-	*/
-
-	func toneChange(_ tone: String) {
-		NSLog("PluginRTCDTMFSender | tone change [tone:%@]", tone)
-
-		if self.eventListener != nil {
-			self.eventListener!([
-				"type": "tonechange",
-				"tone": tone
-			])
-		}
-	}
+        if self.eventListener != nil {
+            self.eventListener!([
+                "type": "tonechange",
+                "tone": tone
+            ])
+        }
+    }
 }
