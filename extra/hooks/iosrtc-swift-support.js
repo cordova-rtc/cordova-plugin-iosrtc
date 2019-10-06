@@ -54,7 +54,7 @@ function matchBuildSettingsValue(value, expectedValue) {
 }
 
 function hasBuildSettingsValue(value, expectedValue) {
-	return matchBuildSettingsValue(value, expectedValue) || value.indexOf(expectedValue) !== -1;
+	return value && (matchBuildSettingsValue(value, expectedValue) || value.indexOf(expectedValue) !== -1);
 }
 
 function convertToFloat(value) {
@@ -62,11 +62,11 @@ function convertToFloat(value) {
 }
 
 function matchMinValue(value, minValue) {
-	return convertToFloat(value) >= convertToFloat(minValue);
+	return typeof value === 'string' && convertToFloat(value) >= convertToFloat(minValue);
 }
 
 function matchBuildSettingsMinValue(value, expectedValue) {
-	return matchBuildSettingsValue(value, expectedValue) || matchMinValue(value, expectedValue);
+	return value && (matchBuildSettingsValue(value, expectedValue) || matchMinValue(value, expectedValue));
 }
 
 function matchXcconfigPathValue(swiftOptions, path, expectedValue) {
