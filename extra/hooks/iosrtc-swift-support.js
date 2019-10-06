@@ -260,7 +260,7 @@ module.exports = function (context) {
 			}
 
 			if (TEST_UNIFIED_BRIDGING_HEADER) {
-				buildSettings.SWIFT_OBJC_BRIDGING_HEADER = existingSwiftBridgingHeaderPathXcode;
+				buildSettings.SWIFT_OBJC_BRIDGING_HEADER = '"' + UNIFIED_BRIDGING_HEADER + '"';
 				xcodeProject.addHeaderFile(UNIFIED_BRIDGING_HEADER);
 			}
 
