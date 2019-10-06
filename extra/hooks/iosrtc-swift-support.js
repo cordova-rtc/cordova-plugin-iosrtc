@@ -62,7 +62,7 @@ function convertToFloat(value) {
 }
 
 function matchMinValue(value, minValue) {
-	return typeof value === 'string' && convertToFloat(value) >= convertToFloat(minValue);
+	return value && convertToFloat(value) >= convertToFloat(minValue);
 }
 
 function matchBuildSettingsMinValue(value, expectedValue) {
