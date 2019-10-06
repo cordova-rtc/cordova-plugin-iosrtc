@@ -235,6 +235,7 @@ module.exports = function (context) {
 
 		// Adding or changing the parameters only if we need
 		var buildSettingsChanged = false;
+		var hasSwiftBridgingHeaderPathXcodes = []; 
 		var configurations = nonComments(xcodeProject.pbxXCBuildConfigurationSection());
 		Object.keys(configurations).forEach(function (config) {
 			var buildSettings = configurations[config].buildSettings;
@@ -267,9 +268,7 @@ module.exports = function (context) {
 			if (!hasBuildSettingsValue(buildSettings.SWIFT_OBJC_BRIDGING_HEADER, swiftBridgingHeaderPathXcode)) {	
 
 				// Play nice with existing Swift Bridging Header value
-				if (existingSwiftBridgingHeaderPath) {
-
-					debug('checking file: ' + getRelativeToProjectRootPath(existingSwiftBridgingHeaderPath, projectRoot));	
+				if (existingSwiftBridgingHeaderPath) {	
 					
 					// Sync SWIFT_OBJC_BRIDGING_HEADER with existingSwiftBridgingHeaderPath if do not match
 					var existingSwiftBridgingHeaderPathXcode = '"' + existingSwiftBridgingHeaderPath + '"';
@@ -278,28 +277,35 @@ module.exports = function (context) {
 						buildSettingsChanged = true;	
 					}
 
-					// Check if existing existingSwiftBridgingHeaderPath exists and get file lines
-					var existingSwiftBridgingHeaderFileLines = [];
-					if (fs.existsSync(existingSwiftBridgingHeaderPath)) {
-						existingSwiftBridgingHeaderFileLines = readFileLines(existingSwiftBridgingHeaderPath);
+					if (hasSwiftBridgingHeaderPathXcodes.indexOf(existingSwiftBridgingHeaderPath) === -1) {
+
+						// Check if existing existingSwiftBridgingHeaderPath exists and get file lines
+						
+						debug('checking file: ' + getRelativeToProjectRootPath(existingSwiftBridgingHeaderPath, projectRoot));
+
+						var existingSwiftBridgingHeaderFileLines = [];
+						if (fs.existsSync(existingSwiftBridgingHeaderPath)) {
+							existingSwiftBridgingHeaderFileLines = readFileLines(existingSwiftBridgingHeaderPath);
+						}
+
+						// Check if existing existingSwiftBridgingHeaderFileLines contains swiftBridgingHeaderPath
+						var swiftBridgingHeaderImport = '#import "' + IOSRTC_BRIDGING_HEADER + '"';
+						var hasSwiftBridgingHeaderPathXcode = existingSwiftBridgingHeaderFileLines.filter(function (line) {
+							return line === swiftBridgingHeaderImport;
+						}).length > 0;
+
+						if (!hasSwiftBridgingHeaderPathXcode) {
+							debug('updating existing swift bridging header file: ' + getRelativeToProjectRootPath(existingSwiftBridgingHeaderPath, projectRoot));
+							existingSwiftBridgingHeaderFileLines.push(swiftBridgingHeaderImport);
+							fs.writeFileSync(existingSwiftBridgingHeaderPath, existingSwiftBridgingHeaderFileLines.join('\n'), 'utf-8');
+							debug('file correctly fixed: ' + getRelativeToProjectRootPath(existingSwiftBridgingHeaderPath, projectRoot));	
+						} else {
+							debug('file is correct: ' + getRelativeToProjectRootPath(existingSwiftBridgingHeaderPath, projectRoot));
+						}
+
+						hasSwiftBridgingHeaderPathXcodes.push(existingSwiftBridgingHeaderPath);
 					}
 
-					// Check if existing existingSwiftBridgingHeaderFileLines contains swiftBridgingHeaderPath
-					var swiftBridgingHeaderImport = '#import "' + IOSRTC_BRIDGING_HEADER + '"';
-					var hasSwiftBridgingHeaderPathXcode = existingSwiftBridgingHeaderFileLines.filter(function (line) {
-						return line === swiftBridgingHeaderImport;
-					}).length > 0;
-
-					if (!hasSwiftBridgingHeaderPathXcode) {
-
-						debug('updating existing swift bridging header file: ' + getRelativeToProjectRootPath(existingSwiftBridgingHeaderPath, projectRoot));
-
-						existingSwiftBridgingHeaderFileLines.push(swiftBridgingHeaderImport);
-						fs.writeFileSync(existingSwiftBridgingHeaderPath, existingSwiftBridgingHeaderFileLines.join('\n'), 'utf-8');
-						debug('file correctly fixed: ' + getRelativeToProjectRootPath(existingSwiftBridgingHeaderPath, projectRoot));	
-					} else {
-						debug('file is correct: ' + getRelativeToProjectRootPath(existingSwiftBridgingHeaderPath, projectRoot));
-					}
 
 				} else {
 					buildSettings.SWIFT_OBJC_BRIDGING_HEADER = swiftBridgingHeaderPathXcode;	
