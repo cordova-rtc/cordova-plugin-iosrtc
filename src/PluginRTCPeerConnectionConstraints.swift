@@ -4,54 +4,75 @@ import Foundation
 class PluginRTCPeerConnectionConstraints {
 	fileprivate var constraints: RTCMediaConstraints
 
+	// https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/createOffer#RTCOfferOptions_dictionary
+	// TODO voiceActivityDetection?
+	fileprivate static let allowedConstraints : Array = ["iceRestart", "OfferToReceiveVideo", "OfferToReceiveAudio"]
 
 	init(pcConstraints: NSDictionary?) {
 		NSLog("PluginRTCPeerConnectionConstraints#init()")
-
-		if pcConstraints == nil {
-			self.constraints = RTCMediaConstraints.init(mandatoryConstraints: [:], optionalConstraints: [:])
-			return
+		var mandatoryConstraints: [String : String] = [:]
+		var optionalConstraints: [String : String] = [:]
+		
+		let _mandatoryConstraints = pcConstraints?.object(forKey: "mandatory") as? NSDictionary
+		let _optionalConstraints = pcConstraints?.object(forKey: "optional") as? NSDictionary
+		
+		// Handle constraints at the root of pcConstraints.mandatory
+		if _mandatoryConstraints != nil {
+			mandatoryConstraints = PluginRTCPeerConnectionConstraints.parseConstraints(constraints: _mandatoryConstraints!)
 		}
-
-		var	offerToReceiveAudio = pcConstraints?.object(forKey: "offerToReceiveAudio") as? Bool
-		var	offerToReceiveVideo = pcConstraints?.object(forKey: "offerToReceiveVideo") as? Bool
-		var iceRestart = pcConstraints?.object(forKey: "iceRestart") as? Bool
-
-		if offerToReceiveAudio == nil && offerToReceiveVideo == nil {
-			self.constraints = RTCMediaConstraints.init(mandatoryConstraints: [:], optionalConstraints: [:])
-			return
+		
+		// Handle constraints at the root of pcConstraints.optional
+		if _optionalConstraints != nil {
+			optionalConstraints = PluginRTCPeerConnectionConstraints.parseConstraints(constraints: _optionalConstraints!)
 		}
-
-		if offerToReceiveAudio == nil {
-			offerToReceiveAudio = false
+		
+		// Handle constraints at the root of pcConstraints
+		if pcConstraints != nil && _optionalConstraints == nil && _mandatoryConstraints == nil  {
+			mandatoryConstraints = PluginRTCPeerConnectionConstraints.parseConstraints(constraints: pcConstraints!)
 		}
-
-		if offerToReceiveVideo == nil {
-			offerToReceiveVideo = false
-		}
-
-		if iceRestart == nil {
-			iceRestart = false
-		}
-
-		NSLog("PluginRTCPeerConnectionConstraints#init() | [offerToReceiveAudio:%@, offerToReceiveVideo:%@, iceRestart:%@]",
-			String(offerToReceiveAudio!), String(offerToReceiveVideo!), String(iceRestart!))
+		
+		NSLog("PluginRTCPeerConnectionConstraints#init() | [mandatoryConstraints:%@, optionalConstraints:%@]",
+			mandatoryConstraints, optionalConstraints)
 
 		self.constraints = RTCMediaConstraints.init(
-			mandatoryConstraints: [
-				"OfferToReceiveAudio": offerToReceiveAudio == true ? "true" : "false",
-				"OfferToReceiveVideo": offerToReceiveVideo == true ? "true" : "false",
-				"IceRestart"        : iceRestart == true ? "true" : "false"
-			],
-			optionalConstraints: [:]
-		);
+			mandatoryConstraints: mandatoryConstraints,
+			optionalConstraints: optionalConstraints
+		)
 	}
-
-
+	
+	fileprivate static func parseConstraints(constraints: NSDictionary) -> [String : String] {
+		var _constraints : [String : String] = [:]
+		
+		for (key, value) in constraints {
+			var finalValue: String,
+				finalKey: String = key as! String;
+			
+			if value is Bool {
+				finalValue = value as! Bool ? "true" : "false"
+			} else {
+				finalValue = value as! String
+			}
+			
+			// Handle Spec for offerToReceiveAudio|offerToReceiveVideo but
+			// libwebrtc still use OfferToReceiveAudio|OfferToReceiveVideo
+			if (finalKey == "offerToReceiveAudio") {
+				finalKey =  "OfferToReceiveAudio";
+			} else if (finalKey == "offerToReceiveVideo") {
+				finalKey =  "OfferToReceiveVideo";
+			}
+			
+			// Filter to avoid injection
+			if (allowedConstraints.firstIndex(of: finalKey) != nil) {
+				_constraints[finalKey] = finalValue
+			}
+		}
+		
+		return _constraints;
+	}
+	
 	deinit {
 		NSLog("PluginRTCPeerConnectionConstraints#deinit()")
 	}
-
 
 	func getConstraints() -> RTCMediaConstraints {
 		NSLog("PluginRTCPeerConnectionConstraints#getConstraints()")
