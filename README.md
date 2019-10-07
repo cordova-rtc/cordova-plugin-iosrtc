@@ -1,4 +1,9 @@
+![cordova-rtc-logo](https://raw.githubusercontent.com/cordova-rtc/cordova-plugin-iosrtc/master/art/cordova-rtc-logo.png)
+
 # cordova-plugin-iosrtc
+
+[![npm version](https://img.shields.io/npm/v/cordova-plugin-iosrtc.svg?style=flat)](https://www.npmjs.com/package/cordova-plugin-iosrtc)
+[![Build Status](https://travis-ci.org/cordova-rtc/cordova-plugin-iosrtc.svg?branch=master)](https://travis-ci.org/cordova-rtc/cordova-plugin-iosrtc)
 
 [Cordova](http://cordova.apache.org/) iOS plugin exposing the  ̶f̶u̶l̶l̶ [WebRTC W3C JavaScript APIs](http://www.w3.org/TR/webrtc/).
 
@@ -23,6 +28,7 @@ In order to make this Cordova plugin run into a iOS application some requirement
 
 * Xcode >= 11.0 (11A420a)
 * iOS >= 10.2 (run on lower versions at your own risk, don't report issues)
+* `swift-version` => 4.2
 * `cordova` >= 7.1.0
 * `cordova-ios` >= 5.0.1
 
@@ -55,24 +61,180 @@ $ cordova platform add ios
 The plugin exposes the `cordova.plugins.iosrtc` JavaScript namespace which contains all the WebRTC classes and functions.
 
 ```javascript
-var pc = new cordova.plugins.iosrtc.RTCPeerConnection({
-  iceServers: []
+/* global RTCPeerConnection */
+
+// Note: This allow this sample to run on any Browser
+var cordova = window.cordova;
+if (cordova && cordova.plugins && cordova.plugins.iosrtc) {
+  
+  // Expose WebRTC and GetUserMedia SHIM as Globals (Optional)
+  // Alternatively WebRTC API will be inside cordova.plugins.iosrtc namespace
+  cordova.plugins.iosrtc.registerGlobals();
+
+  // Enable iosrtc debug (Optional)
+  cordova.plugins.iosrtc.debug.enable('*', true);
+}
+
+//
+// Container for this sample
+//
+
+var appContainer = document.body;
+
+//
+// Sample getUserMedia
+//
+
+// 
+var localStream, localVideoEl;
+function TestGetUserMedia() {
+  localVideoEl = document.createElement('video');
+  localVideoEl.setAttribute('autoplay', 'autoplay');
+  localVideoEl.setAttribute('playsinline', 'playsinline');
+  appContainer.appendChild(localVideoEl);
+
+  return navigator.mediaDevices.getUserMedia({
+    video: true,
+    audio: true
+    // Note: Use navigator.mediaDevices.enumerateDevices() Promise to get deviceIds
+    /*
+    video: {
+      // Test Back Camera
+      //deviceId: 'com.apple.avfoundation.avcapturedevice.built-in_video:0'
+      //sourceId: 'com.apple.avfoundation.avcapturedevice.built-in_video:0'
+      deviceId: {
+        exact: 'com.apple.avfoundation.avcapturedevice.built-in_video:0'
+      }
+    }, 
+    audio: {
+      exact: 'Built-In Microphone'
+    }*/
+  }).then(function (stream) {
+
+    console.log('getUserMedia.stream', stream);
+    console.log('getUserMedia.stream.getTracks', stream.getTracks());
+
+    // Note: Expose for debug
+    localStream = stream;
+
+    // Attach local stream to video element
+    localVideoEl.srcObject = localStream;
+
+    return localStream;
+   
+  }).catch(function (err) {
+    console.log('getUserMedia.error', err, err.stack);
+  });
+}
+
+//
+// Sample RTCPeerConnection
+// 
+
+var pc1 = new RTCPeerConnection(),
+    pc2 = new RTCPeerConnection();
+
+var peerVideoEl, peerStream;
+function TestRTCPeerConnection(localStream) {
+
+  // Note: Deprecated but supported
+  //pc1.addStream(localStream);
+
+  // Add local stream tracks to RTCPeerConnection
+  localStream.getTracks().forEach(function (track) {
+    console.log('addTrack', track);
+    pc1.addTrack(track);
+  });
+
+  // Basic RTCPeerConnection Local WebRTC Signaling follow.
+  function onAddIceCandidate(pc, can) {
+    console.log('addIceCandidate', pc, can);
+    return can && pc.addIceCandidate(can).catch(function (err) {
+      console.log('addIceCandidateError', err);
+    });
+  }
+
+  pc1.addEventListener('icecandidate', function (e) {
+    onAddIceCandidate(pc2, e.candidate);
+  });
+  
+  pc2.addEventListener('icecandidate', function (e) {
+    onAddIceCandidate(pc1, e.candidate);
+  });
+
+  pc2.addEventListener('addstream', function (e) {
+    console.log('pc2.addStream', e);
+    peerVideoEl = document.createElement('video');
+    peerVideoEl.setAttribute('autoplay', 'autoplay');
+    peerVideoEl.setAttribute('playsinline', 'playsinline');
+    appContainer.appendChild(peerVideoEl);
+
+    // Note: Expose for debug
+    peerStream = e.stream;
+
+    // Attach peer stream to video element
+    peerVideoEl.srcObject = peerStream;
+  });
+
+  pc1.addEventListener('iceconnectionstatechange', function (e) {
+    console.log('pc1.iceConnectionState', e, pc1.iceConnectionState);
+
+    if (pc1.iceConnectionState === 'completed') {      
+      console.log('pc1.getSenders', pc1.getSenders());
+      console.log('pc2.getReceivers', pc2.getReceivers());
+    }
+  });
+
+  pc1.addEventListener('icegatheringstatechange', function (e) {
+    console.log('pc1.iceGatheringStateChange', e);
+  });
+
+  pc1.addEventListener('negotiationneeded', function (e) {
+    console.log('pc1.negotiatioNeeded', e);
+
+    return pc1.createOffer().then(function (d) {
+      var desc = {
+        type: d.type,
+        sdp: d.sdp
+      };
+      console.log('pc1.setLocalDescription', desc);
+      return pc1.setLocalDescription(desc);
+    }).then(function () {
+      var desc = {
+        type: pc1.localDescription.type,
+        sdp: pc1.localDescription.sdp
+      };
+      console.log('pc2.setLocalDescription', desc);
+      return pc2.setRemoteDescription(desc);
+    }).then(function () {
+      console.log('pc2.createAnswer');
+      return pc2.createAnswer();
+    }).then(function (d) {
+      var desc = {
+        type: d.type,
+        sdp: d.sdp
+      };
+      console.log('pc2.setLocalDescription', desc);
+      return pc2.setLocalDescription(d);
+    }).then(function () {
+      var desc = {
+        type: pc2.localDescription.type,
+        sdp: pc2.localDescription.sdp
+      };
+      console.log('pc1.setRemoteDescription', desc);
+      return pc1.setRemoteDescription(desc);
+    }).catch(function (err) {
+      console.log('pc1.createOffer.error', err);
+    });
+  });
+}
+
+// Run sample
+TestGetUserMedia().then(function (localStream) {
+    TestRTCPeerConnection(localStream); 
 });
 
-cordova.plugins.iosrtc.getUserMedia(
-  // constraints
-  { audio: true, video: true }).then(
-  // success callback
-  function (stream) {
-    console.log('got local MediaStream: ', stream);
-
-    pc.addStream(stream);
-  },
-  // failure callback
-  function (error) {
-    console.error('getUserMedia failed: ', error);
-  }
-);
+// See ./extra/renderer-and-libwebrtc-tests.js for more samples usage.
 ```
 
 In case you'd like to expose the API in the global namespace like regular browsers you can do the following:
@@ -85,9 +247,10 @@ document.addEventListener('deviceready', function () {
     cordova.plugins.iosrtc.registerGlobals();
 
     // load adapter.js
+    var adapterVersion = 'latest';
     var script = document.createElement("script");
     script.type = "text/javascript";
-    script.src = "js/adapter-latest.js";
+    script.src = "https://webrtc.github.io/adapter/adapter-" + version + ".js";
     script.async = false;
     document.getElementsByTagName("head")[0].appendChild(script);
   }

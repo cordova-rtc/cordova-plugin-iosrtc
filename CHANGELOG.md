@@ -1,7 +1,10 @@
 #### Version 5.0.4
 
 * Fix MediaStream.create false positive "ERROR: video track not added" and "ERROR: audio track not added" cause the rtcMediaStream already has them internaly trigger by getUserMedia.
-* Detect callbacks usage and throw error instead of been silent to assist 5.0.1 to 5.0.2 migration from callback based API.
+* Detect deprecated callbacks usage and throw Error instead of been silent to assist 5.0.1 to 5.0.2 migration from WebRTC callback RTCPeerConnection.(createOffer|createAnswer|setLocalDescription|setRemoteDescription|addIceCandidate|getStats) and getUserMedia API.
+* Reset enumerateDevices videoinput order with front camera first to keep legacy behavior.
+* Use safeAreaLayoutGuide for ios 11 and NSLayoutConstraint for ios 10 to fix elementView bad position depending status bar visibility ([PR #367](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/367) by @hthetiot).
+* Recognize when a video receives a new srcObject and re-render it ([PR #367](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/395) by @SejH).
 
 #### Version 5.0.3
 
@@ -10,12 +13,13 @@
 * Add NSBluetoothAlwaysUsageDescription to Info.plist for wireless headphones and microphone consent.
 * Deprecate usage of `video.src = URL.createObjectURL(stream)` in favor of `video.srcObject = stream` only MediaStream are not Blob anymore. ([PR #388](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/388) by @hthetiot).
 * Update audio input priority to Wired microphone > Wireless microphone > built-in microphone. ([PR #387](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/387) by @CSantosM).
+* Add possible missing argument for parameter 'mode' in call on audioSession.setCategory.
 
 #### Version 5.0.2
 
+* Remove WebRTC callback based API for RTCPeerConnection.(createOffer|createAnswer|setLocalDescription|setRemoteDescription|addIceCandidate|getStats) and getUserMedia.
 * Set default deployment target to 10.2
-* Remove callback based API
-* Implement RTCPeerConnection.getSenders|getReceivers|addTrack|removeTrack
+* Implement partial RTCPeerConnection.(getSenders|getReceivers|addTrack|removeTrack)
 * Fix webrtc-adapter external library support
 * Fix Blob prototype pollution
 * Extend native MediaStream instead of using Blob
