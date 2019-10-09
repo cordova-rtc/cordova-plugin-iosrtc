@@ -2455,8 +2455,40 @@ function getUserMedia(constraints) {
 
 	// Get video constraints
 	if (videoRequested) {
+
 		// Handle object video constraints
 		newConstraints.video = {};
+
+		// Handle Stupid not up-to-date webrtc-adapter
+		// Note: Firefox [38+] does support a subset of constraints with getUserMedia(), but not the outdated syntax that Chrome and Opera are using. 
+		// The mandatory / optional syntax was deprecated a in 2014, and minWidth and minHeight the year before that.
+		
+		if (
+			typeof constraints.video === 'object' &&
+				(typeof constraints.video.optional === 'object' || constraints.video.mandatory === 'object')
+		) {
+
+			constraints.video = {};
+
+			var videoConstraints = constraints.video.mandatory || constraints.video.optional;
+			videoConstraints = Array.isArray(videoConstraints) ? videoConstraints[0] : videoConstraints;
+
+			if (typeof videoConstraints.sourceId === 'string') {
+				constraints.video.deviceId = videoConstraints.sourceId;
+			} 
+
+			if (isPositiveFloat(videoConstraints.minWidth)) {
+				constraints.video.width = {
+					min: videoConstraints.minWidth
+				};
+			}
+
+			if (isPositiveFloat(videoConstraints.minHeight)) {
+				constraints.video.height = {
+					min: videoConstraints.minHeight
+				};
+			}
+		}
 
 		// Get requested video deviceId.
 		if (typeof constraints.video.deviceId === 'string') {
@@ -2558,8 +2590,26 @@ function getUserMedia(constraints) {
 
 	// Get audio constraints
 	if (audioRequested) {
+
 		// Handle object audio constraints
 		newConstraints.audio = {};
+
+		// Handle Stupid not up-to-date webrtc-adapter
+		// Note: Firefox [38+] does support a subset of constraints with getUserMedia(), but not the outdated syntax that Chrome and Opera are using. 
+		// The mandatory / optional syntax was deprecated a in 2014, and minWidth and minHeight the year before that.
+		if (
+			typeof constraints.audio === 'object' &&
+				(typeof constraints.audio.optional === 'object' || constraints.audio.mandatory === 'object')
+		) {
+			constraints.audio = {};
+
+			var audioConstraints = constraints.audio.mandatory || constraints.audio.optional;
+			audioConstraints = Array.isArray(audioConstraints) ? audioConstraints[0] : audioConstraints;
+
+			if (typeof audioConstraints.sourceId === 'string') {
+				constraints.audio.deviceId = audioConstraints.sourceId;
+			} 
+		}
 
 		// Get requested audio deviceId.
 		if (typeof constraints.audio.deviceId === 'string') {
