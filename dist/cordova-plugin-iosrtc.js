@@ -2513,8 +2513,57 @@ function refreshVideos() {
 	}
 }
 
+function callbackifyMethod(originalMethod) {
+  	return function () {
+		var success, failure,
+		  originalArgs = Array.prototype.slice.call(arguments);
 
-function registerGlobals() {
+		var callbackArgs = [];
+		originalArgs.forEach(function (arg) {
+		  if (typeof arg === 'function') {
+			if (!success) {
+			  success = arg;
+			} else {
+			  failure = arg;
+			}
+		  } else {
+			callbackArgs.push(arg);
+		  }
+		});
+
+		var promiseResult = originalMethod.apply(this, callbackArgs);
+
+		// Only apply then if callback success available
+		if (typeof success === 'function') {
+			promiseResult = promiseResult.then(success);
+		}
+
+		// Only apply catch if callback failure available
+		if (typeof failure === 'function') {
+			promiseResult = promiseResult.catch(failure);
+		}
+
+		return promiseResult;
+	};
+}
+
+function callbackifyPrototype(proto, method) {
+	var originalMethod = proto[method];
+	proto[method] = callbackifyMethod(originalMethod);
+}
+
+function restoreCallbacksSupport() {
+	debug('restoreCallbacksSupport()');
+	getUserMedia = callbackifyMethod(getUserMedia);
+	enumerateDevices = callbackifyMethod(enumerateDevices);
+	callbackifyPrototype(RTCPeerConnection.prototype, 'createAnswer');
+	callbackifyPrototype(RTCPeerConnection.prototype, 'createOffer');
+	callbackifyPrototype(RTCPeerConnection.prototype, 'setRemoteDescription');
+	callbackifyPrototype(RTCPeerConnection.prototype, 'setLocalDescription');
+	callbackifyPrototype(RTCPeerConnection.prototype, 'addIceCandidate');
+}
+
+function registerGlobals(doNotRestoreCallbacksSupport) {
 	debug('registerGlobals()');
 
 	if (!global.navigator) {
@@ -2529,6 +2578,12 @@ function registerGlobals() {
 	navigator.webkitGetUserMedia            = getUserMedia;
 	navigator.mediaDevices.getUserMedia     = getUserMedia;
 	navigator.mediaDevices.enumerateDevices = enumerateDevices;
+
+	// Restore Callback support
+	if (!doNotRestoreCallbacksSupport) {
+		restoreCallbacksSupport();
+	}
+
 	window.RTCPeerConnection                = RTCPeerConnection;
 	window.webkitRTCPeerConnection          = RTCPeerConnection;
 	window.RTCSessionDescription            = RTCSessionDescription;
@@ -2537,7 +2592,6 @@ function registerGlobals() {
 	window.webkitMediaStream                = MediaStream;
 	window.MediaStreamTrack                 = MediaStreamTrack;
 }
-
 
 function dump() {
 	exec(null, null, 'iosrtcPlugin', 'dump', []);
