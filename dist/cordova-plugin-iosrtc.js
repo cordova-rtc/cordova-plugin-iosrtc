@@ -2468,10 +2468,10 @@ function getUserMedia(constraints) {
 				(typeof constraints.video.optional === 'object' || constraints.video.mandatory === 'object')
 		) {
 
-			constraints.video = {};
-
 			var videoConstraints = constraints.video.mandatory || constraints.video.optional;
 			videoConstraints = Array.isArray(videoConstraints) ? videoConstraints[0] : videoConstraints;
+
+			constraints.video = {};
 
 			if (typeof videoConstraints.sourceId === 'string') {
 				constraints.video.deviceId = videoConstraints.sourceId;
@@ -2601,10 +2601,10 @@ function getUserMedia(constraints) {
 			typeof constraints.audio === 'object' &&
 				(typeof constraints.audio.optional === 'object' || constraints.audio.mandatory === 'object')
 		) {
-			constraints.audio = {};
-
 			var audioConstraints = constraints.audio.mandatory || constraints.audio.optional;
 			audioConstraints = Array.isArray(audioConstraints) ? audioConstraints[0] : audioConstraints;
+
+			constraints.audio = {};
 
 			if (typeof audioConstraints.sourceId === 'string') {
 				constraints.audio.deviceId = audioConstraints.sourceId;
