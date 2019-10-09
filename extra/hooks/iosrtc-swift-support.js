@@ -203,10 +203,11 @@ module.exports = function (context) {
 	} else {
 		if (!matchXcconfigPathValue(currentSwiftOptions, 'SWIFT_OBJC_BRIDGING_HEADER', swiftBridgingHeaderPath)) {
 			var currentSwiftBridgingHeader = getXcconfigPathValue(currentSwiftOptions, 'SWIFT_OBJC_BRIDGING_HEADER').replace('$(PROJECT_DIR)/$(PROJECT_NAME)/', '');
-			existingSwiftBridgingHeaderPath = path.join(platformProjectPath, currentSwiftBridgingHeader);
 			if (!existingSwiftBridgingHeaderPath) {
 				swiftOptions.push('SWIFT_OBJC_BRIDGING_HEADER = ' + swiftBridgingHeaderPath);
 				xcconfigPathChanged = true;	
+			} else {
+				existingSwiftBridgingHeaderPath = path.join(platformProjectPath, currentSwiftBridgingHeader);
 			}
 		}	
 	}
