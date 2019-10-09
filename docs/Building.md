@@ -1,20 +1,11 @@
 # Building
 
-
 ### Building Steps
 
 An iOS Cordova application including the *cordova-plugin-iosrtc* plugin can be built using the [cordova-cli](https://cordova.apache.org/docs/en/edge/guide_cli_index.md.html#The%20Command-Line%20Interface) or Xcode.
 
-The plugin provides a ["hook"](../extra/hooks/iosrtc-swift-support.js) to automate required modifications in both *cordova-cli* and Xcode generated projects. It is no longer necessary to add the "hook" manually, it is installed when platform is removed and added again.
+The plugin provides a ["hook"](../extra/hooks/iosrtc-swift-support.js) to automate required modifications in both *cordova-cli* and Xcode generated projects. It is no longer necessary to add the "hook" manually or add and remove the platform again, it is executed before and after cordova is preparing your application.
 
-* Make sure you have the NPM [xcode](https://www.npmjs.com/package/xcode) package installed (locally or globally):
-```bash
-$ npm install -g xcode
-```
-* Remove the iOS platform and add it again:
-```bash
-$ cordova platform remove ios
-$ cordova platform add ios
 ```
 * You have two options right now:
   * Open the Xcode project and compile your application.
@@ -22,6 +13,8 @@ $ cordova platform add ios
 ```bash
 $ cordova build ios
 ```
+
+For more details about Cordova hook life cycle see: [Hooks Guide - Apache Cordova](https://cordova.apache.org/docs/en/latest/guide/appdev/hooks/)
 
 
 #### Bridging Header
@@ -43,7 +36,13 @@ It may happen that your Cordova application uses more than a single plugin coded
 And then set `Unified-Bridging-Header.h` as the value of the "Objective-C Bridging Header" build setting in your Xcode project. For more information check this [issue](https://github.com/cordova-rtc/cordova-plugin-iosrtc/issues/9).
 
 
-#### Xcode
+#### Minimum Xcode Version
+
+You need to use minimum Xcode version 10.2 otherwise the build will fail due Apple Xcode know Bugs that have been fixed only on version above Xcode 10.2.
+
+See: [Xcode 10.2 Release Notes](https://developer.apple.com/documentation/xcode_release_notes/xcode_10_2_release_notes)
+
+#### Configuring Xcode manually
 
 If you still prefer to do it manually open it with Xcode and follow these steps:
 
