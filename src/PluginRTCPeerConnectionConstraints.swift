@@ -45,7 +45,7 @@ class PluginRTCPeerConnectionConstraints {
 		"googImprovedWifiBwe",
 		// Temporary pseudo-constraint for enabling DSCP
 		"googDscp",
-		// if enabled,  will lower outgoing video quality and video resolution
+		// If enabled, will lower outgoing video quality and video resolution
 		"googCpuOveruseDetection",
 		// Min CPU load (percents), used in pair with
 		"googCpuUnderuseThreshold",
