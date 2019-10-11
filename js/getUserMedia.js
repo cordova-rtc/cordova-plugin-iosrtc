@@ -154,25 +154,19 @@ function getUserMedia(constraints) {
 				typeof constraints.video.optional === 'object'
 			) {
 				if (typeof constraints.video.optional.sourceId === 'string') {
-					newConstraints.video.deviceId = {
-						ideal: constraints.video.optional.sourceId
-					};
+					newConstraints.videoDeviceId = constraints.video.optional.sourceId;
 				} else if (
 					Array.isArray(constraints.video.optional) &&
 						typeof constraints.video.optional[0] === 'object' &&
 							typeof constraints.video.optional[0].sourceId === 'string'
 				) {
-					newConstraints.video.deviceId = {
-						ideal: constraints.video.optional[0].sourceId
-					};
+					newConstraints.videoDeviceId = constraints.video.optional[0].sourceId;
 				}
 			} else if (
 				constraints.video.mandatory && 
 					typeof constraints.video.mandatory.sourceId === 'string'
 			) {
-				newConstraints.video.deviceId = {
-					exact: constraints.video.mandatory.sourceId
-				};	
+				newConstraints.videoDeviceId = constraints.video.mandatory.sourceId;
 			}
 
 			// Only apply mandatory over optional
