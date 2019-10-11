@@ -2355,19 +2355,38 @@ function getUserMedia(constraints) {
 		
 		if (
 			typeof constraints.video === 'object' &&
-				(typeof constraints.video.optional === 'object' || typeof constraints.video.mandatory === 'object')
+				(typeof constraints.video.optional === 'object' || 
+					typeof constraints.video.mandatory === 'object')
 		) {
 
-			var videoConstraints = constraints.video.mandatory || constraints.video.optional;
-			videoConstraints = Array.isArray(videoConstraints) ? videoConstraints[0] : videoConstraints;
-
-			if (typeof videoConstraints.sourceId === 'string') {
-				if (constraints.video.optional && constraints.video.optional.sourceId) {
-					newConstraints.videoDeviceId = constraints.video.optional.sourceId;	
-				} else {
-					newConstraints.videoDeviceId = constraints.video.mandatory.sourceId;	
+			if (
+				typeof constraints.video.optional === 'object'
+			) {
+				if (typeof constraints.video.optional.sourceId === 'string') {
+					newConstraints.video.deviceId = {
+						ideal: constraints.video.optional.sourceId
+					};
+				} else if (
+					Array.isArray(constraints.video.optional) &&
+						typeof constraints.video.optional[0] === 'object' &&
+							typeof constraints.video.optional[0].sourceId === 'string'
+				) {
+					newConstraints.video.deviceId = {
+						ideal: constraints.video.optional[0].sourceId
+					};
 				}
-			} 
+			} else if (
+				constraints.video.mandatory && 
+					typeof constraints.video.mandatory.sourceId === 'string'
+			) {
+				newConstraints.video.deviceId = {
+					exact: constraints.video.mandatory.sourceId
+				};	
+			}
+
+			// Only apply mandatory over optional
+			var videoConstraints = constraints.video.mandatory || constraints.video.optional;
+			videoConstraints = Array.isArray(videoConstraints) ? videoConstraints[0] : videoConstraints; 
 
 			if (isPositiveInteger(videoConstraints.minWidth)) {
 				newConstraints.video.videoMinWidth = videoConstraints.minWidth;
@@ -2441,17 +2460,26 @@ function getUserMedia(constraints) {
 		// The mandatory / optional syntax was deprecated a in 2014, and minWidth and minHeight the year before that.
 		if (
 			typeof constraints.audio === 'object' &&
-				(typeof constraints.audio.optional === 'object' || constraints.audio.mandatory === 'object')
+				(typeof constraints.audio.optional === 'object' || 
+					typeof constraints.audio.mandatory === 'object')
 		) {
-			var audioConstraints = constraints.audio.mandatory || constraints.audio.optional;
-			audioConstraints = Array.isArray(audioConstraints) ? audioConstraints[0] : audioConstraints;
-
-			if (typeof audioConstraints.sourceId === 'string') {
-				if (constraints.audio.optional && constraints.audio.optional.sourceId) {
-					newConstraints.audioDeviceId = constraints.audio.optional.sourceId;	
-				} else {
-					newConstraints.audioDeviceId = constraints.audio.mandatory.sourceId;	
+			if (
+				typeof constraints.audio.optional === 'object'
+			) {
+				if (typeof constraints.audio.optional.sourceId === 'string') {
+					newConstraints.audioDeviceId = constraints.audio.optional.sourceId;
+				} else if (
+					Array.isArray(constraints.audio.optional) &&
+						typeof constraints.audio.optional[0] === 'object' &&
+							typeof constraints.audio.optional[0].sourceId === 'string'
+				) {
+					newConstraints.audioDeviceId = constraints.audio.optional[0].sourceId;
 				}
+			} else if (
+				constraints.audio.mandatory && 
+					typeof constraints.audio.mandatory.sourceId === 'string'
+			) {
+				newConstraints.audioDeviceId = constraints.audio.mandatory.sourceId;
 			} 
 		}
 
