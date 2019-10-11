@@ -109,7 +109,10 @@ class PluginRTCPeerConnectionConfig {
 
 		if iceServers != nil {
 			for iceServer: NSDictionary in iceServers! {
-				let urls = iceServer.object(forKey: "urls") as? [String] ?? nil
+				let urlsConfig = (iceServer.object(forKey: "url") != nil ?
+						iceServer.object(forKey: "url") : iceServer.object(forKey: "urls"))
+				
+				let urls = urlsConfig is String ? [urlsConfig as? String ?? ""] : urlsConfig as? [String] ?? nil;
 				let username = iceServer.object(forKey: "username") as? String ?? ""
 				let password = iceServer.object(forKey: "credential") as? String ?? ""
 
