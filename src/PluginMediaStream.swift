@@ -20,14 +20,14 @@ class PluginMediaStream : NSObject {
 		self.id = rtcMediaStream.streamId
 
 		for track: RTCMediaStreamTrack in (self.rtcMediaStream.audioTracks as Array<RTCMediaStreamTrack>) {
-			let pluginMediaStreamTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: track)
+			let pluginMediaStreamTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: track, streamId: id)
 
 			pluginMediaStreamTrack.run()
 			self.audioTracks[pluginMediaStreamTrack.id] = pluginMediaStreamTrack
 		}
 
 		for track: RTCMediaStreamTrack in (self.rtcMediaStream.videoTracks as Array<RTCMediaStreamTrack>) {
-			let pluginMediaStreamTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: track)
+			let pluginMediaStreamTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: track, streamId: id)
 
 			pluginMediaStreamTrack.run()
 			self.videoTracks[pluginMediaStreamTrack.id] = pluginMediaStreamTrack
