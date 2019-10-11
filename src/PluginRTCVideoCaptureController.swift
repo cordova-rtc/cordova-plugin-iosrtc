@@ -157,16 +157,11 @@ class PluginRTCVideoCaptureController : NSObject {
 		NSLog("PluginRTCVideoCaptureController#stopCapture Capture stopped");
 	}
 	
-	func switchCamera() -> Bool {
-		return self.startCapture()
-	}
-	
 	fileprivate func findDevice() -> AVCaptureDevice? {
 		
 		var device : AVCaptureDevice?;
 		
-		// TODO facingMode ConstrainDOMString NSDictionary
-		// TODO check deviceId
+		// facingMode ConstrainDOMString NSDictionary
 		// Check the video contraints: examine facingMode and deviceId
 		// and pick a default if neither are specified.
 		var position = AVCaptureDevice.Position.front;
@@ -181,11 +176,12 @@ class PluginRTCVideoCaptureController : NSObject {
 				// TODO fail
 				return nil;
 			}
+			
+			NSLog("PluginRTCVideoCaptureController#findDevice facingMode:%s", facingMode);
 		}
 		
-		// TODO deviceId ConstrainDOMString NSDictionary
+		// deviceId ConstrainDOMString NSDictionary
 		let deviceId = self.getConstrainDOMStringValue(constraint: "deviceId");
-		
 		if (deviceId.count > 0) {
 			device = AVCaptureDevice(uniqueID: deviceId)
 			if (!device!.isConnected) {
@@ -202,6 +198,9 @@ class PluginRTCVideoCaptureController : NSObject {
 			device = findDeviceForPosition(position: position);
 		}
 		
+		NSLog("PluginRTCVideoCaptureController#findDevice device:%@", device!);
+		
+		// Check facingMode requirements
 		if (facingModeRequired && (
 			device == nil ||
 				facingMode == "environment" && device?.position != AVCaptureDevice.Position.back ||
@@ -211,10 +210,35 @@ class PluginRTCVideoCaptureController : NSObject {
 		   return nil;
 		}
 		
-		deviceFormat = selectFormatForDevice(device:device!);
+		deviceFormat = findFormatForDevice(device:device!);
 		
 		if (deviceFormat == nil) {
 			return nil;
+		}
+		
+		let frameRateRange: NSDictionary = getConstrainRangeValues(constraint: "frameRate"),
+			minFrameRate = frameRateRange.object(forKey: "min") as! Float64,
+			maxFrameRate = frameRateRange.object(forKey: "max") as! Float64
+			
+		if (minFrameRate > 0 || maxFrameRate > 0) {
+			let formatFrameRateRange: AVFrameRateRange = deviceFormat!.videoSupportedFrameRateRanges[0]
+		 
+			if (
+				(formatFrameRateRange.maxFrameRate <= maxFrameRate) &&
+					formatFrameRateRange.minFrameRate >= minFrameRate &&
+						isConstrainRangeRequired(constraint: "frameRate")
+			) {
+				// TODO fail
+				return nil;
+			}
+			
+			deviceFrameRate = Int(maxFrameRate > 0 ? maxFrameRate : minFrameRate)
+			
+			NSLog("PluginRTCVideoCaptureController#findDevice deviceFrameRate:%i", deviceFrameRate);
+			
+		// Apply default deviceFrameRate
+		} else {
+			deviceFrameRate = 30;
 		}
 		
 		return device;
@@ -233,29 +257,29 @@ class PluginRTCVideoCaptureController : NSObject {
 		return captureDevices[0] as? AVCaptureDevice
 	}
 	
-	fileprivate func selectFormatForDevice(device: AVCaptureDevice) -> AVCaptureDevice.Format? {
+	fileprivate func findFormatForDevice(device: AVCaptureDevice) -> AVCaptureDevice.Format? {
 		
 		var selectedFormat: AVCaptureDevice.Format? = nil
 		let formats: NSArray = RTCCameraVideoCapturer.supportedFormats(for: device) as NSArray
 		
-		let widthRange: NSDictionary = getConstrainRangeValues(constraint: "width")!,
+		let widthRange: NSDictionary = getConstrainRangeValues(constraint: "width"),
 			minWidth = widthRange.object(forKey: "min") as! Int32,
 			maxWidth = widthRange.object(forKey: "max") as! Int32
 			
-		let heightRange: NSDictionary = getConstrainRangeValues(constraint: "height")!,
+		let heightRange: NSDictionary = getConstrainRangeValues(constraint: "height"),
 			minHeight = heightRange.object(forKey: "min") as! Int32,
 			maxHeight = heightRange.object(forKey: "max") as! Int32
 		
-		let frameRateRange: NSDictionary = getConstrainRangeValues(constraint: "frameRate")!,
-			minFrameRate = widthRange.object(forKey: "min") as! Float64,
+		let frameRateRange: NSDictionary = getConstrainRangeValues(constraint: "frameRate"),
+			minFrameRate = frameRateRange.object(forKey: "min") as! Float64,
 			maxFrameRate = frameRateRange.object(forKey: "max") as! Float64
 
-		let aspectRatioRange: NSDictionary = getConstrainRangeValues(constraint: "aspectRatio")!,
+		let aspectRatioRange: NSDictionary = getConstrainRangeValues(constraint: "aspectRatio"),
 			minAspectRatio = aspectRatioRange.object(forKey: "min") as! Float32,
 			maxAspectRatio = aspectRatioRange.object(forKey: "max") as! Float32
 		
 
-		NSLog("PluginRTCVideoCaptureController#contraints width:%i/%i, height:%i%i, aspectRatio: %f%i, frameRateRanges:%f/%f", minWidth, maxWidth, minHeight, maxHeight, minAspectRatio, maxAspectRatio, minFrameRate, maxFrameRate);
+		NSLog("PluginRTCVideoCaptureController#findFormatForDevice contraints width:%i/%i, height:%i%i, aspectRatio: %f%i, frameRateRanges:%f/%f", minWidth, maxWidth, minHeight, maxHeight, minAspectRatio, maxAspectRatio, minFrameRate, maxFrameRate);
 		
 		for format: Any in formats {
 			
@@ -269,7 +293,7 @@ class PluginRTCVideoCaptureController : NSObject {
 			let frameRateRanges: [AVFrameRateRange] = devFormat.videoSupportedFrameRateRanges
 			let frameRates = frameRateRanges[0];
 			
-			NSLog("PluginRTCVideoCaptureController#format width:%i, height:%i, aspectRatio: %f, frameRateRanges:%f/%f", dimension.width, dimension.height, aspectRatio, frameRates.minFrameRate, frameRates.maxFrameRate);
+			NSLog("PluginRTCVideoCaptureController#findFormatForDevice format width:%i, height:%i, aspectRatio: %f, frameRateRanges:%f/%f", dimension.width, dimension.height, aspectRatio, frameRates.minFrameRate, frameRates.maxFrameRate);
 			
 			// dimension.height and dimension.width Matches
 			if (
@@ -334,10 +358,35 @@ class PluginRTCVideoCaptureController : NSObject {
 			
 			// TODO Apply frameRates via minFrameRate/maxFrameRate
 			
-			NSLog("PluginRTCVideoCaptureController#selectFormatForDevice width:%i, height:%i, aspectRatio: %f, frameRateRanges:%f/%f", dimension.width, dimension.height, aspectRatio, frameRates.minFrameRate, frameRates.maxFrameRate);
+			NSLog("PluginRTCVideoCaptureController#findFormatForDevice width:%i, height:%i, aspectRatio: %f, frameRateRanges:%f/%f", dimension.width, dimension.height, aspectRatio, frameRates.minFrameRate, frameRates.maxFrameRate);
 		}
 	
 		return selectedFormat
+	}
+	
+	func switchCamera() -> Bool {
+		
+		if (self.capturer.captureSession.isRunning) {
+			self.capturer.stopCapture()
+		}
+
+		self.device = self.findAlternativeDevicePosition(currentDevice: self.device)
+		
+		self.deviceFormat = self.findFormatForDevice(device: self.device!)
+		
+		return self.startCapture()
+	}
+	
+	fileprivate func findAlternativeDevicePosition(currentDevice: AVCaptureDevice?) -> AVCaptureDevice? {
+		let captureDevices: NSArray = RTCCameraVideoCapturer.captureDevices() as NSArray
+		for device: Any in captureDevices {
+			let avDevice = device as! AVCaptureDevice
+			if (avDevice.position != currentDevice!.position) {
+				return avDevice
+			}
+		}
+	
+		return nil
 	}
 	
 	//
@@ -382,7 +431,7 @@ class PluginRTCVideoCaptureController : NSObject {
 		return isRequired;
 	}
 	
-	fileprivate func getConstrainRangeValues(constraint: String) -> NSDictionary? {
+	fileprivate func getConstrainRangeValues(constraint: String) -> NSDictionary {
 		let constraints = self.constraints;
 		let finalValue: NSMutableDictionary = [:];
 		finalValue.setValue(0, forKey: "min")
