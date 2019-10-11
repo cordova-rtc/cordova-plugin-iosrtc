@@ -105,7 +105,7 @@ function TestGetUserMedia() {
       deviceId: {
         exact: 'com.apple.avfoundation.avcapturedevice.built-in_video:0'
       }
-	  // Test FrameRate
+      // Test FrameRate
       frameRate:{ min: 30.0, max: 60.0 }
     }, 
     audio: {
