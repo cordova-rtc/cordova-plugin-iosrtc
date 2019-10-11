@@ -77,12 +77,18 @@ class PluginGetUserMedia {
 		rtcMediaStream = self.rtcPeerConnectionFactory.mediaStream(withStreamId: UUID().uuidString)
 
 		if videoRequested {
+			
+			NSLog("PluginGetUserMedia#call() | video requested")
 
 			rtcVideoSource = self.rtcPeerConnectionFactory.videoSource()
 
 			rtcVideoTrack = self.rtcPeerConnectionFactory.videoTrack(with: rtcVideoSource!, trackId: UUID().uuidString)
-
-			let videoConstraints = constraints.object(forKey: "video") as! NSDictionary
+			
+			// Handle legacy plugin instance or video: true
+			var videoConstraints : NSDictionary = [:];
+			if (!(constraints.object(forKey: "video") is Bool)) {
+			   videoConstraints = constraints.object(forKey: "video") as! NSDictionary
+			}
 
 			NSLog("PluginGetUserMedia#call() | chosen video constraints: %@", videoConstraints)
 
@@ -118,11 +124,18 @@ class PluginGetUserMedia {
 		}
 		
 		if audioRequested == true {
-
-			let audioConstraints = constraints.object(forKey: "audio") as! NSDictionary
-			let audioDeviceId = audioConstraints.object(forKey: "deviceId") as? String
 			
 			NSLog("PluginGetUserMedia#call() | audio requested")
+			
+			// Handle legacy plugin instance or audio: true
+			var audioConstraints : NSDictionary = [:];
+			if (!(constraints.object(forKey: "audio") is Bool)) {
+			   audioConstraints = constraints.object(forKey: "audio") as! NSDictionary
+			}
+			
+			NSLog("PluginGetUserMedia#call() | chosen audio constraints: %@", audioConstraints)
+			
+			let audioDeviceId = audioConstraints.object(forKey: "deviceId") as? String
 
 			rtcAudioTrack = self.rtcPeerConnectionFactory.audioTrack(withTrackId: UUID().uuidString)
 			rtcMediaStream.addAudioTrack(rtcAudioTrack!)
