@@ -106,7 +106,7 @@ function TestGetUserMedia() {
         exact: 'com.apple.avfoundation.avcapturedevice.built-in_video:0'
       }
       // Test FrameRate
-      frameRate:{ min: 30.0, max: 60.0 }
+      frameRate:{ min: 15.0, max: 30.0 } // Note: Back camera may only support max 30 fps
     }, 
     audio: {
       deviceId: {
