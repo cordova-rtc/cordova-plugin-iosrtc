@@ -2355,28 +2355,34 @@ function getUserMedia(constraints) {
 		
 		if (
 			typeof constraints.video === 'object' &&
-				(typeof constraints.video.optional === 'object' || constraints.video.mandatory === 'object')
+				(typeof constraints.video.optional === 'object' || typeof constraints.video.mandatory === 'object')
 		) {
 
 			var videoConstraints = constraints.video.mandatory || constraints.video.optional;
 			videoConstraints = Array.isArray(videoConstraints) ? videoConstraints[0] : videoConstraints;
 
-			constraints.video = {};
-
 			if (typeof videoConstraints.sourceId === 'string') {
-				constraints.video.deviceId = videoConstraints.sourceId;
+				if (constraints.video.optional && constraints.video.optional.sourceId) {
+					newConstraints.videoDeviceId = constraints.video.optional.sourceId;	
+				} else {
+					newConstraints.videoDeviceId = constraints.video.mandatory.sourceId;	
+				}
 			} 
 
-			if (isPositiveFloat(videoConstraints.minWidth)) {
-				constraints.video.width = {
-					min: videoConstraints.minWidth
-				};
+			if (isPositiveInteger(videoConstraints.minWidth)) {
+				newConstraints.video.videoMinWidth = videoConstraints.minWidth;
 			}
 
-			if (isPositiveFloat(videoConstraints.minHeight)) {
-				constraints.video.height = {
-					min: videoConstraints.minHeight
-				};
+			if (isPositiveInteger(videoConstraints.minHeight)) {
+				newConstraints.video.videoMinHeight = videoConstraints.minHeight;
+			}
+			
+			if (isPositiveFloat(videoConstraints.minFrameRate)) {
+				newConstraints.videoMinFrameRate = parseFloat(videoConstraints.minFrameRate, 10);
+			}
+
+			if (isPositiveFloat(videoConstraints.maxFrameRate)) {
+				newConstraints.videoMaxFrameRate = parseFloat(videoConstraints.maxFrameRate, 10);
 			}
 		}
 
@@ -2416,14 +2422,14 @@ function getUserMedia(constraints) {
 		// Get requested min/max frame rate.
 		if (typeof constraints.video.frameRate === 'object') {
 			if (isPositiveFloat(constraints.video.frameRate.min)) {
-				newConstraints.videoMinFrameRate = constraints.video.frameRate.min;
+				newConstraints.videoMinFrameRate = parseFloat(constraints.video.frameRate.min, 10);
 			}
 			if (isPositiveFloat(constraints.video.frameRate.max)) {
-				newConstraints.videoMaxFrameRate = constraints.video.frameRate.max;
+				newConstraints.videoMaxFrameRate = parseFloat(constraints.video.frameRate.max, 10);
 			}
 		} else if (isPositiveFloat(constraints.video.frameRate)) {
-			newConstraints.videoMinFrameRate = constraints.video.frameRate;
-			newConstraints.videoMaxFrameRate = constraints.video.frameRate;
+			newConstraints.videoMinFrameRate = parseFloat(constraints.video.frameRate, 10);
+			newConstraints.videoMaxFrameRate = parseFloat(constraints.video.frameRate, 10);
 		}
 	}
 
@@ -2440,10 +2446,12 @@ function getUserMedia(constraints) {
 			var audioConstraints = constraints.audio.mandatory || constraints.audio.optional;
 			audioConstraints = Array.isArray(audioConstraints) ? audioConstraints[0] : audioConstraints;
 
-			constraints.audio = {};
-
 			if (typeof audioConstraints.sourceId === 'string') {
-				constraints.audio.deviceId = audioConstraints.sourceId;
+				if (constraints.audio.optional && constraints.audio.optional.sourceId) {
+					newConstraints.audioDeviceId = constraints.audio.optional.sourceId;	
+				} else {
+					newConstraints.audioDeviceId = constraints.audio.mandatory.sourceId;	
+				}
 			} 
 		}
 
@@ -2480,6 +2488,7 @@ function getUserMedia(constraints) {
 		exec(onResultOK, onResultError, 'iosrtcPlugin', 'getUserMedia', [newConstraints]);
 	});
 }
+
 },{"./Errors":1,"./MediaStream":4,"cordova/exec":undefined,"debug":18}],16:[function(_dereq_,module,exports){
 (function (global){
 /**
