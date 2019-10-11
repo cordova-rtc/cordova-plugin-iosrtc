@@ -110,8 +110,8 @@ function TestGetUserMedia() {
     }, 
     audio: {
       deviceId: {
-	    exact: 'Built-In Microphone'
-	  }
+        exact: 'Built-In Microphone'
+      }
     }*/
   }).then(function (stream) {
 
