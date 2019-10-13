@@ -105,9 +105,13 @@ function TestGetUserMedia() {
       deviceId: {
         exact: 'com.apple.avfoundation.avcapturedevice.built-in_video:0'
       }
+      // Test FrameRate
+      frameRate:{ min: 15.0, max: 30.0 } // Note: Back camera may only support max 30 fps
     }, 
     audio: {
-      exact: 'Built-In Microphone'
+      deviceId: {
+        exact: 'Built-In Microphone'
+      }
     }*/
   }).then(function (stream) {
 
@@ -250,7 +254,7 @@ document.addEventListener('deviceready', function () {
     var adapterVersion = 'latest';
     var script = document.createElement("script");
     script.type = "text/javascript";
-    script.src = "https://webrtc.github.io/adapter/adapter-" + version + ".js";
+    script.src = "https://webrtc.github.io/adapter/adapter-" + adapterVersion + ".js";
     script.async = false;
     document.getElementsByTagName("head")[0].appendChild(script);
   }
