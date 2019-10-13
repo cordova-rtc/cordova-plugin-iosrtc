@@ -289,12 +289,12 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		if (IsUnifiedPlan()) {
 			
 			var streamAdded : Bool = false;
-			for (_, pluginMediaStream) in pluginMediaStream.audioTracks {
-				streamAdded = self.addTrack(pluginMediaStream) && streamAdded;
+			for (_, pluginMediaTrack) in pluginMediaStream.audioTracks {
+				streamAdded = self.addTrack(pluginMediaTrack, pluginMediaStream) && streamAdded;
 			}
 			
-			for (_, pluginMediaStream) in pluginMediaStream.videoTracks {
-				streamAdded = self.addTrack(pluginMediaStream) && streamAdded;
+			for (_, pluginMediaTrack) in pluginMediaStream.videoTracks {
+				streamAdded = self.addTrack(pluginMediaTrack, pluginMediaStream) && streamAdded;
 			}
 			
 			return streamAdded;
@@ -332,7 +332,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		return rtcPeerConnection.configuration.sdpSemantics == RTCSdpSemantics.unifiedPlan;
 	}
 
-	func addTrack(_ pluginMediaTrack: PluginMediaStreamTrack) -> Bool {
+	func addTrack(_ pluginMediaTrack: PluginMediaStreamTrack, _ pluginMediaStream: PluginMediaStream) -> Bool {
 		NSLog("PluginRTCPeerConnection#addTrack()")
 		
 		if self.rtcPeerConnection.signalingState == RTCSignalingState.closed {
@@ -342,7 +342,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		let rtcMediaStreamTrack = pluginMediaTrack.rtcMediaStreamTrack;
 		var rtcSender = trackIdsToSenders[rtcMediaStreamTrack.trackId];
 		if (rtcSender == nil) {
-			rtcSender = self.rtcPeerConnection.add(rtcMediaStreamTrack, streamIds: [pluginMediaTrack.streamId])
+			rtcSender = self.rtcPeerConnection.add(rtcMediaStreamTrack, streamIds: [pluginMediaStream.id])
 			trackIdsToSenders[rtcMediaStreamTrack.trackId] = rtcSender;
 			return true;
 		}
@@ -739,13 +739,21 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 
 	/** New track as been added. */
 	func peerConnection(_ peerConnection: RTCPeerConnection, didAdd rtpReceiver: RTCRtpReceiver, streams:[RTCMediaStream]) {
+		
 		NSLog("PluginRTCPeerConnection | onaddtrack")
 		
-		let track = PluginMediaStreamTrack(rtcMediaStreamTrack: rtpReceiver.track!, streamId: streams[0].streamId)
+		// TODO why streams.count is 0 and should it trigger addtrack
+		let streamId : String = streams.count > 0 ? streams[0].streamId : "";
+		NSLog("PluginRTCPeerConnection | onaddtrack [streamId:%s]", streamId)
 		
-		self.eventListener([
-			"type": "addtrack",
-			"track": track.getJSON()
-		])
+		let track = PluginMediaStreamTrack(
+		   rtcMediaStreamTrack: rtpReceiver.track!,
+		   streamId: streamId
+	   )
+	   
+	   self.eventListener([
+		   "type": "addtrack",
+		   "track": track.getJSON()
+	   ])
 	}
 }
