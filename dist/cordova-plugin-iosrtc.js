@@ -1,5 +1,5 @@
 /*
- * cordova-plugin-iosrtc v5.0.4
+ * cordova-plugin-iosrtc v5.0.5
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015-2017 eFace2Face, Inc. (https://eface2face.com)
  * Copyright 2015-2019 BasqueVoIPMafia (https://github.com/BasqueVoIPMafia)
@@ -1863,13 +1863,10 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 
 	for (id in this.localStreams) {
 		if (this.localStreams.hasOwnProperty(id)) {
-			if (
-				!stream || // No stream target
-					(stream && stream.id === id) // Stream target by id
-			) {
+			// Target provided stream argument or newlly added stream to group track
+			if (stream && stream.id === id) { 
 				stream = this.localStreams[id];
 				stream.addTrack(track);
-
 				exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [this.pcId, track.id, stream.id]);
 				break;
 			}
