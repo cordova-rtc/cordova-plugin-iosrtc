@@ -1904,10 +1904,8 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 	var id;
 
 	// Add localStreams if missing
-	if (Object.keys(this.localStreams).length === 0) {
-		stream = new MediaStream();
-		this.addStream(stream);
-	}
+	stream = stream || new MediaStream();
+	this.addStream(stream);
 
 	for (id in this.localStreams) {
 		if (this.localStreams.hasOwnProperty(id)) {
