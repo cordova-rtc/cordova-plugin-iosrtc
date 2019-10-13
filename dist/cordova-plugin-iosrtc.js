@@ -1909,13 +1909,10 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 
 	for (id in this.localStreams) {
 		if (this.localStreams.hasOwnProperty(id)) {
-			if (
-				!stream || // No stream target
-					(stream && stream.id === id) // Stream target by id
-			) {
+			// Target provided stream argument or newlly added stream to group track
+			if (stream && stream.id === id) { 
 				stream = this.localStreams[id];
 				stream.addTrack(track);
-
 				exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [this.pcId, track.id, stream.id]);
 				break;
 			}
