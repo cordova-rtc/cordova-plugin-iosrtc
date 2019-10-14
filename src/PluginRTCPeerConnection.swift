@@ -743,17 +743,17 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		NSLog("PluginRTCPeerConnection | onaddtrack")
 		
 		// TODO why streams.count is 0 and should it trigger addtrack
+		// TODO why NSLog streamId cause crash need weak ?
 		let streamId : String = streams.count > 0 ? streams[0].streamId : "";
-		NSLog("PluginRTCPeerConnection | onaddtrack [streamId:%s]", streamId)
 		
 		let track = PluginMediaStreamTrack(
 		   rtcMediaStreamTrack: rtpReceiver.track!,
 		   streamId: streamId
-	   )
+		)
 	   
-	   self.eventListener([
+		self.eventListener([
 		   "type": "addtrack",
 		   "track": track.getJSON()
-	   ])
+		])
 	}
 }
