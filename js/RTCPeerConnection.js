@@ -42,7 +42,7 @@ function RTCPeerConnection(pcConfig, pcConstraints) {
 	EventTarget.call(this);
 
 	// Restore corrupted RTCPeerConnection.prototype
-	// TODO find why adapter prevent events onnegotiationneeded to be trigger.
+	// TODO find why webrtc-adapter prevent events onnegotiationneeded to be trigger.
 	// Object.defineProperties(this, RTCPeerConnection.prototype_descriptor);
 
 	// Fix webrtc-adapter bad SHIM on addTrack causing error when original does support multiple streams.
@@ -414,22 +414,31 @@ RTCPeerConnection.prototype.getSenders = function () {
 RTCPeerConnection.prototype.addTrack = function (track, stream) {
 	var id;
 
+	if (isClosed.call(this)) {
+		throw new Errors.InvalidStateError('peerconnection is closed');
+	}
+
 	// Add localStreams if missing
-	if (Object.keys(this.localStreams).length === 0) {
-		stream = new MediaStream();
-		this.addStream(stream);
+	// Fix webrtc-adapter bad SHIM on addStream
+	if (stream) {
+		if (!(stream instanceof MediaStream.originalMediaStream)) {
+			throw new Error('addTrack() must be called with a MediaStream instance as argument');
+		}
+
+		if (!this.localStreams[stream.id]) {
+			this.localStreams[stream.id] = stream;
+		}
+
+		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addStream', [this.pcId, stream.id]);
 	}
 
 	for (id in this.localStreams) {
 		if (this.localStreams.hasOwnProperty(id)) {
-			if (
-				!stream || // No stream target
-					(stream && stream.id === id) // Stream target by id
-			) {
+			// Target provided stream argument or first added stream to group track
+			if (!stream || (stream && stream.id === id)) { 
 				stream = this.localStreams[id];
 				stream.addTrack(track);
-
-				exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [this.pcId, track.id, stream.id]);
+				exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [this.pcId, track.id, id]);
 				break;
 			}
 		}
