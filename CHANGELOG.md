@@ -1,3 +1,22 @@
+#### Version 6.0.0
+* Use WebRTC M69
+* Use WebRTC.framework
+* implement PluginRTCVideoCaptureController with MediaTrackConstraintSet  
+* Replace the libwebrtc static lib with the dynamic library from the WebRTC.framework build process using M69 ([PR #399](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/399) by @hthetiot)
+* Be able to use minAspectRatio/maxAspectRatio #287
+* webrtc/adapter breaks deviceId constraint #282
+* Support for facingMode as a video constraint #315
+* Capturing a static image from the local MediaStream #116 
+* Added Speakerphone funcionality #379
+* Restore PluginRTCAudioController including selectAudioOutput and move EnumerateDevice. setPreferredInput| saveAudioDevice into PluginRTCAudioController
+* Fix closing and re-opening local stream several times #247
+* H264 issues #170
+*  Generic RTCPeerConnection constraint handling #119 via #394
+* Video renders in landscape, but not portrait orientation #360
+* Adapter JS change frameRate constraints #286
+* Regression switch camera fail (stop stream, remove stream from peer, get stream, add stream to peer, renegociate, fail on m69 but not master)
+*  Fix GSM call interrupts the current WebRTC call (Note: Use cordova.plugins.backgroundMode.enable(); on local media Start/Stop).
+
 #### Version 5.0.5
 * Fix RTCPeerConnection.addTrack when providing stream argument and when multiple tracks are added.
 * Handle webrtc-adapter getUserMedia constraints mandatory / optional syntax ([PR #405](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/405) by @hthetiot).

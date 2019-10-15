@@ -16,12 +16,15 @@ struct MediaDeviceInfo {
 	}
 }
 
-var audioInputSelected: AVAudioSessionPortDescription? = nil
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromAVMediaType(_ input: AVMediaType) -> String {
+    return input.rawValue
+}
 
 class PluginEnumerateDevices {
 	class func call(_ callback: (_ data: NSDictionary) -> Void) {
 		NSLog("PluginEnumerateDevices#call()")
-		initAudioDevices()
+        
 		let audioDevices: [MediaDeviceInfo] = getAllAudioDevices()
 		let videoDevices: [MediaDeviceInfo] = getAllVideoDevices()
 		let allDevices = videoDevices + audioDevices;
@@ -42,30 +45,6 @@ class PluginEnumerateDevices {
 		
 		print("DEVICES => ", json)
 		callback(json as NSDictionary)
-	}
-	
-	// Setter function inserted by save specific audio device
-	class func saveAudioDevice(inputDeviceUID: String) -> Void {
-		let audioSession: AVAudioSession = AVAudioSession.sharedInstance()
-		let audioInput: AVAudioSessionPortDescription = audioSession.availableInputs!.filter({
-			(value:AVAudioSessionPortDescription) -> Bool in
-			return value.uid == inputDeviceUID
-		})[0]
-		
-		audioInputSelected = audioInput
-	}
-	
-	// Setter function inserted by set specific audio device
-	class func setPreferredInput() -> Void {
-		let audioSession: AVAudioSession = AVAudioSession.sharedInstance()
-		
-		//print("SETTING INPUT SELECTED: ", audioInputSelected!)
-		
-		do {
-			try audioSession.setPreferredInput(audioInputSelected)
-		} catch {
-			print("Error setting audio device.")
-		}
 	}
 }
 
@@ -117,12 +96,14 @@ fileprivate func getAllVideoDevices() -> [MediaDeviceInfo] {
 		}
 	}
 	
-	
 	return videoDevicesArr
 }
 
 // Getter function inserted by get all audio devices connected
 fileprivate func getAllAudioDevices() -> [MediaDeviceInfo] {
+
+    PluginRTCAudioController.initAudioDevices()
+    
 	let audioSession: AVAudioSession = AVAudioSession.sharedInstance()
 	var audioDevicesArr : [MediaDeviceInfo] = []
 	let audioInputDevices: [AVAudioSessionPortDescription] = audioSession.availableInputs!
@@ -156,28 +137,11 @@ fileprivate func getAllAudioDevices() -> [MediaDeviceInfo] {
 	
 	// Initialize audioInputSelected. Priority: [Wired - Wireless - Built-In Microphone]
 	if isWiredConnected {
-		PluginEnumerateDevices.saveAudioDevice(inputDeviceUID: wiredDevice!.uid)
-	} else if isBluetoothConnected{
-		PluginEnumerateDevices.saveAudioDevice(inputDeviceUID: bluetoothDevice!.uid)
+		PluginRTCAudioController.saveInputAudioDevice(inputDeviceUID: wiredDevice!.uid)
+	} else if isBluetoothConnected {
+		PluginRTCAudioController.saveInputAudioDevice(inputDeviceUID: bluetoothDevice!.uid)
 	} else {
-		PluginEnumerateDevices.saveAudioDevice(inputDeviceUID: builtMicDevice!.uid)
+		PluginRTCAudioController.saveInputAudioDevice(inputDeviceUID: builtMicDevice!.uid)
 	}
 	return audioDevicesArr
 }
-
-fileprivate func initAudioDevices() -> Void {
-	let audioSession: AVAudioSession = AVAudioSession.sharedInstance()
-	
-	do {
-		try audioSession.setCategory(AVAudioSession.Category.playAndRecord, mode: AVAudioSession.Mode.default, options: .allowBluetooth)
-		try audioSession.setActive(true)
-	} catch  {
-		print("Error messing with audio session: \(error)")
-	}
-}
-
-// Helper function inserted by Swift 4.2 migrator.
-fileprivate func convertFromAVMediaType(_ input: AVMediaType) -> String {
-	return input.rawValue
-}
-

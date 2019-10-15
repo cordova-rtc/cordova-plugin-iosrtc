@@ -5,30 +5,21 @@
 
 #import <Cordova/CDVPlugin.h>
 
-// #import "RTCAudioSource.h"
-#import "RTCAudioTrack.h"
-#import "RTCDataChannel.h"
-#import "RTCDTMFSender.h"
-#import "RTCEAGLVideoView.h"
-// #import "RTCI420Frame.h"
-#import "RTCICECandidate.h"
-#import "RTCICEServer.h"
-#import "RTCMediaConstraints.h"
-// #import "RTCMediaSource.h"
-#import "RTCMediaStream.h"
-#import "RTCMediaStreamTrack.h"
-// #import "RTCNSGLVideoView.h"
-// #import "RTCOpenGLVideoRenderer.h"
-#import "RTCPair.h"
-#import "RTCPeerConnection.h"
-#import "RTCPeerConnectionDelegate.h"
-#import "RTCPeerConnectionFactory.h"
-#import "RTCSessionDescription.h"
-#import "RTCSessionDescriptionDelegate.h"
-#import "RTCStatsDelegate.h"
-#import "RTCStatsReport.h"
-#import "RTCTypes.h"
-#import "RTCVideoCapturer.h"
-#import "RTCVideoRenderer.h"
-#import "RTCVideoSource.h"
-#import "RTCVideoTrack.h"
+#import <WebRTC/RTCAudioSource.h>
+#import <WebRTC/RTCAudioTrack.h>
+#import <WebRTC/RTCDataChannel.h>
+#import <WebRTC/RTCDtmfSender.h>
+#import <WebRTC/RTCEAGLVideoView.h>
+#import <WebRTC/RTCIceCandidate.h>
+#import <WebRTC/RTCIceServer.h>
+#import <WebRTC/RTCMediaConstraints.h>
+#import <WebRTC/RTCMediaSource.h>
+#import <WebRTC/RTCMediaStream.h>
+#import <WebRTC/RTCMediaStreamTrack.h>
+#import <WebRTC/RTCPeerConnection.h>
+#import <WebRTC/RTCPeerConnectionFactory.h>
+#import <WebRTC/RTCSessionDescription.h>
+#import <WebRTC/RTCVideoCapturer.h>
+#import <WebRTC/RTCVideoRenderer.h>
+#import <WebRTC/RTCVideoSource.h>
+#import <WebRTC/RTCVideoTrack.h>

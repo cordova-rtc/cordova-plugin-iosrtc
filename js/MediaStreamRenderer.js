@@ -43,6 +43,11 @@ function MediaStreamRenderer(element) {
 	exec(onResultOK, null, 'iosrtcPlugin', 'new_MediaStreamRenderer', [this.id]);
 
 	this.refresh(this);
+	this.refreshInterval = setInterval(function () {
+		self.refresh(self);
+	}, 500);
+
+	element.render = this;
 }
 
 MediaStreamRenderer.prototype = Object.create(EventTarget.prototype);
@@ -106,6 +111,24 @@ MediaStreamRenderer.prototype.render = function (stream) {
 	}
 };
 
+MediaStreamRenderer.prototype.save = function (callback) {
+	debug('save()');
+
+	if (!this.stream) {
+		callback(null);
+		return;
+	}
+
+	function onResultOK(data) {
+		callback(data);
+	}
+
+	function onResultError() {
+		callback(null);
+	}
+
+	exec(onResultOK, onResultError, 'iosrtcPlugin', 'MediaStreamRenderer_save', [this.id]);
+};
 
 MediaStreamRenderer.prototype.refresh = function () {
 	debug('refresh()');
@@ -130,7 +153,8 @@ MediaStreamRenderer.prototype.refresh = function () {
 		paddingTop,
 		paddingBottom,
 		paddingLeft,
-		paddingRight;
+		paddingRight,
+		self = this;
 
 	computedStyle = window.getComputedStyle(this.element);
 
@@ -277,6 +301,17 @@ MediaStreamRenderer.prototype.refresh = function () {
 
 	nativeRefresh.call(this);
 
+	function hash(str) {
+		var hash = 5381,
+		i = str.length;
+
+		while (i) {
+			hash = (hash * 33) ^ str.charCodeAt(--i);
+		}
+
+		return hash >>> 0;
+	}
+
 	function nativeRefresh() {
 		var data = {
 			elementLeft: elementLeft,
@@ -292,7 +327,14 @@ MediaStreamRenderer.prototype.refresh = function () {
 			objectFit: objectFit,
 			clip: clip,
 			borderRadius: borderRadius
-		};
+		},
+		newRefreshCached = hash(JSON.stringify(data));
+
+		if (newRefreshCached === self.refreshCached) {
+			return;
+		}
+
+		self.refreshCached = newRefreshCached;
 
 		debug('refresh() | [data:%o]', data);
 
@@ -310,6 +352,10 @@ MediaStreamRenderer.prototype.close = function () {
 	this.stream = undefined;
 
 	exec(null, null, 'iosrtcPlugin', 'MediaStreamRenderer_close', [this.id]);
+	if (this.refreshInterval) {
+		clearInterval(this.refreshInterval);
+		delete this.refreshInterval;
+	}
 };
 
 

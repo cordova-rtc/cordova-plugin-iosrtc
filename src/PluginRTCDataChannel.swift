@@ -1,14 +1,15 @@
 import Foundation
+
 // FIXME: comparison operators with optionals were removed from the Swift Standard Libary.
 // Consider refactoring the code to use the non-optional operators.
 fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
   switch (lhs, rhs) {
   case let (l?, r?):
-    return l < r
+	return l < r
   case (nil, _?):
-    return true
+	return true
   default:
-    return false
+	return false
   }
 }
 
@@ -17,13 +18,11 @@ fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
 fileprivate func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
   switch (lhs, rhs) {
   case let (l?, r?):
-    return l > r
+	return l > r
   default:
-    return rhs < lhs
+	return rhs < lhs
   }
 }
-
-
 
 class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 	var rtcDataChannel: RTCDataChannel?
@@ -31,7 +30,6 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 	var eventListenerForBinaryMessage: ((_ data: Data) -> Void)?
 	var lostStates = Array<String>()
 	var lostMessages = Array<RTCDataBuffer>()
-
 
 	/**
 	 * Constructor for pc.createDataChannel().
@@ -48,7 +46,7 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 		self.eventListener = eventListener
 		self.eventListenerForBinaryMessage = eventListenerForBinaryMessage
 
-		let rtcDataChannelInit = RTCDataChannelInit()
+		let rtcDataChannelInit = RTCDataChannelConfiguration.init()
 
 		if options?.object(forKey: "ordered") != nil {
 			rtcDataChannelInit.isOrdered = options!.object(forKey: "ordered") as! Bool
@@ -60,7 +58,7 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 		}
 
 		if options?.object(forKey: "maxRetransmits") != nil {
-			rtcDataChannelInit.maxRetransmits = options!.object(forKey: "maxRetransmits") as! Int
+			rtcDataChannelInit.maxRetransmits = options!.object(forKey: "maxRetransmits") as! Int32
 		}
 
 		// TODO: error: expected member name following '.'
@@ -69,7 +67,7 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 			// rtcDataChannelInit.protocol = options!.objectForKey("protocol") as! String
 		// }
 		if options?.object(forKey: "protocol") != nil {
-			rtcDataChannelInit.`protocol` = options!.object(forKey: "protocol") as? String
+			rtcDataChannelInit.`protocol` = options!.object(forKey: "protocol") as! String
 		}
 
 		if options?.object(forKey: "negotiated") != nil {
@@ -77,12 +75,10 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 		}
 
 		if options?.object(forKey: "id") != nil {
-			rtcDataChannelInit.streamId = options!.object(forKey: "id") as! Int
+			rtcDataChannelInit.channelId = options!.object(forKey: "id") as! Int32
 		}
 
-		self.rtcDataChannel = rtcPeerConnection.createDataChannel(withLabel: label,
-			config: rtcDataChannelInit
-		)
+		self.rtcDataChannel = rtcPeerConnection.dataChannel(forLabel: label, configuration: rtcDataChannelInit)
 
 		if self.rtcDataChannel == nil {
 			NSLog("PluginRTCDataChannel#init() | rtcPeerConnection.createDataChannelWithLabel() failed")
@@ -94,22 +90,20 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 			"type": "new",
 			"channel": [
 				"ordered": self.rtcDataChannel!.isOrdered,
-				"maxPacketLifeTime": self.rtcDataChannel!.maxRetransmitTime,
+				"maxPacketLifeTime": self.rtcDataChannel!.maxPacketLifeTime,
 				"maxRetransmits": self.rtcDataChannel!.maxRetransmits,
 				"protocol": self.rtcDataChannel!.`protocol`,
 				"negotiated": self.rtcDataChannel!.isNegotiated,
-				"id": self.rtcDataChannel!.streamId,
-				"readyState": PluginRTCTypes.dataChannelStates[self.rtcDataChannel!.state.rawValue] as String!,
+				"id": self.rtcDataChannel!.channelId,
+				"readyState": PluginRTCDataChannel.stateToString(state: self.rtcDataChannel!.readyState),
 				"bufferedAmount": self.rtcDataChannel!.bufferedAmount
 			]
 		])
 	}
 
-
 	deinit {
 		NSLog("PluginRTCDataChannel#deinit()")
 	}
-
 
 	/**
 	 * Constructor for pc.ondatachannel event.
@@ -120,7 +114,6 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 		self.rtcDataChannel = rtcDataChannel
 	}
 
-
 	func run() {
 		NSLog("PluginRTCDataChannel#run()")
 
@@ -128,11 +121,10 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 
 		//if data channel is created after there is a connection,
 		// we need to dispatch its current state.
-		if (self.rtcDataChannel?.state.rawValue > 0) {
-			channelDidChangeState(self.rtcDataChannel);
+		if (self.rtcDataChannel?.readyState != RTCDataChannelState.connecting) {
+			dataChannelDidChangeState(self.rtcDataChannel!);
 		}
 	}
-
 
 	func setListener(
 		_ eventListener: @escaping (_ data: NSDictionary) -> Void,
@@ -157,7 +149,6 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 		self.lostMessages.removeAll()
 	}
 
-
 	func sendString(
 		_ data: String,
 		callback: (_ data: NSDictionary) -> Void
@@ -174,7 +165,6 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 			NSLog("PluginRTCDataChannel#sendString() | RTCDataChannel#sendData() failed")
 		}
 	}
-
 
 	func sendBinary(
 		_ data: Data,
@@ -193,59 +183,75 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 		}
 	}
 
-
 	func close() {
 		NSLog("PluginRTCDataChannel#close()")
 
 		self.rtcDataChannel!.close()
 	}
+	
+	static func stateToString(state: RTCDataChannelState) -> String {
+		switch state {
+		case RTCDataChannelState.connecting:
+			return "connecting"
+		case RTCDataChannelState.open:
+			return "open"
+		case RTCDataChannelState.closing:
+			return "closing"
+		case RTCDataChannelState.closed:
+			return "closed"
+		}
+	}
 
+	func getState() -> String {
+		return PluginRTCDataChannel.stateToString(state: self.rtcDataChannel!.readyState)
+	}
 
 	/**
 	 * Methods inherited from RTCDataChannelDelegate.
 	 */
 
-
-	func channelDidChangeState(_ channel: RTCDataChannel!) {
-		let state_str = PluginRTCTypes.dataChannelStates[self.rtcDataChannel!.state.rawValue] as String!
+	/** The data channel state changed. */
+	func dataChannelDidChangeState(_ channel: RTCDataChannel) {
+		let state_str = self.getState()
 
 		NSLog("PluginRTCDataChannel | state changed [state:%@]", String(describing: state_str))
 
 		if self.eventListener != nil {
 			self.eventListener!([
 				"type": "statechange",
-				"readyState": state_str ?? ""
+				"readyState": state_str
 			])
 		} else {
 			// It may happen that the eventListener is not yet set, so store the lost states.
-			self.lostStates.append(state_str!)
+			self.lostStates.append(state_str)
 		}
 	}
 
-
-	func channel(_ channel: RTCDataChannel!, didReceiveMessageWith buffer: RTCDataBuffer!) {
+	/** The data channel successfully received a data buffer. */
+	func dataChannel(_ channel: RTCDataChannel, didReceiveMessageWith buffer: RTCDataBuffer) {
 		if !buffer.isBinary {
 			NSLog("PluginRTCDataChannel | utf8 message received")
 
 			if self.eventListener != nil {
-				self.emitReceivedMessage(buffer!)
+				self.emitReceivedMessage(buffer)
 			} else {
 				// It may happen that the eventListener is not yet set, so store the lost messages.
-				self.lostMessages.append(buffer!)
+				self.lostMessages.append(buffer)
 			}
 		} else {
 			NSLog("PluginRTCDataChannel | binary message received")
 
 			if self.eventListenerForBinaryMessage != nil {
-				self.emitReceivedMessage(buffer!)
+				self.emitReceivedMessage(buffer)
 			} else {
 				// It may happen that the eventListener is not yet set, so store the lost messages.
-				self.lostMessages.append(buffer!)
+				self.lostMessages.append(buffer)
 			}
 		}
 	}
 
-	func channel(_ channel: RTCDataChannel!, didChangeBufferedAmount amount: UInt) {
+	/** The data channel's |bufferedAmount| changed. */
+	func dataChannel(_ channel: RTCDataChannel, didChangeBufferedAmount amount: UInt64) {
 		NSLog("PluginRTCDataChannel | didChangeBufferedAmount %d", amount)
 
 		self.eventListener!([
@@ -257,14 +263,14 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 
 	func emitReceivedMessage(_ buffer: RTCDataBuffer) {
 		if !buffer.isBinary {
-			let string = NSString(
+			let message = NSString(
 				data: buffer.data,
 				encoding: String.Encoding.utf8.rawValue
 			)
 
 			self.eventListener!([
 				"type": "message",
-				"message": string as! String
+				"message": message! as String
 			])
 		} else {
 			self.eventListenerForBinaryMessage!(buffer.data)

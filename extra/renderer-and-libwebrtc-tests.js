@@ -1,37 +1,16 @@
 /* global RTCPeerConnection */
-
-//
-// Camera and Microphone Authorization   
-//
-
-/*
-cordova.plugins.diagnostic.requestMicrophoneAuthorization(function (status) {
-    if(status === cordova.plugins.diagnostic.permissionStatus.GRANTED) {
-        console.log('GRANTED');
-    } else {
-        console.log(new Error('AuthorizationDenied'));   
-    }
-}, function (err) {
-    console.log(new Error('AuthorizationFailed: ' + err));   
-});
-
-cordova.plugins.diagnostic.requestCameraAuthorization(function (status) {
-    if(status === cordova.plugins.diagnostic.permissionStatus.GRANTED) {
-        console.log('GRANTED');
-    } else {
-        console.log(new Error('AuthorizationDenied'));   
-    }
-}, function (err) {
-    console.log(new Error('AuthorizationFailed: ' + err));   
-});
-*/
+// jshint unused:false
 
 var cordova = window.cordova;
 
 // Expose WebRTC Globals
 if (cordova && cordova.plugins && cordova.plugins.iosrtc) {
   cordova.plugins.iosrtc.registerGlobals();
-  cordova.plugins.iosrtc.debug.enable('*', true);
+  //cordova.plugins.iosrtc.debug.enable('*', true);
+  cordova.plugins.iosrtc.turnOnSpeaker(true);
+  cordova.plugins.iosrtc.requestPermission(true, true, function (result) {
+    console.log('requestPermission.result', result);
+  });
 }
 
 
@@ -45,7 +24,6 @@ var appContainer = document.body;
 //
 // getUserMedia
 //
-
 
 var localStream;
 var localVideoEl;
@@ -123,6 +101,7 @@ function TestGetUserMedia() {
   });
 }
 
+
 var useAnimateVideo = false;
 function TestPluginMediaStreamRenderer(localVideoEl) {
 
@@ -142,7 +121,7 @@ function TestPluginMediaStreamRenderer(localVideoEl) {
     localVideoEl.style.left = currentPosition.x + 'px';
 
     if (cordova && cordova.plugins && cordova.plugins.iosrtc) {
-      cordova.plugins.iosrtc.refreshVideos();
+      //cordova.plugins.iosrtc.refreshVideos();
     }
 
     return (animateTimer = requestAnimationFrame(animateVideo));
@@ -187,35 +166,50 @@ function TestPluginMediaStreamRenderer(localVideoEl) {
 
 }
 
-/*
-// Disabled to avoid confusion with remoteStream
-var cloneStream;
-var cloneVideoEl;
-function TestPluginMediaStreamClone(mediaStream) {
-  cloneVideoEl = document.createElement('video');
-  cloneVideoEl.setAttribute('autoplay', 'autoplay');
-  cloneVideoEl.setAttribute('playsinline', 'playsinline');
-  cloneVideoEl.style.backgroundColor = 'purple';
-  cloneVideoEl.style.position = 'absolute';
-  cloneVideoEl.style.bottom = 0;
-  cloneVideoEl.style.left = 0;
-  cloneVideoEl.style.width = "100px";
-  cloneVideoEl.style.height = "100px";
-  cloneVideoEl.style.transform = "scaleX(-1)";
-
-  cloneStream = mediaStream.clone();
-  cloneVideoEl.srcObject = cloneStream;
-
-  appContainer.appendChild(cloneVideoEl);
-}
-*/
-
 //
 // Test RTCPeerConnection
 // 
 
-var pc1 = new RTCPeerConnection(),
-    pc2 = new RTCPeerConnection();
+var peerConnectionConfig = {
+    iceServers: [     
+      {
+        urls: "stun:stun.stunprotocol.org"
+      }
+    ]
+};
+var pc1 = new RTCPeerConnection(peerConnectionConfig),
+    pc2 = new RTCPeerConnection(peerConnectionConfig);
+
+var sendChannel, receiveChannel;
+function TestPeerDataChannel() {
+  sendChannel = pc1.createDataChannel("sendChannel");
+
+  sendChannel.addEventListener('message',  function (event) {
+    console.log('sendChannel.message', event, event.data);
+  });
+
+  sendChannel.addEventListener('open', function (event) {
+      console.log('sendChannel.open', event);
+      sendChannel.send("data message Date: " + new Date());
+  });
+
+  sendChannel.addEventListener('close', function (event) {
+      console.log('sendChannel.close', event);
+  });
+
+  pc2.addEventListener('datachannel', function (event) {
+    receiveChannel = event.channel;
+    receiveChannel.addEventListener('message',  function (event) {
+      console.log('receiveChannel.message', event, event.data);
+    });
+    receiveChannel.addEventListener('open',  function (event) {
+      console.log('receiveChannel.open', event);
+    });
+    receiveChannel.addEventListener('close',  function (event) {
+      console.log('receiveChannel.close', event);
+    });
+  });
+}
 
 var peerVideoEl;
 var peerStream;
@@ -263,15 +257,23 @@ function TestRTCPeerConnection(localStream) {
     });
   }
 
-  pc1.onicecandidate = function (e) {
+  pc1.addEventListener('icecandidate', function (e) {
     onAddIceCandidate(pc2, e.candidate);
-  };
+  });
   
-  pc2.onicecandidate = function (e) {
+  pc2.addEventListener('icecandidate', function (e) {
     onAddIceCandidate(pc1, e.candidate);
-  };
+  });
 
-  pc2.onaddstream = function (e) {
+  pc2.addEventListener('track', function (e) {
+    console.log('pc2.track', e);
+  });
+
+  pc2.addEventListener('removetrack', function (e) {
+    console.log('pc2.removeTrack', e);
+  });
+
+  pc2.addEventListener('addstream', function (e) {
     console.log('pc2.addStream', e);
     peerVideoEl = document.createElement('video');
     peerVideoEl.setAttribute('autoplay', 'autoplay');
@@ -294,22 +296,38 @@ function TestRTCPeerConnection(localStream) {
 
     // Attach peer stream to video element
     peerVideoEl.srcObject = peerStream;
-  };
+  });
 
-  pc1.oniceconnectionstatechange = function (e) {
+  pc1.addEventListener('iceconnectionstatechange', function (e) {
     console.log('pc1.iceConnectionState', e, pc1.iceConnectionState);
 
     if (pc1.iceConnectionState === 'completed') {      
       console.log('pc1.getSenders', pc1.getSenders());
       console.log('pc2.getReceivers', pc2.getReceivers());
     }
-  };
+  });
 
-  pc1.onicegatheringstatechange = function (e) {
+  pc1.addEventListener('icegatheringstatechange', function (e) {
     console.log('pc1.iceGatheringStateChange', e);
-  };
+  });
 
-  pc1.onnegotiationneeded = function (e) {
+  // https://stackoverflow.com/questions/48963787/failed-to-set-local-answer-sdp-called-in-wrong-state-kstable
+  // https://bugs.chromium.org/p/chromium/issues/detail?id=740501
+  var isNegotiating = false;
+  pc1.addEventListener('signalingstatechange', function (e) {
+    console.log('pc1.signalingstatechange',  e);
+    isNegotiating = (pc1.signalingState !== "stable");
+  });
+
+  pc1.addEventListener('negotiationneeded', function (e) {
+
+    if (isNegotiating) {
+      // Should not trigger on iosrtc cause of PluginRTCPeerConnection.swift fix
+      console.log("pc1.negotiatioNeeded", "SKIP nested negotiations");
+      return;
+    }
+    isNegotiating = true;
+
     console.log('pc1.negotiatioNeeded', e);
 
     return pc1.createOffer().then(function (d) {
@@ -343,10 +361,65 @@ function TestRTCPeerConnection(localStream) {
       };
       console.log('pc1.setRemoteDescription', desc);
       return pc1.setRemoteDescription(desc);
+    }).then(function () {
+      TestMediaRenderCatpure(peerVideoEl);
+      TestMediaRenderCatpure(localVideoEl);
+      TestPeerDataChannel();
     }).catch(function (err) {
       console.log('pc1.createOfferError', err);
     });
-  };
+  });
+}
+
+var canvasEl;
+function TestMediaRenderCatpure(videoEl) {
+
+  if (!canvasEl) {       
+    canvasEl = document.createElement('canvas');
+  }
+
+  var ctx = canvasEl.getContext("2d");
+  canvasEl.style.position = 'absolute';
+  canvasEl.style.left = 0;
+  canvasEl.style.bottom = 0;
+  appContainer.appendChild(canvasEl);
+  var image = new Image();
+  image.addEventListener('load', function() {
+    canvasEl.width = image.width;
+    canvasEl.height = image.height;
+    ctx.drawImage(image, 0, 0);
+  });
+  videoEl.render.save(function (data) {
+    image.src = "data:image/jpg;base64," + data;
+  });
+} 
+
+var testMediaRenderCatpureAnimateFrame;
+function TestMediaRenderCatpureAnimate() {
+  TestMediaRenderCatpure(peerVideoEl);
+  testMediaRenderCatpureAnimateFrame = requestAnimationFrame(TestMediaRenderCatpureAnimate);
+}
+
+
+// Disabled to avoid confusion with remoteStream
+var cloneStream;
+var cloneVideoEl;
+function TestPluginMediaStreamClone(mediaStream) {
+  cloneVideoEl = document.createElement('video');
+  cloneVideoEl.setAttribute('autoplay', 'autoplay');
+  cloneVideoEl.setAttribute('playsinline', 'playsinline');
+  cloneVideoEl.style.backgroundColor = 'purple';
+  cloneVideoEl.style.position = 'absolute';
+  cloneVideoEl.style.bottom = 0;
+  cloneVideoEl.style.left = 0;
+  cloneVideoEl.style.width = "100px";
+  cloneVideoEl.style.height = "100px";
+  cloneVideoEl.style.transform = "scaleX(-1)";
+
+  cloneStream = mediaStream.clone();
+  cloneVideoEl.srcObject = cloneStream;
+
+  appContainer.appendChild(cloneVideoEl);
 }
 
 var useWebRTCAdapter = false;
@@ -362,16 +435,17 @@ if (useWebRTCAdapter && typeof window.adapter === 'undefined') {
     script.src = "https://webrtc.github.io/adapter/adapter-" + version + ".js";
     script.async = false;
     document.getElementsByTagName("head")[0].appendChild(script);
-    script.onload = function () {
+    script.addEventListener('load', function () {
       console.log('useWebRTCAdapter.loaded', script.src);
       TestGetUserMedia().then(function (localStream) {
         TestRTCPeerConnection(localStream); 
       });
-    };
+    });
 } else {
   TestGetUserMedia().then(function (localStream) {
     TestRTCPeerConnection(localStream); 
   });
 }
+
 
 

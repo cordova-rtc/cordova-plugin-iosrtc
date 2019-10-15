@@ -51,6 +51,15 @@ module.exports = {
 	// Expose a function to handle a video not yet inserted in the DOM.
 	observeVideo:          videoElementsHandler.observeVideo,
 
+	// Select audio output (earpiece or speaker).
+	selectAudioOutput:     selectAudioOutput,
+
+	// turnOnSpeaker with options
+	turnOnSpeaker: turnOnSpeaker,
+
+	// Checking permision (audio and camera)
+	requestPermission: requestPermission,
+
 	// Expose a function to pollute window and naigator namespaces.
 	registerGlobals:       registerGlobals,
 
@@ -79,6 +88,40 @@ function refreshVideos() {
 			mediaStreamRenderers[id].refresh();
 		}
 	}
+}
+
+function selectAudioOutput(output) {
+	debug('selectAudioOutput() | [output:"%s"]', output);
+
+	switch (output) {
+		case 'earpiece':
+			exec(null, null, 'iosrtcPlugin', 'selectAudioOutputEarpiece', []);
+			break;
+		case 'speaker':
+			exec(null, null, 'iosrtcPlugin', 'selectAudioOutputSpeaker', []);
+			break;
+		default:
+			throw new Error('output must be "earpiece" or "speaker"');
+	}
+}
+
+function turnOnSpeaker(isTurnOn) {
+	debug('turnOnSpeaker() | [isTurnOn:"%s"]', isTurnOn);
+
+	exec(null, null, 'iosrtcPlugin', "RTCTurnOnSpeaker", [isTurnOn]);
+}
+
+function requestPermission(needMic, needCamera, callback) {
+	debug('requestPermission() | [needMic:"%s", needCamera:"%s"]', needMic, needCamera);
+
+	function ok() {
+		callback(true);
+	}
+
+	function error() {
+		callback(false);
+	}
+	exec(ok, error, 'iosrtcPlugin', "RTCRequestPermission", [needMic, needCamera]);
 }
 
 function callbackifyMethod(originalMethod) {
