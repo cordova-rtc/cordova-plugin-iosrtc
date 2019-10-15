@@ -1872,7 +1872,7 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 			this.localStreams[stream.id] = stream;
 		}
 
-		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [this.pcId, stream.id]);
+		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addStream', [this.pcId, stream.id]);
 	}
 
 	for (id in this.localStreams) {
@@ -1881,7 +1881,7 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 			if (!stream || (stream && stream.id === id)) { 
 				stream = this.localStreams[id];
 				stream.addTrack(track);
-				exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [this.pcId, track.id, stream.id]);
+				exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [this.pcId, track.id, id]);
 				break;
 			}
 		}
