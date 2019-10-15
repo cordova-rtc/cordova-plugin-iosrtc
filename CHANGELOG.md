@@ -2,7 +2,7 @@
 * Use WebRTC M69
 * Use WebRTC.framework
 * implement PluginRTCVideoCaptureController with MediaTrackConstraintSet  
-- Replace the libwebrtc static lib with the dynamic library from the WebRTC.framework build process using M69 ([PR #399](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/399) by @hthetiot)
+* Replace the libwebrtc static lib with the dynamic library from the WebRTC.framework build process using M69 ([PR #399](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/399) by @hthetiot)
 * Be able to use minAspectRatio/maxAspectRatio #287
 * webrtc/adapter breaks deviceId constraint #282
 * Support for facingMode as a video constraint #315
@@ -15,6 +15,7 @@
 * Video renders in landscape, but not portrait orientation #360
 * Adapter JS change frameRate constraints #286
 * Regression switch camera fail (stop stream, remove stream from peer, get stream, add stream to peer, renegociate, fail on m69 but not master)
+*  Fix GSM call interrupts the current WebRTC call (Note: Use cordova.plugins.backgroundMode.enable(); on local media Start/Stop).
 
 #### Version 5.0.5
 * Fix RTCPeerConnection.addTrack when providing stream argument and when multiple tracks are added.
