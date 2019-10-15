@@ -616,8 +616,8 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		isNegotiating = (state_str != "stable")
 		
 		self.eventListener([
-			"type": "removestream",
-			"streamId": stream.streamId
+			"type": "signalingstatechange",
+			"signalingState": state_str!
 		])
 	}
 	/** Called when the SignalingState changed. */
