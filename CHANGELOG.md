@@ -1,5 +1,5 @@
 #### Version 5.0.5
-* Fix RTCPeerConnection.addTrack when providing stream argument and when multiple track is added.
+* Fix RTCPeerConnection.addTrack when providing stream argument and when multiple tracks are added.
 * Handle webrtc-adapter getUserMedia constraints mandatory / optional syntax ([PR #405](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/405) by @hthetiot).
 * Restore Callbacks Support on registerGlobals getUserMedia|enumerateDevices RTCPeerConnection.prototype.createAnswer|createOffer|setRemoteDescription|setLocalDescription|addIceCandidate support for JsSIP, SIP.js and sipML5  ([PR #404](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/404) by @hthetiot).
 * Update extra/hooks/iosrtc-swift-support.js to be trigger on after_prepare and handle existing SWIFT_OBJC_BRIDGING_HEADER values instead of overiding them ([PR #402](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/402) by @hthetiot).
