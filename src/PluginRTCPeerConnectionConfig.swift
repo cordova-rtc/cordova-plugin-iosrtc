@@ -7,7 +7,7 @@ class PluginRTCPeerConnectionConfig {
 		"plan-b": RTCSdpSemantics.planB,
 		"unified-plan": RTCSdpSemantics.unifiedPlan
 	]
-	
+  
 	fileprivate let allowedBundlePolicy = [
 		"balanced": RTCBundlePolicy.balanced,
 		"max-compat": RTCBundlePolicy.maxCompat,

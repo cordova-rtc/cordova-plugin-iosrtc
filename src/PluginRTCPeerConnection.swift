@@ -24,7 +24,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		
 	var streamIds: [String] = []
 	var trackIdsToSenders: [String : RTCRtpSender] = [:]
-	
+
 	var isAudioInputSelected: Bool = false
 
 	init(
@@ -285,7 +285,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		if self.rtcPeerConnection.signalingState == RTCSignalingState.closed {
 			return false
 		}
-		
+    
 		if (IsUnifiedPlan()) {
 			
 			var streamAdded : Bool = false;
@@ -302,7 +302,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		} else {
 			self.rtcPeerConnection.add(pluginMediaStream.rtcMediaStream)
 		}
-		
+    
 		return true
 	}
 
@@ -594,6 +594,27 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		// Let the plugin remove it from its dictionary.
 		self.eventListenerForRemoveStream(stream.streamId)
 
+		self.eventListener([
+			"type": "removestream",
+			"streamId": stream.streamId
+		])
+	}
+	/** Called when the SignalingState changed. */
+	
+	// TODO: remove on M75
+	// This was already fixed in M-75, but note that "Issue 740501: RTCPeerConnection.onnegotiationneeded can sometimes fire multiple times in a row" was a prerequisite of Perfect Negotiation as well.
+	// https://stackoverflow.com/questions/48963787/failed-to-set-local-answer-sdp-called-in-wrong-state-kstable
+	// https://bugs.chromium.org/p/chromium/issues/detail?id=740501
+	// https://bugs.chromium.org/p/chromium/issues/detail?id=980872
+	var isNegotiating = false;
+	
+	func peerConnection(_ peerConnection: RTCPeerConnection, didChange stateChanged: RTCSignalingState) {
+		let state_str = PluginRTCTypes.signalingStates[stateChanged.rawValue] as String?
+
+		NSLog("PluginRTCPeerConnection | onsignalingstatechange [signalingState:%@]", String(describing: state_str))
+		
+		isNegotiating = (state_str != "stable")
+		
 		self.eventListener([
 			"type": "removestream",
 			"streamId": stream.streamId
