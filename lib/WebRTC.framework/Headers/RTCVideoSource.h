@@ -30,7 +30,7 @@ RTC_EXPORT
  * will be adjusted to maintain the input orientation, so it doesn't
  * matter if e.g. 1280x720 or 720x1280 is requested.
  */
-- (void)adaptOutputFormatToWidth:(int)width height:(int)height fps:(int)fps rotation:(bool)rotation;
+- (void)adaptOutputFormatToWidth:(int)width height:(int)height fps:(int)fps;
 
 @end
 
