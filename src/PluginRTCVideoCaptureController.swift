@@ -142,7 +142,9 @@ class PluginRTCVideoCaptureController : NSObject {
 		do {
 			try device?.lockForConfiguration()
 			device?.activeFormat = deviceFormat!
-			device?.unlockForConfiguration()
+
+			// If unlockForConfiguration WebRTC.framework will change we dont want that.
+			//device?.unlockForConfiguration()
 		} catch {
 			NSLog("PluginRTCVideoCaptureController#startCapture Could not set active format for device %@", device!);
 			print(error)
