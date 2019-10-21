@@ -135,20 +135,6 @@ class PluginRTCVideoCaptureController : NSObject {
 			NSLog("PluginRTCVideoCaptureController#startCapture No valid formats for device %@", device!);
 			return false;
 		}
-
-		// Set active format of device before startCapture to prevent Chrome 77.0.3865.120 to freeze
-		// video when format is later applied and remote video size change.
-		// Note: this also fix switch Camera that was resutling in bad remote stream size from chrome
-		do {
-			try device?.lockForConfiguration()
-			device?.activeFormat = deviceFormat!
-
-			// If unlockForConfiguration WebRTC.framework will change we dont want that.
-			//device?.unlockForConfiguration()
-		} catch {
-			NSLog("PluginRTCVideoCaptureController#startCapture Could not set active format for device %@", device!);
-			print(error)
-		}
 		
 		// TODO: Extract fps from constraints.
 		// TODO: completionHandler
