@@ -99,8 +99,10 @@ class PluginRTCPeerConnectionConstraints {
 			
 			if value is Bool {
 				finalValue = value as! Bool ? "true" : "false"
-			} else {
+			} else if value is String {
 				finalValue = value as! String
+			} else {
+				continue
 			}
 			
 			// Handle Spec for offerToReceiveAudio|offerToReceiveVideo but
