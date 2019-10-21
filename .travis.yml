@@ -82,7 +82,7 @@ matrix:
           - node_modules
     - language: objective-c
       os: osx
-      osx_image: xcode10.2
+      osx_image: xcode11
       env: CORDOVA_PLATFORM=ios
       before_install: 
         - rvm use system
@@ -99,8 +99,13 @@ script:
   - export REPO_SLUG=$(if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then echo $TRAVIS_REPO_SLUG; else echo $TRAVIS_PULL_REQUEST_SLUG; fi)
   # Lint and Build plugin 
   - "gulp"
-  # Test Plugin platform build
+  # Test Plugin platform build with ionic
   - "ionic start myApp blank; cd myApp;"
-  - "ionic cordova platform add $CORDOVA_PLATFORM"
+  - "ionic cordova platform add $CORDOVA_PLATFORM@latest --verbose"
   - "ionic cordova plugin add https://github.com/$REPO_SLUG.git#$BRANCH --verbose"
-  - "ionic cordova build $CORDOVA_PLATFORM"
+  - "ionic cordova build $CORDOVA_PLATFORM --verbose"
+  # Test Plugin platform build with cordova only
+  #- "cordova create myApp org.apache.cordova.myApp myApp; cd myApp;"
+  #- "cordova platform add $CORDOVA_PLATFORM@latest --verbose"
+  #- "cordova plugin add https://github.com/$REPO_SLUG.git#$BRANCH --verbose"
+  #- "cordova build $CORDOVA_PLATFORM --verbose"

@@ -15,7 +15,7 @@
 	</info>
 
 	<engines>
-		<engine name="cordova-ios" version=">=3.8.0" />
+		<engine name="cordova-ios" version=">=5.0.1" />
 	</engines>
 
 	<platform name="ios">
