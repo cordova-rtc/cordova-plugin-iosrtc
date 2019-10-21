@@ -743,7 +743,10 @@ class iosrtcPlugin : CDVPlugin {
 		self.queue.async { [weak pluginMediaStream, weak pluginMediaStreamTrack] in
 			pluginMediaStream?.removeTrack(pluginMediaStreamTrack!)
 			
-			pluginMediaStreamTrack?.rtcMediaStreamTrack.videoCaptureController?.stopCapture();
+			// TODO only stop if no more pluginMediaStream attached only
+			// currently pluginMediaStreamTrack can be attached to more than one pluginMediaStream
+			// use track.stop() or stream.stop() to stop tracks
+			//pluginMediaStreamTrack?.stop()
 		}
 	}
 

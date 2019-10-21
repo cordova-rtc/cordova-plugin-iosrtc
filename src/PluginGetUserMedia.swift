@@ -93,7 +93,7 @@ class PluginGetUserMedia {
 			NSLog("PluginGetUserMedia#call() | chosen video constraints: %@", videoConstraints)
 
 // Ingore Simulator cause does not support Camera
-#if !TARGET_IPHONE_SIMULATOR
+#if !targetEnvironment(simulator)
 			let videoCapturer: RTCCameraVideoCapturer = RTCCameraVideoCapturer(delegate: rtcVideoSource!)
 			let videoCaptureController: PluginRTCVideoCaptureController = PluginRTCVideoCaptureController(capturer: videoCapturer)
 			rtcVideoTrack!.videoCaptureController = videoCaptureController
