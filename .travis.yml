@@ -8,7 +8,7 @@ env:
   global: 
     - CORDOVA_PLATFORM=browser
     - NODE_VERSION=10
-    - CORDOVA_VERSION=8
+    - CORDOVA_VERSION=7
     - ANGULAR_CLI_VERSION=6.2.6
     - IONIC_VERSION=5
     - ANDROID_API_LEVEL=28
@@ -82,7 +82,8 @@ matrix:
           - node_modules
     - language: objective-c
       os: osx
-      osx_image: xcode11
+      #osx_image: xcode11
+      osx_image: xcode10.2
       env: CORDOVA_PLATFORM=ios
       before_install: 
         - rvm use system
@@ -100,12 +101,12 @@ script:
   # Lint and Build plugin 
   - "gulp"
   # Test Plugin platform build with ionic
-  #- "ionic start myApp blank; cd myApp;"
-  #- "ionic cordova platform add $CORDOVA_PLATFORM@latest --verbose"
-  #- "ionic cordova plugin add https://github.com/$REPO_SLUG.git#$BRANCH --verbose"
-  #- "ionic cordova build $CORDOVA_PLATFORM --verbose"
+  - "ionic start myApp blank; cd myApp;"
+  - "ionic cordova platform add $CORDOVA_PLATFORM@latest --verbose"
+  - "ionic cordova plugin add https://github.com/$REPO_SLUG.git#$BRANCH --verbose"
+  - "ionic cordova build $CORDOVA_PLATFORM --verbose"
   # Test Plugin platform build with cordova only
-  - "cordova create myApp org.apache.cordova.myApp myApp; cd myApp;"
-  - "cordova platform add $CORDOVA_PLATFORM@latest --verbose"
-  - "cordova plugin add https://github.com/$REPO_SLUG.git#$BRANCH --verbose"
-  - "cordova build $CORDOVA_PLATFORM --verbose"
+  #- "cordova create myApp org.apache.cordova.myApp myApp; cd myApp;"
+  #- "cordova platform add $CORDOVA_PLATFORM@latest --verbose"
+  #- "cordova plugin add https://github.com/$REPO_SLUG.git#$BRANCH --verbose"
+  #- "cordova build $CORDOVA_PLATFORM --verbose"
