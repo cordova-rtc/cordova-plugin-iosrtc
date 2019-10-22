@@ -9,6 +9,7 @@ var
 	fs = require("fs"),
 	path = require("path"),
 	xcode = require('xcode'),
+	xmlEntities = new (require('html-entities').XmlEntities)(),
 
 	IPHONEOS_DEPLOYMENT_TARGET = '10.2',
 	IPHONEOS_DEPLOYMENT_TARGET_XCODE = '"' + IPHONEOS_DEPLOYMENT_TARGET + '"',
@@ -31,7 +32,8 @@ function getProjectName(protoPath) {
 		cordovaConfigPath = path.join(protoPath, 'config.xml'),
 		content = fs.readFileSync(cordovaConfigPath, 'utf-8');
 
-	return /<name>([\s\S]*)<\/name>/mi.exec(content)[1].trim();
+	var name = /<name>([\s\S]*)<\/name>/mi.exec(content)[1].trim();
+	return xmlEntities.decode(name);
 }
 
 // Drops the comments
