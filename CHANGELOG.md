@@ -1,3 +1,4 @@
+
 #### Version 6.0.0
 * Use WebRTC M69
 * Use WebRTC.framework
@@ -16,6 +17,9 @@
 * Adapter JS change frameRate constraints #286
 * Regression switch camera fail (stop stream, remove stream from peer, get stream, add stream to peer, renegociate, fail on m69 but not master)
 *  Fix GSM call interrupts the current WebRTC call (Note: Use cordova.plugins.backgroundMode.enable(); on local media Start/Stop).
+
+#### Version 5.0.6
+* Decode XML entities in project name in iosrtc-swift-support.js hook  ([PR #413](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/413) by @GProst).
 
 #### Version 5.0.5
 * Fix RTCPeerConnection.addTrack when providing stream argument and when multiple tracks are added.
