@@ -1,3 +1,6 @@
+#### Version 5.0.6
+* Decode XML entities in project name in iosrtc-swift-support.js hook  ([PR #413](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/413) by @GProst).
+
 #### Version 5.0.5
 * Fix RTCPeerConnection.addTrack when providing stream argument and when multiple tracks are added.
 * Handle webrtc-adapter getUserMedia constraints mandatory / optional syntax ([PR #405](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/405) by @hthetiot).
