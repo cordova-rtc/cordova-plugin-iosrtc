@@ -102,7 +102,7 @@ script:
   - "gulp"
   # Test Plugin platform build with ionic
   - "ionic start myApp blank; cd myApp;"
-  - "ionic cordova platform add $CORDOVA_PLATFORM@latest --verbose"
+  - "ionic cordova platform add $CORDOVA_PLATFORM --verbose"
   - "ionic cordova plugin add https://github.com/$REPO_SLUG.git#$BRANCH --verbose"
   - "ionic cordova build $CORDOVA_PLATFORM --verbose"
   # Test Plugin platform build with cordova only
