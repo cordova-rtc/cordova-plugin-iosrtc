@@ -3,7 +3,6 @@ import AVFoundation
 
 class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 	
-	
 	var uuid: String
 	var eventListener: (_ data: NSDictionary) -> Void
 	var closed: Bool
@@ -12,7 +11,12 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 	var elementView: UIView
 	var pluginMediaStream: PluginMediaStream?
 	
+	#if __LP64__
+	var videoView: RTCMTLVideoView
+	#else
 	var videoView: RTCEAGLVideoView
+	#endif
+	
 	var rtcAudioTrack: RTCAudioTrack?
 	var rtcVideoTrack: RTCVideoTrack?
 
@@ -36,9 +40,18 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		
 		// The effective video view in which the the video stream is shown.
 		// It's placed over the elementView.
-		self.videoView = RTCEAGLVideoView()
+		
+		// Currently RTC only supports metal on 64bit machines
+		#if __LP64__
+			NSLog("PluginMediaStreamRenderer#init() use RTCMTLVideoView")
+			self.videoView = RTCMTLVideoView(frame: CGRect.zero)
+		#else
+			NSLog("PluginMediaStreamRenderer#init() use RTCEAGLVideoView")
+			self.videoView = RTCEAGLVideoView(frame: CGRect.zero)
+		#endif
+		
 		self.videoView.isUserInteractionEnabled = false
-
+		
 		self.elementView.isUserInteractionEnabled = false
 		self.elementView.isHidden = true
 		self.elementView.backgroundColor = UIColor.black
@@ -106,7 +119,7 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 			pluginVideoTrack?.registerRender(render: self)
 		}
 	}
-
+	
 	func mediaStreamChanged() {
 		NSLog("PluginMediaStreamRenderer#mediaStreamChanged()")
 
@@ -180,7 +193,7 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 			String(elementLeft), String(elementTop), String(elementWidth), String(elementHeight),
 			String(videoViewWidth), String(videoViewHeight), String(visible), String(opacity), String(zIndex),
 			String(mirrored), String(clip), String(borderRadius))
-
+	   
 		let videoViewLeft: Double = (elementWidth - videoViewWidth) / 2
 		let videoViewTop: Double = (elementHeight - videoViewHeight) / 2
 
@@ -199,13 +212,37 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		} else {
 			self.videoView.isHidden = false
 		}
-
-		self.videoView.frame = CGRect(
-			x: CGFloat(videoViewLeft),
-			y: CGFloat(videoViewTop),
-			width: CGFloat(videoViewWidth),
-			height: CGFloat(videoViewHeight)
-		)
+			
+		// Detect iOS 13 Emulator 
+		// cause videoView.frame crash for now on emulator
+		var setFrame : Bool;
+		if #available(iOS 13, *) {
+			setFrame = TARGET_OS_SIMULATOR != 1;
+		} else {
+			setFrame = true;
+		}
+		
+		if (setFrame) {
+			let newValue : CGRect = CGRect(
+				x: CGFloat(videoViewLeft),
+				y: CGFloat(videoViewTop),
+				width: CGFloat(videoViewWidth),
+				height: CGFloat(videoViewHeight)
+			)
+			let oldValue : CGRect = self.videoView.frame;
+			
+			if (newValue.origin.x != oldValue.origin.x
+				|| newValue.origin.y != oldValue.origin.y
+				|| newValue.size.width != oldValue.size.width
+				|| newValue.size.height != oldValue.size.height) {
+			  self.videoView.frame = newValue;
+			}
+		}
+ 
+		self.videoView.setSize(CGSize(
+			width: videoViewWidth,
+			height: videoViewHeight
+		))
 
 		if visible {
 			self.elementView.isHidden = false
