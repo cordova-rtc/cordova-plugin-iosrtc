@@ -620,10 +620,12 @@ function MediaStreamRenderer(element) {
 
 	exec(onResultOK, null, 'iosrtcPlugin', 'new_MediaStreamRenderer', [this.id]);
 
-	this.refresh(this);
-	this.refreshInterval = setInterval(function () {
-		self.refresh(self);
-	}, 500);
+	this.refresh();
+
+	// TODO cause video resizing jiggling add semaphore 
+	//this.refreshInterval = setInterval(function () {
+	//	self.refresh(self);
+	//}, 500);
 
 	element.render = this;
 }
@@ -892,12 +894,12 @@ MediaStreamRenderer.prototype.refresh = function () {
 
 	function nativeRefresh() {
 		var data = {
-			elementLeft: elementLeft,
-			elementTop: elementTop,
-			elementWidth: elementWidth,
-			elementHeight: elementHeight,
-			videoViewWidth: parseInt(videoViewWidth , 10),
-			videoViewHeight: parseInt(videoViewHeight , 10),
+			elementLeft: Math.round(elementLeft),
+			elementTop: Math.round(elementTop),
+			elementWidth: Math.round(elementWidth),
+			elementHeight: Math.round(elementHeight),
+			videoViewWidth: Math.round(videoViewWidth),
+			videoViewHeight: Math.round(videoViewHeight),
 			visible: visible,
 			opacity: opacity,
 			zIndex: zIndex,
@@ -952,7 +954,7 @@ function onEvent(data) {
 		case 'videoresize':
 			this.videoWidth = data.size.width;
 			this.videoHeight = data.size.height;
-			this.refresh(this);
+			this.refresh();
 
 			event = new Event(type);
 			event.videoWidth = data.size.width;
@@ -2807,6 +2809,12 @@ function refreshVideos() {
 		}
 	}
 }
+
+// refreshVideos on device orientation change to resize peers video 
+// while local video will resize du orientation change
+window.addEventListener('resize', function () {
+    refreshVideos();
+});
 
 function selectAudioOutput(output) {
 	debug('selectAudioOutput() | [output:"%s"]', output);
