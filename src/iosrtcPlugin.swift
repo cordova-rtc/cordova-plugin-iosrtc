@@ -66,10 +66,10 @@ class iosrtcPlugin : CDVPlugin {
 	
 	private func getSupportedVideoEncoder(factory: RTCDefaultVideoEncoderFactory) -> RTCVideoCodecInfo {
 		let supportedCodecs: [RTCVideoCodecInfo] = RTCDefaultVideoEncoderFactory.supportedCodecs()
-		if supportedCodecs.contains(RTCVideoCodecInfo.init(name: kRTCVp9CodecName)) {
-			return RTCVideoCodecInfo.init(name: kRTCVp9CodecName)
-		} else if supportedCodecs.contains(RTCVideoCodecInfo.init(name: kRTCH264CodecName)){
+		if supportedCodecs.contains(RTCVideoCodecInfo.init(name: kRTCH264CodecName)){
 			return RTCVideoCodecInfo.init(name: kRTCH264CodecName)
+		} else if supportedCodecs.contains(RTCVideoCodecInfo.init(name: kRTCVp9CodecName)) {
+			return RTCVideoCodecInfo.init(name: kRTCVp9CodecName)
 		} else {
 			return RTCVideoCodecInfo.init(name: kRTCVp8CodecName)
 		}
