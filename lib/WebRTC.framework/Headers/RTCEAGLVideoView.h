@@ -32,7 +32,6 @@ NS_EXTENSION_UNAVAILABLE_IOS("Rendering not available in app extensions.")
 @interface RTCEAGLVideoView : UIView <RTCVideoRenderer>
 
 @property(nonatomic, weak) id<RTCVideoViewDelegate> delegate;
-@property(nonatomic, assign) BOOL donotRender;
 
 - (instancetype)initWithFrame:(CGRect)frame
                        shader:(id<RTCVideoViewShading>)shader NS_DESIGNATED_INITIALIZER;
