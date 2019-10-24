@@ -90,6 +90,12 @@ function refreshVideos() {
 	}
 }
 
+// refreshVideos on device orientation change to resize peers video 
+// while local video will resize du orientation change
+window.addEventListener('resize', function () {
+    refreshVideos();
+});
+
 function selectAudioOutput(output) {
 	debug('selectAudioOutput() | [output:"%s"]', output);
 

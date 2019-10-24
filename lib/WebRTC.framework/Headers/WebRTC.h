@@ -65,3 +65,4 @@
 #import <WebRTC/RTCVideoEncoderVP9.h>
 #import <WebRTC/RTCCallbackLogger.h>
 #import <WebRTC/RTCFileLogger.h>
+#import <WebRTC/RTCMTLVideoView.h>
