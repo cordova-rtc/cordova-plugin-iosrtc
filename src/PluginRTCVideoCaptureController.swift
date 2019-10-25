@@ -45,12 +45,16 @@ extension RTCMediaStreamTrack {
 
 class PluginRTCVideoCaptureController : NSObject {
 	
+	private let DEFAULT_HEIGHT : Int = 480
+	private let DEFAULT_WIDTH : Int = 640
+	private let DEFAULT_FPS : Int = 15
+	
 	var capturer: RTCCameraVideoCapturer
 	
 	// Default to the front camera.
 	var device: AVCaptureDevice?
 	var deviceFormat: AVCaptureDevice.Format?
-	var deviceFrameRate: Int = 30
+	var deviceFrameRate: Int?
 	
 	var constraints: NSDictionary = [:]
 	
@@ -141,7 +145,7 @@ class PluginRTCVideoCaptureController : NSObject {
 		self.capturer.startCapture(
 			with: device!,
 			format: deviceFormat!,
-			fps: deviceFrameRate
+			fps: deviceFrameRate!
 		)
 		
 		NSLog("PluginRTCVideoCaptureController#startCapture Capture started, device:%@, format:%@", device!, deviceFormat!);
@@ -216,7 +220,7 @@ class PluginRTCVideoCaptureController : NSObject {
 			return nil;
 		}
 		
-		let frameRateRange: NSDictionary = getConstrainRangeValues(constraint: "frameRate"),
+		let frameRateRange: NSDictionary = getConstrainRangeValues(constraint: "frameRate", defaultValue: self.DEFAULT_FPS),
 			minFrameRate = frameRateRange.object(forKey: "min") as! Float64,
 			maxFrameRate = frameRateRange.object(forKey: "max") as! Float64
 			
@@ -234,11 +238,11 @@ class PluginRTCVideoCaptureController : NSObject {
 			
 			deviceFrameRate = Int(maxFrameRate > 0 ? maxFrameRate : minFrameRate)
 			
-			NSLog("PluginRTCVideoCaptureController#findDevice deviceFrameRate:%i", deviceFrameRate);
+			NSLog("PluginRTCVideoCaptureController#findDevice deviceFrameRate:%i", deviceFrameRate!);
 			
 		// Apply default deviceFrameRate
 		} else {
-			deviceFrameRate = 30;
+			deviceFrameRate = DEFAULT_FPS;
 		}
 		
 		return device;
@@ -257,20 +261,22 @@ class PluginRTCVideoCaptureController : NSObject {
 		return captureDevices[0] as? AVCaptureDevice
 	}
 	
+	
+	
 	fileprivate func findFormatForDevice(device: AVCaptureDevice) -> AVCaptureDevice.Format? {
 		
 		var selectedFormat: AVCaptureDevice.Format? = nil
 		let formats: NSArray = RTCCameraVideoCapturer.supportedFormats(for: device) as NSArray
 		
-		let widthRange: NSDictionary = getConstrainRangeValues(constraint: "width"),
+		let widthRange: NSDictionary = getConstrainRangeValues(constraint: "width", defaultValue: self.DEFAULT_WIDTH),
 			minWidth = widthRange.object(forKey: "min") as! Int32,
 			maxWidth = widthRange.object(forKey: "max") as! Int32
 			
-		let heightRange: NSDictionary = getConstrainRangeValues(constraint: "height"),
+		let heightRange: NSDictionary = getConstrainRangeValues(constraint: "height", defaultValue: self.DEFAULT_HEIGHT),
 			minHeight = heightRange.object(forKey: "min") as! Int32,
 			maxHeight = heightRange.object(forKey: "max") as! Int32
 		
-		let frameRateRange: NSDictionary = getConstrainRangeValues(constraint: "frameRate"),
+		let frameRateRange: NSDictionary = getConstrainRangeValues(constraint: "frameRate", defaultValue: self.DEFAULT_FPS),
 			minFrameRate = frameRateRange.object(forKey: "min") as! Float64,
 			maxFrameRate = frameRateRange.object(forKey: "max") as! Float64
 
@@ -431,11 +437,11 @@ class PluginRTCVideoCaptureController : NSObject {
 		return isRequired;
 	}
 	
-	fileprivate func getConstrainRangeValues(constraint: String) -> NSDictionary {
+	fileprivate func getConstrainRangeValues(constraint: String, defaultValue: Int = 0) -> NSDictionary {
 		let constraints = self.constraints;
 		let finalValue: NSMutableDictionary = [:];
-		finalValue.setValue(0, forKey: "min")
-		finalValue.setValue(0, forKey: "max")
+		finalValue.setValue(defaultValue, forKey: "min")
+		finalValue.setValue(defaultValue, forKey: "max")
 		
 		let value = constraints.object(forKey: constraint);
 		
