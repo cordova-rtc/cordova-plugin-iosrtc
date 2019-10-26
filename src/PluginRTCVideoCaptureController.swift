@@ -44,8 +44,8 @@ extension RTCMediaStreamTrack {
 }
 
 class PluginRTCVideoCaptureController : NSObject {
-	
-	private let DEFAULT_HEIGHT : Int = 480
+
+    private let DEFAULT_ASPECT_RATIO : Float32 = 4/3
 	private let DEFAULT_WIDTH : Int = 640
 	private let DEFAULT_FPS : Int = 15
 	
@@ -226,18 +226,8 @@ class PluginRTCVideoCaptureController : NSObject {
 			
 		if (minFrameRate > 0 || maxFrameRate > 0) {
 			let formatFrameRateRange: AVFrameRateRange = deviceFormat!.videoSupportedFrameRateRanges[0]
-		 
-			if (
-				(formatFrameRateRange.maxFrameRate <= maxFrameRate) &&
-					formatFrameRateRange.minFrameRate >= minFrameRate &&
-						isConstrainRangeRequired(constraint: "frameRate")
-			) {
-				// TODO fail
-				return nil;
-			}
-			
-			deviceFrameRate = Int(maxFrameRate > 0 ? maxFrameRate : minFrameRate)
-			
+            deviceFrameRate = Int(max(formatFrameRateRange.minFrameRate, minFrameRate))
+
 			NSLog("PluginRTCVideoCaptureController#findDevice deviceFrameRate:%i", deviceFrameRate!);
 			
 		// Apply default deviceFrameRate
@@ -271,8 +261,13 @@ class PluginRTCVideoCaptureController : NSObject {
 		let widthRange: NSDictionary = getConstrainRangeValues(constraint: "width", defaultValue: self.DEFAULT_WIDTH),
 			minWidth = widthRange.object(forKey: "min") as! Int32,
 			maxWidth = widthRange.object(forKey: "max") as! Int32
-			
-		let heightRange: NSDictionary = getConstrainRangeValues(constraint: "height", defaultValue: self.DEFAULT_HEIGHT),
+
+        let aspectRatioRange: NSDictionary = getConstrainRangeValues(constraint: "aspectRatio", defaultValue: self.DEFAULT_ASPECT_RATIO),
+            minAspectRatio = aspectRatioRange.object(forKey: "min") as! Float32,
+            maxAspectRatio = aspectRatioRange.object(forKey: "max") as! Float32
+
+        let defaultHeight = Int(Float32(minWidth) / minAspectRatio);
+		let heightRange: NSDictionary = getConstrainRangeValues(constraint: "height", defaultValue: defaultHeight),
 			minHeight = heightRange.object(forKey: "min") as! Int32,
 			maxHeight = heightRange.object(forKey: "max") as! Int32
 		
@@ -280,13 +275,10 @@ class PluginRTCVideoCaptureController : NSObject {
 			minFrameRate = frameRateRange.object(forKey: "min") as! Float64,
 			maxFrameRate = frameRateRange.object(forKey: "max") as! Float64
 
-		let aspectRatioRange: NSDictionary = getConstrainRangeValues(constraint: "aspectRatio"),
-			minAspectRatio = aspectRatioRange.object(forKey: "min") as! Float32,
-			maxAspectRatio = aspectRatioRange.object(forKey: "max") as! Float32
-		
 
-		NSLog("PluginRTCVideoCaptureController#findFormatForDevice contraints width:%i/%i, height:%i%i, aspectRatio: %f%i, frameRateRanges:%f/%f", minWidth, maxWidth, minHeight, maxHeight, minAspectRatio, maxAspectRatio, minFrameRate, maxFrameRate);
-		
+
+		NSLog("PluginRTCVideoCaptureController#findFormatForDevice contraints width:%i/%i, height:%i/%i, aspectRatio: %f%i, frameRateRanges:%f/%f", minWidth, maxWidth, minHeight, maxHeight, minAspectRatio, maxAspectRatio, minFrameRate, maxFrameRate);
+
 		for format: Any in formats {
 			
 			let devFormat: AVCaptureDevice.Format = format as! AVCaptureDevice.Format
@@ -304,10 +296,10 @@ class PluginRTCVideoCaptureController : NSObject {
 			// dimension.height and dimension.width Matches
 			if (
 				(maxHeight == 0 && minHeight == 0) || (
-					(maxHeight == 0 || dimension.height >= maxHeight) &&
-						(minHeight == 0 || dimension.height <= minHeight) &&
-							(maxWidth == 0 || dimension.width >= maxWidth) &&
-								(minWidth == 0 || dimension.width <= minWidth)
+					(maxHeight == 0 || dimension.height <= maxHeight) &&
+						(minHeight == 0 || dimension.height >= minHeight) &&
+							(maxWidth == 0 || dimension.width <= maxWidth) &&
+								(minWidth == 0 || dimension.width >= minWidth)
 					)
 			) {
 				selectedFormat = devFormat
@@ -319,8 +311,8 @@ class PluginRTCVideoCaptureController : NSObject {
 			
 			if (
 				(minAspectRatio == 0 && maxAspectRatio == 0) || (
-					(minAspectRatio == 0 || aspectRatio == minAspectRatio) &&
-						(maxAspectRatio == 0 || aspectRatio == maxAspectRatio)
+					(minAspectRatio == 0 || aspectRatio >= minAspectRatio) &&
+						(maxAspectRatio == 0 || aspectRatio <= maxAspectRatio)
 				)
 			) {
 				selectedFormat = devFormat
@@ -336,8 +328,8 @@ class PluginRTCVideoCaptureController : NSObject {
 			
 			if (
 				(minFrameRate == 0 && maxFrameRate == 0) || (
-					(maxFrameRate == 0 || frameRates.maxFrameRate >= maxFrameRate) &&
-						(minFrameRate  == 0 || frameRates.minFrameRate <= minFrameRate)
+					(maxFrameRate == 0 || maxFrameRate >= frameRates.minFrameRate) &&
+						(minFrameRate  == 0 || minFrameRate <= frameRates.maxFrameRate)
 					)
 			) {
 				selectedFormat = devFormat
@@ -436,43 +428,43 @@ class PluginRTCVideoCaptureController : NSObject {
 		
 		return isRequired;
 	}
-	
-	fileprivate func getConstrainRangeValues(constraint: String, defaultValue: Int = 0) -> NSDictionary {
-		let constraints = self.constraints;
-		let finalValue: NSMutableDictionary = [:];
-		finalValue.setValue(defaultValue, forKey: "min")
-		finalValue.setValue(defaultValue, forKey: "max")
-		
-		let value = constraints.object(forKey: constraint);
-		
-		if value is Int64 {
-			finalValue.setValue(value, forKey: "min")
-			finalValue.setValue(value, forKey: "max")
-		} else if value is NSDictionary {
-			let value = value as! NSDictionary;
-			if (value.object(forKey: "exact") != nil) {
-				let value = value.object(forKey: "exact") as! Int64
-				finalValue.setValue(value, forKey: "min")
-				finalValue.setValue(value, forKey: "max")
-			} else if (value.object(forKey: "ideal") != nil) {
-				let value = value.object(forKey: "ideal") as! Int64
-				finalValue.setValue(value, forKey: "min")
-				finalValue.setValue(value, forKey: "max")
-			} else {
-				if (value.object(forKey: "min") != nil) {
-					let value = value.object(forKey: "min") as! Int64
-					finalValue.setValue(value, forKey: "min")
-				}
-				if (value.object(forKey: "max") != nil) {
-					let value = value.object(forKey: "max") as! Int64
-					finalValue.setValue(value, forKey: "max")
-				}
-			}
-		}
-		
-		return finalValue;
-	}
-	
+
+    fileprivate func getConstrainRangeValues<T>(constraint: String, defaultValue: T) -> NSDictionary {
+        let constraints = self.constraints;
+        let finalValue: NSMutableDictionary = [:];
+        finalValue.setValue(defaultValue, forKey: "min")
+        finalValue.setValue(defaultValue, forKey: "max")
+
+        let value = constraints.object(forKey: constraint);
+
+        if value is T {
+            finalValue.setValue(value, forKey: "min")
+            finalValue.setValue(value, forKey: "max")
+        } else if value is NSDictionary {
+            let value = value as! NSDictionary;
+            if (value.object(forKey: "exact") != nil) {
+                let value = (value.object(forKey: "exact")! as AnyObject).floatValue as! T
+                finalValue.setValue(value, forKey: "min")
+                finalValue.setValue(value, forKey: "max")
+            } else if (value.object(forKey: "ideal") != nil) {
+                let value = value.object(forKey: "ideal") as! T
+                finalValue.setValue(value, forKey: "min")
+                finalValue.setValue(value, forKey: "max")
+            } else {
+                if (value.object(forKey: "min") != nil) {
+                    let value = value.object(forKey: "min") as! T
+                    finalValue.setValue(value, forKey: "min")
+                }
+                if (value.object(forKey: "max") != nil) {
+                    let value = value.object(forKey: "max") as! T
+                    finalValue.setValue(value, forKey: "max")
+                }
+            }
+        }
+
+        return finalValue;
+    }
+
 	fileprivate func isConstrainRangeRequired(constraint: String) -> Bool {
 		let constraints = self.constraints;
 		var isRequired: Bool = false;
