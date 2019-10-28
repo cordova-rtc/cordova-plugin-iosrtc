@@ -54,67 +54,41 @@ class PluginGetDisplayMedia {
 		eventListenerForNewStream: @escaping (_ pluginMediaStream: PluginMediaStream) -> Void
 	) {
 
-		let rtcMediaStream: RTCMediaStream = self.rtcPeerConnectionFactory.mediaStream(withStreamId: UUID().uuidString)
 		let rtcVideoSource: RTCVideoSource = self.rtcPeerConnectionFactory.videoSource()
-		let rtcVideoTrack: RTCVideoTrack = self.rtcPeerConnectionFactory.videoTrack(with: rtcVideoSource, trackId: UUID().uuidString)
-	  
-		rtcMediaStream.addVideoTrack(rtcVideoTrack)
-	  
 		let videoCapturer: RTCVideoCapturer = RTCVideoCapturer(delegate: rtcVideoSource)
-	
-		recorder.isMicrophoneEnabled = false
-		recorder.startCapture(handler: {(sampleBuffer, bufferType, error) in
-			if (bufferType == RPSampleBufferType.video) {
-				self.handleSourceBuffer(
-					capturer: videoCapturer,
-					source: rtcVideoSource,
-					sampleBuffer: sampleBuffer,
-					sampleType: bufferType
-				)
-			}
-			if (error != nil) {
-				errback(error!.localizedDescription)
-			}
-		}) { (error) in
-			if (error != nil) {
-				errback(error!.localizedDescription)
-			} else {
-				
-				var pluginMediaStream: PluginMediaStream
-				pluginMediaStream = PluginMediaStream(rtcMediaStream: rtcMediaStream)
-				
-				pluginMediaStream.run()
+		let rtcMediaStream: RTCMediaStream = self.rtcPeerConnectionFactory.mediaStream(withStreamId: UUID().uuidString)
+		let rtcVideoTrack: RTCVideoTrack = self.rtcPeerConnectionFactory.videoTrack(
+			with: rtcVideoSource, trackId: UUID().uuidString)
+	  
+		let videoCaptureController: PluginRTCScreenCaptureController = PluginRTCScreenCaptureController(capturer: videoCapturer, recorder: recorder, source: rtcVideoSource)
+		rtcVideoTrack.videoCaptureController = videoCaptureController
+		
+		// TODO use startCapture completionHandler
+		let captureStarted = videoCaptureController.startCapture()
+		if (!captureStarted) {
+			errback("constraints failed")
+			return
+		}
+		
+		// If videoSource state is "ended" it means that constraints were not satisfied so
+		// invoke the given errback.
+		if (rtcVideoSource.state == RTCSourceState.ended) {
+		  NSLog("PluginGetDisplayMedia() | rtcVideoSource.state is 'ended', constraints not satisfied")
 
-				// Let the plugin store it in its dictionary.
-				eventListenerForNewStream(pluginMediaStream)
+		  errback("constraints not satisfied")
+		  return
+		}
 
-				callback([
-					"stream": pluginMediaStream.getJSON()
-				])
-			}
-		}
-	}
-	
-	func handleSourceBuffer(capturer:RTCVideoCapturer, source: RTCVideoSource, sampleBuffer: CMSampleBuffer, sampleType: RPSampleBufferType) {
-		if (CMSampleBufferGetNumSamples(sampleBuffer) != 1 || !CMSampleBufferIsValid(sampleBuffer) ||
-			!CMSampleBufferDataIsReady(sampleBuffer)) {
-			return;
-		}
+		rtcMediaStream.addVideoTrack(rtcVideoTrack)
 		
-		let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
-		if (pixelBuffer == nil) {
-			return;
-		}
-		
-		let width = CVPixelBufferGetWidth(pixelBuffer!);
-		let height = CVPixelBufferGetHeight(pixelBuffer!);
-		
-		source.adaptOutputFormat(toWidth: Int32(width/2), height: Int32(height/2), fps: 8)
-		
-		let rtcPixelBuffer = RTCCVPixelBuffer(pixelBuffer: pixelBuffer!)
-		let timeStampNs =
-			CMTimeGetSeconds(CMSampleBufferGetPresentationTimeStamp(sampleBuffer)) * Float64(NSEC_PER_SEC)
-		let videoFrame =  RTCVideoFrame(buffer: rtcPixelBuffer, rotation: RTCVideoRotation._0, timeStampNs: Int64(timeStampNs))
-		source.capturer(capturer, didCapture: videoFrame)
+		let pluginMediaStream: PluginMediaStream = PluginMediaStream(rtcMediaStream: rtcMediaStream)
+		pluginMediaStream.run()
+
+		// Let the plugin store it in its dictionary.
+		eventListenerForNewStream(pluginMediaStream)
+
+		callback([
+			"stream": pluginMediaStream.getJSON()
+		])
 	}
 }

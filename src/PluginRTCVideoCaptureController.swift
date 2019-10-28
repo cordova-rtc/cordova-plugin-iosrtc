@@ -1,5 +1,6 @@
 import Foundation
 import AVFoundation
+import ReplayKit
 
 import func ObjectiveC.objc_getAssociatedObject
 import func ObjectiveC.objc_setAssociatedObject
@@ -44,6 +45,91 @@ extension RTCMediaStreamTrack {
 }
 
 class PluginRTCVideoCaptureController : NSObject {
+	
+	func startCapture(completionHandler: ((Error?) -> Void)? = nil) -> Bool {
+		return false;
+	}
+	
+	func stopCapture() {
+		
+	}
+}
+
+class PluginRTCScreenCaptureController : PluginRTCVideoCaptureController {
+	
+	var capturer: RTCVideoCapturer
+	var source: RTCVideoSource
+	var recorder: RPScreenRecorder
+	
+	init(capturer: RTCVideoCapturer, recorder: RPScreenRecorder, source: RTCVideoSource) {
+		self.capturer = capturer
+		self.recorder = recorder;
+		self.source = source;
+	}
+	
+	override func startCapture(completionHandler: ((Error?) -> Void)? = nil) -> Bool {
+		
+		if #available(iOS 11.0, *) {
+			recorder.isMicrophoneEnabled = false
+			recorder.startCapture(handler: {(sampleBuffer, bufferType, error) in
+				if (bufferType == RPSampleBufferType.video) {
+					self.handleSourceBuffer(
+						source: self.source,
+						sampleBuffer: sampleBuffer,
+						sampleType: bufferType
+					)
+				}
+				if (error != nil) {
+					completionHandler!(error)
+				}
+			}) { (error) in
+				if (error != nil) {
+					completionHandler!(error)
+				} else {
+					// TODO Optional closure parameter
+					//completionHandler!()
+				}
+			}
+			
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	override func stopCapture() {
+		if #available(iOS 11.0, *) {
+			recorder.stopCapture {(error) in
+				// TODO debug error
+			}
+		}
+	}
+	
+	func handleSourceBuffer(source: RTCVideoSource, sampleBuffer: CMSampleBuffer, sampleType: RPSampleBufferType) {
+		if (CMSampleBufferGetNumSamples(sampleBuffer) != 1 || !CMSampleBufferIsValid(sampleBuffer) ||
+			!CMSampleBufferDataIsReady(sampleBuffer)) {
+			return;
+		}
+		
+		let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
+		if (pixelBuffer == nil) {
+			return;
+		}
+		
+		let width = CVPixelBufferGetWidth(pixelBuffer!);
+		let height = CVPixelBufferGetHeight(pixelBuffer!);
+		
+		source.adaptOutputFormat(toWidth: Int32(width/2), height: Int32(height/2), fps: 8)
+		
+		let rtcPixelBuffer = RTCCVPixelBuffer(pixelBuffer: pixelBuffer!)
+		let timeStampNs =
+			CMTimeGetSeconds(CMSampleBufferGetPresentationTimeStamp(sampleBuffer)) * Float64(NSEC_PER_SEC)
+		let videoFrame =  RTCVideoFrame(buffer: rtcPixelBuffer, rotation: RTCVideoRotation._0, timeStampNs: Int64(timeStampNs))
+		source.capturer(capturer, didCapture: videoFrame)
+	}
+}
+
+class PluginRTCCameraCaptureController : PluginRTCVideoCaptureController {
 	
 	private let DEFAULT_HEIGHT : Int = 480
 	private let DEFAULT_WIDTH : Int = 640
@@ -128,7 +214,7 @@ class PluginRTCVideoCaptureController : NSObject {
 		return device != nil;
 	}
 	
-	func startCapture() -> Bool {
+	override func startCapture(completionHandler: ((Error?) -> Void)? = nil) -> Bool {
 		
 		if (device == nil) {
 			NSLog("PluginRTCVideoCaptureController#startCapture No matching device found for constraints %@", constraints);
@@ -153,7 +239,7 @@ class PluginRTCVideoCaptureController : NSObject {
 		return true;
 	}
 	
-	func stopCapture() {
+	override func stopCapture() {
 		// TODO: map to RTCMediaStreamTrack stop if has videoCaptureController
 		// TODO: stopCaptureWithCompletionHandler
 		self.capturer.stopCapture()
@@ -260,8 +346,6 @@ class PluginRTCVideoCaptureController : NSObject {
 		// TODO fail on no match ?
 		return captureDevices[0] as? AVCaptureDevice
 	}
-	
-	
 	
 	fileprivate func findFormatForDevice(device: AVCaptureDevice) -> AVCaptureDevice.Format? {
 		
