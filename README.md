@@ -30,7 +30,7 @@ In order to make this Cordova plugin run into a iOS application some requirement
 * iOS >= 10.2 (run on lower versions at your own risk, don't report issues)
 * `swift-version` => 4.2
 * `cordova` >= 7.1.0
-* `cordova-ios` >= 5.0.1
+* `cordova-ios` >= 4.5.1
 
 ### Third-Party Supported Library
 
