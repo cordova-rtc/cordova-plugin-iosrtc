@@ -70,3 +70,23 @@ On iOS 10 each permission requested must be accompanied by a description or the 
     </config-file>
 </platform>
 ```
+
+#### Apple Store Submission
+
+You should strip simulator (i386/x86_64) archs from WebRTC binary before submit to Apple Store.  
+We provide a handy script to do it easily. see below sections.
+
+credit: The script is originally provided via `react-native-webrtc` by [@besarthoxhaj](https://github.com/besarthoxhaj) in [#141](https://github.com/react-native-webrtc/react-native-webrtc/issues/141), thanks!
+
+##### Strip Simulator Archs Usage
+
+The script and example are here: https://github.com/rcordova-rtc/cordova-plugins-iosrtc/blob/master/extra/ios_arch.js
+
+1. go to `plugins/cordova-plugins-iosrtc/extra` folder
+2. extract all archs first: `node ios_arch.js --extract`
+3. re-package device related archs only: `node ios_arch.js --device`
+4. delete files generated from `step 2` under `plugins/cordova-plugins-iosrtc/lib/WebRTC.framework/` (e.g. with a command `node ios_arch.js --clean` or manualy `rm plugins/cordova-plugins-iosrtc/lib/WebRTC.framework/WebRTC-*` from application root)
+5. you can check current arch use this command  `node ios_arch.js --list` or manualy `file plugins/cordova-plugins-iosrtc/lib/WebRTC.framework/WebRTC`
+6. Remove ios cordova platform if already added and add ios platform again (e.g. with a command `cordova platform remove ios && cordova platform add ios`)
+
+
