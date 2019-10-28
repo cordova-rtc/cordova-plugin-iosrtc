@@ -22,6 +22,7 @@ var
 	domready               = require('domready'),
 
 	getUserMedia           = require('./getUserMedia'),
+	getDisplayMedia        = require('./getDisplayMedia'),
 	enumerateDevices       = require('./enumerateDevices'),
 	RTCPeerConnection      = require('./RTCPeerConnection'),
 	RTCSessionDescription  = require('./RTCSessionDescription'),
@@ -37,6 +38,7 @@ var
 module.exports = {
 	// Expose WebRTC classes and functions.
 	getUserMedia:          getUserMedia,
+	getDisplayMedia:       getDisplayMedia,
 	enumerateDevices:      enumerateDevices,
 	getMediaDevices:       enumerateDevices,  // TMP
 	RTCPeerConnection:     RTCPeerConnection,
@@ -93,7 +95,7 @@ function refreshVideos() {
 // refreshVideos on device orientation change to resize peers video 
 // while local video will resize du orientation change
 window.addEventListener('resize', function () {
-    refreshVideos();
+	refreshVideos();
 });
 
 function selectAudioOutput(output) {
@@ -131,7 +133,7 @@ function requestPermission(needMic, needCamera, callback) {
 }
 
 function callbackifyMethod(originalMethod) {
-  	return function () {
+	return function () {
 		var success, failure,
 		  originalArgs = Array.prototype.slice.call(arguments);
 
@@ -190,6 +192,9 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 	if (!navigator.mediaDevices) {
 		navigator.mediaDevices = {};
 	}
+
+	navigator.getDisplayMedia				= getDisplayMedia;
+	navigator.mediaDevices.getDisplayMedia	= getDisplayMedia;
 
 	navigator.getUserMedia                  = getUserMedia;
 	navigator.webkitGetUserMedia            = getUserMedia;
