@@ -17,6 +17,9 @@ var
 	RTCIceCandidate = require('./RTCIceCandidate'),
 	RTCDataChannel = require('./RTCDataChannel'),
 	RTCDTMFSender = require('./RTCDTMFSender'),
+	RTCRtpReceiver = require('./RTCRtpReceiver'),
+	RTCRtpSender = require('./RTCRtpSender'),
+	RTCRtpTransceiver = require('./RTCRtpTransceiver'),
 	RTCStatsResponse = require('./RTCStatsResponse'),
 	RTCStatsReport = require('./RTCStatsReport'),
 	MediaStream = require('./MediaStream'),
@@ -395,7 +398,11 @@ RTCPeerConnection.prototype.getReceivers = function () {
 		}
 	}
 
-	return tracks;
+	return tracks.map(function (track) {
+		return new RTCRtpReceiver({
+			track: track
+		});
+	});
 };
 
 RTCPeerConnection.prototype.getSenders = function () {
@@ -408,8 +415,31 @@ RTCPeerConnection.prototype.getSenders = function () {
 		}
 	}
 
-	return tracks;
+	return tracks.map(function (track) {
+		return new RTCRtpSender({
+			track: track
+		});
+	});
 };
+
+RTCPeerConnection.prototype.getTransceivers = function () {
+	var transceiver = [];
+
+	this.getReceivers().map(function (receiver) {
+		transceiver.push(new RTCRtpTransceiver({
+			receiver: receiver
+		}));
+	});
+
+	this.getSenders().map(function (sender) {
+		transceiver.push(new RTCRtpTransceiver({
+			sender: sender
+		}));
+	});
+
+	return transceivers;
+};
+
 
 RTCPeerConnection.prototype.addTrack = function (track, stream) {
 	var id;
@@ -445,10 +475,17 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 	}
 };
 
-RTCPeerConnection.prototype.removeTrack = function (track) {
+RTCPeerConnection.prototype.removeTrack = function (sender) {
 	var id,
+		track,
 		stream,
 		hasTrack;
+
+	if (!(sender instanceof RTCRtpSender)) {
+		throw new Error('removeTrack() must be called with a RTCRtpSender instance as argument');
+	}
+
+	track = sender.track;
 
 	function matchLocalTrack(localTrack) {
 		return localTrack.id === track.id;
