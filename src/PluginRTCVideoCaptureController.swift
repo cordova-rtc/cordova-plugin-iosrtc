@@ -285,7 +285,7 @@ class PluginRTCVideoCaptureController : NSObject {
 			maxAspectRatio = aspectRatioRange.object(forKey: "max") as! Float32
 		
 
-		NSLog("PluginRTCVideoCaptureController#findFormatForDevice contraints width:%i/%i, height:%i%i, aspectRatio: %f%i, frameRateRanges:%f/%f", minWidth, maxWidth, minHeight, maxHeight, minAspectRatio, maxAspectRatio, minFrameRate, maxFrameRate);
+		NSLog("PluginRTCVideoCaptureController#findFormatForDevice contraints width:%i/%i, height:%i/%i, aspectRatio: %f/%f, frameRateRanges:%f/%f", minWidth, maxWidth, minHeight, maxHeight, minAspectRatio, maxAspectRatio, minFrameRate, maxFrameRate);
 		
 		for format: Any in formats {
 			
@@ -303,13 +303,10 @@ class PluginRTCVideoCaptureController : NSObject {
 			
 			// dimension.height and dimension.width Matches
 			if (
-				(maxHeight == 0 && minHeight == 0) || (
-					(maxHeight == 0 || dimension.height >= maxHeight) &&
-						(minHeight == 0 || dimension.height <= minHeight) &&
-							(maxWidth == 0 || dimension.width >= maxWidth) &&
-								(minWidth == 0 || dimension.width <= minWidth)
-					)
+				((maxHeight == 0 || dimension.height <= maxHeight) && (minHeight == 0 || dimension.height >= minHeight)) &&
+						((maxWidth == 0 || dimension.width <= maxWidth) && (minWidth == 0 || dimension.width >= minWidth))
 			) {
+				//NSLog("dimension %i/%i",  dimension.width,  dimension.height);
 				selectedFormat = devFormat
 			} else {
 				
