@@ -8,8 +8,8 @@ class iosrtcPlugin : CDVPlugin {
 	var rtcPeerConnectionFactory: RTCPeerConnectionFactory!
 	// Single PluginGetUserMedia instance.
 	var pluginGetUserMedia: PluginGetUserMedia!
-    // Single PluginGetDisplayMedia instance.
-    var pluginGetDisplayMedia: PluginGetDisplayMedia!
+	// Single PluginGetDisplayMedia instance.
+	var pluginGetDisplayMedia: PluginGetDisplayMedia!
 	// PluginRTCPeerConnection dictionary.
 	var pluginRTCPeerConnections: [Int : PluginRTCPeerConnection]!
 	// PluginMediaStream dictionary.
@@ -22,7 +22,6 @@ class iosrtcPlugin : CDVPlugin {
 	var queue: DispatchQueue!
 	// Auto selecting output speaker
 	var audioOutputController: PluginRTCAudioController!
-
 
 	// This is just called if <param name="onload" value="true" /> in plugin.xml.
 	@objc(pluginInitialize) override func pluginInitialize() {
@@ -49,11 +48,11 @@ class iosrtcPlugin : CDVPlugin {
 		self.pluginGetUserMedia = PluginGetUserMedia(
 			rtcPeerConnectionFactory: rtcPeerConnectionFactory
 		)
-        
-        // Create a PluginGetDisplayMedia instance.
-        self.pluginGetDisplayMedia = PluginGetDisplayMedia(
-            rtcPeerConnectionFactory: rtcPeerConnectionFactory
-        )
+		
+		// Create a PluginGetDisplayMedia instance.
+		self.pluginGetDisplayMedia = PluginGetDisplayMedia(
+			rtcPeerConnectionFactory: rtcPeerConnectionFactory
+		)
 
 		PluginRTCAudioController.initAudioDevices()
 		
@@ -972,29 +971,29 @@ class iosrtcPlugin : CDVPlugin {
 			eventListenerForNewStream: self.saveMediaStream
 		)
 	}
-    
-    @objc(getDisplayMedia:) func getDisplayMedia(_ command: CDVInvokedUrlCommand) {
-        NSLog("iosrtcPlugin#getDisplayMedia()")
+	
+	@objc(getDisplayMedia:) func getDisplayMedia(_ command: CDVInvokedUrlCommand) {
+		NSLog("iosrtcPlugin#getDisplayMedia()")
 
-        let constraints = command.argument(at: 0) as! NSDictionary
+		let constraints = command.argument(at: 0) as! NSDictionary
 
-        self.pluginGetDisplayMedia.call(constraints,
-            callback: { (data: NSDictionary) -> Void in
-                self.emit(command.callbackId,
-                    result: CDVPluginResult(
-                        status: CDVCommandStatus_OK,
-                        messageAs: data as? [AnyHashable: Any]
-                    )
-                )
-            },
-            errback: { (error: String) -> Void in
-                self.emit(command.callbackId,
-                    result: CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: error)
-                )
-            },
-            eventListenerForNewStream: self.saveMediaStream
-        )
-    }
+		self.pluginGetDisplayMedia.call(constraints,
+			callback: { (data: NSDictionary) -> Void in
+				self.emit(command.callbackId,
+					result: CDVPluginResult(
+						status: CDVCommandStatus_OK,
+						messageAs: data as? [AnyHashable: Any]
+					)
+				)
+			},
+			errback: { (error: String) -> Void in
+				self.emit(command.callbackId,
+					result: CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: error)
+				)
+			},
+			eventListenerForNewStream: self.saveMediaStream
+		)
+	}
 
 	@objc(enumerateDevices:) func enumerateDevices(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#enumerateDevices()")
