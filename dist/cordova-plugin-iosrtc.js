@@ -79,7 +79,7 @@ EventTarget.prototype.constructor = EventTarget;
  * Expose the EventTarget class.
  */
 module.exports = EventTarget;
-},{"yaeti":24}],3:[function(_dereq_,module,exports){
+},{"yaeti":25}],3:[function(_dereq_,module,exports){
 /**
  * Expose the MediaDeviceInfo class.
  */
@@ -575,7 +575,7 @@ function onEvent(data) {
 	}
 }
 
-},{"./EventTarget":2,"./MediaStreamTrack":6,"cordova/exec":undefined,"debug":18}],5:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"./MediaStreamTrack":6,"cordova/exec":undefined,"debug":19}],5:[function(_dereq_,module,exports){
 /**
  * Expose the MediaStreamRenderer class.
  */
@@ -977,7 +977,7 @@ function getElementPositionAndSize() {
 	};
 }
 
-},{"./EventTarget":2,"./MediaStream":4,"cordova/exec":undefined,"debug":18,"random-number":23}],6:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"./MediaStream":4,"cordova/exec":undefined,"debug":19,"random-number":24}],6:[function(_dereq_,module,exports){
 /**
  * Expose the MediaStreamTrack class.
  */
@@ -1104,7 +1104,7 @@ function onEvent(data) {
 	}
 }
 
-},{"./EventTarget":2,"./enumerateDevices":14,"cordova/exec":undefined,"debug":18}],7:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"./enumerateDevices":14,"cordova/exec":undefined,"debug":19}],7:[function(_dereq_,module,exports){
 /**
  * Expose the RTCDTMFSender class.
  */
@@ -1238,7 +1238,7 @@ function onEvent(data) {
 	}
 }
 
-},{"./EventTarget":2,"cordova/exec":undefined,"debug":18,"random-number":23}],8:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"cordova/exec":undefined,"debug":19,"random-number":24}],8:[function(_dereq_,module,exports){
 /**
  * Expose the RTCDataChannel class.
  */
@@ -1471,7 +1471,7 @@ function onEvent(data) {
 	}
 }
 
-},{"./EventTarget":2,"cordova/exec":undefined,"debug":18,"random-number":23}],9:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"cordova/exec":undefined,"debug":19,"random-number":24}],9:[function(_dereq_,module,exports){
 /**
  * Expose the RTCIceCandidate class.
  */
@@ -2217,7 +2217,7 @@ function onEvent(data) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./Errors":1,"./EventTarget":2,"./MediaStream":4,"./MediaStreamTrack":6,"./RTCDTMFSender":7,"./RTCDataChannel":8,"./RTCIceCandidate":9,"./RTCSessionDescription":11,"./RTCStatsReport":12,"./RTCStatsResponse":13,"cordova/exec":undefined,"debug":18,"random-number":23}],11:[function(_dereq_,module,exports){
+},{"./Errors":1,"./EventTarget":2,"./MediaStream":4,"./MediaStreamTrack":6,"./RTCDTMFSender":7,"./RTCDataChannel":8,"./RTCIceCandidate":9,"./RTCSessionDescription":11,"./RTCStatsReport":12,"./RTCStatsResponse":13,"cordova/exec":undefined,"debug":19,"random-number":24}],11:[function(_dereq_,module,exports){
 /**
  * Expose the RTCSessionDescription class.
  */
@@ -2326,7 +2326,65 @@ function getMediaDeviceInfos(devices) {
 	return mediaDeviceInfos;
 }
 
-},{"./Errors":1,"./MediaDeviceInfo":3,"cordova/exec":undefined,"debug":18}],15:[function(_dereq_,module,exports){
+},{"./Errors":1,"./MediaDeviceInfo":3,"cordova/exec":undefined,"debug":19}],15:[function(_dereq_,module,exports){
+/**
+ * Expose the getDisplayMedia function.
+ */
+module.exports = getDisplayMedia;
+
+
+/**
+ * Dependencies.
+ */
+var
+	debug = _dereq_('debug')('iosrtc:getDisplayMedia'),
+	debugerror = _dereq_('debug')('iosrtc:ERROR:getDisplayMedia'),
+	exec = _dereq_('cordova/exec'),
+	MediaStream = _dereq_('./MediaStream'),
+	Errors = _dereq_('./Errors');
+
+function getDisplayMedia(constraints) {
+
+	// Detect callback usage to assist 5.0.1 to 5.0.2 migration
+	// TODO remove on 6.0.0
+	Errors.detectDeprecatedCallbaksUsage('cordova.plugins.iosrtc.getDisplayMedia', arguments);
+
+	debug('[original constraints:%o]', constraints);
+
+	var
+		audioRequested = false,
+		videoRequested = false,
+		newConstraints = {};
+
+	if (
+		typeof constraints !== 'object' ||
+			(!constraints.hasOwnProperty('audio') && !constraints.hasOwnProperty('video'))
+	) {
+		return new Promise(function (resolve, reject) {
+			reject(new Errors.MediaStreamError('constraints must be an object with at least "audio" or "video" keys'));
+		});
+	}
+
+	debug('[computed constraints:%o]', newConstraints);
+
+	return new Promise(function (resolve, reject) {
+		function onResultOK(data) {
+			debug('getDisplayMedia() | success');
+			var stream = MediaStream.create(data.stream);
+			resolve(stream);
+			// Emit "connected" on the stream.
+			stream.emitConnected();
+		}
+
+		function onResultError(error) {
+			debugerror('getDisplayMedia() | failure: %s', error);
+			reject(new Errors.MediaStreamError('getDisplayMedia() failed: ' + error));
+		}
+
+		exec(onResultOK, onResultError, 'iosrtcPlugin', 'getDisplayMedia', [newConstraints]);
+	});
+}
+},{"./Errors":1,"./MediaStream":4,"cordova/exec":undefined,"debug":19}],16:[function(_dereq_,module,exports){
 /**
  * Expose the getUserMedia function.
  */
@@ -2716,7 +2774,7 @@ function getUserMedia(constraints) {
 		exec(onResultOK, onResultError, 'iosrtcPlugin', 'getUserMedia', [newConstraints]);
 	});
 }
-},{"./Errors":1,"./MediaStream":4,"cordova/exec":undefined,"debug":18}],16:[function(_dereq_,module,exports){
+},{"./Errors":1,"./MediaStream":4,"cordova/exec":undefined,"debug":19}],17:[function(_dereq_,module,exports){
 (function (global){
 /**
  * Variables.
@@ -2742,6 +2800,7 @@ var
 	domready               = _dereq_('domready'),
 
 	getUserMedia           = _dereq_('./getUserMedia'),
+	getDisplayMedia        = _dereq_('./getDisplayMedia'),
 	enumerateDevices       = _dereq_('./enumerateDevices'),
 	RTCPeerConnection      = _dereq_('./RTCPeerConnection'),
 	RTCSessionDescription  = _dereq_('./RTCSessionDescription'),
@@ -2757,6 +2816,7 @@ var
 module.exports = {
 	// Expose WebRTC classes and functions.
 	getUserMedia:          getUserMedia,
+	getDisplayMedia:       getDisplayMedia,
 	enumerateDevices:      enumerateDevices,
 	getMediaDevices:       enumerateDevices,  // TMP
 	RTCPeerConnection:     RTCPeerConnection,
@@ -2813,7 +2873,7 @@ function refreshVideos() {
 // refreshVideos on device orientation change to resize peers video 
 // while local video will resize du orientation change
 window.addEventListener('resize', function () {
-    refreshVideos();
+	refreshVideos();
 });
 
 function selectAudioOutput(output) {
@@ -2851,7 +2911,7 @@ function requestPermission(needMic, needCamera, callback) {
 }
 
 function callbackifyMethod(originalMethod) {
-  	return function () {
+	return function () {
 		var success, failure,
 		  originalArgs = Array.prototype.slice.call(arguments);
 
@@ -2911,6 +2971,9 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 		navigator.mediaDevices = {};
 	}
 
+	navigator.getDisplayMedia				= getDisplayMedia;
+	navigator.mediaDevices.getDisplayMedia	= getDisplayMedia;
+
 	navigator.getUserMedia                  = getUserMedia;
 	navigator.webkitGetUserMedia            = getUserMedia;
 	navigator.mediaDevices.getUserMedia     = getUserMedia;
@@ -2935,7 +2998,7 @@ function dump() {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./MediaStream":4,"./MediaStreamTrack":6,"./RTCIceCandidate":9,"./RTCPeerConnection":10,"./RTCSessionDescription":11,"./enumerateDevices":14,"./getUserMedia":15,"./videoElementsHandler":17,"cordova/exec":undefined,"debug":18,"domready":20}],17:[function(_dereq_,module,exports){
+},{"./MediaStream":4,"./MediaStreamTrack":6,"./RTCIceCandidate":9,"./RTCPeerConnection":10,"./RTCSessionDescription":11,"./enumerateDevices":14,"./getDisplayMedia":15,"./getUserMedia":16,"./videoElementsHandler":18,"cordova/exec":undefined,"debug":19,"domready":21}],18:[function(_dereq_,module,exports){
 /**
  * Expose a function that must be called when the library is loaded.
  * And also a helper function.
@@ -3264,7 +3327,7 @@ function releaseMediaStreamRenderer(video) {
 	delete video.readyState;
 }
 
-},{"./MediaStreamRenderer":5,"debug":18}],18:[function(_dereq_,module,exports){
+},{"./MediaStreamRenderer":5,"debug":19}],19:[function(_dereq_,module,exports){
 (function (process){
 /* eslint-env browser */
 
@@ -3532,7 +3595,7 @@ formatters.j = function (v) {
 };
 
 }).call(this,_dereq_('_process'))
-},{"./common":19,"_process":22}],19:[function(_dereq_,module,exports){
+},{"./common":20,"_process":23}],20:[function(_dereq_,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -3800,7 +3863,7 @@ function setup(env) {
 
 module.exports = setup;
 
-},{"ms":21}],20:[function(_dereq_,module,exports){
+},{"ms":22}],21:[function(_dereq_,module,exports){
 /*!
   * domready (c) Dustin Diaz 2014 - License MIT
   */
@@ -3832,7 +3895,7 @@ module.exports = setup;
 
 });
 
-},{}],21:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 /**
  * Helpers.
  */
@@ -3996,7 +4059,7 @@ function plural(ms, msAbs, n, name) {
   return Math.round(ms / n) + ' ' + name + (isPlural ? 's' : '');
 }
 
-},{}],22:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -4182,7 +4245,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],23:[function(_dereq_,module,exports){
+},{}],24:[function(_dereq_,module,exports){
 void function(root){
 
   function defaults(options){
@@ -4228,14 +4291,14 @@ void function(root){
   module.exports.defaults = defaults
 }(this)
 
-},{}],24:[function(_dereq_,module,exports){
+},{}],25:[function(_dereq_,module,exports){
 module.exports =
 {
 	EventTarget : _dereq_('./lib/EventTarget'),
 	Event       : _dereq_('./lib/Event')
 };
 
-},{"./lib/Event":25,"./lib/EventTarget":26}],25:[function(_dereq_,module,exports){
+},{"./lib/Event":26,"./lib/EventTarget":27}],26:[function(_dereq_,module,exports){
 (function (global){
 /**
  * In browsers export the native Event interface.
@@ -4244,7 +4307,7 @@ module.exports =
 module.exports = global.Event;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],26:[function(_dereq_,module,exports){
+},{}],27:[function(_dereq_,module,exports){
 function yaetiEventTarget()
 {
 	this._listeners = {};
@@ -4379,5 +4442,5 @@ yaetiEventTarget.prototype.dispatchEvent = function(event)
 
 module.exports = yaetiEventTarget;
 
-},{}]},{},[16])(16)
+},{}]},{},[17])(17)
 });
