@@ -423,16 +423,16 @@ RTCPeerConnection.prototype.getSenders = function () {
 };
 
 RTCPeerConnection.prototype.getTransceivers = function () {
-	var transceiver = [];
+	var transceivers = [];
 
 	this.getReceivers().map(function (receiver) {
-		transceiver.push(new RTCRtpTransceiver({
+		transceivers.push(new RTCRtpTransceiver({
 			receiver: receiver
 		}));
 	});
 
 	this.getSenders().map(function (sender) {
-		transceiver.push(new RTCRtpTransceiver({
+		transceivers.push(new RTCRtpTransceiver({
 			sender: sender
 		}));
 	});
