@@ -521,7 +521,7 @@ class PluginRTCVideoCaptureController : NSObject {
 	   } else {
 		   return true
 	   }
-  }
+  	}
 	
 	fileprivate func getConstraintDoubleValues(constraint: String, defaultValue: Int) -> NSDictionary {
 		return getConstrainRangeValues(constraint: constraint, defaultValue: NSNumber(value: defaultValue));
