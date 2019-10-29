@@ -37,10 +37,12 @@ The function allows both the old/deprecated callbacks based syntax and the new o
 Constraints can be applied to the local video by using the latest W3C specification. Currently just the following constraints are supported:
 
 * `video.deviceId`
+* `video.width`
 * `video.width.exact`
 * `video.width.ideal`
 * `video.width.min`
 * `video.width.max`
+* `video.height`
 * `video.height.exact`
 * `video.height.ideal`
 * `video.height.min`
