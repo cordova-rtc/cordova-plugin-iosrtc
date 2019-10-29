@@ -72,7 +72,14 @@ cordova.plugins.iosrtc.getUserMedia({
     frameRate: {
       min: 2.0,
       max: 60.0
-    }
+    },
+	facingMode: 'environment',
+	aspectRatio: 4/3
+  },
+  {
+  	audio: {
+      deviceId: 'Built-In Microphone'
+	}
   }
 });
 ```
