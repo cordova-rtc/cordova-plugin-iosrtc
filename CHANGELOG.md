@@ -12,7 +12,12 @@
 * Restore PluginRTCAudioController including selectAudioOutput and move EnumerateDevice. setPreferredInput| saveAudioDevice into PluginRTCAudioController
 * Fix closing and re-opening local stream several times #247
 * H264 issues #170
-*  Generic RTCPeerConnection constraint handling #119 via #394
+* implement RTCPeerConnectionFactory(encoderFactory, decoderFactory) using getSupportedVideoEncoder to enable VP8 and VP9 #416
+* Add Script to manipulate WebRTC binary architectures #421
+* Use clean WebRTC.framework build with x86 and ARM support #412
+* Decode XML entities in project name in iosrtc-swift-support.js hook #413
+* Update travis build to use Xcode 11.0 (11A420a) and iOS 13 support #376
+* Generic RTCPeerConnection constraint handling #119 via #394
 * Video renders in landscape, but not portrait orientation #360
 * Adapter JS change frameRate constraints #286
 * Regression switch camera fail (stop stream, remove stream from peer, get stream, add stream to peer, renegociate, fail on m69 but not master)
