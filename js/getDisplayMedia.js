@@ -22,10 +22,7 @@ function getDisplayMedia(constraints) {
 
 	debug('[original constraints:%o]', constraints);
 
-	var
-		audioRequested = false,
-		videoRequested = false,
-		newConstraints = {};
+	var newConstraints = {};
 
 	if (
 		typeof constraints !== 'object' ||
