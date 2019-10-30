@@ -68,6 +68,12 @@ class PluginRTCScreenCaptureController : PluginRTCVideoCaptureController {
 	}
 	
 	override func startCapture(completionHandler: ((Error?) -> Void)? = nil) -> Bool {
+
+		// Stop previous capture in case of setConstraints, followed by startCapture
+		// aka future applyConstraints
+		if (isCapturing) {
+			stopCapture();
+		}
 		
 		if #available(iOS 11.0, *) {
 			recorder.isMicrophoneEnabled = false
@@ -90,17 +96,25 @@ class PluginRTCScreenCaptureController : PluginRTCVideoCaptureController {
 					//completionHandler!()
 				}
 			}
-			
-			return true;
-		} else {
-			return false;
+
+			isCapturing = true
+	
+			NSLog("PluginRTCScreenCaptureController#startCapture Capture started");
 		}
+
+		return isCapturing;
 	}
 	
 	override func stopCapture() {
-		if #available(iOS 11.0, *) {
-			recorder.stopCapture {(error) in
-				// TODO debug error
+		// TODO: stopCaptureWithCompletionHandler with DispatchSemaphore
+		if (isCapturing) {
+			if #available(iOS 11.0, *) {
+				recorder.stopCapture {(error) in
+					// TODO debug error
+				}
+				isCapturing = false
+				
+				NSLog("PluginRTCScreenCaptureController#stopCapture Capture stopped");
 			}
 		}
 	}
@@ -136,6 +150,7 @@ class PluginRTCCameraCaptureController : PluginRTCVideoCaptureController {
 	private let DEFAULT_FPS : Int = 15
 	
 	var capturer: RTCCameraVideoCapturer
+	var isCapturing: Bool = false;
 	
 	// Default to the front camera.
 	var device: AVCaptureDevice?
@@ -216,6 +231,12 @@ class PluginRTCCameraCaptureController : PluginRTCVideoCaptureController {
 	
 	override func startCapture(completionHandler: ((Error?) -> Void)? = nil) -> Bool {
 		
+		// Stop previous capture in case of setConstraints, followed by startCapture
+		// aka future applyConstraints
+		if (isCapturing) {
+			stopCapture();
+		}
+		
 		if (device == nil) {
 			NSLog("PluginRTCVideoCaptureController#startCapture No matching device found for constraints %@", constraints);
 			return false;
@@ -226,25 +247,27 @@ class PluginRTCCameraCaptureController : PluginRTCVideoCaptureController {
 			return false;
 		}
 		
-		// TODO: Extract fps from constraints.
-		// TODO: completionHandler
-		self.capturer.startCapture(
+		// TODO: completionHandler with DispatchSemaphore
+		capturer.startCapture(
 			with: device!,
 			format: deviceFormat!,
 			fps: deviceFrameRate!
 		)
+		isCapturing = true
 		
 		NSLog("PluginRTCVideoCaptureController#startCapture Capture started, device:%@, format:%@", device!, deviceFormat!);
 		
-		return true;
+		return isCapturing;
 	}
 	
 	override func stopCapture() {
-		// TODO: map to RTCMediaStreamTrack stop if has videoCaptureController
-		// TODO: stopCaptureWithCompletionHandler
-		self.capturer.stopCapture()
-		
-		NSLog("PluginRTCVideoCaptureController#stopCapture Capture stopped");
+		// TODO: stopCaptureWithCompletionHandler with DispatchSemaphore
+		if (isCapturing) {
+			capturer.stopCapture()
+			isCapturing = false
+			
+			NSLog("PluginRTCVideoCaptureController#stopCapture Capture stopped");
+		}
 	}
 	
 	fileprivate func findDevice() -> AVCaptureDevice? {
@@ -344,7 +367,7 @@ class PluginRTCCameraCaptureController : PluginRTCVideoCaptureController {
 		}
 	
 		// TODO fail on no match ?
-		return captureDevices[0] as? AVCaptureDevice
+		return captureDevices.firstObject as? AVCaptureDevice
 	}
 	
 	fileprivate func findFormatForDevice(device: AVCaptureDevice) -> AVCaptureDevice.Format? {
