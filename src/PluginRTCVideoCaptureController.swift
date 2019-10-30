@@ -46,8 +46,10 @@ extension RTCMediaStreamTrack {
 
 class PluginRTCVideoCaptureController : NSObject {
 	
+	var isCapturing: Bool = false;
+	
 	func startCapture(completionHandler: ((Error?) -> Void)? = nil) -> Bool {
-		return false;
+		return isCapturing;
 	}
 	
 	func stopCapture() {
@@ -150,7 +152,6 @@ class PluginRTCCameraCaptureController : PluginRTCVideoCaptureController {
 	private let DEFAULT_FPS : Int = 15
 	
 	var capturer: RTCCameraVideoCapturer
-	var isCapturing: Bool = false;
 	
 	// Default to the front camera.
 	var device: AVCaptureDevice?
@@ -474,6 +475,7 @@ class PluginRTCCameraCaptureController : PluginRTCVideoCaptureController {
 		return selectedFormat
 	}
 	
+	/*
 	func switchCamera() -> Bool {
 		
 		if (self.capturer.captureSession.isRunning) {
@@ -486,6 +488,7 @@ class PluginRTCCameraCaptureController : PluginRTCVideoCaptureController {
 		
 		return self.startCapture()
 	}
+	*/
 	
 	fileprivate func findAlternativeDevicePosition(currentDevice: AVCaptureDevice?) -> AVCaptureDevice? {
 		let captureDevices: NSArray = RTCCameraVideoCapturer.captureDevices() as NSArray
