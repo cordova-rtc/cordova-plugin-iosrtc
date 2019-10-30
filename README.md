@@ -30,7 +30,7 @@ In order to make this Cordova plugin run into a iOS application some requirement
 * iOS >= 10.2 (run on lower versions at your own risk, don't report issues)
 * `swift-version` => 4.2
 * `cordova` >= 7.1.0
-* `cordova-ios` >= 5.0.1
+* `cordova-ios` >= 4.5.1
 
 ### Third-Party Supported Library
 
@@ -39,9 +39,10 @@ In order to make this Cordova plugin run into a iOS application some requirement
 * Janus => 0.7.4
 * JSSip => 3.1.2
 * Sip.js => 0.15.6
-* OpenEasyrtc => 2.0.0
+* OpenEasyrtc => 2.0.3
 * openvidu => 2.11.0
 * Ionic => v8 
+* Jitsi ~ 3229 
 
 ## Installation
 
