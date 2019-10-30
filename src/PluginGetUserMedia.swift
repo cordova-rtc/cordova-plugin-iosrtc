@@ -92,7 +92,7 @@ class PluginGetUserMedia {
 
 			NSLog("PluginGetUserMedia#call() | chosen video constraints: %@", videoConstraints)
 
-// Ingore Simulator cause does not support Camera
+// Ignore Simulator cause does not support Camera
 #if !targetEnvironment(simulator)
 			let videoCapturer: RTCCameraVideoCapturer = RTCCameraVideoCapturer(delegate: rtcVideoSource!)
 			let videoCaptureController: PluginRTCVideoCaptureController = PluginRTCVideoCaptureController(capturer: videoCapturer)
