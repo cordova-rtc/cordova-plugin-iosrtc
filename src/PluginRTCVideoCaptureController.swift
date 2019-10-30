@@ -50,6 +50,7 @@ class PluginRTCVideoCaptureController : NSObject {
 	private let DEFAULT_FPS : Int = 15
 	
 	var capturer: RTCCameraVideoCapturer
+	var isCapturing: Bool = false;
 	
 	// Default to the front camera.
 	var device: AVCaptureDevice?
@@ -130,6 +131,12 @@ class PluginRTCVideoCaptureController : NSObject {
 	
 	func startCapture() -> Bool {
 		
+		// Stop previous capture in case of setConstraints, followed by startCapture
+		// aka future applyConstraints
+		if (isCapturing) {
+			stopCapture();
+		}
+		
 		if (device == nil) {
 			NSLog("PluginRTCVideoCaptureController#startCapture No matching device found for constraints %@", constraints);
 			return false;
@@ -140,13 +147,13 @@ class PluginRTCVideoCaptureController : NSObject {
 			return false;
 		}
 		
-		// TODO: Extract fps from constraints.
-		// TODO: completionHandler
-		self.capturer.startCapture(
+		// TODO: completionHandler with DispatchSemaphore
+		capturer.startCapture(
 			with: device!,
 			format: deviceFormat!,
 			fps: deviceFrameRate!
 		)
+		isCapturing = true
 		
 		NSLog("PluginRTCVideoCaptureController#startCapture Capture started, device:%@, format:%@", device!, deviceFormat!);
 		
@@ -154,11 +161,13 @@ class PluginRTCVideoCaptureController : NSObject {
 	}
 	
 	func stopCapture() {
-		// TODO: map to RTCMediaStreamTrack stop if has videoCaptureController
-		// TODO: stopCaptureWithCompletionHandler
-		self.capturer.stopCapture()
-		
-		NSLog("PluginRTCVideoCaptureController#stopCapture Capture stopped");
+		// TODO: stopCaptureWithCompletionHandler with DispatchSemaphore
+		if (isCapturing) {
+			capturer.stopCapture()
+			isCapturing = false
+			
+			NSLog("PluginRTCVideoCaptureController#stopCapture Capture stopped");
+		}
 	}
 	
 	fileprivate func findDevice() -> AVCaptureDevice? {
@@ -258,10 +267,8 @@ class PluginRTCVideoCaptureController : NSObject {
 		}
 	
 		// TODO fail on no match ?
-		return captureDevices[0] as? AVCaptureDevice
+		return captureDevices.firstObject as? AVCaptureDevice
 	}
-	
-	
 	
 	fileprivate func findFormatForDevice(device: AVCaptureDevice) -> AVCaptureDevice.Format? {
 		

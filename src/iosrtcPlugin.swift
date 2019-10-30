@@ -41,17 +41,38 @@ class iosrtcPlugin : CDVPlugin {
 		//RTCSetMinDebugLogLevel(RTCLoggingSeverity.warning)
 
 		// Create a RTCPeerConnectionFactory.
-		self.rtcPeerConnectionFactory = RTCPeerConnectionFactory()
-
+		self.initPeerConnectionFactory();
+			
 		// Create a PluginGetUserMedia instance.
 		self.pluginGetUserMedia = PluginGetUserMedia(
 			rtcPeerConnectionFactory: rtcPeerConnectionFactory
 		)
 
+		// Create a PluginRTCAudioController instance.
 		PluginRTCAudioController.initAudioDevices()
-		
 		self.audioOutputController = PluginRTCAudioController()
-		
+	}
+	
+	private func initPeerConnectionFactory() {
+		let encoderFactory = RTCDefaultVideoEncoderFactory()
+		let decoderFactory = RTCDefaultVideoDecoderFactory()
+		encoderFactory.preferredCodec = getSupportedVideoEncoder(factory: encoderFactory)
+
+		self.rtcPeerConnectionFactory = RTCPeerConnectionFactory(
+			encoderFactory: encoderFactory,
+			decoderFactory: decoderFactory
+		)
+	}
+	
+	private func getSupportedVideoEncoder(factory: RTCDefaultVideoEncoderFactory) -> RTCVideoCodecInfo {
+		let supportedCodecs: [RTCVideoCodecInfo] = RTCDefaultVideoEncoderFactory.supportedCodecs()
+		if supportedCodecs.contains(RTCVideoCodecInfo.init(name: kRTCH264CodecName)){
+			return RTCVideoCodecInfo.init(name: kRTCH264CodecName)
+		} else if supportedCodecs.contains(RTCVideoCodecInfo.init(name: kRTCVp9CodecName)) {
+			return RTCVideoCodecInfo.init(name: kRTCVp9CodecName)
+		} else {
+			return RTCVideoCodecInfo.init(name: kRTCVp8CodecName)
+		}
 	}
 
 	@objc(onReset) override func onReset() {

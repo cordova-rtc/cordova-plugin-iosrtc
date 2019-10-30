@@ -39,9 +39,10 @@ In order to make this Cordova plugin run into a iOS application some requirement
 * Janus => 0.7.4
 * JSSip => 3.1.2
 * Sip.js => 0.15.6
-* OpenEasyrtc => 2.0.0
+* OpenEasyrtc => 2.0.3
 * openvidu => 2.11.0
 * Ionic => v8 
+* Jitsi ~ 3229 
 
 ## Installation
 
