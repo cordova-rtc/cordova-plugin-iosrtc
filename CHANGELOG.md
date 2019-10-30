@@ -1,4 +1,7 @@
 
+#### Version 6.0.1
+* fix stopCapture while RTCCameraVideoCapturer is not capturing causing crash due Assertion failure in -[FBSSerialQueue assertOnQueue] #426
+
 #### Version 6.0.0
 * Use WebRTC M69
 * Use WebRTC.framework
