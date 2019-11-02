@@ -16,9 +16,12 @@ class PluginRTCDTMFSender : NSObject {
 		) {
 		NSLog("PluginRTCDTMFSender#init()")
 
-		let streamIds = [streamId]
 		self.eventListener = eventListener
-		self.rtcRtpSender = rtcPeerConnection.add(track, streamIds: streamIds);
+		
+		// TODO check if new rtcRtpSender can be used one Unified-Plan merged
+		//let streamIds = [streamId]
+		//self.rtcRtpSender = rtcPeerConnection.add(track, streamIds: streamIds);
+		self.rtcRtpSender = rtcPeerConnection.senders[0]
 
 		if self.rtcRtpSender == nil {
 			NSLog("PluginRTCDTMFSender#init() | rtcPeerConnection.createDTMFSenderForTrack() failed")
@@ -38,7 +41,9 @@ class PluginRTCDTMFSender : NSObject {
 		NSLog("PluginRTCDTMFSender#insertDTMF()")
 
 		let dtmfSender = self.rtcRtpSender?.dtmfSender
-		let result = dtmfSender!.insertDtmf(tones, duration: duration, interToneGap: interToneGap)
+		let durationMs = duration / 100
+		let interToneGapMs = interToneGap / 100
+		let result = dtmfSender!.insertDtmf(tones, duration: durationMs, interToneGap: interToneGapMs)
 		if !result {
 			NSLog("PluginRTCDTMFSender#indertDTMF() | RTCDTMFSender#indertDTMF() failed")
 		}
