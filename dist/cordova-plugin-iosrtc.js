@@ -1,5 +1,5 @@
 /*
- * cordova-plugin-iosrtc v6.0.0
+ * cordova-plugin-iosrtc v6.0.1
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015-2017 eFace2Face, Inc. (https://eface2face.com)
  * Copyright 2015-2019 BasqueVoIPMafia (https://github.com/BasqueVoIPMafia)
@@ -2810,7 +2810,7 @@ function refreshVideos() {
 	}
 }
 
-// refreshVideos on device orientation change to resize peers video 
+// refreshVideos on device orientation change to resize peers video
 // while local video will resize du orientation change
 window.addEventListener('resize', function () {
     refreshVideos();
@@ -2911,16 +2911,15 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 		navigator.mediaDevices = {};
 	}
 
-	navigator.getUserMedia                  = getUserMedia;
-	navigator.webkitGetUserMedia            = getUserMedia;
-	navigator.mediaDevices.getUserMedia     = getUserMedia;
-	navigator.mediaDevices.enumerateDevices = enumerateDevices;
-
 	// Restore Callback support
 	if (!doNotRestoreCallbacksSupport) {
 		restoreCallbacksSupport();
 	}
 
+	navigator.getUserMedia                  = getUserMedia;
+	navigator.webkitGetUserMedia            = getUserMedia;
+	navigator.mediaDevices.getUserMedia     = getUserMedia;
+	navigator.mediaDevices.enumerateDevices = enumerateDevices;
 	window.RTCPeerConnection                = RTCPeerConnection;
 	window.webkitRTCPeerConnection          = RTCPeerConnection;
 	window.RTCSessionDescription            = RTCSessionDescription;
