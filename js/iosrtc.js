@@ -93,7 +93,7 @@ function refreshVideos() {
 // refreshVideos on device orientation change to resize peers video
 // while local video will resize du orientation change
 window.addEventListener('resize', function () {
-    refreshVideos();
+	refreshVideos();
 });
 
 function selectAudioOutput(output) {
@@ -137,14 +137,14 @@ function callbackifyMethod(originalMethod) {
 
 		var callbackArgs = [];
 		originalArgs.forEach(function (arg) {
-		  if (typeof arg === 'function') {
-			if (!success) {
-			  success = arg;
+			if (typeof arg === 'function') {
+				if (!success) {
+					success = arg;
+				} else {
+					failure = arg;
+				}
 			} else {
-			  failure = arg;
-			}
-		  } else {
-			callbackArgs.push(arg);
+				callbackArgs.push(arg);
 		  }
 		});
 
