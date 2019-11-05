@@ -102,8 +102,6 @@ fileprivate func getAllVideoDevices() -> [MediaDeviceInfo] {
 // Getter function inserted by get all audio devices connected
 fileprivate func getAllAudioDevices() -> [MediaDeviceInfo] {
 
-    PluginRTCAudioController.initAudioDevices()
-    
 	let audioSession: AVAudioSession = AVAudioSession.sharedInstance()
 	var audioDevicesArr : [MediaDeviceInfo] = []
 	let audioInputDevices: [AVAudioSessionPortDescription] = audioSession.availableInputs!
