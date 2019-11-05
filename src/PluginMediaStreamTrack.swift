@@ -38,7 +38,6 @@ class PluginMediaStreamTrack : NSObject {
 		default:
 			return "ended"
 		}
-		return "ended"
 	}
 
 	func getJSON() -> NSDictionary {
