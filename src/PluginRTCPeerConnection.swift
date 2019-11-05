@@ -285,7 +285,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		if self.rtcPeerConnection.signalingState == RTCSignalingState.closed {
 			return false
 		}
-    
+	
 		if (IsUnifiedPlan()) {
 			
 			var streamAdded : Bool = false;
@@ -302,7 +302,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		} else {
 			self.rtcPeerConnection.add(pluginMediaStream.rtcMediaStream)
 		}
-    
+	
 		return true
 	}
 
@@ -332,7 +332,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		return rtcPeerConnection.configuration.sdpSemantics == RTCSdpSemantics.unifiedPlan;
 	}
 
-	func addTrack(_ pluginMediaTrack: PluginMediaStreamTrack, _ pluginMediaStream: PluginMediaStream) -> Bool {
+	func addTrack(_ pluginMediaTrack: PluginMediaStreamTrack, _ streamIds: [String]) -> Bool {
 		NSLog("PluginRTCPeerConnection#addTrack()")
 		
 		if self.rtcPeerConnection.signalingState == RTCSignalingState.closed {
@@ -342,7 +342,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		let rtcMediaStreamTrack = pluginMediaTrack.rtcMediaStreamTrack;
 		var rtcSender = trackIdsToSenders[rtcMediaStreamTrack.trackId];
 		if (rtcSender == nil) {
-			rtcSender = self.rtcPeerConnection.add(rtcMediaStreamTrack, streamIds: [pluginMediaStream.id])
+			rtcSender = self.rtcPeerConnection.add(rtcMediaStreamTrack, streamIds: streamIds)
 			trackIdsToSenders[rtcMediaStreamTrack.trackId] = rtcSender;
 			return true;
 		}
