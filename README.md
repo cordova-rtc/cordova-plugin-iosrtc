@@ -75,17 +75,6 @@ The plugin exposes the `cordova.plugins.iosrtc` JavaScript namespace which conta
 ```javascript
 /* global RTCPeerConnection */
 
-// Note: This allow this sample to run on any Browser
-var cordova = window.cordova;
-if (cordova && cordova.plugins && cordova.plugins.iosrtc) {
-  
-  // Expose WebRTC and GetUserMedia SHIM as Globals (Optional)
-  // Alternatively WebRTC API will be inside cordova.plugins.iosrtc namespace
-  cordova.plugins.iosrtc.registerGlobals();
-
-  // Enable iosrtc debug (Optional)
-  cordova.plugins.iosrtc.debug.enable('*', true);
-}
 
 //
 // Container for this sample
@@ -156,14 +145,15 @@ function TestRTCPeerConnection(localStream) {
 
   pc1 = new RTCPeerConnection();
   pc2 = new RTCPeerConnection();
-
+  
   // Note: Deprecated but supported
   //pc1.addStream(localStream);
 
   // Add local stream tracks to RTCPeerConnection
+  var localPeerStream = new MediaStream();
   localStream.getTracks().forEach(function (track) {
-    console.log('addTrack', track);
-    pc1.addTrack(track);
+    console.log('pc1.addTrack', track, localPeerStream);
+    pc1.addTrack(track, localPeerStream);
   });
 
   // Basic RTCPeerConnection Local WebRTC Signaling follow.
@@ -182,8 +172,14 @@ function TestRTCPeerConnection(localStream) {
     onAddIceCandidate(pc1, e.candidate);
   });
 
+  pc2.addEventListener('addtrack', function (e) {
+    console.log('pc2.addtrack', e);
+  });
+
   pc2.addEventListener('addstream', function (e) {
     console.log('pc2.addStream', e);
+
+    // Create peer video element
     peerVideoEl = document.createElement('video');
     peerVideoEl.style.height = "50vh";
     peerVideoEl.setAttribute('autoplay', 'autoplay');
@@ -250,10 +246,31 @@ function TestRTCPeerConnection(localStream) {
   });
 }
 
-// Run sample
-TestGetUserMedia().then(function (localStream) {
+function TestRTCPeerConnectionLocal() {
+    
+  // Note: This allow this sample to run on any Browser
+  var cordova = window.cordova;
+  if (cordova && cordova.plugins && cordova.plugins.iosrtc) {
+
+    // Expose WebRTC and GetUserMedia SHIM as Globals (Optional)
+    // Alternatively WebRTC API will be inside cordova.plugins.iosrtc namespace
+    cordova.plugins.iosrtc.registerGlobals();
+
+    // Enable iosrtc debug (Optional)
+    cordova.plugins.iosrtc.debug.enable('*', true);
+  }
+
+  // Run sample
+  TestGetUserMedia().then(function (localStream) {
     TestRTCPeerConnection(localStream); 
-});
+  });
+}
+
+if (document.readyState === "complete" || document.readyState === "loaded") {
+  TestRTCPeerConnectionLocal();
+} else {
+  window.addEventListener("DOMContentLoaded", TestRTCPeerConnectionLocal);  
+}
 
 // See ./extra/renderer-and-libwebrtc-tests.js for more samples usage.
 ```
