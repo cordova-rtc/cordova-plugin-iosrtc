@@ -1,5 +1,5 @@
 /*
- * cordova-plugin-iosrtc v6.0.0
+ * cordova-plugin-iosrtc v6.0.2
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015-2017 eFace2Face, Inc. (https://eface2face.com)
  * Copyright 2015-2019 BasqueVoIPMafia (https://github.com/BasqueVoIPMafia)
@@ -1539,6 +1539,7 @@ function RTCPeerConnection(pcConfig, pcConstraints) {
 	// Fix webrtc-adapter bad SHIM on addTrack causing error when original does support multiple streams.
 	// NotSupportedError: The adapter.js addTrack polyfill only supports a single stream which is associated with the specified track.
 	Object.defineProperty(this, 'addTrack', RTCPeerConnection.prototype_descriptor.addTrack);
+	Object.defineProperty(this, 'getLocalStreams', RTCPeerConnection.prototype_descriptor.getLocalStreams);
 	
 	// Public atributes.
 	this._localDescription = null;
@@ -1910,6 +1911,9 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 	}
 
 	// Add localStreams if missing
+	// Disable to match browser behavior
+	//stream = stream || Object.values(this.localStreams)[0] || new MediaStream();
+
 	// Fix webrtc-adapter bad SHIM on addStream
 	if (stream) {
 		if (!(stream instanceof MediaStream.originalMediaStream)) {
@@ -1933,6 +1937,11 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 				break;
 			}
 		}
+	}
+
+	// No Stream matched add track without stream
+	if (!stream) {
+		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [this.pcId, track.id, null]);
 	}
 };
 
