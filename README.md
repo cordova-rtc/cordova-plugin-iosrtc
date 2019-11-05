@@ -92,6 +92,7 @@ if (cordova && cordova.plugins && cordova.plugins.iosrtc) {
 //
 
 var appContainer = document.body;
+appContainer.innerHTML = "";
 
 //
 // Sample getUserMedia
@@ -101,6 +102,7 @@ var appContainer = document.body;
 var localStream, localVideoEl;
 function TestGetUserMedia() {
   localVideoEl = document.createElement('video');
+  localVideoEl.style.height = "50vh";
   localVideoEl.setAttribute('autoplay', 'autoplay');
   localVideoEl.setAttribute('playsinline', 'playsinline');
   appContainer.appendChild(localVideoEl);
@@ -147,11 +149,13 @@ function TestGetUserMedia() {
 // Sample RTCPeerConnection
 // 
 
-var pc1 = new RTCPeerConnection(),
-    pc2 = new RTCPeerConnection();
+var pc1, pc2;
 
 var peerVideoEl, peerStream;
 function TestRTCPeerConnection(localStream) {
+
+  pc1 = new RTCPeerConnection();
+  pc2 = new RTCPeerConnection();
 
   // Note: Deprecated but supported
   //pc1.addStream(localStream);
@@ -181,6 +185,7 @@ function TestRTCPeerConnection(localStream) {
   pc2.addEventListener('addstream', function (e) {
     console.log('pc2.addStream', e);
     peerVideoEl = document.createElement('video');
+    peerVideoEl.style.height = "50vh";
     peerVideoEl.setAttribute('autoplay', 'autoplay');
     peerVideoEl.setAttribute('playsinline', 'playsinline');
     appContainer.appendChild(peerVideoEl);
