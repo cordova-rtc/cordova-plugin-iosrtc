@@ -290,11 +290,11 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 			
 			var streamAdded : Bool = false;
 			for (_, pluginMediaTrack) in pluginMediaStream.audioTracks {
-				streamAdded = self.addTrack(pluginMediaTrack, pluginMediaStream) && streamAdded;
+				streamAdded = self.addTrack(pluginMediaTrack, [pluginMediaStream.id]) && streamAdded;
 			}
 			
 			for (_, pluginMediaTrack) in pluginMediaStream.videoTracks {
-				streamAdded = self.addTrack(pluginMediaTrack, pluginMediaStream) && streamAdded;
+				streamAdded = self.addTrack(pluginMediaTrack, [pluginMediaStream.id]) && streamAdded;
 			}
 			
 			return streamAdded;
