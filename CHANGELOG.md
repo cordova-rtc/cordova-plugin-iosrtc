@@ -1,4 +1,8 @@
 
+#### Version 6.0.2
+* implement M69 Native RTCPeerConnection.(addTrack|removeTrack) and sdpSemantics unified-plan support #407
+* fix insertDtmf #431
+
 #### Version 6.0.1
 * fix stopCapture while RTCCameraVideoCapturer is not capturing causing crash due Assertion failure in -[FBSSerialQueue assertOnQueue] #426
 
