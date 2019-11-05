@@ -361,7 +361,8 @@ class iosrtcPlugin : CDVPlugin {
 		}
 		
 		self.queue.async { [weak pluginRTCPeerConnection, weak pluginMediaStreamTrack] in
-			if pluginRTCPeerConnection?.addTrack(pluginMediaStreamTrack!) == true {
+			if pluginRTCPeerConnection?.addTrack(pluginMediaStreamTrack!, pluginMediaStream!) == true {
+				self.saveMediaStream(pluginMediaStream!)
 				self.saveMediaStreamTrack(pluginMediaStreamTrack!)
 			}
 		}
