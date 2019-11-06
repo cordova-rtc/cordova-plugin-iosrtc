@@ -1,3 +1,6 @@
+#### Version 6.0.3
+* make second argument MediaStream of RTCPeerConnection.prototype.addTrack optional #437
+* remove redundant PluginRTCAudioController.initAudioDevices call in getAllAudioDevices causing AVAudioSession to reset to its default settings #439
 
 #### Version 6.0.2
 * implement M69 Native RTCPeerConnection.(addTrack|removeTrack) and sdpSemantics unified-plan support #407
