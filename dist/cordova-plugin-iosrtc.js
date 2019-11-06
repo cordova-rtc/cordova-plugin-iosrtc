@@ -1911,7 +1911,8 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 	}
 
 	// Add localStreams if missing
-	stream = stream || Object.values(this.localStreams)[0] || new MediaStream();
+	// Disable to match browser behavior
+	//stream = stream || Object.values(this.localStreams)[0] || new MediaStream();
 
 	// Fix webrtc-adapter bad SHIM on addStream
 	if (stream) {
@@ -1936,6 +1937,11 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 				break;
 			}
 		}
+	}
+
+	// No Stream matched add track without stream
+	if (!stream) {
+		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [this.pcId, track.id, null]);
 	}
 };
 

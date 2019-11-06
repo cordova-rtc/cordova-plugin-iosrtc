@@ -340,9 +340,8 @@ class iosrtcPlugin : CDVPlugin {
 		
 		let pcId = command.argument(at: 0) as! Int
 		let trackId = command.argument(at: 1) as! String
-		let streamId = command.argument(at: 2) as! String
+		var streamIds : [String] = [];
 		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
-		let pluginMediaStream = self.pluginMediaStreams[streamId]
 		let pluginMediaStreamTrack = self.pluginMediaStreamTracks[trackId]
 		
 		if pluginRTCPeerConnection == nil {
@@ -350,9 +349,17 @@ class iosrtcPlugin : CDVPlugin {
 			return;
 		}
 		
-		if pluginMediaStream == nil {
-			NSLog("iosrtcPlugin#RTCPeerConnection_addTrack() | ERROR: pluginMediaStream with id=%@ does not exist", String(streamId))
-			return;
+		if command.argument(at: 2) != nil {
+			let streamId = command.argument(at: 2) as! String
+			let pluginMediaStream = self.pluginMediaStreams[streamId]
+			
+			if pluginMediaStream == nil {
+				NSLog("iosrtcPlugin#RTCPeerConnection_addTrack() | ERROR: pluginMediaStream with id=%@ does not exist", String(streamId))
+				return;
+			}
+			
+			streamIds.append(pluginMediaStream!.id)
+			self.saveMediaStream(pluginMediaStream!)
 		}
 		
 		if pluginMediaStreamTrack == nil {
@@ -361,8 +368,7 @@ class iosrtcPlugin : CDVPlugin {
 		}
 		
 		self.queue.async { [weak pluginRTCPeerConnection, weak pluginMediaStreamTrack] in
-			if pluginRTCPeerConnection?.addTrack(pluginMediaStreamTrack!, pluginMediaStream!) == true {
-				self.saveMediaStream(pluginMediaStream!)
+			if pluginRTCPeerConnection?.addTrack(pluginMediaStreamTrack!, streamIds) == true {
 				self.saveMediaStreamTrack(pluginMediaStreamTrack!)
 			}
 		}
