@@ -122,7 +122,7 @@ class PluginRTCAudioController {
             let audioSession: AVAudioSession = AVAudioSession.sharedInstance()
             try audioSession.setCategory(
                 AVAudioSession.Category.playAndRecord,
-                mode: AVAudioSession.Mode.default,
+                mode: AVAudioSession.Mode.voiceChat,
                 options: .allowBluetooth
             )
             try audioSession.overrideOutputAudioPort(AVAudioSession.PortOverride.speaker)
