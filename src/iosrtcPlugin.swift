@@ -1108,11 +1108,12 @@ class iosrtcPlugin : CDVPlugin {
 	}
 
 	fileprivate func saveMediaStream(_ pluginMediaStream: PluginMediaStream) {
-		if self.pluginMediaStreams[pluginMediaStream.id] == nil {
+		/*if self.pluginMediaStreams[pluginMediaStream.id] == nil {
 			self.pluginMediaStreams[pluginMediaStream.id] = pluginMediaStream
-		} /*else {
+		} else {
 			return;
 		}*/
+		self.pluginMediaStreams[pluginMediaStream.id] = pluginMediaStream
 
 		// Store its PluginMediaStreamTracks' into the dictionary.
 		for (id, track) in pluginMediaStream.audioTracks {
