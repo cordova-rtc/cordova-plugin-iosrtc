@@ -1,5 +1,5 @@
 /*
- * cordova-plugin-iosrtc v6.0.2
+ * cordova-plugin-iosrtc v6.0.3
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015-2017 eFace2Face, Inc. (https://eface2face.com)
  * Copyright 2015-2019 BasqueVoIPMafia (https://github.com/BasqueVoIPMafia)
@@ -2775,7 +2775,7 @@ module.exports = {
 	MediaStreamTrack:      MediaStreamTrack,
 
 	// Expose a function to refresh current videos rendering a MediaStream.
-	refreshVideos:         refreshVideos,
+	refreshVideos:         videoElementsHandler.refreshVideos,
 
 	// Expose a function to handle a video not yet inserted in the DOM.
 	observeVideo:          videoElementsHandler.observeVideo,
@@ -2796,7 +2796,11 @@ module.exports = {
 	debug:                 _dereq_('debug'),
 
 	// Debug function to see what happens internally.
-	dump:                  dump
+	dump:                  dump,
+
+	// Debug Stores to see what happens internally.
+	mediaStreamRenderers:  mediaStreamRenderers,
+	mediaStreams:          mediaStreams
 };
 
 
@@ -2804,25 +2808,12 @@ domready(function () {
 	// Let the MediaStream class and the videoElementsHandler share same MediaStreams container.
 	MediaStream.setMediaStreams(mediaStreams);
 	videoElementsHandler(mediaStreams, mediaStreamRenderers);
-});
 
-
-function refreshVideos() {
-	debug('refreshVideos()');
-
-	var id;
-
-	for (id in mediaStreamRenderers) {
-		if (mediaStreamRenderers.hasOwnProperty(id)) {
-			mediaStreamRenderers[id].refresh();
-		}
-	}
-}
-
-// refreshVideos on device orientation change to resize peers video 
-// while local video will resize du orientation change
-window.addEventListener('resize', function () {
-    refreshVideos();
+	// refreshVideos on device orientation change to resize peers video 
+	// while local video will resize du orientation change
+	window.addEventListener('resize', function () {
+	    videoElementsHandler.refreshVideos();
+	});
 });
 
 function selectAudioOutput(output) {
@@ -2951,6 +2942,7 @@ function dump() {
  */
 module.exports = videoElementsHandler;
 module.exports.observeVideo = observeVideo;
+module.exports.refreshVideos = refreshVideos;
 
 
 /**
@@ -3067,6 +3059,17 @@ var
 		}
 	});
 
+function refreshVideos() {
+	debug('refreshVideos()');
+
+	var id;
+
+	for (id in mediaStreamRenderers) {
+		if (mediaStreamRenderers.hasOwnProperty(id)) {
+			mediaStreamRenderers[id].refresh();
+		}
+	}
+}
 
 function videoElementsHandler(_mediaStreams, _mediaStreamRenderers) {
 	var
