@@ -3,8 +3,7 @@ import AVFoundation
 
 class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 	
-	
-	var uuid: String
+	var id: String
 	var eventListener: (_ data: NSDictionary) -> Void
 	var closed: Bool
 	
@@ -23,7 +22,7 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		NSLog("PluginMediaStreamRenderer#init()")
 		
 		// Open Renderer
-		self.uuid = UUID().uuidString;
+		self.id = UUID().uuidString;
 		self.closed = false
 		
 		// The browser HTML view.
