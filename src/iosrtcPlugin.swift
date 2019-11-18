@@ -350,16 +350,15 @@ class iosrtcPlugin : CDVPlugin {
 		}
 		
 		if command.argument(at: 2) != nil {
-			let id = command.argument(at: 2) as! String
-			let pluginMediaStream = self.pluginMediaStreams[id]
+			let streamId = command.argument(at: 2) as! String
+			let pluginMediaStream = self.pluginMediaStreams[streamId]
 			
 			if pluginMediaStream == nil {
-				NSLog("iosrtcPlugin#RTCPeerConnection_addTrack() | ERROR: pluginMediaStream with id=%@ does not exist", String(id))
+				NSLog("iosrtcPlugin#RTCPeerConnection_addTrack() | ERROR: pluginMediaStream with id=%@ does not exist", String(streamId))
 				return;
 			}
 			
-			let streamId = pluginMediaStream!.rtcMediaStream.streamId;
-			streamIds.append(streamId)
+			streamIds.append(pluginMediaStream!.id)
 			self.saveMediaStream(pluginMediaStream!)
 		}
 		
@@ -864,6 +863,7 @@ class iosrtcPlugin : CDVPlugin {
 		let id = command.argument(at: 0) as! Int
 
 		let pluginMediaStreamRenderer = PluginMediaStreamRenderer(
+			uuid: UUID().uuidString,
 			webView: self.webView!,
 			eventListener: { (data: NSDictionary) -> Void in
 				let result = CDVPluginResult(
@@ -1111,7 +1111,6 @@ class iosrtcPlugin : CDVPlugin {
 		if self.pluginMediaStreams[pluginMediaStream.id] == nil {
 			self.pluginMediaStreams[pluginMediaStream.id] = pluginMediaStream
 		} else {
-			NSLog("- PluginMediaStreams already exist [id:%@]", String(pluginMediaStream.id))
 			return;
 		}
 
