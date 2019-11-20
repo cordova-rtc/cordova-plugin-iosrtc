@@ -2396,20 +2396,20 @@ function getUserMedia(constraints) {
 	//
 	// getUserMedia({
 	//  audio: {
-	//  	deviceId: 'azer-asdf-zxcv',
+	//      deviceId: 'azer-asdf-zxcv',
 	//  },
 	//  video: {
-	//  	deviceId: 'qwer-asdf-zxcv',
+	//      deviceId: 'qwer-asdf-zxcv',
 	//      aspectRatio: 1.777.
 	//      facingMode: 'user',
-	//  	width: {
-	//  		min: 400,
-	//  		max: 600
-	//  	},
-	//  	frameRate: {
-	//  		min: 1.0,
-	//  		max: 60.0
-	//  	}
+	//      width: {
+	//          min: 400,
+	//          max: 600
+	//      },
+	//      frameRate: {
+	//          min: 1.0,
+	//          max: 60.0
+	//      }
 	//  }
 	// });
 
@@ -2510,7 +2510,7 @@ function getUserMedia(constraints) {
 			) {
 				newConstraints.video.deviceId = {
 					exact: constraints.video.mandatory.sourceId
-				};	
+				};  
 			}
 
 			// Only apply mandatory over optional
@@ -2577,7 +2577,12 @@ function getUserMedia(constraints) {
 			if (isPositiveInteger(constraints.video.width.max)) {
 				newConstraints.video.width.max = constraints.video.width.max;
 			}
-			// TODO exact, ideal
+			if (isPositiveInteger(constraints.video.width.exact)) {
+				newConstraints.video.width.exact = constraints.video.width.exact;
+			}
+			if (isPositiveInteger(constraints.video.width.ideal)) {
+				newConstraints.video.width.ideal = constraints.video.width.ideal;
+			}
 
 		// Get requested width long as exact
 		} else if (isPositiveInteger(constraints.video.width)) {
@@ -2595,7 +2600,12 @@ function getUserMedia(constraints) {
 			if (isPositiveInteger(constraints.video.height.max)) {
 				newConstraints.video.height.max = constraints.video.height.max;
 			}
-			// TODO exact, ideal
+			if (isPositiveInteger(constraints.video.height.exact)) {
+				newConstraints.video.height.exact = constraints.video.height.exact;
+			}
+			if (isPositiveInteger(constraints.video.height.ideal)) {
+				newConstraints.video.height.ideal = constraints.video.height.ideal;
+			}
 
 		// Get requested height long as exact
 		} else if (isPositiveInteger(constraints.video.height)) {
@@ -2613,7 +2623,12 @@ function getUserMedia(constraints) {
 			if (isPositiveFloat(constraints.video.frameRate.max)) {
 				newConstraints.video.frameRate.max = parseFloat(constraints.video.frameRate.max, 10);
 			}
-			// TODO exact, ideal
+			if (isPositiveInteger(constraints.video.frameRate.exact)) {
+				newConstraints.video.frameRate.exact = constraints.video.frameRate.exact;
+			}
+			if (isPositiveInteger(constraints.video.frameRate.ideal)) {
+				newConstraints.video.frameRate.ideal = constraints.video.frameRate.ideal;
+			}
 
 		// Get requested frameRate double as exact
 		} else if (isPositiveFloat(constraints.video.frameRate)) {
@@ -2624,7 +2639,20 @@ function getUserMedia(constraints) {
 
 		// get aspectRatio (e.g 1.7777777777777777)
 		// TODO ConstrainDouble min, max
-		if (isPositiveFloat(constraints.video.aspectRatio)) {
+		if (typeof constraints.video.aspectRatio === 'object') {
+			if (isPositiveFloat(constraints.video.aspectRatio.min)) {
+				newConstraints.video.aspectRatio.min = parseFloat(constraints.video.aspectRatio.min, 10);
+			}
+			if (isPositiveFloat(constraints.video.aspectRatio.max)) {
+				newConstraints.video.aspectRatio.max = parseFloat(constraints.video.aspectRatio.max, 10);
+			}
+			if (isPositiveInteger(constraints.video.aspectRatio.exact)) {
+				newConstraints.video.aspectRatio.exact = constraints.video.aspectRatio.exact;
+			}
+			if (isPositiveInteger(constraints.video.aspectRatio.ideal)) {
+				newConstraints.video.aspectRatio.ideal = constraints.video.aspectRatio.ideal;
+			}
+		} else if (isPositiveFloat(constraints.video.aspectRatio)) {
 			newConstraints.video.aspectRatio = {
 				exact: parseFloat(constraints.video.aspectRatio, 10)
 			};
@@ -2636,6 +2664,16 @@ function getUserMedia(constraints) {
 			newConstraints.video.facingMode = {
 				exact: constraints.video.facingMode
 			};
+		} else if (typeof constraints.video.facingMode === 'object') {
+			if (typeof constraints.video.facingMode.exact === 'string') {
+				newConstraints.video.facingMode = {
+					exact: constraints.video.facingMode.exact
+				};
+			} else if (constraints.video.facingMode.ideal === 'string') {
+				newConstraints.video.facingMode = {
+					ideal: constraints.video.facingMode.ideal
+				};
+			}
 		}
 	}
 
@@ -2674,7 +2712,7 @@ function getUserMedia(constraints) {
 			) {
 				newConstraints.audio.deviceId = {
 					exact: constraints.audio.mandatory.sourceId
-				};	
+				};  
 			} 
 		}
 
@@ -2703,7 +2741,7 @@ function getUserMedia(constraints) {
 							constraints.audio.deviceId.ideal[0] : constraints.audio.deviceId.ideal
 				};
 			}
-		}	
+		}   
 	}
 
 	debug('[computed constraints:%o]', newConstraints);
