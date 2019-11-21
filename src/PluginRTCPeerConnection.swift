@@ -254,7 +254,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 
 		// TODO check if it still needed or moved elsewhere
 		if !self.isAudioInputSelected {
-			PluginRTCAudioController.setInputAudioDevice()
+			PluginRTCAudioController.restoreInputOutputAudioDevice()
 			self.isAudioInputSelected = true
 		}
 		
