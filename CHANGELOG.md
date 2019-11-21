@@ -1,3 +1,9 @@
+#### Version 6.0.4
+* Improve video constraints (width|height|aspectRatio|frameRate).(ideal|exact) and add (aspectRatio|frameRate|facingMode).(ideal|exact) support enhancement #451
+* generate unique PluginMediaStream and PluginMediaStreamTrack, keep original streamId/trackId for internal calls #447
+* Add English facingLabel suffix if localizedName does not match for facing detection using label, fix PluginEnumerateDevices ordered array #446
+* Implement PluginRTCAudioController setCategory and use audioMode AVAudioSession.Mode.voiceChat and make initAudioDevices non-static #448
+
 #### Version 6.0.3
 * make second argument MediaStream of RTCPeerConnection.prototype.addTrack optional #437
 * remove redundant PluginRTCAudioController.initAudioDevices call in getAllAudioDevices causing AVAudioSession to reset to its default settings #439
