@@ -18,29 +18,29 @@ struct MediaDeviceInfo {
 
 // Helper function inserted by Swift 4.2 migrator.
 fileprivate func convertFromAVMediaType(_ input: AVMediaType) -> String {
-    return input.rawValue
+	return input.rawValue
 }
 
 class PluginEnumerateDevices {
 	class func call(_ callback: (_ data: NSDictionary) -> Void) {
 		NSLog("PluginEnumerateDevices#call()")
-        
+		
 		let audioDevices: [MediaDeviceInfo] = getAllAudioDevices()
 		let videoDevices: [MediaDeviceInfo] = getAllVideoDevices()
 		let allDevices = videoDevices + audioDevices;
 		
 		let json: NSMutableDictionary = [
-			"devices": NSMutableDictionary()
+			"devices": NSMutableArray()
 		]
 		
 		// Casting to NSMutableDictionary
 		for device: MediaDeviceInfo in allDevices {
-			(json["devices"] as! NSMutableDictionary)[device.deviceId] = [
+			(json["devices"] as! NSMutableArray).add([
 				"deviceId": device.deviceId,
 				"kind": device.kind,
 				"label": device.label,
 				"groupId": device.groupId
-			]
+			])
 		}
 		
 		print("DEVICES => ", json)
@@ -59,16 +59,20 @@ fileprivate func getAllVideoDevices() -> [MediaDeviceInfo] {
 	
 	for device: AVCaptureDevice in videoDevices {
 		var facing: String
+		var facingLabel: String;
 		let hasAudio = device.hasMediaType(AVMediaType(rawValue: convertFromAVMediaType(AVMediaType.audio)))
 		let hasVideo = device.hasMediaType(AVMediaType(rawValue: convertFromAVMediaType(AVMediaType.video)))
 		
 		switch device.position {
 		case AVCaptureDevice.Position.unspecified:
 			facing = "unknown"
+			facingLabel = "";
 		case AVCaptureDevice.Position.back:
 			facing = "back"
+			facingLabel = "Back Camera"
 		case AVCaptureDevice.Position.front:
 			facing = "front"
+			facingLabel = "Front Camera"
 		}
 		
 		if device.isConnected == false || (hasAudio == false && hasVideo == false) {
@@ -80,10 +84,15 @@ fileprivate func getAllVideoDevices() -> [MediaDeviceInfo] {
 			String(hasAudio), String(hasVideo), String(device.isConnected))
 		
 		if hasAudio == false {
+			// Add English facingLabel suffix if localizedName does not match for facing detection using label
+			let deviceLabel = device.localizedName.contains(facingLabel) ?
+					device.localizedName : device.localizedName + " (" + facingLabel + ")";
+			
 			let device = MediaDeviceInfo(
 				deviceId: device.uniqueID,
 				kind: "videoinput",
-				label: device.localizedName)
+				label: deviceLabel
+			)
 				
 			// Put Front devices at beginning of the videoDevicesArr
 			if (facing == "front") {
@@ -112,10 +121,14 @@ fileprivate func getAllAudioDevices() -> [MediaDeviceInfo] {
 	var builtMicDevice: AVAudioSessionPortDescription? = nil
 	
 	for audioInput in audioInputDevices {
-		audioDevicesArr.append(MediaDeviceInfo(
+		
+		let device = MediaDeviceInfo(
 			deviceId: audioInput.uid,
 			kind: "audioinput",
-			label: audioInput.portName))
+			label: audioInput.portName
+		);
+		
+		audioDevicesArr.append(device)
 		
 		// Initialize audioInputSelected. Default Built-In Microphone
 		if audioInput.portType == AVAudioSession.Port.builtInMic {
