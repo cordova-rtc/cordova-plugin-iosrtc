@@ -2,6 +2,12 @@ import Foundation
 
 
 class PluginRTCPeerConnectionConfig {
+	
+	fileprivate let allowedSdpSemantics = [
+		"plan-b": RTCSdpSemantics.planB,
+		"unified-plan": RTCSdpSemantics.unifiedPlan
+	]
+  
 	fileprivate let allowedBundlePolicy = [
 		"balanced": RTCBundlePolicy.balanced,
 		"max-compat": RTCBundlePolicy.maxCompat,
@@ -24,6 +30,20 @@ class PluginRTCPeerConnectionConfig {
 		NSLog("PluginRTCPeerConnectionConfig#init()")
 		
 		self.rtcConfiguration = RTCConfiguration()
+			
+		/*
+		 Since Chrome 65, this has been an experimental feature that you can opt-in to by passing
+		 sdpSemantics:'unified-plan' to the RTCPeerConnection constructor, with transceivers added in M69.
+		 History: https://crbug.com/799030. Canary/Dev experiments making Unified Plan the default behavior started in 71.
+		 The target is to release Unified Plan by default in 72 Stable. For more information, see https://webrtc.org/web-apis/chrome/unified-plan/.
+		 See: https://www.chromestatus.com/feature/5723303167655936
+		*/
+		
+		let sdpSemanticsConfig = pcConfig?.object(forKey: "sdpSemantics") as? String;
+		let sdpSemantics = (sdpSemanticsConfig != nil && allowedSdpSemantics[sdpSemanticsConfig!] != nil) ?
+			allowedSdpSemantics[sdpSemanticsConfig!] : RTCSdpSemantics.unifiedPlan
+		
+		rtcConfiguration.sdpSemantics = sdpSemantics!;
 		
 		/*
 		 Specifies how to handle negotiation of candidates when the remote peer is not compatible with the SDP BUNDLE standard.

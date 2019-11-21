@@ -49,8 +49,8 @@ class iosrtcPlugin : CDVPlugin {
 		)
 
 		// Create a PluginRTCAudioController instance.
-		PluginRTCAudioController.initAudioDevices()
 		self.audioOutputController = PluginRTCAudioController()
+		audioOutputController.initAudioDevices()
 	}
 	
 	private func initPeerConnectionFactory() {
@@ -340,9 +340,8 @@ class iosrtcPlugin : CDVPlugin {
 		
 		let pcId = command.argument(at: 0) as! Int
 		let trackId = command.argument(at: 1) as! String
-		let streamId = command.argument(at: 2) as! String
+		var streamIds : [String] = [];
 		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
-		let pluginMediaStream = self.pluginMediaStreams[streamId]
 		let pluginMediaStreamTrack = self.pluginMediaStreamTracks[trackId]
 		
 		if pluginRTCPeerConnection == nil {
@@ -350,9 +349,18 @@ class iosrtcPlugin : CDVPlugin {
 			return;
 		}
 		
-		if pluginMediaStream == nil {
-			NSLog("iosrtcPlugin#RTCPeerConnection_addTrack() | ERROR: pluginMediaStream with id=%@ does not exist", String(streamId))
-			return;
+		if command.argument(at: 2) != nil {
+			let id = command.argument(at: 2) as! String
+			let pluginMediaStream = self.pluginMediaStreams[id]
+			
+			if pluginMediaStream == nil {
+				NSLog("iosrtcPlugin#RTCPeerConnection_addTrack() | ERROR: pluginMediaStream with id=%@ does not exist", String(id))
+				return;
+			}
+			
+			let streamId = pluginMediaStream!.rtcMediaStream.streamId;
+			streamIds.append(streamId)
+			self.saveMediaStream(pluginMediaStream!)
 		}
 		
 		if pluginMediaStreamTrack == nil {
@@ -361,7 +369,7 @@ class iosrtcPlugin : CDVPlugin {
 		}
 		
 		self.queue.async { [weak pluginRTCPeerConnection, weak pluginMediaStreamTrack] in
-			if pluginRTCPeerConnection?.addTrack(pluginMediaStreamTrack!) == true {
+			if pluginRTCPeerConnection?.addTrack(pluginMediaStreamTrack!, streamIds) == true {
 				self.saveMediaStreamTrack(pluginMediaStreamTrack!)
 			}
 		}
@@ -856,7 +864,6 @@ class iosrtcPlugin : CDVPlugin {
 		let id = command.argument(at: 0) as! Int
 
 		let pluginMediaStreamRenderer = PluginMediaStreamRenderer(
-			uuid: UUID().uuidString,
 			webView: self.webView!,
 			eventListener: { (data: NSDictionary) -> Void in
 				let result = CDVPluginResult(
@@ -1104,6 +1111,7 @@ class iosrtcPlugin : CDVPlugin {
 		if self.pluginMediaStreams[pluginMediaStream.id] == nil {
 			self.pluginMediaStreams[pluginMediaStream.id] = pluginMediaStream
 		} else {
+			NSLog("- PluginMediaStreams already exist [id:%@]", String(pluginMediaStream.id))
 			return;
 		}
 
