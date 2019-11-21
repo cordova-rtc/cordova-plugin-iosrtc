@@ -15,7 +15,7 @@ class PluginMediaStreamTrack : NSObject {
 		NSLog("PluginMediaStreamTrack#init()")
 
 		self.rtcMediaStreamTrack = rtcMediaStreamTrack
-		self.id = rtcMediaStreamTrack.trackId
+		self.id = UUID().uuidString;
 		self.kind = rtcMediaStreamTrack.kind
 		self.renders = [:]
 		self.streamId = streamId;
@@ -94,15 +94,15 @@ class PluginMediaStreamTrack : NSObject {
 	}
 
 	func registerRender(render: PluginMediaStreamRenderer) {
-		if let exist = self.renders[render.uuid] {
+		if let exist = self.renders[render.id] {
 			_ = exist
 		} else {
-			self.renders[render.uuid] = render
+			self.renders[render.id] = render
 		}
 	}
 	
 	func unregisterRender(render: PluginMediaStreamRenderer) {
-		self.renders.removeValue(forKey: render.uuid);
+		self.renders.removeValue(forKey: render.id);
 	}
 
 	func stop() {

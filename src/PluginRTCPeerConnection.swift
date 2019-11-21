@@ -289,12 +289,13 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		if (IsUnifiedPlan()) {
 			
 			var streamAdded : Bool = false;
+			let streamId = pluginMediaStream.rtcMediaStream.streamId;
 			for (_, pluginMediaTrack) in pluginMediaStream.audioTracks {
-				streamAdded = self.addTrack(pluginMediaTrack, [pluginMediaStream.id]) && streamAdded;
+				streamAdded = self.addTrack(pluginMediaTrack, [streamId]) && streamAdded;
 			}
 			
 			for (_, pluginMediaTrack) in pluginMediaStream.videoTracks {
-				streamAdded = self.addTrack(pluginMediaTrack, [pluginMediaStream.id]) && streamAdded;
+				streamAdded = self.addTrack(pluginMediaTrack, [streamId]) && streamAdded;
 			}
 			
 			return streamAdded;
