@@ -4,6 +4,7 @@
  */
 module.exports = videoElementsHandler;
 module.exports.observeVideo = observeVideo;
+module.exports.refreshVideos = refreshVideos;
 
 
 /**
@@ -120,6 +121,17 @@ var
 		}
 	});
 
+function refreshVideos() {
+	debug('refreshVideos()');
+
+	var id;
+
+	for (id in mediaStreamRenderers) {
+		if (mediaStreamRenderers.hasOwnProperty(id)) {
+			mediaStreamRenderers[id].refresh();
+		}
+	}
+}
 
 function videoElementsHandler(_mediaStreams, _mediaStreamRenderers) {
 	var

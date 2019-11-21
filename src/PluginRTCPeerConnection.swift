@@ -23,6 +23,8 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 	var onGetStatsCallback: ((_ array: NSArray) -> Void)!
 		
 	var streamIds: [String] = []
+	var trackIdsToSenders: [String : RTCRtpSender] = [:]
+
 	var isAudioInputSelected: Bool = false
 
 	init(
@@ -283,8 +285,25 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		if self.rtcPeerConnection.signalingState == RTCSignalingState.closed {
 			return false
 		}
-		
-		self.rtcPeerConnection.add(pluginMediaStream.rtcMediaStream)
+	
+		if (IsUnifiedPlan()) {
+			
+			var streamAdded : Bool = false;
+			let streamId = pluginMediaStream.rtcMediaStream.streamId;
+			for (_, pluginMediaTrack) in pluginMediaStream.audioTracks {
+				streamAdded = self.addTrack(pluginMediaTrack, [streamId]) && streamAdded;
+			}
+			
+			for (_, pluginMediaTrack) in pluginMediaStream.videoTracks {
+				streamAdded = self.addTrack(pluginMediaTrack, [streamId]) && streamAdded;
+			}
+			
+			return streamAdded;
+			
+		} else {
+			self.rtcPeerConnection.add(pluginMediaStream.rtcMediaStream)
+		}
+	
 		return true
 	}
 
@@ -294,25 +313,57 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		if self.rtcPeerConnection.signalingState == RTCSignalingState.closed {
 			return
 		}
-
-		self.rtcPeerConnection.remove(pluginMediaStream.rtcMediaStream)
+		
+		if (IsUnifiedPlan()) {
+			
+			for (_, pluginMediaStream) in pluginMediaStream.audioTracks {
+				self.removeTrack(pluginMediaStream)
+			}
+			
+			for (_, pluginMediaStream) in pluginMediaStream.videoTracks {
+				self.removeTrack(pluginMediaStream)
+			}
+			
+		} else {
+			self.rtcPeerConnection.remove(pluginMediaStream.rtcMediaStream)
+		}
+	}
+	
+	func IsUnifiedPlan() -> Bool {
+		return rtcPeerConnection.configuration.sdpSemantics == RTCSdpSemantics.unifiedPlan;
 	}
 
-	func addTrack(_ track: PluginMediaStreamTrack) -> Bool {
+	func addTrack(_ pluginMediaTrack: PluginMediaStreamTrack, _ streamIds: [String]) -> Bool {
 		NSLog("PluginRTCPeerConnection#addTrack()")
 		
 		if self.rtcPeerConnection.signalingState == RTCSignalingState.closed {
 			return false
 		}
+
+		let rtcMediaStreamTrack = pluginMediaTrack.rtcMediaStreamTrack;
+		var rtcSender = trackIdsToSenders[rtcMediaStreamTrack.trackId];
+		if (rtcSender == nil) {
+			rtcSender = self.rtcPeerConnection.add(rtcMediaStreamTrack, streamIds: streamIds)
+			trackIdsToSenders[rtcMediaStreamTrack.trackId] = rtcSender;
+			return true;
+		}
 		
-		return true;
+		return false;
 	}
 	
-	func removeTrack(_ track: PluginMediaStreamTrack) {
+	func removeTrack(_ pluginMediaTrack: PluginMediaStreamTrack) {
 		NSLog("PluginRTCPeerConnection#removeTrack()")
 		
 		if self.rtcPeerConnection.signalingState == RTCSignalingState.closed {
 			return
+		}
+		
+		let rtcMediaStreamTrack = pluginMediaTrack.rtcMediaStreamTrack;
+		let rtcSender = trackIdsToSenders[rtcMediaStreamTrack.trackId];
+		
+		if (rtcSender != nil) {
+			self.rtcPeerConnection.removeTrack(rtcSender!)
+			trackIdsToSenders[rtcMediaStreamTrack.trackId] = nil
 		}
 	}
 
@@ -549,6 +600,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 			"streamId": stream.streamId
 		])
 	}
+	
 	/** Called when the SignalingState changed. */
 	
 	// TODO: remove on M75
@@ -575,8 +627,8 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 	func peerConnectionShouldNegotiate(_ peerConnection: RTCPeerConnection) {
 		NSLog("PluginRTCPeerConnection | onnegotiationeeded")
 		
-		if (isNegotiating) {
-		  NSLog("PluginRTCPeerConnection#addStream() | signalingState is stable skip nested negotiations")
+		if (!IsUnifiedPlan() && isNegotiating) {
+		  NSLog("PluginRTCPeerConnection#addStream() | signalingState is stable skip nested negotiations when using plan-b")
 		  return;
 		}
 		
@@ -689,13 +741,21 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 
 	/** New track as been added. */
 	func peerConnection(_ peerConnection: RTCPeerConnection, didAdd rtpReceiver: RTCRtpReceiver, streams:[RTCMediaStream]) {
+		
 		NSLog("PluginRTCPeerConnection | onaddtrack")
 		
-		let track = PluginMediaStreamTrack(rtcMediaStreamTrack: rtpReceiver.track!)
+		// TODO why streams.count is 0 and should it trigger addtrack
+		// TODO why NSLog streamId cause crash need weak ?
+		let streamId : String = streams.count > 0 ? streams[0].streamId : "";
 		
+		let track = PluginMediaStreamTrack(
+		   rtcMediaStreamTrack: rtpReceiver.track!,
+		   streamId: streamId
+		)
+	   
 		self.eventListener([
-			"type": "addtrack",
-			"track": track.getJSON()
+		   "type": "addtrack",
+		   "track": track.getJSON()
 		])
 	}
 }
