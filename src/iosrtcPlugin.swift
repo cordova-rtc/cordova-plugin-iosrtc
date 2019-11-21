@@ -49,8 +49,8 @@ class iosrtcPlugin : CDVPlugin {
 		)
 
 		// Create a PluginRTCAudioController instance.
-		PluginRTCAudioController.initAudioDevices()
 		self.audioOutputController = PluginRTCAudioController()
+		audioOutputController.initAudioDevices()
 	}
 	
 	private func initPeerConnectionFactory() {
