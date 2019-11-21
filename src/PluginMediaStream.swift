@@ -15,19 +15,19 @@ class PluginMediaStream : NSObject {
 	 */
 	init(rtcMediaStream: RTCMediaStream) {
 		NSLog("PluginMediaStream#init()")
-
+		
 		self.rtcMediaStream = rtcMediaStream
-		self.id = rtcMediaStream.streamId
+		self.id = UUID().uuidString;
 
 		for track: RTCMediaStreamTrack in (self.rtcMediaStream.audioTracks as Array<RTCMediaStreamTrack>) {
-			let pluginMediaStreamTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: track)
+			let pluginMediaStreamTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: track, streamId: id)
 
 			pluginMediaStreamTrack.run()
 			self.audioTracks[pluginMediaStreamTrack.id] = pluginMediaStreamTrack
 		}
 
 		for track: RTCMediaStreamTrack in (self.rtcMediaStream.videoTracks as Array<RTCMediaStreamTrack>) {
-			let pluginMediaStreamTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: track)
+			let pluginMediaStreamTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: track, streamId: id)
 
 			pluginMediaStreamTrack.run()
 			self.videoTracks[pluginMediaStreamTrack.id] = pluginMediaStreamTrack
@@ -38,12 +38,12 @@ class PluginMediaStream : NSObject {
 		NSLog("PluginMediaStream#deinit()")
 		for (id, _) in audioTracks {
 			if(self.eventListenerForRemoveTrack != nil) {
-			self.eventListenerForRemoveTrack!(id)
+				self.eventListenerForRemoveTrack!(id)
 			}
 		}
 		for (id, _) in videoTracks {
 			if(self.eventListenerForRemoveTrack != nil) {
-			self.eventListenerForRemoveTrack!(id)
+				self.eventListenerForRemoveTrack!(id)
 			}
 		}
 	}

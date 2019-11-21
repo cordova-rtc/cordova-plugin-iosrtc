@@ -13,13 +13,13 @@ cordova.plugins.iosrtc.getUserMedia(
   // constraints
   { audio: true, video: true },
   // success callback
-  function (stream) {
+  ).then(function (stream) {
     console.log('got local MediaStream: ', stream);
 
     pc.addStream(stream);
-  },
+  
   // failure callback
-  function (error) {
+  }).catch(function (error) {
     console.error('getUserMedia failed: ', error);
   }
 );
@@ -37,13 +37,28 @@ The function allows both the old/deprecated callbacks based syntax and the new o
 Constraints can be applied to the local video by using the latest W3C specification. Currently just the following constraints are supported:
 
 * `video.deviceId`
+* `video.width`
+* `video.width.exact`
+* `video.width.ideal`
 * `video.width.min`
 * `video.width.max`
+* `video.height`
+* `video.height.exact`
+* `video.height.ideal`
 * `video.height.min`
 * `video.height.max`
 * `video.frameRate`
 * `video.frameRate.min`
 * `video.frameRate.max`
+* `video.facingMode`
+* `video.facingMode.ideal`
+* `video.facingMode.exact`
+* `video.aspectRatio`
+* `video.aspectRatio.exact`
+* `video.aspectRatio.ideal`
+* `video.aspectRatio.max`
+* `video.aspectRatio.min`
+* `audio.deviceId`
 
 ```javascript
 cordova.plugins.iosrtc.getUserMedia({
@@ -55,8 +70,15 @@ cordova.plugins.iosrtc.getUserMedia({
       max: 640
     },
     frameRate: {
-      min: 1.0,
+      min: 2.0,
       max: 60.0
+    },
+    facingMode: 'environment',
+    aspectRatio: 4/3
+  },
+  {
+    audio: {
+      deviceId: 'Built-In Microphone'
     }
   }
 });
@@ -115,12 +137,7 @@ Exposes the  `MediaStream` class as defined in the [spec](http://w3c.github.io/m
 
 *NOTES:*
 
-* For internal reasons the `MediaStream` class points to the [Blob](https://developer.mozilla.org/en-US/docs/Web/API/Blob) class, so the `MediaStream` class constructor is not implemented (this class is exposed to make some WebRTC polyfill libraries happy).
 * `stop()` method implemented for backwards compatibility (it calls `stop()` on all its `MediaStreamTracks`).
-
-*TODO:*
-
-* `clone()` method.
 
 
 ### `iosrtc.MediaStreamTrack`
@@ -201,6 +218,44 @@ The [debug](https://github.com/visionmedia/debug) module. Useful to enable verbo
 cordova.plugins.iosrtc.debug.enable('iosrtc*');
 ```
 
+### `iosrtc.selectAudioOutput`
+
+Tell the plugin that it must use `speaker` or `earpiece` as default audio output.
+
+```javascript
+// Use speaker audio output
+cordova.plugins.iosrtc.selectAudioOutput('speaker');
+
+// Use earpiece audio output
+cordova.plugins.iosrtc.selectAudioOutput('earpiece');
+```
+
+
+### `iosrtc.turnOnSpeaker`
+
+Tell the plugin that it should use `speaker` if no headphones (bluetooth or wire) is plugged or available.
+
+```javascript
+// Use speaker if no headphones available
+cordova.plugins.iosrtc.turnOnSpeaker(true);
+
+// Use default audio output
+cordova.plugins.iosrtc.turnOnSpeaker(false);
+```
+
+
+### `iosrtc.requestPermission`
+
+Request audio and/or camera permission if not requested yet.
+
+```javascript
+var needMic = true;
+var needCamera = true;
+cordova.plugins.iosrtc.requestPermission(needMic, needCamera, function (permissionApproved) {
+  // permissionApproved will be true if user accepted permission otherwise will be false.
+   console.error('requestPermission status: ', permissionApproved ? 'Approved' : 'Rejected');
+})
+```
 
 ## Others
 

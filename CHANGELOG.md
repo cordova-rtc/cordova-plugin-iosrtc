@@ -1,3 +1,19 @@
+#### Version 6.0.4
+* Improve video constraints (width|height|aspectRatio|frameRate).(ideal|exact) and add (aspectRatio|frameRate|facingMode).(ideal|exact) support enhancement #451
+* generate unique PluginMediaStream and PluginMediaStreamTrack, keep original streamId/trackId for internal calls #447
+* Add English facingLabel suffix if localizedName does not match for facing detection using label, fix PluginEnumerateDevices ordered array #446
+* Implement PluginRTCAudioController setCategory and use audioMode AVAudioSession.Mode.voiceChat and make initAudioDevices non-static #448
+
+#### Version 6.0.3
+* make second argument MediaStream of RTCPeerConnection.prototype.addTrack optional #437
+* remove redundant PluginRTCAudioController.initAudioDevices call in getAllAudioDevices causing AVAudioSession to reset to its default settings #439
+
+#### Version 6.0.2
+* implement M69 Native RTCPeerConnection.(addTrack|removeTrack) and sdpSemantics unified-plan support #407
+* fix insertDtmf #431
+
+#### Version 6.0.1
+* fix stopCapture while RTCCameraVideoCapturer is not capturing causing crash due Assertion failure in -[FBSSerialQueue assertOnQueue] #426
 
 #### Version 6.0.0
 * Use WebRTC M69
@@ -12,7 +28,12 @@
 * Restore PluginRTCAudioController including selectAudioOutput and move EnumerateDevice. setPreferredInput| saveAudioDevice into PluginRTCAudioController
 * Fix closing and re-opening local stream several times #247
 * H264 issues #170
-*  Generic RTCPeerConnection constraint handling #119 via #394
+* implement RTCPeerConnectionFactory(encoderFactory, decoderFactory) using getSupportedVideoEncoder to enable VP8 and VP9 #416
+* Add Script to manipulate WebRTC binary architectures #421
+* Use clean WebRTC.framework build with x86 and ARM support #412
+* Decode XML entities in project name in iosrtc-swift-support.js hook #413
+* Update travis build to use Xcode 11.0 (11A420a) and iOS 13 support #376
+* Generic RTCPeerConnection constraint handling #119 via #394
 * Video renders in landscape, but not portrait orientation #360
 * Adapter JS change frameRate constraints #286
 * Regression switch camera fail (stop stream, remove stream from peer, get stream, add stream to peer, renegociate, fail on m69 but not master)
