@@ -46,7 +46,7 @@ module.exports = {
 	MediaStreamTrack:      MediaStreamTrack,
 
 	// Expose a function to refresh current videos rendering a MediaStream.
-	refreshVideos:         refreshVideos,
+	refreshVideos:         videoElementsHandler.refreshVideos,
 
 	// Expose a function to handle a video not yet inserted in the DOM.
 	observeVideo:          videoElementsHandler.observeVideo,
@@ -67,7 +67,11 @@ module.exports = {
 	debug:                 require('debug'),
 
 	// Debug function to see what happens internally.
-	dump:                  dump
+	dump:                  dump,
+
+	// Debug Stores to see what happens internally.
+	mediaStreamRenderers:  mediaStreamRenderers,
+	mediaStreams:          mediaStreams
 };
 
 
@@ -75,25 +79,12 @@ domready(function () {
 	// Let the MediaStream class and the videoElementsHandler share same MediaStreams container.
 	MediaStream.setMediaStreams(mediaStreams);
 	videoElementsHandler(mediaStreams, mediaStreamRenderers);
-});
 
-
-function refreshVideos() {
-	debug('refreshVideos()');
-
-	var id;
-
-	for (id in mediaStreamRenderers) {
-		if (mediaStreamRenderers.hasOwnProperty(id)) {
-			mediaStreamRenderers[id].refresh();
-		}
-	}
-}
-
-// refreshVideos on device orientation change to resize peers video
-// while local video will resize du orientation change
-window.addEventListener('resize', function () {
-	refreshVideos();
+	// refreshVideos on device orientation change to resize peers video
+	// while local video will resize du orientation change
+	window.addEventListener('resize', function () {
+	    videoElementsHandler.refreshVideos();
+	});
 });
 
 function selectAudioOutput(output) {

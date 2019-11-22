@@ -1,5 +1,5 @@
 /*
- * cordova-plugin-iosrtc v6.0.1
+ * cordova-plugin-iosrtc v6.0.4
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015-2017 eFace2Face, Inc. (https://eface2face.com)
  * Copyright 2015-2019 BasqueVoIPMafia (https://github.com/BasqueVoIPMafia)
@@ -65,11 +65,11 @@ Errors.detectDeprecatedCallbaksUsage = function detectDeprecatedCallbaksUsage(fu
 /**
  * Dependencies.
  */
-var 
+var
 	YaetiEventTarget = _dereq_('yaeti').EventTarget;
 
 var EventTarget = function () {
-	YaetiEventTarget.call(this);	
+	YaetiEventTarget.call(this);
 };
 
 EventTarget.prototype = Object.create(YaetiEventTarget.prototype);
@@ -157,11 +157,11 @@ var originalMediaStreamTrack = MediaStreamTrack.originalMediaStreamTrack;
 function MediaStream(arg, id) {
 	debug('new MediaStream(arg) | [arg:%o]', arg);
 
-	// Detect native MediaStream usage	
+	// Detect native MediaStream usage
 	// new MediaStream(originalMediaStream) // stream
-	// new MediaStream(originalMediaStreamTrack[]) // tracks		
+	// new MediaStream(originalMediaStreamTrack[]) // tracks
 	if (
-		(arg instanceof originalMediaStream && typeof arg.getBlobId === 'undefined') || 
+		(arg instanceof originalMediaStream && typeof arg.getBlobId === 'undefined') ||
 			(Array.isArray(arg) && arg[0] instanceof originalMediaStreamTrack)
 	) {
 		return new originalMediaStream(arg);
@@ -199,7 +199,7 @@ function MediaStream(arg, id) {
 
 	// Convert arg to array of tracks if possible
 	if (
-		(arg instanceof MediaStream) || 
+		(arg instanceof MediaStream) ||
 			(arg instanceof MediaStream.originalMediaStream)
 	) {
 		arg = arg.getTracks();
@@ -265,7 +265,7 @@ MediaStream.create = function (dataFromEvent) {
 	var trackId, track,
 		stream = new MediaStream([], dataFromEvent.id);
 
-	// We do not use addTrack to prevent false positive "ERROR: video track not added" and "ERROR: audio track not added" 
+	// We do not use addTrack to prevent false positive "ERROR: video track not added" and "ERROR: audio track not added"
 	// cause the rtcMediaStream already has them internaly.
 
 	for (trackId in dataFromEvent.audioTracks) {
@@ -622,7 +622,7 @@ function MediaStreamRenderer(element) {
 
 	this.refresh();
 
-	// TODO cause video resizing jiggling add semaphore 
+	// TODO cause video resizing jiggling add semaphore
 	//this.refreshInterval = setInterval(function () {
 	//	self.refresh(self);
 	//}, 500);
@@ -1498,7 +1498,7 @@ module.exports = RTCPeerConnection;
 /**
  * Dependencies.
  */
-var 
+var
 	debug = _dereq_('debug')('iosrtc:RTCPeerConnection'),
 	debugerror = _dereq_('debug')('iosrtc:ERROR:RTCPeerConnection'),
 	exec = _dereq_('cordova/exec'),
@@ -1520,7 +1520,7 @@ function deprecateWarning(method, newMethod) {
 	if (!newMethod) {
 		console.warn(method + ' is deprecated.');
 	} else {
-		console.warn(method + ' method is deprecated, use ' + newMethod + ' instead.');	
+		console.warn(method + ' method is deprecated, use ' + newMethod + ' instead.');
 	}
 }
 
@@ -1539,7 +1539,8 @@ function RTCPeerConnection(pcConfig, pcConstraints) {
 	// Fix webrtc-adapter bad SHIM on addTrack causing error when original does support multiple streams.
 	// NotSupportedError: The adapter.js addTrack polyfill only supports a single stream which is associated with the specified track.
 	Object.defineProperty(this, 'addTrack', RTCPeerConnection.prototype_descriptor.addTrack);
-	
+	Object.defineProperty(this, 'getLocalStreams', RTCPeerConnection.prototype_descriptor.getLocalStreams);
+
 	// Public atributes.
 	this._localDescription = null;
 	this.remoteDescription = null;
@@ -1564,17 +1565,17 @@ RTCPeerConnection.prototype = Object.create(EventTarget.prototype);
 RTCPeerConnection.prototype.constructor = RTCPeerConnection;
 
 Object.defineProperties(RTCPeerConnection.prototype, {
-	'localDescription': { 
+	'localDescription': {
 		// Fix webrtc-adapter TypeError: Attempting to change the getter of an unconfigurable property.
 		configurable: true,
-		get: function() { 
+		get: function() {
 			return this._localDescription;
 		}
 	},
-	'connectionState': { 
-		get: function() { 
+	'connectionState': {
+		get: function() {
 			return this.iceConnectionState;
-		} 
+		}
 	},
 	'onicecandidate': {
 		// Fix webrtc-adapter TypeError: Attempting to change the getter of an unconfigurable property.
@@ -1699,8 +1700,8 @@ RTCPeerConnection.prototype.setLocalDescription = function (desc) {
 		});
 	}
 
-	// "This is no longer necessary, however; RTCPeerConnection.setLocalDescription() and other 
-	// methods which take SDP as input now directly accept an object conforming to the RTCSessionDescriptionInit dictionary, 
+	// "This is no longer necessary, however; RTCPeerConnection.setLocalDescription() and other
+	// methods which take SDP as input now directly accept an object conforming to the RTCSessionDescriptionInit dictionary,
 	// so you don't have to instantiate an RTCSessionDescription yourself.""
 	// Source: https://developer.mozilla.org/en-US/docs/Web/API/RTCSessionDescription/RTCSessionDescription#Example
 	// Still we do instnanciate RTCSessionDescription, so internal object is used properly.
@@ -1750,8 +1751,8 @@ RTCPeerConnection.prototype.setRemoteDescription = function (desc) {
 
 	debug('setRemoteDescription() [desc:%o]', desc);
 
-	// "This is no longer necessary, however; RTCPeerConnection.setLocalDescription() and other 
-	// methods which take SDP as input now directly accept an object conforming to the RTCSessionDescriptionInit dictionary, 
+	// "This is no longer necessary, however; RTCPeerConnection.setLocalDescription() and other
+	// methods which take SDP as input now directly accept an object conforming to the RTCSessionDescriptionInit dictionary,
 	// so you don't have to instantiate an RTCSessionDescription yourself.""
 	// Source: https://developer.mozilla.org/en-US/docs/Web/API/RTCSessionDescription/RTCSessionDescription#Example
 	// Still we do instnanciate RTCSessionDescription so internal object is used properly.
@@ -1910,6 +1911,9 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 	}
 
 	// Add localStreams if missing
+	// Disable to match browser behavior
+	//stream = stream || Object.values(this.localStreams)[0] || new MediaStream();
+
 	// Fix webrtc-adapter bad SHIM on addStream
 	if (stream) {
 		if (!(stream instanceof MediaStream.originalMediaStream)) {
@@ -1926,13 +1930,18 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 	for (id in this.localStreams) {
 		if (this.localStreams.hasOwnProperty(id)) {
 			// Target provided stream argument or first added stream to group track
-			if (!stream || (stream && stream.id === id)) { 
+			if (!stream || (stream && stream.id === id)) {
 				stream = this.localStreams[id];
 				stream.addTrack(track);
 				exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [this.pcId, track.id, id]);
 				break;
 			}
 		}
+	}
+
+	// No Stream matched add track without stream
+	if (!stream) {
+		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [this.pcId, track.id, null]);
 	}
 };
 
@@ -2387,20 +2396,20 @@ function getUserMedia(constraints) {
 	//
 	// getUserMedia({
 	//  audio: {
-	//  	deviceId: 'azer-asdf-zxcv',
+	//      deviceId: 'azer-asdf-zxcv',
 	//  },
 	//  video: {
-	//  	deviceId: 'qwer-asdf-zxcv',
+	//      deviceId: 'qwer-asdf-zxcv',
 	//      aspectRatio: 1.777.
 	//      facingMode: 'user',
-	//  	width: {
-	//  		min: 400,
-	//  		max: 600
-	//  	},
-	//  	frameRate: {
-	//  		min: 1.0,
-	//  		max: 60.0
-	//  	}
+	//      width: {
+	//          min: 400,
+	//          max: 600
+	//      },
+	//      frameRate: {
+	//          min: 1.0,
+	//          max: 60.0
+	//      }
 	//  }
 	// });
 
@@ -2423,7 +2432,7 @@ function getUserMedia(constraints) {
 	 ConstrainDOMString deviceId;
 	 ConstrainDOMString groupId;
 	};
-	 
+
 	 // typedef ([Clamp] unsigned long or ConstrainULongRange) ConstrainULong;
 	 // We convert unsigned long to ConstrainULongRange.exact
 
@@ -2436,7 +2445,7 @@ function getUserMedia(constraints) {
 		  [Clamp] unsigned long exact;
 		  [Clamp] unsigned long ideal;
 	 };
-	 
+
 	 // See: https://www.w3.org/TR/mediacapture-streams/#dom-doublerange
 	 // typedef (double or ConstrainDoubleRange) ConstrainDouble;
 	 // We convert double to ConstrainDoubleRange.exact
@@ -2444,18 +2453,18 @@ function getUserMedia(constraints) {
 		double max;
 		double min;
 	 };
-	 
+
 	 dictionary ConstrainDoubleRange : DoubleRange {
 		double exact;
 		double ideal;
 	 };
-	 
+
 	 // typedef (boolean or ConstrainBooleanParameters) ConstrainBoolean;
 	 dictionary ConstrainBooleanParameters {
 		boolean exact;
 		boolean ideal;
 	 };
-	 
+
 	 // typedef (DOMString or sequence<DOMString> or ConstrainDOMStringParameters) ConstrainDOMString;
 	 // We convert DOMString to ConstrainDOMStringParameters.exact
 	 dictionary ConstrainDOMStringParameters {
@@ -2471,9 +2480,9 @@ function getUserMedia(constraints) {
 		newConstraints.video = {};
 
 		// Handle Stupid not up-to-date webrtc-adapter
-		// Note: Firefox [38+] does support a subset of constraints with getUserMedia(), but not the outdated syntax that Chrome and Opera are using. 
+		// Note: Firefox [38+] does support a subset of constraints with getUserMedia(), but not the outdated syntax that Chrome and Opera are using.
 		// The mandatory / optional syntax was deprecated a in 2014, and minWidth and minHeight the year before that.
-		
+
 		if (
 			typeof constraints.video === 'object' &&
 				(typeof constraints.video.optional === 'object' || typeof constraints.video.mandatory === 'object')
@@ -2496,12 +2505,12 @@ function getUserMedia(constraints) {
 					};
 				}
 			} else if (
-				constraints.video.mandatory && 
+				constraints.video.mandatory &&
 					typeof constraints.video.mandatory.sourceId === 'string'
 			) {
 				newConstraints.video.deviceId = {
 					exact: constraints.video.mandatory.sourceId
-				};	
+				};
 			}
 
 			// Only apply mandatory over optional
@@ -2548,12 +2557,12 @@ function getUserMedia(constraints) {
 		} else if (typeof constraints.video.deviceId === 'object') {
 			if (!!constraints.video.deviceId.exact) {
 				newConstraints.video.deviceId = {
-					exact: Array.isArray(constraints.video.deviceId.exact) ? 
+					exact: Array.isArray(constraints.video.deviceId.exact) ?
 						constraints.video.deviceId.exact[0] : constraints.video.deviceId.exact
 				};
 			} else if (!!constraints.video.deviceId.ideal) {
 				newConstraints.video.deviceId = {
-					ideal: Array.isArray(constraints.video.deviceId.ideal) ? 
+					ideal: Array.isArray(constraints.video.deviceId.ideal) ?
 							constraints.video.deviceId.ideal[0] : constraints.video.deviceId.ideal
 				};
 			}
@@ -2568,7 +2577,12 @@ function getUserMedia(constraints) {
 			if (isPositiveInteger(constraints.video.width.max)) {
 				newConstraints.video.width.max = constraints.video.width.max;
 			}
-			// TODO exact, ideal
+			if (isPositiveInteger(constraints.video.width.exact)) {
+				newConstraints.video.width.exact = constraints.video.width.exact;
+			}
+			if (isPositiveInteger(constraints.video.width.ideal)) {
+				newConstraints.video.width.ideal = constraints.video.width.ideal;
+			}
 
 		// Get requested width long as exact
 		} else if (isPositiveInteger(constraints.video.width)) {
@@ -2586,7 +2600,12 @@ function getUserMedia(constraints) {
 			if (isPositiveInteger(constraints.video.height.max)) {
 				newConstraints.video.height.max = constraints.video.height.max;
 			}
-			// TODO exact, ideal
+			if (isPositiveInteger(constraints.video.height.exact)) {
+				newConstraints.video.height.exact = constraints.video.height.exact;
+			}
+			if (isPositiveInteger(constraints.video.height.ideal)) {
+				newConstraints.video.height.ideal = constraints.video.height.ideal;
+			}
 
 		// Get requested height long as exact
 		} else if (isPositiveInteger(constraints.video.height)) {
@@ -2604,7 +2623,12 @@ function getUserMedia(constraints) {
 			if (isPositiveFloat(constraints.video.frameRate.max)) {
 				newConstraints.video.frameRate.max = parseFloat(constraints.video.frameRate.max, 10);
 			}
-			// TODO exact, ideal
+			if (isPositiveInteger(constraints.video.frameRate.exact)) {
+				newConstraints.video.frameRate.exact = constraints.video.frameRate.exact;
+			}
+			if (isPositiveInteger(constraints.video.frameRate.ideal)) {
+				newConstraints.video.frameRate.ideal = constraints.video.frameRate.ideal;
+			}
 
 		// Get requested frameRate double as exact
 		} else if (isPositiveFloat(constraints.video.frameRate)) {
@@ -2615,7 +2639,20 @@ function getUserMedia(constraints) {
 
 		// get aspectRatio (e.g 1.7777777777777777)
 		// TODO ConstrainDouble min, max
-		if (isPositiveFloat(constraints.video.aspectRatio)) {
+		if (typeof constraints.video.aspectRatio === 'object') {
+			if (isPositiveFloat(constraints.video.aspectRatio.min)) {
+				newConstraints.video.aspectRatio.min = parseFloat(constraints.video.aspectRatio.min, 10);
+			}
+			if (isPositiveFloat(constraints.video.aspectRatio.max)) {
+				newConstraints.video.aspectRatio.max = parseFloat(constraints.video.aspectRatio.max, 10);
+			}
+			if (isPositiveInteger(constraints.video.aspectRatio.exact)) {
+				newConstraints.video.aspectRatio.exact = constraints.video.aspectRatio.exact;
+			}
+			if (isPositiveInteger(constraints.video.aspectRatio.ideal)) {
+				newConstraints.video.aspectRatio.ideal = constraints.video.aspectRatio.ideal;
+			}
+		} else if (isPositiveFloat(constraints.video.aspectRatio)) {
 			newConstraints.video.aspectRatio = {
 				exact: parseFloat(constraints.video.aspectRatio, 10)
 			};
@@ -2627,6 +2664,16 @@ function getUserMedia(constraints) {
 			newConstraints.video.facingMode = {
 				exact: constraints.video.facingMode
 			};
+		} else if (typeof constraints.video.facingMode === 'object') {
+			if (typeof constraints.video.facingMode.exact === 'string') {
+				newConstraints.video.facingMode = {
+					exact: constraints.video.facingMode.exact
+				};
+			} else if (constraints.video.facingMode.ideal === 'string') {
+				newConstraints.video.facingMode = {
+					ideal: constraints.video.facingMode.ideal
+				};
+			}
 		}
 	}
 
@@ -2637,7 +2684,7 @@ function getUserMedia(constraints) {
 		newConstraints.audio = {};
 
 		// Handle Stupid not up-to-date webrtc-adapter
-		// Note: Firefox [38+] does support a subset of constraints with getUserMedia(), but not the outdated syntax that Chrome and Opera are using. 
+		// Note: Firefox [38+] does support a subset of constraints with getUserMedia(), but not the outdated syntax that Chrome and Opera are using.
 		// The mandatory / optional syntax was deprecated a in 2014, and minWidth and minHeight the year before that.
 		if (
 			typeof constraints.audio === 'object' &&
@@ -2660,13 +2707,13 @@ function getUserMedia(constraints) {
 					};
 				}
 			} else if (
-				constraints.audio.mandatory && 
+				constraints.audio.mandatory &&
 					typeof constraints.audio.mandatory.sourceId === 'string'
 			) {
 				newConstraints.audio.deviceId = {
 					exact: constraints.audio.mandatory.sourceId
-				};	
-			} 
+				};
+			}
 		}
 
 		// Get requested audio deviceId.
@@ -2685,16 +2732,16 @@ function getUserMedia(constraints) {
 		} else if (typeof constraints.audio.deviceId === 'object') {
 			if (!!constraints.audio.deviceId.exact) {
 				newConstraints.audio.deviceId = {
-					exact: Array.isArray(constraints.audio.deviceId.exact) ? 
+					exact: Array.isArray(constraints.audio.deviceId.exact) ?
 						constraints.audio.deviceId.exact[0] : constraints.audio.deviceId.exact
 				};
 			} else if (!!constraints.audio.deviceId.ideal) {
 				newConstraints.audio.deviceId = {
-					ideal: Array.isArray(constraints.audio.deviceId.ideal) ? 
+					ideal: Array.isArray(constraints.audio.deviceId.ideal) ?
 							constraints.audio.deviceId.ideal[0] : constraints.audio.deviceId.ideal
 				};
 			}
-		}	
+		}
 	}
 
 	debug('[computed constraints:%o]', newConstraints);
@@ -2766,7 +2813,7 @@ module.exports = {
 	MediaStreamTrack:      MediaStreamTrack,
 
 	// Expose a function to refresh current videos rendering a MediaStream.
-	refreshVideos:         refreshVideos,
+	refreshVideos:         videoElementsHandler.refreshVideos,
 
 	// Expose a function to handle a video not yet inserted in the DOM.
 	observeVideo:          videoElementsHandler.observeVideo,
@@ -2787,7 +2834,11 @@ module.exports = {
 	debug:                 _dereq_('debug'),
 
 	// Debug function to see what happens internally.
-	dump:                  dump
+	dump:                  dump,
+
+	// Debug Stores to see what happens internally.
+	mediaStreamRenderers:  mediaStreamRenderers,
+	mediaStreams:          mediaStreams
 };
 
 
@@ -2795,25 +2846,12 @@ domready(function () {
 	// Let the MediaStream class and the videoElementsHandler share same MediaStreams container.
 	MediaStream.setMediaStreams(mediaStreams);
 	videoElementsHandler(mediaStreams, mediaStreamRenderers);
-});
 
-
-function refreshVideos() {
-	debug('refreshVideos()');
-
-	var id;
-
-	for (id in mediaStreamRenderers) {
-		if (mediaStreamRenderers.hasOwnProperty(id)) {
-			mediaStreamRenderers[id].refresh();
-		}
-	}
-}
-
-// refreshVideos on device orientation change to resize peers video
-// while local video will resize du orientation change
-window.addEventListener('resize', function () {
-	refreshVideos();
+	// refreshVideos on device orientation change to resize peers video
+	// while local video will resize du orientation change
+	window.addEventListener('resize', function () {
+	    videoElementsHandler.refreshVideos();
+	});
 });
 
 function selectAudioOutput(output) {
@@ -2941,6 +2979,7 @@ function dump() {
  */
 module.exports = videoElementsHandler;
 module.exports.observeVideo = observeVideo;
+module.exports.refreshVideos = refreshVideos;
 
 
 /**
@@ -3057,6 +3096,17 @@ var
 		}
 	});
 
+function refreshVideos() {
+	debug('refreshVideos()');
+
+	var id;
+
+	for (id in mediaStreamRenderers) {
+		if (mediaStreamRenderers.hasOwnProperty(id)) {
+			mediaStreamRenderers[id].refresh();
+		}
+	}
+}
 
 function videoElementsHandler(_mediaStreams, _mediaStreamRenderers) {
 	var
