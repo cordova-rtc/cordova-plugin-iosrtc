@@ -65,11 +65,11 @@ Errors.detectDeprecatedCallbaksUsage = function detectDeprecatedCallbaksUsage(fu
 /**
  * Dependencies.
  */
-var 
+var
 	YaetiEventTarget = _dereq_('yaeti').EventTarget;
 
 var EventTarget = function () {
-	YaetiEventTarget.call(this);	
+	YaetiEventTarget.call(this);
 };
 
 EventTarget.prototype = Object.create(YaetiEventTarget.prototype);
@@ -157,11 +157,11 @@ var originalMediaStreamTrack = MediaStreamTrack.originalMediaStreamTrack;
 function MediaStream(arg, id) {
 	debug('new MediaStream(arg) | [arg:%o]', arg);
 
-	// Detect native MediaStream usage	
+	// Detect native MediaStream usage
 	// new MediaStream(originalMediaStream) // stream
-	// new MediaStream(originalMediaStreamTrack[]) // tracks		
+	// new MediaStream(originalMediaStreamTrack[]) // tracks
 	if (
-		(arg instanceof originalMediaStream && typeof arg.getBlobId === 'undefined') || 
+		(arg instanceof originalMediaStream && typeof arg.getBlobId === 'undefined') ||
 			(Array.isArray(arg) && arg[0] instanceof originalMediaStreamTrack)
 	) {
 		return new originalMediaStream(arg);
@@ -199,7 +199,7 @@ function MediaStream(arg, id) {
 
 	// Convert arg to array of tracks if possible
 	if (
-		(arg instanceof MediaStream) || 
+		(arg instanceof MediaStream) ||
 			(arg instanceof MediaStream.originalMediaStream)
 	) {
 		arg = arg.getTracks();
@@ -265,7 +265,7 @@ MediaStream.create = function (dataFromEvent) {
 	var trackId, track,
 		stream = new MediaStream([], dataFromEvent.id);
 
-	// We do not use addTrack to prevent false positive "ERROR: video track not added" and "ERROR: audio track not added" 
+	// We do not use addTrack to prevent false positive "ERROR: video track not added" and "ERROR: audio track not added"
 	// cause the rtcMediaStream already has them internaly.
 
 	for (trackId in dataFromEvent.audioTracks) {
@@ -622,7 +622,7 @@ function MediaStreamRenderer(element) {
 
 	this.refresh();
 
-	// TODO cause video resizing jiggling add semaphore 
+	// TODO cause video resizing jiggling add semaphore
 	//this.refreshInterval = setInterval(function () {
 	//	self.refresh(self);
 	//}, 500);
@@ -2432,7 +2432,7 @@ function getUserMedia(constraints) {
 	 ConstrainDOMString deviceId;
 	 ConstrainDOMString groupId;
 	};
-	 
+
 	 // typedef ([Clamp] unsigned long or ConstrainULongRange) ConstrainULong;
 	 // We convert unsigned long to ConstrainULongRange.exact
 
@@ -2445,7 +2445,7 @@ function getUserMedia(constraints) {
 		  [Clamp] unsigned long exact;
 		  [Clamp] unsigned long ideal;
 	 };
-	 
+
 	 // See: https://www.w3.org/TR/mediacapture-streams/#dom-doublerange
 	 // typedef (double or ConstrainDoubleRange) ConstrainDouble;
 	 // We convert double to ConstrainDoubleRange.exact
@@ -2453,18 +2453,18 @@ function getUserMedia(constraints) {
 		double max;
 		double min;
 	 };
-	 
+
 	 dictionary ConstrainDoubleRange : DoubleRange {
 		double exact;
 		double ideal;
 	 };
-	 
+
 	 // typedef (boolean or ConstrainBooleanParameters) ConstrainBoolean;
 	 dictionary ConstrainBooleanParameters {
 		boolean exact;
 		boolean ideal;
 	 };
-	 
+
 	 // typedef (DOMString or sequence<DOMString> or ConstrainDOMStringParameters) ConstrainDOMString;
 	 // We convert DOMString to ConstrainDOMStringParameters.exact
 	 dictionary ConstrainDOMStringParameters {
@@ -2480,9 +2480,9 @@ function getUserMedia(constraints) {
 		newConstraints.video = {};
 
 		// Handle Stupid not up-to-date webrtc-adapter
-		// Note: Firefox [38+] does support a subset of constraints with getUserMedia(), but not the outdated syntax that Chrome and Opera are using. 
+		// Note: Firefox [38+] does support a subset of constraints with getUserMedia(), but not the outdated syntax that Chrome and Opera are using.
 		// The mandatory / optional syntax was deprecated a in 2014, and minWidth and minHeight the year before that.
-		
+
 		if (
 			typeof constraints.video === 'object' &&
 				(typeof constraints.video.optional === 'object' || typeof constraints.video.mandatory === 'object')
@@ -2505,12 +2505,12 @@ function getUserMedia(constraints) {
 					};
 				}
 			} else if (
-				constraints.video.mandatory && 
+				constraints.video.mandatory &&
 					typeof constraints.video.mandatory.sourceId === 'string'
 			) {
 				newConstraints.video.deviceId = {
 					exact: constraints.video.mandatory.sourceId
-				};  
+				};
 			}
 
 			// Only apply mandatory over optional
@@ -2557,12 +2557,12 @@ function getUserMedia(constraints) {
 		} else if (typeof constraints.video.deviceId === 'object') {
 			if (!!constraints.video.deviceId.exact) {
 				newConstraints.video.deviceId = {
-					exact: Array.isArray(constraints.video.deviceId.exact) ? 
+					exact: Array.isArray(constraints.video.deviceId.exact) ?
 						constraints.video.deviceId.exact[0] : constraints.video.deviceId.exact
 				};
 			} else if (!!constraints.video.deviceId.ideal) {
 				newConstraints.video.deviceId = {
-					ideal: Array.isArray(constraints.video.deviceId.ideal) ? 
+					ideal: Array.isArray(constraints.video.deviceId.ideal) ?
 							constraints.video.deviceId.ideal[0] : constraints.video.deviceId.ideal
 				};
 			}
@@ -2684,7 +2684,7 @@ function getUserMedia(constraints) {
 		newConstraints.audio = {};
 
 		// Handle Stupid not up-to-date webrtc-adapter
-		// Note: Firefox [38+] does support a subset of constraints with getUserMedia(), but not the outdated syntax that Chrome and Opera are using. 
+		// Note: Firefox [38+] does support a subset of constraints with getUserMedia(), but not the outdated syntax that Chrome and Opera are using.
 		// The mandatory / optional syntax was deprecated a in 2014, and minWidth and minHeight the year before that.
 		if (
 			typeof constraints.audio === 'object' &&
@@ -2707,13 +2707,13 @@ function getUserMedia(constraints) {
 					};
 				}
 			} else if (
-				constraints.audio.mandatory && 
+				constraints.audio.mandatory &&
 					typeof constraints.audio.mandatory.sourceId === 'string'
 			) {
 				newConstraints.audio.deviceId = {
 					exact: constraints.audio.mandatory.sourceId
-				};  
-			} 
+				};
+			}
 		}
 
 		// Get requested audio deviceId.
@@ -2732,16 +2732,16 @@ function getUserMedia(constraints) {
 		} else if (typeof constraints.audio.deviceId === 'object') {
 			if (!!constraints.audio.deviceId.exact) {
 				newConstraints.audio.deviceId = {
-					exact: Array.isArray(constraints.audio.deviceId.exact) ? 
+					exact: Array.isArray(constraints.audio.deviceId.exact) ?
 						constraints.audio.deviceId.exact[0] : constraints.audio.deviceId.exact
 				};
 			} else if (!!constraints.audio.deviceId.ideal) {
 				newConstraints.audio.deviceId = {
-					ideal: Array.isArray(constraints.audio.deviceId.ideal) ? 
+					ideal: Array.isArray(constraints.audio.deviceId.ideal) ?
 							constraints.audio.deviceId.ideal[0] : constraints.audio.deviceId.ideal
 				};
 			}
-		}   
+		}
 	}
 
 	debug('[computed constraints:%o]', newConstraints);
@@ -2847,10 +2847,10 @@ domready(function () {
 	MediaStream.setMediaStreams(mediaStreams);
 	videoElementsHandler(mediaStreams, mediaStreamRenderers);
 
-	// refreshVideos on device orientation change to resize peers video 
+	// refreshVideos on device orientation change to resize peers video
 	// while local video will resize du orientation change
 	window.addEventListener('resize', function () {
-	    videoElementsHandler.refreshVideos();
+		videoElementsHandler.refreshVideos();
 	});
 });
 
@@ -2889,21 +2889,21 @@ function requestPermission(needMic, needCamera, callback) {
 }
 
 function callbackifyMethod(originalMethod) {
-  	return function () {
+	return function () {
 		var success, failure,
 		  originalArgs = Array.prototype.slice.call(arguments);
 
 		var callbackArgs = [];
 		originalArgs.forEach(function (arg) {
-		  if (typeof arg === 'function') {
-			if (!success) {
-			  success = arg;
+			if (typeof arg === 'function') {
+				if (!success) {
+					success = arg;
+				} else {
+					failure = arg;
+				}
 			} else {
-			  failure = arg;
+				callbackArgs.push(arg);
 			}
-		  } else {
-			callbackArgs.push(arg);
-		  }
 		});
 
 		var promiseResult = originalMethod.apply(this, callbackArgs);
@@ -2949,15 +2949,15 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 		navigator.mediaDevices = {};
 	}
 
-	navigator.getUserMedia                  = getUserMedia;
-	navigator.webkitGetUserMedia            = getUserMedia;
-	navigator.mediaDevices.getUserMedia     = getUserMedia;
-	navigator.mediaDevices.enumerateDevices = enumerateDevices;
-
 	// Restore Callback support
 	if (!doNotRestoreCallbacksSupport) {
 		restoreCallbacksSupport();
 	}
+
+	navigator.getUserMedia                  = getUserMedia;
+	navigator.webkitGetUserMedia            = getUserMedia;
+	navigator.mediaDevices.getUserMedia     = getUserMedia;
+	navigator.mediaDevices.enumerateDevices = enumerateDevices;
 
 	window.RTCPeerConnection                = RTCPeerConnection;
 	window.webkitRTCPeerConnection          = RTCPeerConnection;
