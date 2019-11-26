@@ -2669,7 +2669,7 @@ function getUserMedia(constraints) {
 				newConstraints.video.facingMode = {
 					exact: constraints.video.facingMode.exact
 				};
-			} else if (constraints.video.facingMode.ideal === 'string') {
+			} else if (typeof constraints.video.facingMode.ideal === 'string') {
 				newConstraints.video.facingMode = {
 					ideal: constraints.video.facingMode.ideal
 				};
