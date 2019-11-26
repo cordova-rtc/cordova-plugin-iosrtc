@@ -144,40 +144,55 @@ function getUserMedia(constraints) {
 		// Handle Stupid not up-to-date webrtc-adapter
 		// Note: Firefox [38+] does support a subset of constraints with getUserMedia(), but not the outdated syntax that Chrome and Opera are using.
 		// The mandatory / optional syntax was deprecated a in 2014, and minWidth and minHeight the year before that.
-
 		if (
 			typeof constraints.video === 'object' &&
 				(typeof constraints.video.optional === 'object' || typeof constraints.video.mandatory === 'object')
 		) {
 
-			if (
-				typeof constraints.video.optional === 'object'
-			) {
-				if (typeof constraints.video.optional.sourceId === 'string') {
-					newConstraints.video.deviceId = {
-						ideal: constraints.video.optional.sourceId
-					};
-				} else if (
-					Array.isArray(constraints.video.optional) &&
-						typeof constraints.video.optional[0] === 'object' &&
-							typeof constraints.video.optional[0].sourceId === 'string'
-				) {
-					newConstraints.video.deviceId = {
-						ideal: constraints.video.optional[0].sourceId
-					};
-				}
-			} else if (
-				constraints.video.mandatory &&
-					typeof constraints.video.mandatory.sourceId === 'string'
-			) {
-				newConstraints.video.deviceId = {
-					exact: constraints.video.mandatory.sourceId
-				};
+			var videoConstraints = {};
+
+			if (Array.isArray(constraints.video.optional)) {
+
+				/*
+				Example of constraints.video.optional:
+					{
+						"optional": [
+							{
+								"minWidth": 640
+							},
+							{
+								"maxWidth": 640
+							},
+							{
+								"minHeight": 480
+							},
+							{
+								"maxHeight": 480
+							},
+							{
+								"sourceId": "com.apple.avfoundation.avcapturedevice.built-in_video:0"
+							}
+						]
+					}
+				*/
+
+				// Convert optional array to object
+				Object.values(constraints.video.optional).forEach(function (optional) {
+					var optionalConstraintName = Object.keys(optional)[0],
+						optionalConstraintValue = optional[optionalConstraintName];
+					videoConstraints[optionalConstraintName] = Array.isArray(optionalConstraintValue) ?
+																optionalConstraintValue[0] : optionalConstraintValue;
+				});
+
+			} else if (typeof constraints.video.mandatory === 'object') {
+				videoConstraints = constraints.video.mandatory;
 			}
 
-			// Only apply mandatory over optional
-			var videoConstraints = constraints.video.mandatory || constraints.video.optional;
-			videoConstraints = Array.isArray(videoConstraints) ? videoConstraints[0] : videoConstraints;
+			if (typeof videoConstraints.sourceId === 'string') {
+				newConstraints.video.deviceId = {
+					ideal: videoConstraints.sourceId
+				};
+			}
 
 			if (isPositiveInteger(videoConstraints.minWidth)) {
 				newConstraints.video.width = {
@@ -185,10 +200,20 @@ function getUserMedia(constraints) {
 				};
 			}
 
+			if (isPositiveInteger(videoConstraints.maxWidth)) {
+				newConstraints.video.width = newConstraints.video.width || {};
+				newConstraints.video.width.max = videoConstraints.maxWidth;
+			}
+
 			if (isPositiveInteger(videoConstraints.minHeight)) {
 				newConstraints.video.height = {
 					min: videoConstraints.minHeight
 				};
+			}
+
+			if (isPositiveInteger(videoConstraints.maxHeight)) {
+				newConstraints.video.height = newConstraints.video.height || {};
+				newConstraints.video.height.max = videoConstraints.maxHeight;
 			}
 
 			if (isPositiveFloat(videoConstraints.minFrameRate)) {
