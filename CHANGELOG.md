@@ -1,3 +1,6 @@
+#### Version 6.0.5
+* Fix missing typeof on constraints.video.facingMode.ideal
+
 #### Version 6.0.4
 * Improve video constraints (width|height|aspectRatio|frameRate).(ideal|exact) and add (aspectRatio|frameRate|facingMode).(ideal|exact) support enhancement #451
 * Generate unique PluginMediaStream and PluginMediaStreamTrack, keep original streamId/trackId for internal calls #447
