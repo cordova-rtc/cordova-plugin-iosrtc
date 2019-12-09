@@ -54,13 +54,6 @@ $ cordova plugin add cordova-plugin-iosrtc
 
 (or add it into a `<plugin>` entry in the `config.xml` of your app).
 
-
-* Remove the iOS platform and add it again (this apply "hook" file):
-```bash
-$ cordova platform remove ios
-$ cordova platform add ios
-```
-
 ## Building
 
 * Last [Tested WebRTC.framework](./lib/WebRTC.framework/) version: M69 on cordova-plugin-iosrtc version 6.0.0
