@@ -80,7 +80,7 @@ credit: The script is originally provided via `react-native-webrtc` by [@besarth
 
 ##### Strip Simulator Archs Usage
 
-The script and example are here: https://github.com/rcordova-rtc/cordova-plugins-iosrtc/blob/master/extra/ios_arch.js
+The script and example are here: https://github.com/cordova-rtc/cordova-plugin-iosrtc/blob/master/extra/ios_arch.js
 
 1. go to `plugins/cordova-plugins-iosrtc/extra` folder
 2. extract all archs first: `node ios_arch.js --extract`
