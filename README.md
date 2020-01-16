@@ -133,11 +133,26 @@ function TestGetUserMedia() {
 
 var pc1, pc2;
 
+var peerConnectionConfig = {
+    offerToReceiveVideo: true,
+    offerToReceiveAudio: true,
+    //iceTransportPolicy: 'relay',
+    sdpSemantics: 'unified-plan',
+    //sdpSemantics: 'plan-b',
+    bundlePolicy: 'max-compat',
+    rtcpMuxPolicy: 'negotiate',
+    iceServers: [
+        {
+            url: "stun:stun.stunprotocol.org"
+        }
+    ]
+};
+
 var peerVideoEl, peerStream;
 function TestRTCPeerConnection(localStream) {
 
-  pc1 = new RTCPeerConnection();
-  pc2 = new RTCPeerConnection();
+  pc1 = new RTCPeerConnection(peerConnectionConfig);
+  pc2 = new RTCPeerConnection(peerConnectionConfig);
   
   // Note: Deprecated but supported
   //pc1.addStream(localStream);
