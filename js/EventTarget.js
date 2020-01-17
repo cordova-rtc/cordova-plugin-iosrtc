@@ -1,11 +1,11 @@
 /**
  * Dependencies.
  */
-var 
+var
 	YaetiEventTarget = require('yaeti').EventTarget;
 
 var EventTarget = function () {
-	YaetiEventTarget.call(this);	
+	YaetiEventTarget.call(this);
 };
 
 EventTarget.prototype = Object.create(YaetiEventTarget.prototype);

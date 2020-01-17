@@ -171,10 +171,17 @@ function TestPluginMediaStreamRenderer(localVideoEl) {
 // 
 
 var peerConnectionConfig = {
-    iceServers: [     
-      {
-        urls: "stun:stun.stunprotocol.org"
-      }
+    offerToReceiveVideo: true,
+    //iceTransportPolicy: 'relay',
+    sdpSemantics: 'unified-plan',
+    offerToReceiveAudio: true,
+    //sdpSemantics: 'plan-b',
+    //bundlePolicy: 'max-compat',
+    //rtcpMuxPolicy: 'negotiate',
+    iceServers: [
+        {
+            url: "stun:stun.stunprotocol.org"
+        }
     ]
 };
 var pc1 = new RTCPeerConnection(peerConnectionConfig),

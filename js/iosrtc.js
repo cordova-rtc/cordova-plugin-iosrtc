@@ -82,10 +82,10 @@ domready(function () {
 	MediaStream.setMediaStreams(mediaStreams);
 	videoElementsHandler(mediaStreams, mediaStreamRenderers);
 
-	// refreshVideos on device orientation change to resize peers video 
+	// refreshVideos on device orientation change to resize peers video
 	// while local video will resize du orientation change
 	window.addEventListener('resize', function () {
-	    videoElementsHandler.refreshVideos();
+		videoElementsHandler.refreshVideos();
 	});
 });
 
@@ -130,15 +130,15 @@ function callbackifyMethod(originalMethod) {
 
 		var callbackArgs = [];
 		originalArgs.forEach(function (arg) {
-		  if (typeof arg === 'function') {
-			if (!success) {
-			  success = arg;
+			if (typeof arg === 'function') {
+				if (!success) {
+					success = arg;
+				} else {
+					failure = arg;
+				}
 			} else {
-			  failure = arg;
+				callbackArgs.push(arg);
 			}
-		  } else {
-			callbackArgs.push(arg);
-		  }
 		});
 
 		var promiseResult = originalMethod.apply(this, callbackArgs);
@@ -184,18 +184,17 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 		navigator.mediaDevices = {};
 	}
 
-	navigator.getDisplayMedia				= getDisplayMedia;
-	navigator.mediaDevices.getDisplayMedia	= getDisplayMedia;
-
-	navigator.getUserMedia                  = getUserMedia;
-	navigator.webkitGetUserMedia            = getUserMedia;
-	navigator.mediaDevices.getUserMedia     = getUserMedia;
-	navigator.mediaDevices.enumerateDevices = enumerateDevices;
-
 	// Restore Callback support
 	if (!doNotRestoreCallbacksSupport) {
 		restoreCallbacksSupport();
 	}
+
+	navigator.getDisplayMedia				        = getDisplayMedia;
+	navigator.mediaDevices.getDisplayMedia	= getDisplayMedia;
+	navigator.getUserMedia                  = getUserMedia;
+	navigator.webkitGetUserMedia            = getUserMedia;
+	navigator.mediaDevices.getUserMedia     = getUserMedia;
+	navigator.mediaDevices.enumerateDevices = enumerateDevices;
 
 	window.RTCPeerConnection                = RTCPeerConnection;
 	window.webkitRTCPeerConnection          = RTCPeerConnection;
