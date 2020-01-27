@@ -21,8 +21,9 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 	var onSetDescriptionSuccessCallback: (() -> Void)!
 	var onSetDescriptionFailureCallback: ((_ error: Error) -> Void)!
 	var onGetStatsCallback: ((_ array: NSArray) -> Void)!
-		
+
 	var streamIds: [String] = []
+	var pluginMediaStreams: [String : PluginMediaStream]! = [:]
 	var trackIdsToSenders: [String : RTCRtpSender] = [:]
 
 	var isAudioInputSelected: Bool = false
@@ -73,7 +74,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 
 		let pluginRTCPeerConnectionConstraints = PluginRTCPeerConnectionConstraints(pcConstraints: options)
 
-		
+
 		self.onCreateLocalDescriptionSuccessCallback = { (rtcSessionDescription: RTCSessionDescription) -> Void in
 			NSLog("PluginRTCPeerConnection#createOffer() | success callback")
 
@@ -84,10 +85,10 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 
 			callback(data as NSDictionary)
 		}
-		
+
 		self.onCreateLocalDescriptionFailureCallback = { (error: Error) -> Void in
 			NSLog("PluginRTCPeerConnection#createOffer() | failure callback: %@", String(describing: error))
-			
+
 			errback(error)
 		}
 
@@ -114,7 +115,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		}
 
 		let pluginRTCPeerConnectionConstraints = PluginRTCPeerConnectionConstraints(pcConstraints: options)
-		
+
 		self.onCreateRemoteDescriptionSuccessCallback = { (rtcSessionDescription: RTCSessionDescription) -> Void in
 			NSLog("PluginRTCPeerConnection#createAnswer() | success callback")
 
@@ -248,7 +249,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 			sdpMLineIndex: sdpMLineIndex,
 			sdpMid: sdpMid
 		))
-		
+
 		// TODO detect RTCIceCandidate failure
 		let result = true
 
@@ -257,7 +258,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 			PluginRTCAudioController.restoreInputOutputAudioDevice()
 			self.isAudioInputSelected = true
 		}
-		
+
 		if result == true {
 			var data: NSDictionary
 			if self.rtcPeerConnection.remoteDescription != nil {
@@ -285,25 +286,25 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		if self.rtcPeerConnection.signalingState == RTCSignalingState.closed {
 			return false
 		}
-	
+
 		if (IsUnifiedPlan()) {
-			
+
 			var streamAdded : Bool = false;
 			let streamId = pluginMediaStream.rtcMediaStream.streamId;
 			for (_, pluginMediaTrack) in pluginMediaStream.audioTracks {
 				streamAdded = self.addTrack(pluginMediaTrack, [streamId]) && streamAdded;
 			}
-			
+
 			for (_, pluginMediaTrack) in pluginMediaStream.videoTracks {
 				streamAdded = self.addTrack(pluginMediaTrack, [streamId]) && streamAdded;
 			}
-			
+
 			return streamAdded;
-			
+
 		} else {
 			self.rtcPeerConnection.add(pluginMediaStream.rtcMediaStream)
 		}
-	
+
 		return true
 	}
 
@@ -313,29 +314,29 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		if self.rtcPeerConnection.signalingState == RTCSignalingState.closed {
 			return
 		}
-		
+
 		if (IsUnifiedPlan()) {
-			
+
 			for (_, pluginMediaStream) in pluginMediaStream.audioTracks {
 				self.removeTrack(pluginMediaStream)
 			}
-			
+
 			for (_, pluginMediaStream) in pluginMediaStream.videoTracks {
 				self.removeTrack(pluginMediaStream)
 			}
-			
+
 		} else {
 			self.rtcPeerConnection.remove(pluginMediaStream.rtcMediaStream)
 		}
 	}
-	
+
 	func IsUnifiedPlan() -> Bool {
 		return rtcPeerConnection.configuration.sdpSemantics == RTCSdpSemantics.unifiedPlan;
 	}
 
 	func addTrack(_ pluginMediaTrack: PluginMediaStreamTrack, _ streamIds: [String]) -> Bool {
 		NSLog("PluginRTCPeerConnection#addTrack()")
-		
+
 		if self.rtcPeerConnection.signalingState == RTCSignalingState.closed {
 			return false
 		}
@@ -347,20 +348,20 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 			trackIdsToSenders[rtcMediaStreamTrack.trackId] = rtcSender;
 			return true;
 		}
-		
+
 		return false;
 	}
-	
+
 	func removeTrack(_ pluginMediaTrack: PluginMediaStreamTrack) {
 		NSLog("PluginRTCPeerConnection#removeTrack()")
-		
+
 		if self.rtcPeerConnection.signalingState == RTCSignalingState.closed {
 			return
 		}
-		
+
 		let rtcMediaStreamTrack = pluginMediaTrack.rtcMediaStreamTrack;
 		let rtcSender = trackIdsToSenders[rtcMediaStreamTrack.trackId];
-		
+
 		if (rtcSender != nil) {
 			self.rtcPeerConnection.removeTrack(rtcSender!)
 			trackIdsToSenders[rtcMediaStreamTrack.trackId] = nil
@@ -473,10 +474,14 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		if self.rtcPeerConnection.signalingState == RTCSignalingState.closed {
 			return
 		}
-		
+
 		for streamId: String in streamIds {
-			self.eventListenerForRemoveStream(streamId)
+			let pluginMediaStream = pluginMediaStreams[streamId];
+			self.eventListenerForRemoveStream(pluginMediaStream!.id)
 		}
+
+		streamIds = [];
+		pluginMediaStreams = [:];
 
 		self.rtcPeerConnection.close()
 	}
@@ -568,7 +573,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 	/**
 	 * Methods inherited from RTCPeerConnectionDelegate.
 	 */
-	
+
 	/** Called when media is received on a new stream from remote peer. */
 	func peerConnection(_ peerConnection: RTCPeerConnection, didAdd stream: RTCMediaStream) {
 		NSLog("PluginRTCPeerConnection | onaddstream")
@@ -579,6 +584,8 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 
 		// Let the plugin store it in its dictionary.
 		streamIds.append(stream.streamId)
+		pluginMediaStreams[stream.streamId] = pluginMediaStream;
+
 		self.eventListenerForAddStream(pluginMediaStream)
 
 		// Fire the 'addstream' event so the JS will create a new MediaStream.
@@ -587,36 +594,38 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 			"stream": pluginMediaStream.getJSON()
 		])
 	}
-	 
+
 	/** Called when a remote peer closes a stream. */
 	func peerConnection(_ peerConnection: RTCPeerConnection, didRemove stream: RTCMediaStream) {
 		NSLog("PluginRTCPeerConnection | onremovestream")
 
+		let pluginMediaStream = pluginMediaStreams[stream.streamId];
+
 		// Let the plugin remove it from its dictionary.
-		self.eventListenerForRemoveStream(stream.streamId)
+		self.eventListenerForRemoveStream(pluginMediaStream!.id)
 
 		self.eventListener([
 			"type": "removestream",
-			"streamId": stream.streamId
+			"streamId": pluginMediaStream!.id
 		])
 	}
-	
+
 	/** Called when the SignalingState changed. */
-	
+
 	// TODO: remove on M75
 	// This was already fixed in M-75, but note that "Issue 740501: RTCPeerConnection.onnegotiationneeded can sometimes fire multiple times in a row" was a prerequisite of Perfect Negotiation as well.
 	// https://stackoverflow.com/questions/48963787/failed-to-set-local-answer-sdp-called-in-wrong-state-kstable
 	// https://bugs.chromium.org/p/chromium/issues/detail?id=740501
 	// https://bugs.chromium.org/p/chromium/issues/detail?id=980872
 	var isNegotiating = false;
-	
+
 	func peerConnection(_ peerConnection: RTCPeerConnection, didChange stateChanged: RTCSignalingState) {
 		let state_str = PluginRTCTypes.signalingStates[stateChanged.rawValue] as String?
 
 		NSLog("PluginRTCPeerConnection | onsignalingstatechange [signalingState:%@]", String(describing: state_str))
-		
+
 		isNegotiating = (state_str != "stable")
-		
+
 		self.eventListener([
 			"type": "signalingstatechange",
 			"signalingState": state_str!
@@ -626,23 +635,23 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 	/** Called when negotiation is needed, for example ICE has restarted. */
 	func peerConnectionShouldNegotiate(_ peerConnection: RTCPeerConnection) {
 		NSLog("PluginRTCPeerConnection | onnegotiationeeded")
-		
+
 		if (!IsUnifiedPlan() && isNegotiating) {
 		  NSLog("PluginRTCPeerConnection#addStream() | signalingState is stable skip nested negotiations when using plan-b")
 		  return;
 		}
-		
+
 		self.eventListener([
 			"type": "negotiationneeded"
 		])
 	}
-	 
+
 	/** Called any time the IceConnectionState changes. */
 	func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceConnectionState) {
 		let state_str = PluginRTCTypes.iceConnectionStates[newState.rawValue]
-		
+
 		NSLog("PluginRTCPeerConnection | oniceconnectionstatechange [iceConnectionState:%@]", String(describing: state_str))
-		
+
 		self.eventListener([
 			"type": "iceconnectionstatechange",
 			"iceConnectionState": state_str as Any
@@ -677,7 +686,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 			])
 		}
 	}
- 
+
 	/** New ice candidate has been found. */
 	func peerConnection(_ peerConnection: RTCPeerConnection, didGenerate candidate: RTCIceCandidate) {
 		NSLog("PluginRTCPeerConnection | onicecandidate [sdpMid:%@, sdpMLineIndex:%@, candidate:%@]",
@@ -700,12 +709,12 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 			] as [String : Any]
 		])
 	}
-	 
+
 	/** Called when a group of local Ice candidates have been removed. */
 	func peerConnection(_ peerConnection: RTCPeerConnection, didRemove candidates: [RTCIceCandidate]) {
 		NSLog("PluginRTCPeerConnection | removeicecandidates")
 	}
-	 
+
 	/** New data channel has been opened. */
 	func peerConnection(_ peerConnection: RTCPeerConnection, didOpen rtcDataChannel: RTCDataChannel) {
 		NSLog("PluginRTCPeerConnection | ondatachannel")
@@ -714,13 +723,13 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		let pluginRTCDataChannel = PluginRTCDataChannel(
 			rtcDataChannel: rtcDataChannel
 		)
-		
+
 		// Store the pluginRTCDataChannel into the dictionary.
 		self.pluginRTCDataChannels[dcId] = pluginRTCDataChannel
-		
+
 		// Run it.
 		pluginRTCDataChannel.run()
-		
+
 		// Fire the 'datachannel' event so the JS will create a new RTCDataChannel.
 		self.eventListener([
 			"type": "datachannel",
@@ -741,18 +750,18 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 
 	/** New track as been added. */
 	func peerConnection(_ peerConnection: RTCPeerConnection, didAdd rtpReceiver: RTCRtpReceiver, streams:[RTCMediaStream]) {
-		
+
 		NSLog("PluginRTCPeerConnection | onaddtrack")
-		
+
 		// TODO why streams.count is 0 and should it trigger addtrack
 		// TODO why NSLog streamId cause crash need weak ?
 		let streamId : String = streams.count > 0 ? streams[0].streamId : "";
-		
+
 		let track = PluginMediaStreamTrack(
 		   rtcMediaStreamTrack: rtpReceiver.track!,
 		   streamId: streamId
 		)
-	   
+
 		self.eventListener([
 		   "type": "addtrack",
 		   "track": track.getJSON()
