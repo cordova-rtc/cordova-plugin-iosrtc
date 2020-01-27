@@ -1,7 +1,7 @@
 import Foundation
 
 class PluginMediaStream : NSObject {
-	
+
 	var rtcMediaStream: RTCMediaStream
 	var id: String
 	var audioTracks: [String : PluginMediaStreamTrack] = [:]
@@ -15,9 +15,9 @@ class PluginMediaStream : NSObject {
 	 */
 	init(rtcMediaStream: RTCMediaStream) {
 		NSLog("PluginMediaStream#init()")
-		
+
 		self.rtcMediaStream = rtcMediaStream
-		self.id = UUID().uuidString;
+		self.id = rtcMediaStream.streamId + "_" + UUID().uuidString;
 
 		for track: RTCMediaStreamTrack in (self.rtcMediaStream.audioTracks as Array<RTCMediaStreamTrack>) {
 			let pluginMediaStreamTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: track, streamId: id)
