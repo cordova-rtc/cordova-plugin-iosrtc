@@ -1,9 +1,9 @@
 /*
- * cordova-plugin-iosrtc v6.0.5
+ * cordova-plugin-iosrtc v6.0.6
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015-2017 eFace2Face, Inc. (https://eface2face.com)
  * Copyright 2015-2019 BasqueVoIPMafia (https://github.com/BasqueVoIPMafia)
- * Copyright 2017-2019 Cordova-RTC (https://github.com/cordova-rtc)
+ * Copyright 2017-2020 Cordova-RTC (https://github.com/cordova-rtc)
  * License MIT
  */
 

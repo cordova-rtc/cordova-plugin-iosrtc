@@ -1,3 +1,9 @@
+#### Version 6.0.6
+* Update ios_arch.js script link ([PR #457](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/457) by @onerinas)
+* Fix removeStream and add real Ids with UUID suffix to PluginMediaStream and PluginMediaStreamTrack ([PR #460](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/460)) 
+* handle webrtc-adapter multiple video.optional constraints values add support for maxHeight and maxWidth
+* Update README with sdpSemantics, bundlePolicy, rtcpMuxPolicy sample
+
 #### Version 6.0.5
 * Fix missing typeof on constraints.video.facingMode.ideal
 
