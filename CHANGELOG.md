@@ -1,3 +1,7 @@
+#### Version 6.0.7
+* Missing Event.target value on iosRTC Events to fix Datachannel for Janus.js #447
+* Update extras/renderer-and-libwebrtc-tests.js
+
 #### Version 6.0.6
 * Update ios_arch.js script link ([PR #457](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/457) by @onerinas)
 * Fix removeStream and add real Ids with UUID suffix to PluginMediaStream and PluginMediaStreamTrack ([PR #460](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/460)) 
