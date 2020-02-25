@@ -345,7 +345,7 @@ Methods such as `play()`, `pause()` are not implemented. In order to pause a vid
 
 #### iOS >= 13.3.1 Device support
 
-To run on Devices with iOS >= 13.3.1, you need a valid Apple Developer account to sign the WebRTC dynamic frameworks for more info see https://stackoverflow.com/questions/60015309/running-ios-apps-causes-runtime-error-for-frameworks-code-signature-invalid
+To run on Devices with iOS >= 13.3.1, you need a valid Apple Developer account to sign the WebRTC dynamic frameworks for more info see https://stackoverflow.com/a/60090629/8691951
 
 ## Changelog
 
