@@ -343,6 +343,9 @@ There is no real media source attached to the `<video>` element so some [HTML5 v
 
 Methods such as `play()`, `pause()` are not implemented. In order to pause a video just set `enabled = false` on the associated `MediaStreamTrack`.
 
+#### iOS >= 13.3.1 Device support
+
+To run on Devices with iOS >= 13.3.1, you need a valid Apple Developer account to sign the WebRTC dynamic frameworks for more info see https://stackoverflow.com/questions/60015309/running-ios-apps-causes-runtime-error-for-frameworks-code-signature-invalid
 
 ## Changelog
 
