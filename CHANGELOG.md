@@ -1,3 +1,8 @@
+#### Version 6.0.8
+* Add Known Issues > iOS >= 13.3.1 Device support to README.md
+* implement candidateToJson SDP candidate parser into RTCIceCandidate to populate foundation, component, priority, type, address, ip, protocol, port, relatedAddress and relatedPort RTCIceCandidate values #468
+* Fix PeerConnection.addStream|addTrack by using UUID().uuidString preffix for PluginMediaStream and PluginMediaStreamTrack only for Janus #467
+
 #### Version 6.0.7
 * Missing Event.target value on iosRTC Events to fix Datachannel for Janus.js #447
 * Update extras/renderer-and-libwebrtc-tests.js
