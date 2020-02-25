@@ -15,7 +15,15 @@ class PluginMediaStreamTrack : NSObject {
 		NSLog("PluginMediaStreamTrack#init()")
 
 		self.rtcMediaStreamTrack = rtcMediaStreamTrack
-		self.id = rtcMediaStreamTrack.trackId + "_" + UUID().uuidString;
+
+		// Handle possible duplicate remote trackId with janus name
+		// See: https://github.com/cordova-rtc/cordova-plugin-iosrtc/issues/432
+		if (rtcMediaStreamTrack.trackId.starts(with: "janus")) {
+			self.id = rtcMediaStreamTrack.trackId + "_" + UUID().uuidString;
+		} else {
+			self.id = rtcMediaStreamTrack.trackId;
+		}
+
 		self.kind = rtcMediaStreamTrack.kind
 		self.renders = [:]
 		self.streamId = streamId;
