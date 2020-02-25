@@ -1,3 +1,18 @@
+#### Version 6.0.8
+* Add Known Issues > iOS >= 13.3.1 Device support to README.md
+* implement candidateToJson SDP candidate parser into RTCIceCandidate to populate foundation, component, priority, type, address, ip, protocol, port, relatedAddress and relatedPort RTCIceCandidate values #468
+* Fix PeerConnection.addStream|addTrack by using UUID().uuidString preffix for PluginMediaStream and PluginMediaStreamTrack only for Janus #467
+
+#### Version 6.0.7
+* Missing Event.target value on iosRTC Events to fix Datachannel for Janus.js #447
+* Update extras/renderer-and-libwebrtc-tests.js
+
+#### Version 6.0.6
+* Update ios_arch.js script link ([PR #457](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/457) by @onerinas)
+* Fix removeStream and add real Ids with UUID suffix to PluginMediaStream and PluginMediaStreamTrack ([PR #460](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/460)) 
+* handle webrtc-adapter multiple video.optional constraints values add support for maxHeight and maxWidth
+* Update README with sdpSemantics, bundlePolicy, rtcpMuxPolicy sample
+
 #### Version 6.0.5
 * Fix missing typeof on constraints.video.facingMode.ideal
 
