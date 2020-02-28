@@ -459,7 +459,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 				data.append([
 					"reportId" : report.reportId,
 					"type" : report.type,
-					"timestampt" : report.timestamp,
+					"timestamp" : report.timestamp,
 					"values" : report.values
 				])
 			}
