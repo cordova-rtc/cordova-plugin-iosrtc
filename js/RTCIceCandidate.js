@@ -171,16 +171,18 @@ function RTCIceCandidate(data) {
 	// Parse candidate SDP:
 	// Example: candidate:1829696681 1 udp 2122262783 2a01:cb05:8d3e:a300:e1ad:79c1:7096:8ba0 49778 typ host generation 0 ufrag c9L6 network-id 2 network-cost 10
 	var iceCandidateFields = candidateToJson(this.candidate);
-	this.foundation = iceCandidateFields.foundation;
-	this.component = iceCandidateFields.componentId;
-	this.priority = iceCandidateFields.priority;
-	this.type = iceCandidateFields.candidateType;
+	if (iceCandidateFields) {
+		this.foundation = iceCandidateFields.foundation;
+		this.component = iceCandidateFields.componentId;
+		this.priority = iceCandidateFields.priority;
+		this.type = iceCandidateFields.candidateType;
 
-	this.address = iceCandidateFields.connectionAddress;
-	this.ip = iceCandidateFields.connectionAddress;
-	this.protocol = iceCandidateFields.transport;
-	this.port = iceCandidateFields.port;
+		this.address = iceCandidateFields.connectionAddress;
+		this.ip = iceCandidateFields.connectionAddress;
+		this.protocol = iceCandidateFields.transport;
+		this.port = iceCandidateFields.port;
 
-	this.relatedAddress = iceCandidateFields.remoteConnectionAddress || null;
-	this.relatedPort = iceCandidateFields.remotePort || null;
+		this.relatedAddress = iceCandidateFields.remoteConnectionAddress || null;
+		this.relatedPort = iceCandidateFields.remotePort || null;
+	}
 }
