@@ -1,3 +1,6 @@
+#### Version 7.0.0
+* Update to WebRTC.framework M75
+
 #### Version 6.0.9
 * fix possible TypeError: null is not an object (evaluating 'iceCandidateFields.foundation') due fail match candidateToJson #473
 * fix getStats typo report.timestamp #472
