@@ -1,3 +1,8 @@
+#### Version 6.0.9
+* fix possible TypeError: null is not an object (evaluating 'iceCandidateFields.foundation') due fail match candidateToJson #473
+* fix getStats typo report.timestamp #472
+* Fix getMediaDevice audioConstraints to allowing audio devices change #470
+
 #### Version 6.0.8
 * Add Known Issues > iOS >= 13.3.1 Device support to README.md
 * implement candidateToJson SDP candidate parser into RTCIceCandidate to populate foundation, component, priority, type, address, ip, protocol, port, relatedAddress and relatedPort RTCIceCandidate values #468
