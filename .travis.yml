@@ -9,7 +9,7 @@ env:
     - CORDOVA_PLATFORM=browser
     - NODE_VERSION=10
     - CORDOVA_VERSION=8
-    - ANGULAR_CLI_VERSION=6.2.6
+    - ANGULAR_CLI_VERSION=8
     - IONIC_VERSION=6
     - ANDROID_API_LEVEL=28
     - ANDROID_SDK_VERSION=28
@@ -20,7 +20,7 @@ install:
   - "nvm install $NODE_VERSION"
   - "npm install -g gulp-cli"
   - "npm install -g cordova@$CORDOVA_VERSION"
-  -  npm install -g @angular/cli@$ANGULAR_CLI_VERSION
+  - "npm install -g @angular/cli@$ANGULAR_CLI_VERSION"
   - "npm install -g ionic@$IONIC_VERSION"
   - "npm install -g cordova-res"
   - "npm ci"
