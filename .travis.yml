@@ -21,7 +21,7 @@ install:
   - "npm install -g gulp-cli"
   - "npm install -g cordova@$CORDOVA_VERSION"
   - "npm install -g @angular/cli@$ANGULAR_CLI_VERSION"
-  - "npm install -g ionic@$IONIC_VERSION"
+  - "npm install -g @ionic/cli@$IONIC_VERSION"
   - "npm install -g cordova-res"
   - "npm ci"
 matrix:
