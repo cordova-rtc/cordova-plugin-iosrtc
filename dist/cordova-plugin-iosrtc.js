@@ -158,7 +158,7 @@ function newMediaStreamId() {
 }
 
 // Save original MediaStream
-var originalMediaStream = window.MediaStream;
+var originalMediaStream = window.MediaStream || window.Blob;
 var originalMediaStreamTrack = MediaStreamTrack.originalMediaStreamTrack;
 
 /**
@@ -171,8 +171,9 @@ function MediaStream(arg, id) {
 	// new MediaStream(originalMediaStream) // stream
 	// new MediaStream(originalMediaStreamTrack[]) // tracks
 	if (
-		(arg instanceof originalMediaStream && typeof arg.getBlobId === 'undefined') ||
-			(Array.isArray(arg) && arg[0] instanceof originalMediaStreamTrack)
+		!(arg instanceof window.Blob) &&
+			(arg instanceof originalMediaStream && typeof arg.getBlobId === 'undefined') ||
+				(Array.isArray(arg) && arg[0] instanceof originalMediaStreamTrack)
 	) {
 		return new originalMediaStream(arg);
 	}
@@ -181,9 +182,23 @@ function MediaStream(arg, id) {
 	// new MediaStream(MediaStreamTrack[]) // tracks
 	// new MediaStream() // empty
 
-	// TODO attempt CustomMediaStream extend.
 	// Extend returned MediaTream with custom MediaStream
-	var stream = new (Function.prototype.bind.apply(originalMediaStream.bind(this), [])); // jshint ignore:line
+	var stream;
+	if (originalMediaStream !== window.Blob) {
+		stream = new (Function.prototype.bind.apply(originalMediaStream.bind(this), [])); // jshint ignore:line
+
+	// Fallback on Blob if originalMediaStream is not a MediaStream and Emulate EventTarget
+	} else {
+		stream = new Blob([], {
+			type: 'stream'
+		});
+
+		var target = document.createTextNode(null);
+		stream.addEventListener = target.addEventListener.bind(target);
+		stream.removeEventListener = target.removeEventListener.bind(target);
+		stream.dispatchEvent = target.dispatchEvent.bind(target);
+	}
+
 	Object.defineProperties(stream, Object.getOwnPropertyDescriptors(MediaStream.prototype));
 
 	// Make it an EventTarget.
@@ -1009,9 +1024,13 @@ var
 	EventTarget = _dereq_('./EventTarget');
 
 // Save original MediaStreamTrack
-var originalMediaStreamTrack = window.MediaStreamTrack;
+var originalMediaStreamTrack = window.MediaStreamTrack || function dummyMediaStreamTrack() {};
 
 function MediaStreamTrack(dataFromEvent) {
+	if (!dataFromEvent) {
+		throw new Error('Illegal constructor');
+	}
+
 	debug('new() | [dataFromEvent:%o]', dataFromEvent);
 
 	var self = this;
