@@ -1,3 +1,8 @@
+#### Version 6.0.10
+* Fix ios 10.2+ issue with loading cordova when iosrtc plugin present. #488
+* Fix TypeError: undefined is not an object(evaluating 'originaMediaStream.prototype') #485
+* Handle ios 10.x.x that does not have MediaStream Native Prototype and fallback on Blob with EventTarget shim #489
+
 #### Version 6.0.9
 * fix possible TypeError: null is not an object (evaluating 'iceCandidateFields.foundation') due fail match candidateToJson #473
 * fix getStats typo report.timestamp #472
