@@ -281,6 +281,8 @@ MediaStream.prototype.addTrack = function (track) {
 	addListenerForTrackEnded.call(this, track);
 
 	exec(null, null, 'iosrtcPlugin', 'MediaStream_addTrack', [this.id, track.id]);
+
+	this.dispatchEvent(new Event('update'));
 };
 
 
@@ -304,6 +306,8 @@ MediaStream.prototype.removeTrack = function (track) {
 	}
 
 	exec(null, null, 'iosrtcPlugin', 'MediaStream_removeTrack', [this.id, track.id]);
+
+	this.dispatchEvent(new Event('update'));
 
 	checkActive.call(this);
 };
