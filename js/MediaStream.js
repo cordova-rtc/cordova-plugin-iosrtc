@@ -33,6 +33,7 @@ function newMediaStreamId() {
 
 // Save original MediaStream
 var originalMediaStream = window.MediaStream || window.Blob;
+//var originalMediaStream = window.Blob;
 var originalMediaStreamTrack = MediaStreamTrack.originalMediaStreamTrack;
 
 /**
@@ -56,6 +57,9 @@ function MediaStream(arg, id) {
 	// new MediaStream(MediaStreamTrack[]) // tracks
 	// new MediaStream() // empty
 
+	id = id || newMediaStreamId();
+	var blobId = 'MediaStream_' + id;
+
 	// Extend returned MediaTream with custom MediaStream
 	var stream;
 	if (originalMediaStream !== window.Blob) {
@@ -63,7 +67,7 @@ function MediaStream(arg, id) {
 
 	// Fallback on Blob if originalMediaStream is not a MediaStream and Emulate EventTarget
 	} else {
-		stream = new Blob([], {
+		stream = new Blob([blobId], {
 			type: 'stream'
 		});
 
@@ -93,7 +97,7 @@ function MediaStream(arg, id) {
 	stream._videoTracks = {};
 
 	// Store the stream into the dictionary.
-	stream._blobId = 'MediaStream_' + stream.id;
+	stream._blobId = blobId;
 	mediaStreams[stream._blobId] = stream;
 
 	// Convert arg to array of tracks if possible
