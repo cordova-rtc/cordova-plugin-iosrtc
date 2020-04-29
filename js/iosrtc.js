@@ -191,7 +191,6 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 
 	navigator.getDisplayMedia				= getDisplayMedia;
 	navigator.mediaDevices.getDisplayMedia	= getDisplayMedia;
-
 	navigator.getUserMedia                  = getUserMedia;
 	navigator.webkitGetUserMedia            = getUserMedia;
 	navigator.mediaDevices.getUserMedia     = getUserMedia;
