@@ -1,3 +1,7 @@
+#### Version 6.0.11
+* Fix possible duplicate remote streamId/trackId with janus/kurento/freeswitch or short duplicate name #493
+* Fix Calling removeTrack/addTrack does not update renderer #492
+
 #### Version 6.0.10
 * Fix ios 10.2+ issue with loading cordova when iosrtc plugin present. #488
 * Fix TypeError: undefined is not an object(evaluating 'originaMediaStream.prototype') #485
