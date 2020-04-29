@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
 		id="cordova-plugin-iosrtc"
-		version="6.0.4">
-		
+		version="6.0.10">
+
 	<name>iosrtc</name>
 	<description>Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs</description>
 	<author>eFace2Face, Inc. and BasqueVoIPMafia and Cordova-RTC</author>
@@ -19,7 +19,7 @@
 	</engines>
 
 	<platform name="ios">
-		
+
 		<hook type="after_prepare" src="extra/hooks/iosrtc-swift-support.js" />
 
 		<config-file target="config.xml" parent="/*">

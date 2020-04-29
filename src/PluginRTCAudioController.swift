@@ -27,9 +27,9 @@ class PluginRTCAudioController {
 	// Audio Input
 	//
 	
-	func initAudioDevices() -> Void {
+	static func initAudioDevices() -> Void {
 		
-		setCategory()
+		PluginRTCAudioController.setCategory()
 		
 		do {
 			let audioSession: AVAudioSession = AVAudioSession.sharedInstance()
@@ -39,7 +39,7 @@ class PluginRTCAudioController {
 		}
 	}
 	
-	func setCategory() -> Void {
+	static func setCategory() -> Void {
 		// Enable speaker
 		NSLog("PluginRTCAudioController#setCategory()")
 		
@@ -67,50 +67,24 @@ class PluginRTCAudioController {
 	}
 	
 	// Setter function inserted by set specific audio device
-	static func setInputAudioDevice() -> Void {
+	static func restoreInputOutputAudioDevice() -> Void {
 		let audioSession: AVAudioSession = AVAudioSession.sharedInstance()
 		
 		do {
 			try audioSession.setPreferredInput(PluginRTCAudioController.audioInputSelected)
 		} catch {
-			NSLog("PluginRTCAudioController:setInputAudioDevice: Error setting audioSession preferred input.")
+			NSLog("PluginRTCAudioController:restoreInputOutputAudioDevice: Error setting audioSession preferred input.")
 		}
-	}
-
-	//
-	// Audio Output
-	//
-	
-	private var speakerEnabled: Bool = false
-	private var recordEnabled: Bool = false
-	
-	init() {
-		NotificationCenter.default.addObserver(
-			self,
-			selector: #selector(self.audioRouteChangeListener(_:)),
-			name: AVAudioSession.routeChangeNotification,
-			object: nil)
-	}
-	
-	@objc dynamic fileprivate func audioRouteChangeListener(_ notification:Notification) {
-		let audioRouteChangeReason = notification.userInfo![AVAudioSessionRouteChangeReasonKey] as! UInt
 		
-		switch audioRouteChangeReason {
-		case AVAudioSession.RouteChangeReason.newDeviceAvailable.rawValue:
-			NSLog("PluginRTCAudioController#audioRouteChangeListener() | headphone plugged in")
-		case AVAudioSession.RouteChangeReason.oldDeviceUnavailable.rawValue:
-			NSLog("PluginRTCAudioController#audioRouteChangeListener() | headphone pulled out -> restore state speakerEnabled: %@", speakerEnabled ? "true" : "false")
-			self.setOutputSpeakerIfNeed(enabled: speakerEnabled)
-		default:
-			break
-		}
+		PluginRTCAudioController.setOutputSpeakerIfNeed(enabled: speakerEnabled);
 	}
 	
-	func setOutputSpeakerIfNeed(enabled: Bool) {
+	static func setOutputSpeakerIfNeed(enabled: Bool) {
 		
 		speakerEnabled = enabled
 		
-		let currentRoute = AVAudioSession.sharedInstance().currentRoute
+		let audioSession: AVAudioSession = AVAudioSession.sharedInstance()
+		let currentRoute = audioSession.currentRoute
 		
 		if currentRoute.outputs.count != 0 {
 			for description in currentRoute.outputs {
@@ -126,9 +100,11 @@ class PluginRTCAudioController {
 					NSLog("PluginRTCAudioController#setOutputSpeakerIfNeed() | external audio pulled out")
 					
 					if (speakerEnabled) {
-						self.selectAudioOutputSpeaker()
-					} else {
-						self.selectAudioOutputEarpiece();
+						do {
+							try audioSession.overrideOutputAudioPort(AVAudioSession.PortOverride.speaker)
+						} catch {
+							NSLog("PluginRTCAudioController#setOutputSpeakerIfNeed() | ERROR \(error)")
+						};
 					}
 				}
 			}
@@ -137,9 +113,11 @@ class PluginRTCAudioController {
 		}
 	}
 	
-	func selectAudioOutputSpeaker() {
+	static func selectAudioOutputSpeaker() {
 		// Enable speaker
 		NSLog("PluginRTCAudioController#selectAudioOutputSpeaker()")
+		
+		speakerEnabled = true;
 		
 		setCategory()
 		
@@ -151,9 +129,11 @@ class PluginRTCAudioController {
 		};
 	}
 	
-	func selectAudioOutputEarpiece() {
+	static func selectAudioOutputEarpiece() {
 		// Disable speaker, switched to default
 		NSLog("PluginRTCAudioController#selectAudioOutputEarpiece()")
+		
+		speakerEnabled = false;
 		
 		setCategory()
 		
@@ -163,5 +143,36 @@ class PluginRTCAudioController {
 		} catch {
 			NSLog("PluginRTCAudioController#selectAudioOutputEarpiece() | ERROR \(error)")
 		};
+	}
+
+	//
+	// Audio Output
+	//
+	
+	static private var speakerEnabled: Bool = false
+	
+	init() {
+		
+		PluginRTCAudioController.initAudioDevices()
+		
+		NotificationCenter.default.addObserver(
+			self,
+			selector: #selector(self.audioRouteChangeListener(_:)),
+			name: AVAudioSession.routeChangeNotification,
+			object: nil)
+	}
+	
+	@objc dynamic fileprivate func audioRouteChangeListener(_ notification:Notification) {
+		let audioRouteChangeReason = notification.userInfo![AVAudioSessionRouteChangeReasonKey] as! UInt
+		
+		switch audioRouteChangeReason {
+		case AVAudioSession.RouteChangeReason.newDeviceAvailable.rawValue:
+			NSLog("PluginRTCAudioController#audioRouteChangeListener() | headphone plugged in")
+		case AVAudioSession.RouteChangeReason.oldDeviceUnavailable.rawValue:
+			NSLog("PluginRTCAudioController#audioRouteChangeListener() | headphone pulled out -> restore state speakerEnabled: %@", PluginRTCAudioController.speakerEnabled ? "true" : "false")
+			PluginRTCAudioController.setOutputSpeakerIfNeed(enabled: PluginRTCAudioController.speakerEnabled)
+		default:
+			break
+		}
 	}
 }

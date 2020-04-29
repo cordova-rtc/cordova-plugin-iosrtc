@@ -4,7 +4,7 @@
 
 An iOS Cordova application including the *cordova-plugin-iosrtc* plugin can be built using the [cordova-cli](https://cordova.apache.org/docs/en/edge/guide_cli_index.md.html#The%20Command-Line%20Interface) or Xcode.
 
-The plugin provides a ["hook"](../extra/hooks/iosrtc-swift-support.js) to automate required modifications in both *cordova-cli* and Xcode generated projects. It is no longer necessary to add the "hook" manually or add and remove the platform again, it is executed before and after cordova is preparing your application.
+The plugin provides a ["hook"](../extra/hooks/iosrtc-swift-support.js) to automate required modifications in both *cordova-cli* and Xcode generated projects. It is no **longer necessary to add the "hook" manually or add and remove the platform again**, it is executed before and after cordova is preparing your application.
 
 ```
 * You have two options right now:
@@ -80,13 +80,13 @@ credit: The script is originally provided via `react-native-webrtc` by [@besarth
 
 ##### Strip Simulator Archs Usage
 
-The script and example are here: https://github.com/rcordova-rtc/cordova-plugins-iosrtc/blob/master/extra/ios_arch.js
+The script and example are here: https://github.com/cordova-rtc/cordova-plugin-iosrtc/blob/master/extra/ios_arch.js
 
-1. go to `plugins/cordova-plugins-iosrtc/extra` folder
+1. go to `plugins/cordova-plugin-iosrtc/extra` folder
 2. extract all archs first: `node ios_arch.js --extract`
 3. re-package device related archs only: `node ios_arch.js --device`
-4. delete files generated from `step 2` under `plugins/cordova-plugins-iosrtc/lib/WebRTC.framework/` (e.g. with a command `node ios_arch.js --clean` or manualy `rm plugins/cordova-plugins-iosrtc/lib/WebRTC.framework/WebRTC-*` from application root)
-5. you can check current arch use this command  `node ios_arch.js --list` or manualy `file plugins/cordova-plugins-iosrtc/lib/WebRTC.framework/WebRTC`
-6. Remove ios cordova platform if already added and add ios platform again (e.g. with a command `cordova platform remove ios && cordova platform add ios`)
+4. delete files generated from `step 2` under `plugins/cordova-plugin-iosrtc/lib/WebRTC.framework/` (e.g. with a command `node ios_arch.js --clean` or manualy `rm plugins/cordova-plugin-iosrtc/lib/WebRTC.framework/WebRTC-*` from application root)
+5. you can check current arch use this command  `node ios_arch.js --list` or manualy `file plugins/cordova-plugin-iosrtc/lib/WebRTC.framework/WebRTC`
+6. Remove ios cordova platform if already added and add ios platform again (e.g. with a command `cordova platform remove ios && cordova platform add ios`) or remove and add only the plugin at your own risk.
 
 

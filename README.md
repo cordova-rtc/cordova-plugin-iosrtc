@@ -54,13 +54,6 @@ $ cordova plugin add cordova-plugin-iosrtc
 
 (or add it into a `<plugin>` entry in the `config.xml` of your app).
 
-
-* Remove the iOS platform and add it again (this apply "hook" file):
-```bash
-$ cordova platform remove ios
-$ cordova platform add ios
-```
-
 ## Building
 
 * Last [Tested WebRTC.framework](./lib/WebRTC.framework/) version: M69 on cordova-plugin-iosrtc version 6.0.0
@@ -140,11 +133,26 @@ function TestGetUserMedia() {
 
 var pc1, pc2;
 
+var peerConnectionConfig = {
+    offerToReceiveVideo: true,
+    offerToReceiveAudio: true,
+    //iceTransportPolicy: 'relay',
+    sdpSemantics: 'unified-plan',
+    //sdpSemantics: 'plan-b',
+    bundlePolicy: 'max-compat',
+    rtcpMuxPolicy: 'negotiate',
+    iceServers: [
+        {
+            url: "stun:stun.stunprotocol.org"
+        }
+    ]
+};
+
 var peerVideoEl, peerStream;
 function TestRTCPeerConnection(localStream) {
 
-  pc1 = new RTCPeerConnection();
-  pc2 = new RTCPeerConnection();
+  pc1 = new RTCPeerConnection(peerConnectionConfig);
+  pc2 = new RTCPeerConnection(peerConnectionConfig);
   
   // Note: Deprecated but supported
   //pc1.addStream(localStream);
@@ -335,6 +343,9 @@ There is no real media source attached to the `<video>` element so some [HTML5 v
 
 Methods such as `play()`, `pause()` are not implemented. In order to pause a video just set `enabled = false` on the associated `MediaStreamTrack`.
 
+#### iOS >= 13.3.1 Device support
+
+To run on Devices with iOS >= 13.3.1, you need a valid Apple Developer account to sign the WebRTC dynamic frameworks for more info see https://stackoverflow.com/a/60090629/8691951
 
 ## Changelog
 
