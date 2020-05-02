@@ -153,8 +153,6 @@ class PluginRTCAudioController {
 	
 	init() {
 		
-		PluginRTCAudioController.initAudioDevices()
-		
 		NotificationCenter.default.addObserver(
 			self,
 			selector: #selector(self.audioRouteChangeListener(_:)),
