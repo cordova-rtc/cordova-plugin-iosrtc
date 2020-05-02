@@ -257,6 +257,14 @@ cordova.plugins.iosrtc.requestPermission(needMic, needCamera, function (permissi
 })
 ```
 
+### `iosrtc.initAudioDevices`
+
+Initialize the audio session, specifically setting the session's category and activating the session.
+
+```javascript
+cordova.plugins.iosrtc.initAudioDevices();
+```
+
 ## Others
 
 
