@@ -181,7 +181,7 @@ function TestRTCPeerConnection(localStream) {
   });
 
   pc2.addEventListener('track', function (e) {
-    console.log('pc2.addtrack', e);
+    console.log('pc2.track', e);
   });
 
   pc2.addEventListener('addstream', function (e) {
