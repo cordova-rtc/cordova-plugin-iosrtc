@@ -279,8 +279,8 @@ function TestRTCPeerConnection(localStream) {
     console.log('pc2.track', e);
   });
 
-  pc2.addEventListener('removetrack', function (e) {
-    console.log('pc2.removeTrack', e);
+  pc2.addEventListener('removestream', function (e) {
+    console.log('pc2.removeStream', e);
   });
 
   pc2.addEventListener('addstream', function (e) {
