@@ -763,7 +763,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		)
 
 		self.eventListener([
-		   "type": "addtrack",
+		   "type": "track",
 		   "track": track.getJSON()
 		])
 	}
