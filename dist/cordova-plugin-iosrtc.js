@@ -2408,7 +2408,7 @@ function onEvent(data) {
 			break;
 
 		case 'track':
-			event.track = data.track;
+			event.track = new MediaStreamTrack(data.track);
 			break;
 
 		case 'addstream':
