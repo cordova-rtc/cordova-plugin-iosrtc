@@ -1800,6 +1800,13 @@ Object.defineProperties(RTCPeerConnection.prototype, {
 			return this.addEventListener('addstream', callback);
 		}
 	},
+	'ontrack': {
+		// Fix webrtc-adapter TypeError: Attempting to change the getter of an unconfigurable property.
+		configurable: true,
+		set: function (callback) {
+			return this.addEventListener('track', callback);
+		}
+	},
 	'oniceconnectionstatechange': {
 		// Fix webrtc-adapter TypeError: Attempting to change the getter of an unconfigurable property.
 		configurable: true,
@@ -2400,7 +2407,7 @@ function onEvent(data) {
 		case 'negotiationneeded':
 			break;
 
-		case 'addtrack':
+		case 'track':
 			event.track = data.track;
 			break;
 
