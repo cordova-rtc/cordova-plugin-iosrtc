@@ -62,7 +62,9 @@ $ cordova plugin add cordova-plugin-iosrtc
 * [Building](docs/Building.md): Guidelines for building a Cordova iOS application including the *cordova-plugin-iosrtc* plugin.
 * [Building `libwebrtc`](docs/BuildingLibWebRTC.md): Guidelines for building Google's *libwebrtc* with modifications needed by the *cordova-plugin-iosrtc* plugin (just in case you want to use a different version of *libwebrtc* or apply your own changes to it).
 
-# Sample Application
+## Sample Application
+
+The `cordova-plugin-iosrtc-sample` include mutiple example for using `cordova-plugin-iosrtc` with JsSip, Janus, EasyRTC, and basic WebSocket Signaling. It's is used to test `cordova-plugin-iosrtc` new release and reproduce reported issues.
 
 - https://github.com/cordova-rtc/cordova-plugin-iosrtc-sample
 
