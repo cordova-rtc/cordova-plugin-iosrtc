@@ -2359,7 +2359,6 @@ function onEvent(data) {
 	var type = data.type,
 		self = this,
 		event = new Event(type),
-		stream,
 		dataChannel,
 		id;
 
@@ -2408,15 +2407,23 @@ function onEvent(data) {
 			break;
 
 		case 'track':
-			event.track = new MediaStreamTrack(data.track);
+			var track = new MediaStreamTrack(data.track),
+				stream = new MediaStream([track]), // TODO lookup remoteStreams ?
+				receiver = { track: track }, // TODO new RTCRtpReceiver
+				transceiver = { receiver: receiver }; // TODO new RTCRtpTransceiver
+
+			event.track = track;
+			event.receiver = receiver;
+			event.transceiver = transceiver;
+			event.streams = [stream];
 			break;
 
 		case 'addstream':
-			stream = MediaStream.create(data.stream);
-			event.stream = stream;
 
 			// Append to the remote streams.
-			this.remoteStreams[stream.id] = stream;
+			this.remoteStreams[stream.id] = MediaStream.create(data.stream);
+
+			event.stream = this.remoteStreams[data.streamId];
 
 			// Emit "connected" on the stream if ICE connected.
 			if (this.iceConnectionState === 'connected' || this.iceConnectionState === 'completed') {
@@ -2425,11 +2432,10 @@ function onEvent(data) {
 			break;
 
 		case 'removestream':
-			stream = this.remoteStreams[data.streamId];
-			event.stream = stream;
+			event.stream = this.remoteStreams[data.streamId];
 
 			// Remove from the remote streams.
-			delete this.remoteStreams[stream.id];
+			delete this.remoteStreams[data.streamId];
 			break;
 
 		case 'datachannel':
