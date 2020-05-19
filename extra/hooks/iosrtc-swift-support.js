@@ -32,8 +32,8 @@ function getProjectName(protoPath) {
 		cordovaConfigPath = path.join(protoPath, 'config.xml'),
 		content = fs.readFileSync(cordovaConfigPath, 'utf-8');
 
-    var name = /<name>([ \S]*)<\/name>/mi.exec(content)[1].trim();
-	
+	var name = /<name>([ \S]*)<\/name>/mi.exec(content)[1].trim();
+
 	return xmlEntities.decode(name);
 }
 
@@ -119,8 +119,8 @@ function debugError(msg) {
 module.exports = function (context) {
 
 	// This script has to be executed depending on the command line arguments, not
-  	// on the hook execution cycle.
-  	/*
+	// on the hook execution cycle.
+	/*
 	if (context.hook !== 'before_build' && !context.cmdLine.includes('build')) {
 		return;
 	}
@@ -242,7 +242,14 @@ module.exports = function (context) {
 		var hasSwiftBridgingHeaderPathXcodes = [];
 		var configurations = nonComments(xcodeProject.pbxXCBuildConfigurationSection());
 		Object.keys(configurations).forEach(function (config) {
-			var buildSettings = configurations[config].buildSettings;
+
+			var configuration = configurations[config],
+				buildSettings = configuration.buildSettings;
+
+			// Skip if not SDKROOT iphoneos
+			if (configuration.SDKROOT !== 'iphoneos') {
+				return;
+			}
 
 			if (!hasBuildSettingsValue(buildSettings.LD_RUNPATH_SEARCH_PATHS, RUNPATH_SEARCH_PATHS_XCODE)) {
 				buildSettings.LD_RUNPATH_SEARCH_PATHS = RUNPATH_SEARCH_PATHS_XCODE;
