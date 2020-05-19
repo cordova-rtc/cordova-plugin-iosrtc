@@ -247,7 +247,7 @@ module.exports = function (context) {
 				buildSettings = configuration.buildSettings;
 
 			// Skip if not SDKROOT iphoneos
-			if (configuration.SDKROOT !== 'iphoneos') {
+			if (buildSettings.SDKROOT !== 'iphoneos') {
 				return;
 			}
 
