@@ -180,8 +180,8 @@ function TestRTCPeerConnection(localStream) {
     onAddIceCandidate(pc1, e.candidate);
   });
 
-  pc2.addEventListener('addtrack', function (e) {
-    console.log('pc2.addtrack', e);
+  pc2.addEventListener('track', function (e) {
+    console.log('pc2.track', e);
   });
 
   pc2.addEventListener('addstream', function (e) {
