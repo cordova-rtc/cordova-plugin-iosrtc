@@ -169,6 +169,7 @@ function restoreCallbacksSupport() {
 	callbackifyPrototype(RTCPeerConnection.prototype, 'setRemoteDescription');
 	callbackifyPrototype(RTCPeerConnection.prototype, 'setLocalDescription');
 	callbackifyPrototype(RTCPeerConnection.prototype, 'addIceCandidate');
+	callbackifyPrototype(RTCPeerConnection.prototype, 'getStats');
 }
 
 function registerGlobals(doNotRestoreCallbacksSupport) {
