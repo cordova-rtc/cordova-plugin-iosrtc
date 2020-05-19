@@ -722,7 +722,7 @@ function onEvent(data) {
 		case 'addstream':
 
 			// Append to the remote streams.
-			this.remoteStreams[stream.id] = MediaStream.create(data.stream);
+			this.remoteStreams[data.streamId] = MediaStream.create(data.stream);
 
 			event.stream = this.remoteStreams[data.streamId];
 
