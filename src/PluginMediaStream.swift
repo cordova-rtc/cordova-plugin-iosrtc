@@ -104,7 +104,7 @@ class PluginMediaStream : NSObject {
 			return false
 		}
 
-		//onAddTrack(pluginMediaStreamTrack)
+		onAddTrack(pluginMediaStreamTrack)
 		return true
 	}
 
@@ -123,7 +123,7 @@ class PluginMediaStream : NSObject {
 			return false
 		}
 
-		//onRemoveTrack(pluginMediaStreamTrack)
+		onRemoveTrack(pluginMediaStreamTrack)
 		return true
 	}
 
