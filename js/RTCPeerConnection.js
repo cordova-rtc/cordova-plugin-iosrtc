@@ -709,7 +709,15 @@ function onEvent(data) {
 			break;
 
 		case 'track':
-			event.track = new MediaStreamTrack(data.track);
+			var track = new MediaStreamTrack(data.track),
+				stream = new MediaStream([track]),
+				receiver = { track: track },
+				transceiver = { receiver: receiver };
+
+			event.track = track;
+			event.receiver = receiver;
+			event.transceiver = transceiver;
+			event.streams = [stream];
 			break;
 
 		case 'addstream':
