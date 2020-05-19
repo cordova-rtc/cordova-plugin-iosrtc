@@ -382,7 +382,6 @@ MediaStream.prototype.getTrackById = function (id) {
 	return this._audioTracks[id] || this._videoTracks[id] || null;
 };
 
-
 MediaStream.prototype.addTrack = function (track) {
 	debug('addTrack() [track:%o]', track);
 
@@ -406,9 +405,8 @@ MediaStream.prototype.addTrack = function (track) {
 
 	exec(null, null, 'iosrtcPlugin', 'MediaStream_addTrack', [this.id, track.id]);
 
-	this.dispatchEvent(new Event('update'));
+	this.emitConnected();
 };
-
 
 MediaStream.prototype.removeTrack = function (track) {
 	debug('removeTrack() [track:%o]', track);
@@ -430,8 +428,6 @@ MediaStream.prototype.removeTrack = function (track) {
 	}
 
 	exec(null, null, 'iosrtcPlugin', 'MediaStream_removeTrack', [this.id, track.id]);
-
-	this.dispatchEvent(new Event('update'));
 
 	checkActive.call(this);
 };
@@ -2421,7 +2417,7 @@ function onEvent(data) {
 		case 'addstream':
 
 			// Append to the remote streams.
-			this.remoteStreams[stream.id] = MediaStream.create(data.stream);
+			this.remoteStreams[data.streamId] = MediaStream.create(data.stream);
 
 			event.stream = this.remoteStreams[data.streamId];
 
