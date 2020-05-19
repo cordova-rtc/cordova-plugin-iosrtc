@@ -135,7 +135,15 @@ class PluginGetUserMedia {
 			
 			NSLog("PluginGetUserMedia#call() | chosen audio constraints: %@", audioConstraints)
 			
-			let audioDeviceId = audioConstraints.object(forKey: "deviceId") as? String
+			
+			var audioDeviceId = audioConstraints.object(forKey: "deviceId") as? String
+			if(audioDeviceId == nil && audioConstraints.object(forKey: "deviceId") != nil){
+				let audioId = audioConstraints.object(forKey: "deviceId") as! NSDictionary
+				audioDeviceId = audioId.object(forKey: "exact") as? String
+				if(audioDeviceId == nil){
+					audioDeviceId = audioId.object(forKey: "ideal") as? String
+				}
+			}
 
 			rtcAudioTrack = self.rtcPeerConnectionFactory.audioTrack(withTrackId: UUID().uuidString)
 			rtcMediaStream.addAudioTrack(rtcAudioTrack!)

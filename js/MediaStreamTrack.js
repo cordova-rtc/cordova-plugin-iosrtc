@@ -19,9 +19,13 @@ var
 	EventTarget = require('./EventTarget');
 
 // Save original MediaStreamTrack
-var originalMediaStreamTrack = window.MediaStreamTrack;
+var originalMediaStreamTrack = window.MediaStreamTrack || function dummyMediaStreamTrack() {};
 
 function MediaStreamTrack(dataFromEvent) {
+	if (!dataFromEvent) {
+		throw new Error('Illegal constructor');
+	}
+
 	debug('new() | [dataFromEvent:%o]', dataFromEvent);
 
 	var self = this;

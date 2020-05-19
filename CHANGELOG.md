@@ -1,8 +1,41 @@
+#### Version 6.0.11
+* Fix possible duplicate remote streamId/trackId with janus/kurento/freeswitch or short duplicate name #493
+* Fix Calling removeTrack/addTrack does not update renderer #492
+
+#### Version 6.0.10
+* Fix ios 10.2+ issue with loading cordova when iosrtc plugin present. #488
+* Fix TypeError: undefined is not an object(evaluating 'originaMediaStream.prototype') #485
+* Handle ios 10.x.x that does not have MediaStream Native Prototype and fallback on Blob with EventTarget shim #489
+
+#### Version 6.0.9
+* fix possible TypeError: null is not an object (evaluating 'iceCandidateFields.foundation') due fail match candidateToJson #473
+* fix getStats typo report.timestamp #472
+* Fix getMediaDevice audioConstraints to allowing audio devices change #470
+
+#### Version 6.0.8
+* Add Known Issues > iOS >= 13.3.1 Device support to README.md
+* implement candidateToJson SDP candidate parser into RTCIceCandidate to populate foundation, component, priority, type, address, ip, protocol, port, relatedAddress and relatedPort RTCIceCandidate values #468
+* Fix PeerConnection.addStream|addTrack by using UUID().uuidString preffix for PluginMediaStream and PluginMediaStreamTrack only for Janus #467
+
+#### Version 6.0.7
+* Missing Event.target value on iosRTC Events to fix Datachannel for Janus.js #447
+* Update extras/renderer-and-libwebrtc-tests.js
+
+#### Version 6.0.6
+* Update ios_arch.js script link ([PR #457](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/457) by @onerinas)
+* Fix removeStream and add real Ids with UUID suffix to PluginMediaStream and PluginMediaStreamTrack ([PR #460](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/460)) 
+* handle webrtc-adapter multiple video.optional constraints values add support for maxHeight and maxWidth
+* Update README with sdpSemantics, bundlePolicy, rtcpMuxPolicy sample
+
+#### Version 6.0.5
+* Fix missing typeof on constraints.video.facingMode.ideal
+
 #### Version 6.0.4
 * Improve video constraints (width|height|aspectRatio|frameRate).(ideal|exact) and add (aspectRatio|frameRate|facingMode).(ideal|exact) support enhancement #451
-* generate unique PluginMediaStream and PluginMediaStreamTrack, keep original streamId/trackId for internal calls #447
+* Generate unique PluginMediaStream and PluginMediaStreamTrack, keep original streamId/trackId for internal calls #447
 * Add English facingLabel suffix if localizedName does not match for facing detection using label, fix PluginEnumerateDevices ordered array #446
 * Implement PluginRTCAudioController setCategory and use audioMode AVAudioSession.Mode.voiceChat and make initAudioDevices non-static #448
+* Fix Callbacks support for getUserMedia ([PR #453](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/453) by @onerinas)
 
 #### Version 6.0.3
 * make second argument MediaStream of RTCPeerConnection.prototype.addTrack optional #437

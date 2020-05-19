@@ -44,7 +44,7 @@ function MediaStreamRenderer(element) {
 
 	this.refresh();
 
-	// TODO cause video resizing jiggling add semaphore 
+	// TODO cause video resizing jiggling add semaphore
 	//this.refreshInterval = setInterval(function () {
 	//	self.refresh(self);
 	//}, 500);

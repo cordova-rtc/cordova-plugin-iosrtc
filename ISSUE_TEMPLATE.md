@@ -20,3 +20,5 @@ as descriptive as you can.
 * **iOS version**: 
 * **Xcode version**:
 
+(Do not write latest for version that stupid).
+
