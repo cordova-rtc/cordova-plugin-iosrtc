@@ -2424,7 +2424,7 @@ function onEvent(data) {
 
 			// Emit "connected" on the stream if ICE connected.
 			if (this.iceConnectionState === 'connected' || this.iceConnectionState === 'completed') {
-				stream.emitConnected();
+				event.stream.emitConnected();
 			}
 			break;
 
