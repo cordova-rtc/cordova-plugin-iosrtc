@@ -574,21 +574,25 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 	 * Methods inherited from RTCPeerConnectionDelegate.
 	 */
 
-	private func getPluginMediaStream(stream: RTCMediaStream) -> PluginMediaStream? {
+	private func getPluginMediaStream(stream: RTCMediaStream?) -> PluginMediaStream? {
 
-		if (pluginMediaStreams[stream.streamId] == nil) {
-			let pluginMediaStream = PluginMediaStream(rtcMediaStream: stream)
+		if (stream == nil) {
+			return nil;
+		}
+
+		if (pluginMediaStreams[stream!.streamId] == nil) {
+			let pluginMediaStream = PluginMediaStream(rtcMediaStream: stream!)
 
 			pluginMediaStream.run()
 
 			// Let the plugin store it in its dictionary.
-			streamIds.append(stream.streamId)
-			pluginMediaStreams[stream.streamId] = pluginMediaStream;
+			streamIds.append(stream!.streamId)
+			pluginMediaStreams[stream!.streamId] = pluginMediaStream;
 
 			self.eventListenerForAddStream(pluginMediaStream)
 		}
 
-		return pluginMediaStreams[stream.streamId]!;
+		return pluginMediaStreams[stream!.streamId]!;
 	}
 
 	/** Called when media is received on a new stream from remote peer. */
@@ -625,16 +629,9 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 
 		NSLog("PluginRTCPeerConnection | onaddtrack")
 
+		// TODO investigate why no stream sometimes and confirm still the case.
 		let pluginMediaStream = getPluginMediaStream(stream: streams[0]);
-
-		// TODO why streams.count is 0 and should it trigger addtrack
-		// TODO why NSLog streamId cause crash need weak ?
-		let streamId : String = streams.count > 0 ? streams[0].streamId : "";
-
-		let pluginMediaTrack = PluginMediaStreamTrack(
-		   rtcMediaStreamTrack: rtpReceiver.track!,
-		   streamId: streamId
-		)
+		let pluginMediaTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: rtpReceiver.track!)
 
 		self.eventListener([
 		   "type": "track",
