@@ -709,7 +709,7 @@ function onEvent(data) {
 
 		case 'track':
 			var track = new MediaStreamTrack(data.track),
-				stream = new MediaStream([track]), // TODO lookup remoteStreams ?
+				stream = this.remoteStreams[data.streamId] || MediaStream.create(data.stream),
 				receiver = { track: track }, // TODO new RTCRtpReceiver
 				transceiver = { receiver: receiver }; // TODO new RTCRtpTransceiver
 
@@ -722,7 +722,7 @@ function onEvent(data) {
 		case 'addstream':
 
 			// Append to the remote streams.
-			this.remoteStreams[data.streamId] = MediaStream.create(data.stream);
+			this.remoteStreams[data.streamId] = this.remoteStreams[data.streamId] || MediaStream.create(data.stream);
 
 			event.stream = this.remoteStreams[data.streamId];
 

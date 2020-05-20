@@ -574,24 +574,34 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 	 * Methods inherited from RTCPeerConnectionDelegate.
 	 */
 
+	private func getPluginMediaStream(stream: RTCMediaStream) -> PluginMediaStream? {
+
+		if (pluginMediaStreams[stream.streamId] == nil) {
+			let pluginMediaStream = PluginMediaStream(rtcMediaStream: stream)
+
+			pluginMediaStream.run()
+
+			// Let the plugin store it in its dictionary.
+			streamIds.append(stream.streamId)
+			pluginMediaStreams[stream.streamId] = pluginMediaStream;
+
+			self.eventListenerForAddStream(pluginMediaStream)
+		}
+
+		return pluginMediaStreams[stream.streamId]!;
+	}
+
 	/** Called when media is received on a new stream from remote peer. */
 	func peerConnection(_ peerConnection: RTCPeerConnection, didAdd stream: RTCMediaStream) {
 		NSLog("PluginRTCPeerConnection | onaddstream")
 
-		let pluginMediaStream = PluginMediaStream(rtcMediaStream: stream)
-
-		pluginMediaStream.run()
-
-		// Let the plugin store it in its dictionary.
-		streamIds.append(stream.streamId)
-		pluginMediaStreams[stream.streamId] = pluginMediaStream;
-
-		self.eventListenerForAddStream(pluginMediaStream)
+		let pluginMediaStream = getPluginMediaStream(stream: stream);
 
 		// Fire the 'addstream' event so the JS will create a new MediaStream.
 		self.eventListener([
 			"type": "addstream",
-			"stream": pluginMediaStream.getJSON()
+			"streamId": pluginMediaStream!.id,
+			"stream": pluginMediaStream!.getJSON()
 		])
 	}
 
@@ -607,6 +617,30 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		self.eventListener([
 			"type": "removestream",
 			"streamId": pluginMediaStream!.id
+		])
+	}
+
+	/** New track as been added. */
+	func peerConnection(_ peerConnection: RTCPeerConnection, didAdd rtpReceiver: RTCRtpReceiver, streams:[RTCMediaStream]) {
+
+		NSLog("PluginRTCPeerConnection | onaddtrack")
+
+		let pluginMediaStream = getPluginMediaStream(stream: streams[0]);
+
+		// TODO why streams.count is 0 and should it trigger addtrack
+		// TODO why NSLog streamId cause crash need weak ?
+		let streamId : String = streams.count > 0 ? streams[0].streamId : "";
+
+		let pluginMediaTrack = PluginMediaStreamTrack(
+		   rtcMediaStreamTrack: rtpReceiver.track!,
+		   streamId: streamId
+		)
+
+		self.eventListener([
+		   "type": "track",
+		   "track": pluginMediaTrack.getJSON(),
+		   "streamId": pluginMediaStream!.id,
+		   "stream": pluginMediaStream!.getJSON()
 		])
 	}
 
@@ -745,26 +779,6 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 				"readyState": PluginRTCTypes.dataChannelStates[rtcDataChannel.readyState.rawValue] as Any,
 				"bufferedAmount": rtcDataChannel.bufferedAmount
 			]
-		])
-	}
-
-	/** New track as been added. */
-	func peerConnection(_ peerConnection: RTCPeerConnection, didAdd rtpReceiver: RTCRtpReceiver, streams:[RTCMediaStream]) {
-
-		NSLog("PluginRTCPeerConnection | onaddtrack")
-
-		// TODO why streams.count is 0 and should it trigger addtrack
-		// TODO why NSLog streamId cause crash need weak ?
-		let streamId : String = streams.count > 0 ? streams[0].streamId : "";
-
-		let track = PluginMediaStreamTrack(
-		   rtcMediaStreamTrack: rtpReceiver.track!,
-		   streamId: streamId
-		)
-
-		self.eventListener([
-		   "type": "track",
-		   "track": track.getJSON()
 		])
 	}
 }
