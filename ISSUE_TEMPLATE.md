@@ -19,6 +19,6 @@ as descriptive as you can.
 * **Plugin version**:
 * **iOS version**: 
 * **Xcode version**:
+* **WebRTC-adapter version**:
 
-(Do not write latest for version that stupid).
-
+Note: Do not write `latest` for version that stupid.
