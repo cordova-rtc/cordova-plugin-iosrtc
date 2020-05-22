@@ -552,14 +552,13 @@ RTCPeerConnection.prototype.createDTMFSender = function (track) {
 	return new RTCDTMFSender(this, track);
 };
 
-RTCPeerConnection.prototype.getStats = function () {
+RTCPeerConnection.prototype.getStats = function (selector) {
 
 	// Detect callback usage to assist 5.0.1 to 5.0.2 migration
 	// TODO remove on 6.0.0
 	Errors.detectDeprecatedCallbaksUsage('RTCPeerConnection.prototype.getStats', arguments);
 
-	var self = this,
-		selector = arguments[0];
+	var self = this;
 
 	if (selector && !(selector instanceof MediaStreamTrack)) {
 		throw new Error('getStats() must be called with null or a valid MediaStreamTrack instance as argument');
