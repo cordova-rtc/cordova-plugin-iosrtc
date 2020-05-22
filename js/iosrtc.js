@@ -122,7 +122,7 @@ function requestPermission(needMic, needCamera, callback) {
 }
 
 function callbackifyMethod(originalMethod) {
-	return function () {
+	return function (arg) {
 		var success, failure,
 		  originalArgs = Array.prototype.slice.call(arguments);
 
