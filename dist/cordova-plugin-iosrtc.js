@@ -3127,7 +3127,7 @@ function requestPermission(needMic, needCamera, callback) {
 }
 
 function callbackifyMethod(originalMethod) {
-	return function (arg) {
+	return function (arg) { // jshint ignore:line
 		var success, failure,
 		  originalArgs = Array.prototype.slice.call(arguments);
 
