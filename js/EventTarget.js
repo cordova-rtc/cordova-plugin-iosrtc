@@ -11,6 +11,8 @@ var EventTarget = function () {
 EventTarget.prototype = Object.create(YaetiEventTarget.prototype);
 EventTarget.prototype.constructor = EventTarget;
 
+Object.defineProperties(EventTarget.prototype, Object.getOwnPropertyDescriptors(YaetiEventTarget.prototype));
+
 EventTarget.prototype.dispatchEvent = function (event) {
 
 	Object.defineProperty(event, 'target', {

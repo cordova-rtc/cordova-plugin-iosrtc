@@ -122,7 +122,7 @@ function requestPermission(needMic, needCamera, callback) {
 }
 
 function callbackifyMethod(originalMethod) {
-	return function () {
+	return function (arg) { // jshint ignore:line
 		var success, failure,
 		  originalArgs = Array.prototype.slice.call(arguments);
 
@@ -169,6 +169,7 @@ function restoreCallbacksSupport() {
 	callbackifyPrototype(RTCPeerConnection.prototype, 'setRemoteDescription');
 	callbackifyPrototype(RTCPeerConnection.prototype, 'setLocalDescription');
 	callbackifyPrototype(RTCPeerConnection.prototype, 'addIceCandidate');
+	callbackifyPrototype(RTCPeerConnection.prototype, 'getStats');
 }
 
 function registerGlobals(doNotRestoreCallbacksSupport) {
