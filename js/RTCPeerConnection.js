@@ -104,6 +104,13 @@ Object.defineProperties(RTCPeerConnection.prototype, {
 			return this.addEventListener('addstream', callback);
 		}
 	},
+	'ontrack': {
+		// Fix webrtc-adapter TypeError: Attempting to change the getter of an unconfigurable property.
+		configurable: true,
+		set: function (callback) {
+			return this.addEventListener('track', callback);
+		}
+	},
 	'oniceconnectionstatechange': {
 		// Fix webrtc-adapter TypeError: Attempting to change the getter of an unconfigurable property.
 		configurable: true,
@@ -690,7 +697,6 @@ function onEvent(data) {
 	var type = data.type,
 		self = this,
 		event = new Event(type),
-		stream,
 		dataChannel,
 		id;
 
@@ -738,29 +744,36 @@ function onEvent(data) {
 		case 'negotiationneeded':
 			break;
 
-		case 'addtrack':
-			event.track = data.track;
+		case 'track':
+			var track = new MediaStreamTrack(data.track),
+				stream = this.remoteStreams[data.streamId] || MediaStream.create(data.stream),
+				receiver = { track: track }, // TODO new RTCRtpReceiver
+				transceiver = { receiver: receiver }; // TODO new RTCRtpTransceiver
+
+			event.track = track;
+			event.receiver = receiver;
+			event.transceiver = transceiver;
+			event.streams = [stream];
 			break;
 
 		case 'addstream':
-			stream = MediaStream.create(data.stream);
-			event.stream = stream;
 
 			// Append to the remote streams.
-			this.remoteStreams[stream.id] = stream;
+			this.remoteStreams[data.streamId] = this.remoteStreams[data.streamId] || MediaStream.create(data.stream);
+
+			event.stream = this.remoteStreams[data.streamId];
 
 			// Emit "connected" on the stream if ICE connected.
 			if (this.iceConnectionState === 'connected' || this.iceConnectionState === 'completed') {
-				stream.emitConnected();
+				event.stream.emitConnected();
 			}
 			break;
 
 		case 'removestream':
-			stream = this.remoteStreams[data.streamId];
-			event.stream = stream;
+			event.stream = this.remoteStreams[data.streamId];
 
 			// Remove from the remote streams.
-			delete this.remoteStreams[stream.id];
+			delete this.remoteStreams[data.streamId];
 			break;
 
 		case 'datachannel':
