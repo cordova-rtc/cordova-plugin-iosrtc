@@ -1,7 +1,7 @@
 #### Version 6.0.12
 * Implement RTCPeerConnection track event on PluginRTCPeerConnection and RTCPeerConnection SHIM #508
-* Fix WebRTC-adapter <7.5.0 track SHIM failure
-* Fix WebRTC-adapter >7.6.0 track missing SHIM
+* Fix WebRTC-adapter <= 7.5.0 track SHIM failure
+* Fix WebRTC-adapter >= 7.6.0 track missing SHIM
 * Add SHAM for MediaStreamTrack.getSettings|getCapabilities
 * Add Throw Error Not implemented for MediaStreamTrack.getConstraints|applyConstraints
 * Fix RTCPeerConnection.prototype.getStats.length to match features detection #511
@@ -13,6 +13,8 @@
 * Add basic RTCRtpTransceiver|RTCRtpSender|RTCRtpReceiver shim #423
 * Fix getReceivers method doesn't return RTCRtpReceiver array #442
 * Fix Blob only support for iOS 10.x that does not know MediaStream #495
+* Incompatibility with Janus WebRTC gateway when using WebRTC-adapter >= 7.6.0 #505
+* Improve getUserMedia compatiblity with Twilio Video #497
 
 #### Version 6.0.11
 * Fix possible duplicate remote streamId/trackId with janus/kurento/freeswitch or short duplicate name #493
