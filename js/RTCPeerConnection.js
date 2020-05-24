@@ -747,8 +747,8 @@ function onEvent(data) {
 		case 'track':
 			var track = new MediaStreamTrack(data.track),
 				stream = this.remoteStreams[data.streamId] || MediaStream.create(data.stream),
-				receiver = { track: track }, // TODO new RTCRtpReceiver
-				transceiver = { receiver: receiver }; // TODO new RTCRtpTransceiver
+				receiver = new RTCRtpReceiver({ track: track }),
+				transceiver = new RTCRtpTransceiver({ receiver: receiver });
 
 			event.track = track;
 			event.receiver = receiver;
