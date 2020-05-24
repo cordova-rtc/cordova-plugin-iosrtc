@@ -258,7 +258,6 @@ MediaStream.prototype.getTrackById = function (id) {
 	return this._audioTracks[id] || this._videoTracks[id] || null;
 };
 
-
 MediaStream.prototype.addTrack = function (track) {
 	debug('addTrack() [track:%o]', track);
 
@@ -283,8 +282,9 @@ MediaStream.prototype.addTrack = function (track) {
 	exec(null, null, 'iosrtcPlugin', 'MediaStream_addTrack', [this.id, track.id]);
 
 	this.dispatchEvent(new Event('update'));
-};
 
+	this.emitConnected();
+};
 
 MediaStream.prototype.removeTrack = function (track) {
 	debug('removeTrack() [track:%o]', track);
@@ -473,6 +473,7 @@ function onEvent(data) {
 			event.track = track;
 
 			this.dispatchEvent(event);
+
 			// Also emit 'update' for the MediaStreamRenderer.
 			this.dispatchEvent(new Event('update'));
 

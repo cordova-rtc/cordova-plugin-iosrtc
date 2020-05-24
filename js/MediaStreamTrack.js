@@ -16,6 +16,8 @@ var
 	debug = require('debug')('iosrtc:MediaStreamTrack'),
 	exec = require('cordova/exec'),
 	enumerateDevices = require('./enumerateDevices'),
+	MediaTrackCapabilities = require('./MediaTrackCapabilities'),
+	MediaTrackSettings = require('./MediaTrackSettings'),
 	EventTarget = require('./EventTarget');
 
 // Save original MediaStreamTrack
@@ -70,6 +72,31 @@ Object.defineProperty(MediaStreamTrack.prototype, 'enabled', {
 	}
 });
 
+MediaStreamTrack.prototype.getConstraints = function () {
+	throw new Error('Not implemented.');
+};
+
+MediaStreamTrack.prototype.applyConstraints = function () {
+	throw new Error('Not implemented.');
+};
+
+MediaStreamTrack.prototype.clone = function () {
+	//throw new Error('Not implemented.');
+	// SHAM
+	return this;
+};
+
+MediaStreamTrack.prototype.getCapabilities = function () {
+	//throw new Error('Not implemented.');
+	// SHAM
+	return new MediaTrackCapabilities();
+};
+
+MediaStreamTrack.prototype.getSettings = function () {
+	//throw new Error('Not implemented.');
+	// SHAM
+	return new MediaTrackSettings();
+};
 
 MediaStreamTrack.prototype.stop = function () {
 	debug('stop()');
