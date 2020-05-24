@@ -382,7 +382,6 @@ MediaStream.prototype.getTrackById = function (id) {
 	return this._audioTracks[id] || this._videoTracks[id] || null;
 };
 
-
 MediaStream.prototype.addTrack = function (track) {
 	debug('addTrack() [track:%o]', track);
 
@@ -406,9 +405,8 @@ MediaStream.prototype.addTrack = function (track) {
 
 	exec(null, null, 'iosrtcPlugin', 'MediaStream_addTrack', [this.id, track.id]);
 
-	this.dispatchEvent(new Event('update'));
+	this.emitConnected();
 };
-
 
 MediaStream.prototype.removeTrack = function (track) {
 	debug('removeTrack() [track:%o]', track);
@@ -430,8 +428,6 @@ MediaStream.prototype.removeTrack = function (track) {
 	}
 
 	exec(null, null, 'iosrtcPlugin', 'MediaStream_removeTrack', [this.id, track.id]);
-
-	this.dispatchEvent(new Event('update'));
 
 	checkActive.call(this);
 };
@@ -597,6 +593,7 @@ function onEvent(data) {
 			event.track = track;
 
 			this.dispatchEvent(event);
+
 			// Also emit 'update' for the MediaStreamRenderer.
 			this.dispatchEvent(new Event('update'));
 
@@ -673,9 +670,9 @@ MediaStreamRenderer.prototype.render = function (stream) {
 		throw new Error('render() requires a MediaStream instance as argument');
 	}
 
-	this.stream = stream;
+	self.stream = stream;
 
-	exec(null, null, 'iosrtcPlugin', 'MediaStreamRenderer_render', [this.id, stream.id]);
+	exec(null, null, 'iosrtcPlugin', 'MediaStreamRenderer_render', [self.id, stream.id]);
 
 	// Subscribe to 'update' event so we call native mediaStreamChanged() on it.
 	stream.addEventListener('update', function () {
@@ -1800,6 +1797,13 @@ Object.defineProperties(RTCPeerConnection.prototype, {
 			return this.addEventListener('addstream', callback);
 		}
 	},
+	'ontrack': {
+		// Fix webrtc-adapter TypeError: Attempting to change the getter of an unconfigurable property.
+		configurable: true,
+		set: function (callback) {
+			return this.addEventListener('track', callback);
+		}
+	},
 	'oniceconnectionstatechange': {
 		// Fix webrtc-adapter TypeError: Attempting to change the getter of an unconfigurable property.
 		configurable: true,
@@ -2352,7 +2356,6 @@ function onEvent(data) {
 	var type = data.type,
 		self = this,
 		event = new Event(type),
-		stream,
 		dataChannel,
 		id;
 
@@ -2400,29 +2403,36 @@ function onEvent(data) {
 		case 'negotiationneeded':
 			break;
 
-		case 'addtrack':
-			event.track = data.track;
+		case 'track':
+			var track = new MediaStreamTrack(data.track),
+				stream = this.remoteStreams[data.streamId] || MediaStream.create(data.stream),
+				receiver = { track: track }, // TODO new RTCRtpReceiver
+				transceiver = { receiver: receiver }; // TODO new RTCRtpTransceiver
+
+			event.track = track;
+			event.receiver = receiver;
+			event.transceiver = transceiver;
+			event.streams = [stream];
 			break;
 
 		case 'addstream':
-			stream = MediaStream.create(data.stream);
-			event.stream = stream;
 
 			// Append to the remote streams.
-			this.remoteStreams[stream.id] = stream;
+			this.remoteStreams[data.streamId] = this.remoteStreams[data.streamId] || MediaStream.create(data.stream);
+
+			event.stream = this.remoteStreams[data.streamId];
 
 			// Emit "connected" on the stream if ICE connected.
 			if (this.iceConnectionState === 'connected' || this.iceConnectionState === 'completed') {
-				stream.emitConnected();
+				event.stream.emitConnected();
 			}
 			break;
 
 		case 'removestream':
-			stream = this.remoteStreams[data.streamId];
-			event.stream = stream;
+			event.stream = this.remoteStreams[data.streamId];
 
 			// Remove from the remote streams.
-			delete this.remoteStreams[stream.id];
+			delete this.remoteStreams[data.streamId];
 			break;
 
 		case 'datachannel':
