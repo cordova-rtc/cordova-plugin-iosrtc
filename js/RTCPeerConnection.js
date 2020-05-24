@@ -17,6 +17,9 @@ var
 	RTCIceCandidate = require('./RTCIceCandidate'),
 	RTCDataChannel = require('./RTCDataChannel'),
 	RTCDTMFSender = require('./RTCDTMFSender'),
+	RTCRtpReceiver = require('./RTCRtpReceiver'),
+	RTCRtpSender = require('./RTCRtpSender'),
+	RTCRtpTransceiver = require('./RTCRtpTransceiver'),
 	RTCStatsResponse = require('./RTCStatsResponse'),
 	RTCStatsReport = require('./RTCStatsReport'),
 	MediaStream = require('./MediaStream'),
@@ -404,7 +407,11 @@ RTCPeerConnection.prototype.getReceivers = function () {
 		}
 	}
 
-	return tracks;
+	return tracks.map(function (track) {
+		return new RTCRtpReceiver({
+			track: track
+		});
+	});
 };
 
 RTCPeerConnection.prototype.getSenders = function () {
@@ -417,8 +424,31 @@ RTCPeerConnection.prototype.getSenders = function () {
 		}
 	}
 
-	return tracks;
+	return tracks.map(function (track) {
+		return new RTCRtpSender({
+			track: track
+		});
+	});
 };
+
+RTCPeerConnection.prototype.getTransceivers = function () {
+	var transceivers = [];
+
+	this.getReceivers().map(function (receiver) {
+		transceivers.push(new RTCRtpTransceiver({
+			receiver: receiver
+		}));
+	});
+
+	this.getSenders().map(function (sender) {
+		transceivers.push(new RTCRtpTransceiver({
+			sender: sender
+		}));
+	});
+
+	return transceivers;
+};
+
 
 RTCPeerConnection.prototype.addTrack = function (track, stream) {
 	var id;
@@ -462,10 +492,17 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 	}
 };
 
-RTCPeerConnection.prototype.removeTrack = function (track) {
+RTCPeerConnection.prototype.removeTrack = function (sender) {
 	var id,
+		track,
 		stream,
 		hasTrack;
+
+	if (!(sender instanceof RTCRtpSender)) {
+		throw new Error('removeTrack() must be called with a RTCRtpSender instance as argument');
+	}
+
+	track = sender.track;
 
 	function matchLocalTrack(localTrack) {
 		return localTrack.id === track.id;
@@ -710,8 +747,8 @@ function onEvent(data) {
 		case 'track':
 			var track = new MediaStreamTrack(data.track),
 				stream = this.remoteStreams[data.streamId] || MediaStream.create(data.stream),
-				receiver = { track: track }, // TODO new RTCRtpReceiver
-				transceiver = { receiver: receiver }; // TODO new RTCRtpTransceiver
+				receiver = new RTCRtpReceiver({ track: track }),
+				transceiver = new RTCRtpTransceiver({ receiver: receiver });
 
 			event.track = track;
 			event.receiver = receiver;
