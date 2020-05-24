@@ -15,6 +15,7 @@
 * Add support for MediaStreamTrack.clone() method #474
 * Add basic RTCRtpTransceiver|RTCRtpSender|RTCRtpReceiver shim #423
 * Fix getReceivers method doesn't return RTCRtpReceiver array #442
+* Fix Blob only support for iOS 10.x that does not know MediaStream #495
 
 #### Version 6.0.11
 * Fix possible duplicate remote streamId/trackId with janus/kurento/freeswitch or short duplicate name #493

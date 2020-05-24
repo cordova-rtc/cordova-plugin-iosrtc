@@ -204,7 +204,7 @@ function TestRTCPeerConnection(localStream) {
   }
 
   // This plugin handle 'addstream' and 'track' event for MediaStream creation.
-  var useTrackEvent = true;
+  var useTrackEvent = Object.getOwnPropertyDescriptors(RTCPeerConnection.prototype).ontrack;
 
   // Using 'track' event with existing MediaStream
   if (useTrackEvent) {
