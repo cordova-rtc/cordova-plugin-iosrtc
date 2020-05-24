@@ -91,7 +91,7 @@ EventTarget.prototype.dispatchEvent = function (event) {
  * Expose the EventTarget class.
  */
 module.exports = EventTarget;
-},{"yaeti":24}],3:[function(_dereq_,module,exports){
+},{"yaeti":27}],3:[function(_dereq_,module,exports){
 /**
  * Expose the MediaDeviceInfo class.
  */
@@ -603,7 +603,7 @@ function onEvent(data) {
 	}
 }
 
-},{"./EventTarget":2,"./MediaStreamTrack":6,"cordova/exec":undefined,"debug":18}],5:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"./MediaStreamTrack":6,"cordova/exec":undefined,"debug":21}],5:[function(_dereq_,module,exports){
 /**
  * Expose the MediaStreamRenderer class.
  */
@@ -1005,7 +1005,7 @@ function getElementPositionAndSize() {
 	};
 }
 
-},{"./EventTarget":2,"./MediaStream":4,"cordova/exec":undefined,"debug":18,"random-number":23}],6:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"./MediaStream":4,"cordova/exec":undefined,"debug":21,"random-number":26}],6:[function(_dereq_,module,exports){
 /**
  * Expose the MediaStreamTrack class.
  */
@@ -1136,7 +1136,7 @@ function onEvent(data) {
 	}
 }
 
-},{"./EventTarget":2,"./enumerateDevices":14,"cordova/exec":undefined,"debug":18}],7:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"./enumerateDevices":17,"cordova/exec":undefined,"debug":21}],7:[function(_dereq_,module,exports){
 /**
  * Expose the RTCDTMFSender class.
  */
@@ -1270,7 +1270,7 @@ function onEvent(data) {
 	}
 }
 
-},{"./EventTarget":2,"cordova/exec":undefined,"debug":18,"random-number":23}],8:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"cordova/exec":undefined,"debug":21,"random-number":26}],8:[function(_dereq_,module,exports){
 /**
  * Expose the RTCDataChannel class.
  */
@@ -1503,7 +1503,7 @@ function onEvent(data) {
 	}
 }
 
-},{"./EventTarget":2,"cordova/exec":undefined,"debug":18,"random-number":23}],9:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"cordova/exec":undefined,"debug":21,"random-number":26}],9:[function(_dereq_,module,exports){
 /**
  * Expose the RTCIceCandidate class.
  */
@@ -1713,6 +1713,9 @@ var
 	RTCIceCandidate = _dereq_('./RTCIceCandidate'),
 	RTCDataChannel = _dereq_('./RTCDataChannel'),
 	RTCDTMFSender = _dereq_('./RTCDTMFSender'),
+	RTCRtpReceiver = _dereq_('./RTCRtpReceiver'),
+	RTCRtpSender = _dereq_('./RTCRtpSender'),
+	RTCRtpTransceiver = _dereq_('./RTCRtpTransceiver'),
 	RTCStatsResponse = _dereq_('./RTCStatsResponse'),
 	RTCStatsReport = _dereq_('./RTCStatsReport'),
 	MediaStream = _dereq_('./MediaStream'),
@@ -2100,7 +2103,11 @@ RTCPeerConnection.prototype.getReceivers = function () {
 		}
 	}
 
-	return tracks;
+	return tracks.map(function (track) {
+		return new RTCRtpReceiver({
+			track: track
+		});
+	});
 };
 
 RTCPeerConnection.prototype.getSenders = function () {
@@ -2113,8 +2120,31 @@ RTCPeerConnection.prototype.getSenders = function () {
 		}
 	}
 
-	return tracks;
+	return tracks.map(function (track) {
+		return new RTCRtpSender({
+			track: track
+		});
+	});
 };
+
+RTCPeerConnection.prototype.getTransceivers = function () {
+	var transceivers = [];
+
+	this.getReceivers().map(function (receiver) {
+		transceivers.push(new RTCRtpTransceiver({
+			receiver: receiver
+		}));
+	});
+
+	this.getSenders().map(function (sender) {
+		transceivers.push(new RTCRtpTransceiver({
+			sender: sender
+		}));
+	});
+
+	return transceivers;
+};
+
 
 RTCPeerConnection.prototype.addTrack = function (track, stream) {
 	var id;
@@ -2158,10 +2188,17 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 	}
 };
 
-RTCPeerConnection.prototype.removeTrack = function (track) {
+RTCPeerConnection.prototype.removeTrack = function (sender) {
 	var id,
+		track,
 		stream,
 		hasTrack;
+
+	if (!(sender instanceof RTCRtpSender)) {
+		throw new Error('removeTrack() must be called with a RTCRtpSender instance as argument');
+	}
+
+	track = sender.track;
 
 	function matchLocalTrack(localTrack) {
 		return localTrack.id === track.id;
@@ -2406,8 +2443,8 @@ function onEvent(data) {
 		case 'track':
 			var track = new MediaStreamTrack(data.track),
 				stream = this.remoteStreams[data.streamId] || MediaStream.create(data.stream),
-				receiver = { track: track }, // TODO new RTCRtpReceiver
-				transceiver = { receiver: receiver }; // TODO new RTCRtpTransceiver
+				receiver = new RTCRtpReceiver({ track: track }),
+				transceiver = new RTCRtpTransceiver({ receiver: receiver });
 
 			event.track = track;
 			event.receiver = receiver;
@@ -2445,7 +2482,51 @@ function onEvent(data) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./Errors":1,"./EventTarget":2,"./MediaStream":4,"./MediaStreamTrack":6,"./RTCDTMFSender":7,"./RTCDataChannel":8,"./RTCIceCandidate":9,"./RTCSessionDescription":11,"./RTCStatsReport":12,"./RTCStatsResponse":13,"cordova/exec":undefined,"debug":18,"random-number":23}],11:[function(_dereq_,module,exports){
+},{"./Errors":1,"./EventTarget":2,"./MediaStream":4,"./MediaStreamTrack":6,"./RTCDTMFSender":7,"./RTCDataChannel":8,"./RTCIceCandidate":9,"./RTCRtpReceiver":11,"./RTCRtpSender":12,"./RTCRtpTransceiver":13,"./RTCSessionDescription":14,"./RTCStatsReport":15,"./RTCStatsResponse":16,"cordova/exec":undefined,"debug":21,"random-number":26}],11:[function(_dereq_,module,exports){
+/**
+ * Expose the RTCRtpReceiver class.
+ */
+module.exports = RTCRtpReceiver;
+
+
+function RTCRtpReceiver(data) {
+	data = data || {};
+
+	this.track = data.track;
+}
+
+},{}],12:[function(_dereq_,module,exports){
+/**
+ * Expose the RTCRtpSender class.
+ */
+module.exports = RTCRtpSender;
+
+
+function RTCRtpSender(data) {
+	data = data || {};
+
+	this.track = data.track;
+}
+},{}],13:[function(_dereq_,module,exports){
+/**
+ * Expose the RTCRtpTransceiver class.
+ */
+module.exports = RTCRtpTransceiver;
+
+
+function RTCRtpTransceiver(data) {
+	data = data || {};
+
+	this.receiver = data.receiver;
+	this.sender = data.sender;
+}
+
+// TODO
+// https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpTransceiver/currentDirection
+// https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpTransceiverDirection
+// https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpTransceiver/mid
+// https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpTransceiver/stop
+},{}],14:[function(_dereq_,module,exports){
 /**
  * Expose the RTCSessionDescription class.
  */
@@ -2460,7 +2541,7 @@ function RTCSessionDescription(data) {
 	this.sdp = data.sdp;
 }
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],15:[function(_dereq_,module,exports){
 /**
  * Expose the RTCStatsReport class.
  */
@@ -2482,7 +2563,7 @@ function RTCStatsReport(data) {
 	};
 }
 
-},{}],13:[function(_dereq_,module,exports){
+},{}],16:[function(_dereq_,module,exports){
 /**
  * Expose the RTCStatsResponse class.
  */
@@ -2504,7 +2585,7 @@ function RTCStatsResponse(data) {
 	};
 }
 
-},{}],14:[function(_dereq_,module,exports){
+},{}],17:[function(_dereq_,module,exports){
 /**
  * Expose the enumerateDevices function.
  */
@@ -2558,7 +2639,7 @@ function getMediaDeviceInfos(devices) {
 	return mediaDeviceInfos;
 }
 
-},{"./Errors":1,"./MediaDeviceInfo":3,"cordova/exec":undefined,"debug":18}],15:[function(_dereq_,module,exports){
+},{"./Errors":1,"./MediaDeviceInfo":3,"cordova/exec":undefined,"debug":21}],18:[function(_dereq_,module,exports){
 /**
  * Expose the getUserMedia function.
  */
@@ -3011,7 +3092,7 @@ function getUserMedia(constraints) {
 		exec(onResultOK, onResultError, 'iosrtcPlugin', 'getUserMedia', [newConstraints]);
 	});
 }
-},{"./Errors":1,"./MediaStream":4,"cordova/exec":undefined,"debug":18}],16:[function(_dereq_,module,exports){
+},{"./Errors":1,"./MediaStream":4,"cordova/exec":undefined,"debug":21}],19:[function(_dereq_,module,exports){
 (function (global){
 /**
  * Variables.
@@ -3222,7 +3303,7 @@ function dump() {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./MediaStream":4,"./MediaStreamTrack":6,"./RTCIceCandidate":9,"./RTCPeerConnection":10,"./RTCSessionDescription":11,"./enumerateDevices":14,"./getUserMedia":15,"./videoElementsHandler":17,"cordova/exec":undefined,"debug":18,"domready":20}],17:[function(_dereq_,module,exports){
+},{"./MediaStream":4,"./MediaStreamTrack":6,"./RTCIceCandidate":9,"./RTCPeerConnection":10,"./RTCSessionDescription":14,"./enumerateDevices":17,"./getUserMedia":18,"./videoElementsHandler":20,"cordova/exec":undefined,"debug":21,"domready":23}],20:[function(_dereq_,module,exports){
 /**
  * Expose a function that must be called when the library is loaded.
  * And also a helper function.
@@ -3563,7 +3644,7 @@ function releaseMediaStreamRenderer(video) {
 	delete video.readyState;
 }
 
-},{"./MediaStreamRenderer":5,"debug":18}],18:[function(_dereq_,module,exports){
+},{"./MediaStreamRenderer":5,"debug":21}],21:[function(_dereq_,module,exports){
 (function (process){
 /* eslint-env browser */
 
@@ -3831,7 +3912,7 @@ formatters.j = function (v) {
 };
 
 }).call(this,_dereq_('_process'))
-},{"./common":19,"_process":22}],19:[function(_dereq_,module,exports){
+},{"./common":22,"_process":25}],22:[function(_dereq_,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -4099,7 +4180,7 @@ function setup(env) {
 
 module.exports = setup;
 
-},{"ms":21}],20:[function(_dereq_,module,exports){
+},{"ms":24}],23:[function(_dereq_,module,exports){
 /*!
   * domready (c) Dustin Diaz 2014 - License MIT
   */
@@ -4131,7 +4212,7 @@ module.exports = setup;
 
 });
 
-},{}],21:[function(_dereq_,module,exports){
+},{}],24:[function(_dereq_,module,exports){
 /**
  * Helpers.
  */
@@ -4295,7 +4376,7 @@ function plural(ms, msAbs, n, name) {
   return Math.round(ms / n) + ' ' + name + (isPlural ? 's' : '');
 }
 
-},{}],22:[function(_dereq_,module,exports){
+},{}],25:[function(_dereq_,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -4481,7 +4562,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],23:[function(_dereq_,module,exports){
+},{}],26:[function(_dereq_,module,exports){
 void function(root){
 
   function defaults(options){
@@ -4527,14 +4608,14 @@ void function(root){
   module.exports.defaults = defaults
 }(this)
 
-},{}],24:[function(_dereq_,module,exports){
+},{}],27:[function(_dereq_,module,exports){
 module.exports =
 {
 	EventTarget : _dereq_('./lib/EventTarget'),
 	Event       : _dereq_('./lib/Event')
 };
 
-},{"./lib/Event":25,"./lib/EventTarget":26}],25:[function(_dereq_,module,exports){
+},{"./lib/Event":28,"./lib/EventTarget":29}],28:[function(_dereq_,module,exports){
 (function (global){
 /**
  * In browsers export the native Event interface.
@@ -4543,7 +4624,7 @@ module.exports =
 module.exports = global.Event;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],26:[function(_dereq_,module,exports){
+},{}],29:[function(_dereq_,module,exports){
 function yaetiEventTarget()
 {
 	this._listeners = {};
@@ -4678,5 +4759,5 @@ yaetiEventTarget.prototype.dispatchEvent = function(event)
 
 module.exports = yaetiEventTarget;
 
-},{}]},{},[16])(16)
+},{}]},{},[19])(19)
 });
