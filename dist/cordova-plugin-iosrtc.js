@@ -2558,12 +2558,21 @@ function RTCRtpReceiver(data) {
  */
 module.exports = RTCRtpSender;
 
-
 function RTCRtpSender(data) {
 	data = data || {};
 
 	this.track = data.track;
+    this.params = data.params || {};
 }
+
+RTCRtpSender.prototype.getParameters = function () {
+    return this.params;
+};
+
+RTCRtpSender.prototype.setParameters = function (params) {
+    Object.assign(this.params, params);
+    return Promise.resolve(this.params);
+};
 },{}],15:[function(_dereq_,module,exports){
 /**
  * Expose the RTCRtpTransceiver class.
