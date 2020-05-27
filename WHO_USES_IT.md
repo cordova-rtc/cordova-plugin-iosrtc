@@ -22,7 +22,7 @@ Using **cordova-plugin-iosrtc** in our Ionic iOS [openvidu-ionic](https://openvi
 At [Sylaps](https://sylaps.com) we use **cordova-plugin-iosrtc** for the iOS version of our application, becoming a web/mobile/tablet HTML5 hybrid solution.
 
 You can test the Sylaps iOS application that use iosrtc here:
-- https://apps.apple.com/us/app/sylaps/id954016392 
+- https://apps.apple.com/us/app/sylaps/id954016392
 
 ### [eFace2Face](https://eface2face.com)
 
@@ -63,3 +63,12 @@ This is a community supported, open source project for enabling developers to us
 
 [Blink for Mobile](https://itunes.apple.com/us/app/blink-for-mobile/id1100356948?ls=1&mt=8) uses WebRTC technology to provide a rich audio and video
 experience on mobile devices.
+
+
+### [ConnectyCube](https://connectycube.com)
+
+![ConnectyCube Logo](https://connectycube.com/imgs/connectycube_logo_with_text.png)
+
+*A Swiss Army knife for chat & video chat apps.*
+
+Using **cordova-plugin-iosrtc** in our [Cordova сode samples](https://developers.connectycube.com/cordova/code-samples) for P2P and Conference calling.
