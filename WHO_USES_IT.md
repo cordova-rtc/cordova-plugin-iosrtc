@@ -4,6 +4,13 @@ If your company is using *cordova-plugin-iosrtc* we would love to heard back fro
 
 Below a list of companies using *cordova-plugin-iostc*:
 
+### [ConnectyCube](https://connectycube.com)
+
+![ConnectyCube Logo](https://connectycube.com/imgs/connectycube_logo_with_text.png)
+
+*A Swiss Army knife for chat & video chat apps.*
+
+Using **cordova-plugin-iosrtc** in our [Cordova сode samples](https://developers.connectycube.com/cordova/code-samples) for P2P and Conference calling.
 
 ### [OpenVidu](https://openvidu.io)
 
@@ -64,11 +71,3 @@ This is a community supported, open source project for enabling developers to us
 [Blink for Mobile](https://itunes.apple.com/us/app/blink-for-mobile/id1100356948?ls=1&mt=8) uses WebRTC technology to provide a rich audio and video
 experience on mobile devices.
 
-
-### [ConnectyCube](https://connectycube.com)
-
-![ConnectyCube Logo](https://connectycube.com/imgs/connectycube_logo_with_text.png)
-
-*A Swiss Army knife for chat & video chat apps.*
-
-Using **cordova-plugin-iosrtc** in our [Cordova сode samples](https://developers.connectycube.com/cordova/code-samples) for P2P and Conference calling.
