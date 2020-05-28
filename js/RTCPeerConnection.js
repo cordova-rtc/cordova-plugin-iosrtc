@@ -17,6 +17,9 @@ var
 	RTCIceCandidate = require('./RTCIceCandidate'),
 	RTCDataChannel = require('./RTCDataChannel'),
 	RTCDTMFSender = require('./RTCDTMFSender'),
+	RTCRtpReceiver = require('./RTCRtpReceiver'),
+	RTCRtpSender = require('./RTCRtpSender'),
+	RTCRtpTransceiver = require('./RTCRtpTransceiver'),
 	RTCStatsResponse = require('./RTCStatsResponse'),
 	RTCStatsReport = require('./RTCStatsReport'),
 	MediaStream = require('./MediaStream'),
@@ -99,6 +102,13 @@ Object.defineProperties(RTCPeerConnection.prototype, {
 		configurable: true,
 		set: function (callback) {
 			return this.addEventListener('addstream', callback);
+		}
+	},
+	'ontrack': {
+		// Fix webrtc-adapter TypeError: Attempting to change the getter of an unconfigurable property.
+		configurable: true,
+		set: function (callback) {
+			return this.addEventListener('track', callback);
 		}
 	},
 	'oniceconnectionstatechange': {
@@ -397,7 +407,11 @@ RTCPeerConnection.prototype.getReceivers = function () {
 		}
 	}
 
-	return tracks;
+	return tracks.map(function (track) {
+		return new RTCRtpReceiver({
+			track: track
+		});
+	});
 };
 
 RTCPeerConnection.prototype.getSenders = function () {
@@ -410,8 +424,31 @@ RTCPeerConnection.prototype.getSenders = function () {
 		}
 	}
 
-	return tracks;
+	return tracks.map(function (track) {
+		return new RTCRtpSender({
+			track: track
+		});
+	});
 };
+
+RTCPeerConnection.prototype.getTransceivers = function () {
+	var transceivers = [];
+
+	this.getReceivers().map(function (receiver) {
+		transceivers.push(new RTCRtpTransceiver({
+			receiver: receiver
+		}));
+	});
+
+	this.getSenders().map(function (sender) {
+		transceivers.push(new RTCRtpTransceiver({
+			sender: sender
+		}));
+	});
+
+	return transceivers;
+};
+
 
 RTCPeerConnection.prototype.addTrack = function (track, stream) {
 	var id;
@@ -455,10 +492,17 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 	}
 };
 
-RTCPeerConnection.prototype.removeTrack = function (track) {
+RTCPeerConnection.prototype.removeTrack = function (sender) {
 	var id,
+		track,
 		stream,
 		hasTrack;
+
+	if (!(sender instanceof RTCRtpSender)) {
+		throw new Error('removeTrack() must be called with a RTCRtpSender instance as argument');
+	}
+
+	track = sender.track;
 
 	function matchLocalTrack(localTrack) {
 		return localTrack.id === track.id;
@@ -653,7 +697,6 @@ function onEvent(data) {
 	var type = data.type,
 		self = this,
 		event = new Event(type),
-		stream,
 		dataChannel,
 		id;
 
@@ -701,29 +744,36 @@ function onEvent(data) {
 		case 'negotiationneeded':
 			break;
 
-		case 'addtrack':
-			event.track = data.track;
+		case 'track':
+			var track = new MediaStreamTrack(data.track),
+				stream = this.remoteStreams[data.streamId] || MediaStream.create(data.stream),
+				receiver = new RTCRtpReceiver({ track: track }),
+				transceiver = new RTCRtpTransceiver({ receiver: receiver });
+
+			event.track = track;
+			event.receiver = receiver;
+			event.transceiver = transceiver;
+			event.streams = [stream];
 			break;
 
 		case 'addstream':
-			stream = MediaStream.create(data.stream);
-			event.stream = stream;
 
 			// Append to the remote streams.
-			this.remoteStreams[stream.id] = stream;
+			this.remoteStreams[data.streamId] = this.remoteStreams[data.streamId] || MediaStream.create(data.stream);
+
+			event.stream = this.remoteStreams[data.streamId];
 
 			// Emit "connected" on the stream if ICE connected.
 			if (this.iceConnectionState === 'connected' || this.iceConnectionState === 'completed') {
-				stream.emitConnected();
+				event.stream.emitConnected();
 			}
 			break;
 
 		case 'removestream':
-			stream = this.remoteStreams[data.streamId];
-			event.stream = stream;
+			event.stream = this.remoteStreams[data.streamId];
 
 			// Remove from the remote streams.
-			delete this.remoteStreams[stream.id];
+			delete this.remoteStreams[data.streamId];
 			break;
 
 		case 'datachannel':
