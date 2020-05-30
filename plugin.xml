@@ -29,7 +29,7 @@
 			</feature>
 		</config-file>
 
-		<preference name="MANUAL_INIT_AUDIO_DEVICE" default="false"/>
+		<preference name="MANUAL_INIT_AUDIO_DEVICE" default="FALSE"/>
 
 		<config-file target="*-Info.plist" parent="ManualInitAudioDevice">
 			<string>$MANUAL_INIT_AUDIO_DEVICE</string>
