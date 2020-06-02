@@ -1058,6 +1058,12 @@ class iosrtcPlugin : CDVPlugin {
 		}
 	}
 
+	@objc(initAudioDevices:) func initAudioDevices(_ command: CDVInvokedUrlCommand) {
+		NSLog("iosrtcPlugin#initAudioDevices()")
+
+		PluginRTCAudioController.initAudioDevices()
+	}
+
 	@objc(RTCTurnOnSpeaker:) func RTCTurnOnSpeaker(_ command: CDVInvokedUrlCommand) {
 		DispatchQueue.main.async {
 			let isTurnOn: Bool = CBool(command.arguments[0] as! Bool)

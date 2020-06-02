@@ -29,6 +29,12 @@
 			</feature>
 		</config-file>
 
+		<preference name="MANUAL_INIT_AUDIO_DEVICE" default="FALSE"/>
+
+		<config-file target="*-Info.plist" parent="ManualInitAudioDevice">
+			<string>$MANUAL_INIT_AUDIO_DEVICE</string>
+		</config-file>
+
 		<!-- Permission notes -->
 		<config-file parent="NSCameraUsageDescription" target="*-Info.plist">
 			<string>This Application uses your camera to make video calls.</string>
