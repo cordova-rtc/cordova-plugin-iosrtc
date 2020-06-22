@@ -94,9 +94,11 @@
 		<!-- WebRTC library -->
 		<!-- <framework src="frameworks/WebRTC.framework" type="podspec" /> -->
 		<podspec>
-		  <pods use-frameworks="true">
-			<pod name="WebRTC" path="frameworks/WebRTC.framework" />
-		  </pods>
+		  	<config>
+		  	</config>
+		  	<pods use-frameworks="true">
+				<pod name="WebRTC" path="frameworks/WebRTC.framework" />
+		  	</pods>
 		</podspec>
 	</platform>
 
