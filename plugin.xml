@@ -97,7 +97,7 @@
 		  	<config>
 		  	</config>
 		  	<pods use-frameworks="true">
-				<pod name="WebRTC" path="frameworks/WebRTC.framework" />
+				<pod name="WebRTC" path="./frameworks/WebRTC.framework" />
 		  	</pods>
 		</podspec>
 	</platform>
