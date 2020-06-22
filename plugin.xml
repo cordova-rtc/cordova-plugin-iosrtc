@@ -92,12 +92,11 @@
 		<framework src="VideoToolbox.framework" />
 
 		<!-- WebRTC library -->
-		<!-- <framework src="frameworks/WebRTC.framework" type="podspec" /> -->
 		<podspec>
 		  	<config>
 		  	</config>
 		  	<pods use-frameworks="true">
-				<pod name="WebRTC" path="./frameworks/WebRTC.framework" />
+				<pod name="iosrtc.webRTC.framework" git="https://github.com/cordova-rtc/iosrtc.webRTC.framework.git" />
 		  	</pods>
 		</podspec>
 	</platform>
