@@ -92,7 +92,12 @@
 		<framework src="VideoToolbox.framework" />
 
 		<!-- WebRTC library -->
-		<framework src="frameworks/WebRTC.framework" type="podspec" />
+		<!-- <framework src="frameworks/WebRTC.framework" type="podspec" /> -->
+		<podspec>
+		  <pods use-frameworks="true">
+			<pod name="WebRTC" path="frameworks/WebRTC.framework" />
+		  </pods>
+		</podspec>
 	</platform>
 
 </plugin>
