@@ -630,16 +630,23 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		NSLog("PluginRTCPeerConnection | onaddtrack")
 
 		// TODO investigate why no stream sometimes and confirm still the case.
-		let stream = streams.count > 0 ? streams[0] : nil;
-		let pluginMediaStream = getPluginMediaStream(stream: stream);
-		let pluginMediaTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: rtpReceiver.track!)
+	        let pluginMediaTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: rtpReceiver.track!)
 
-		self.eventListener([
-		   "type": "track",
-		   "track": pluginMediaTrack.getJSON(),
-		   "streamId": pluginMediaStream!.id,
-		   "stream": pluginMediaStream!.getJSON()
-		])
+	        if (streams.isEmpty) {
+	            self.eventListener([
+	                "type": "track",
+	                "track": pluginMediaTrack.getJSON(),
+	            ])
+	        } else {
+	            let pluginMediaStream = getPluginMediaStream(stream: streams[0]);
+
+	            self.eventListener([
+	                "type": "track",
+	                "track": pluginMediaTrack.getJSON(),
+	                "streamId": pluginMediaStream!.id,
+	                "stream": pluginMediaStream!.getJSON()
+	            ])
+	        }
 	}
 
 	/** Called when the SignalingState changed. */
