@@ -11,9 +11,10 @@ var
 	xcode = require('xcode'),
 	xmlEntities = new (require('html-entities').XmlEntities)(),
 
-	IPHONEOS_DEPLOYMENT_TARGET = '10.2',
+	DISABLE_IOSRTC_HOOK = process.env.DISABLE_IOSRTC_HOOK ? true : false,
+	IPHONEOS_DEPLOYMENT_TARGET = process.env.IPHONEOS_DEPLOYMENT_TARGET || '10.2',
 	IPHONEOS_DEPLOYMENT_TARGET_XCODE = '"' + IPHONEOS_DEPLOYMENT_TARGET + '"',
-	SWIFT_VERSION = '4.2',
+	SWIFT_VERSION = process.env.SWIFT_VERSION || '4.2',
 	SWIFT_VERSION_XCODE = '"' + SWIFT_VERSION + '"',
 	RUNPATH_SEARCH_PATHS = '@executable_path/Frameworks',
 	RUNPATH_SEARCH_PATHS_XCODE = '"' + RUNPATH_SEARCH_PATHS + '"',
@@ -22,7 +23,7 @@ var
 	UNIFIED_BRIDGING_HEADER = 'Plugins/Unified-Bridging-Header.h',
 	IOSRTC_BRIDGING_HEADER = "cordova-plugin-iosrtc-Bridging-Header.h",
 	BRIDGING_HEADER_END = '/Plugins/cordova-plugin-iosrtc/' + IOSRTC_BRIDGING_HEADER,
-	TEST_UNIFIED_BRIDGING_HEADER = false; // Set to true to test handling of existing swift bridging header
+	TEST_UNIFIED_BRIDGING_HEADER = process.env.TEST_UNIFIED_BRIDGING_HEADER ? true : false; // Set to true to test handling of existing swift bridging header
 
 // Helpers
 
@@ -33,7 +34,7 @@ function getProjectName(protoPath) {
 		content = fs.readFileSync(cordovaConfigPath, 'utf-8');
 
     var name = /<name>([ \S]*)<\/name>/mi.exec(content)[1].trim();
-	
+
 	return xmlEntities.decode(name);
 }
 
@@ -126,6 +127,11 @@ module.exports = function (context) {
 	}
 	*/
 
+	if (DISABLE_IOSRTC_HOOK) {
+		debug('cordova-plugin-iosrtc hook is disabled');
+		return;
+	}
+
 	var
 		projectRoot = context.opts.projectRoot,
 		projectName = getProjectName(projectRoot),
@@ -140,7 +146,7 @@ module.exports = function (context) {
 		xcodeProject;
 
 	// Showing info about the tasks to do
-	debug('cordova-plugin-iosrtc is checking issues in the generated project files:');
+	debug('cordova-plugin-iosrtc hook is checking issues in the generated project files:');
 	debug('- Minimum "iOS Deployment Target" and "Deployment Target" to: ' + IPHONEOS_DEPLOYMENT_TARGET_XCODE);
 	debug('- "Runpath Search Paths" to: ' + RUNPATH_SEARCH_PATHS_XCODE);
 	if (TEST_UNIFIED_BRIDGING_HEADER) {
