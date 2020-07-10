@@ -33,6 +33,7 @@ function newMediaStreamId() {
 
 // Save original MediaStream
 var originalMediaStream = window.MediaStream || window.Blob;
+//var originalMediaStream = window.Blob;
 var originalMediaStreamTrack = MediaStreamTrack.originalMediaStreamTrack;
 
 /**
@@ -56,6 +57,9 @@ function MediaStream(arg, id) {
 	// new MediaStream(MediaStreamTrack[]) // tracks
 	// new MediaStream() // empty
 
+	id = id || newMediaStreamId();
+	var blobId = 'MediaStream_' + id;
+
 	// Extend returned MediaTream with custom MediaStream
 	var stream;
 	if (originalMediaStream !== window.Blob) {
@@ -63,7 +67,7 @@ function MediaStream(arg, id) {
 
 	// Fallback on Blob if originalMediaStream is not a MediaStream and Emulate EventTarget
 	} else {
-		stream = new Blob([], {
+		stream = new Blob([blobId], {
 			type: 'stream'
 		});
 
@@ -93,7 +97,7 @@ function MediaStream(arg, id) {
 	stream._videoTracks = {};
 
 	// Store the stream into the dictionary.
-	stream._blobId = 'MediaStream_' + stream.id;
+	stream._blobId = blobId;
 	mediaStreams[stream._blobId] = stream;
 
 	// Convert arg to array of tracks if possible
@@ -254,7 +258,6 @@ MediaStream.prototype.getTrackById = function (id) {
 	return this._audioTracks[id] || this._videoTracks[id] || null;
 };
 
-
 MediaStream.prototype.addTrack = function (track) {
 	debug('addTrack() [track:%o]', track);
 
@@ -279,8 +282,9 @@ MediaStream.prototype.addTrack = function (track) {
 	exec(null, null, 'iosrtcPlugin', 'MediaStream_addTrack', [this.id, track.id]);
 
 	this.dispatchEvent(new Event('update'));
-};
 
+	this.emitConnected();
+};
 
 MediaStream.prototype.removeTrack = function (track) {
 	debug('removeTrack() [track:%o]', track);
@@ -469,6 +473,7 @@ function onEvent(data) {
 			event.track = track;
 
 			this.dispatchEvent(event);
+
 			// Also emit 'update' for the MediaStreamRenderer.
 			this.dispatchEvent(new Event('update'));
 

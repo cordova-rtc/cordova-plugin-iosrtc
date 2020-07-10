@@ -1,3 +1,21 @@
+#### Version 6.0.12
+* Implement RTCPeerConnection track event on PluginRTCPeerConnection and RTCPeerConnection SHIM #508
+* Fix WebRTC-adapter <= 7.5.0 track SHIM failure
+* Fix WebRTC-adapter >= 7.6.0 track missing SHIM
+* Add SHAM for MediaStreamTrack.getSettings|getCapabilities
+* Add Throw Error Not implemented for MediaStreamTrack.getConstraints|applyConstraints
+* Fix RTCPeerConnection.prototype.getStats.length to match features detection #511
+* Fix Error: Callbacks are not supported by "RTCPeerConnection.prototype.getStats" anymore, use Promise instead. #510 
+* Fix Regex in iosrtc-swift-support.js returns wrong value #502
+* Fix Backgroundcolor is now "clear" instead of "black" #514
+* Fix gulp-util is deprecated - replace it #428
+* Add support for MediaStreamTrack.clone() method #474
+* Add basic RTCRtpTransceiver|RTCRtpSender|RTCRtpReceiver shim #423
+* Fix getReceivers method doesn't return RTCRtpReceiver array #442
+* Fix Blob only support for iOS 10.x that does not know MediaStream #495
+* Incompatibility with Janus WebRTC gateway when using WebRTC-adapter >= 7.6.0 #505
+* Improve getUserMedia compatiblity with Twilio Video #497
+
 #### Version 6.0.11
 * Fix possible duplicate remote streamId/trackId with janus/kurento/freeswitch or short duplicate name #493
 * Fix Calling removeTrack/addTrack does not update renderer #492
@@ -14,7 +32,7 @@
 
 #### Version 6.0.8
 * Add Known Issues > iOS >= 13.3.1 Device support to README.md
-* implement candidateToJson SDP candidate parser into RTCIceCandidate to populate foundation, component, priority, type, address, ip, protocol, port, relatedAddress and relatedPort RTCIceCandidate values #468
+* Implement candidateToJson SDP candidate parser into RTCIceCandidate to populate foundation, component, priority, type, address, ip, protocol, port, relatedAddress and relatedPort RTCIceCandidate values #468
 * Fix PeerConnection.addStream|addTrack by using UUID().uuidString preffix for PluginMediaStream and PluginMediaStreamTrack only for Janus #467
 
 #### Version 6.0.7

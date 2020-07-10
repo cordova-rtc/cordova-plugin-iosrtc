@@ -3,7 +3,6 @@ import Foundation
 
 class PluginMediaStreamTrack : NSObject {
 	var rtcMediaStreamTrack: RTCMediaStreamTrack
-	var streamId: String
 	var id: String
 	var kind: String
 	var eventListener: ((_ data: NSDictionary) -> Void)?
@@ -11,7 +10,7 @@ class PluginMediaStreamTrack : NSObject {
 	var lostStates = Array<String>()
 	var renders: [String : PluginMediaStreamRenderer]
 
-	init(rtcMediaStreamTrack: RTCMediaStreamTrack, streamId: String) {
+	init(rtcMediaStreamTrack: RTCMediaStreamTrack) {
 		NSLog("PluginMediaStreamTrack#init()")
 
 		self.rtcMediaStreamTrack = rtcMediaStreamTrack
@@ -26,7 +25,6 @@ class PluginMediaStreamTrack : NSObject {
 
 		self.kind = rtcMediaStreamTrack.kind
 		self.renders = [:]
-		self.streamId = streamId;
 	}
 
 	deinit {

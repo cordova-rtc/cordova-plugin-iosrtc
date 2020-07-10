@@ -1,4 +1,4 @@
-/* global RTCPeerConnection */
+/* global RTCPeerConnection, MediaStream */
 // jshint unused:false
 
 var cordova = window.cordova;
@@ -8,6 +8,7 @@ if (cordova && cordova.plugins && cordova.plugins.iosrtc) {
   cordova.plugins.iosrtc.registerGlobals();
   //cordova.plugins.iosrtc.debug.disable('*', true);
   //cordova.plugins.iosrtc.debug.enable('*', true);
+  cordova.plugins.iosrtc.initAudioDevices();
   cordova.plugins.iosrtc.turnOnSpeaker(true);
   cordova.plugins.iosrtc.requestPermission(true, true, function (result) {
     console.log('requestPermission.result', result);
@@ -279,12 +280,12 @@ function TestRTCPeerConnection(localStream) {
     console.log('pc2.track', e);
   });
 
-  pc2.addEventListener('removetrack', function (e) {
-    console.log('pc2.removeTrack', e);
+  pc2.addEventListener('removestream', function (e) {
+    console.log('pc2.removeStream', e);
   });
 
-  pc2.addEventListener('addstream', function (e) {
-    console.log('pc2.addStream', e);
+  function setPeerVideoStream(stream) {
+
     peerVideoEl = document.createElement('video');
     peerVideoEl.setAttribute('autoplay', 'autoplay');
     peerVideoEl.setAttribute('playsinline', 'playsinline');
@@ -302,11 +303,30 @@ function TestRTCPeerConnection(localStream) {
     appContainer.appendChild(peerVideoEl);
 
     // Note: Expose for debug
-    peerStream = e.stream;
+    peerStream = stream;
 
     // Attach peer stream to video element
     peerVideoEl.srcObject = peerStream;
-  });
+  }
+
+  // This plugin handle 'addstream' and 'track' event for MediaStream creation.
+  var useTrackEvent = Object.getOwnPropertyDescriptors(RTCPeerConnection.prototype).ontrack;
+
+  // Using 'track' event with existing MediaStream
+  if (useTrackEvent) {
+    setPeerVideoStream(new MediaStream());
+    pc2.addEventListener('track', function (e) {
+      console.log('pc2.track', e);
+      peerStream.addTrack(e.track);
+    });
+
+  // Using addstream to get  MediaStream
+  } else {
+    pc2.addEventListener('addstream', function (e) {
+      console.log('pc2.addStream', e);
+      setPeerVideoStream(e.stream);
+    });
+  }
 
   pc1.addEventListener('iceconnectionstatechange', function (e) {
     console.log('pc1.iceConnectionState', e, pc1.iceConnectionState);

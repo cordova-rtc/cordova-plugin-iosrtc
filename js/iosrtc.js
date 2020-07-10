@@ -60,6 +60,9 @@ module.exports = {
 	// Checking permision (audio and camera)
 	requestPermission: requestPermission,
 
+	// Expose a function to initAudioDevices if needed, sets the audio session active
+	initAudioDevices: initAudioDevices,
+
 	// Expose a function to pollute window and naigator namespaces.
 	registerGlobals:       registerGlobals,
 
@@ -121,8 +124,14 @@ function requestPermission(needMic, needCamera, callback) {
 	exec(ok, error, 'iosrtcPlugin', "RTCRequestPermission", [needMic, needCamera]);
 }
 
+function initAudioDevices() {
+	debug('initAudioDevices()');
+
+	exec(null, null, 'iosrtcPlugin', "initAudioDevices", []);
+}
+
 function callbackifyMethod(originalMethod) {
-	return function () {
+	return function (arg) { // jshint ignore:line
 		var success, failure,
 		  originalArgs = Array.prototype.slice.call(arguments);
 
@@ -169,6 +178,7 @@ function restoreCallbacksSupport() {
 	callbackifyPrototype(RTCPeerConnection.prototype, 'setRemoteDescription');
 	callbackifyPrototype(RTCPeerConnection.prototype, 'setLocalDescription');
 	callbackifyPrototype(RTCPeerConnection.prototype, 'addIceCandidate');
+	callbackifyPrototype(RTCPeerConnection.prototype, 'getStats');
 }
 
 function registerGlobals(doNotRestoreCallbacksSupport) {

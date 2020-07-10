@@ -84,8 +84,8 @@ class PluginRTCPeerConnectionConstraints {
 	// https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/createOffer#RTCOfferOptions_dictionary
 	// TODO TODO voiceActivityDetection This option defaults to true
 	fileprivate static let allowedConstraints : Array = [
-		"iceRestart", 
-		"OfferToReceiveVideo", 
+		"IceRestart",
+		"OfferToReceiveVideo",
 		"OfferToReceiveAudio",
 		"voiceActivityDetection"
 	]
@@ -111,6 +111,8 @@ class PluginRTCPeerConnectionConstraints {
 				finalKey =  "OfferToReceiveAudio";
 			} else if (finalKey == "offerToReceiveVideo") {
 				finalKey =  "OfferToReceiveVideo";
+			} else if (finalKey == "iceRestart") {
+				finalKey =  "IceRestart";
 			}
 			
 			// Filter to avoid injection

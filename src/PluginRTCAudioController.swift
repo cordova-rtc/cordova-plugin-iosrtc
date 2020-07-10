@@ -152,8 +152,11 @@ class PluginRTCAudioController {
 	static private var speakerEnabled: Bool = false
 	
 	init() {
-		
-		PluginRTCAudioController.initAudioDevices()
+        let shouldManualInit = Bundle.main.object(forInfoDictionaryKey: "ManualInitAudioDevice") as? String
+    
+        if(shouldManualInit == "FALSE") {
+            PluginRTCAudioController.initAudioDevices()
+        }
 		
 		NotificationCenter.default.addObserver(
 			self,
