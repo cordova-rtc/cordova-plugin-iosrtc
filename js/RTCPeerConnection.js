@@ -415,20 +415,25 @@ RTCPeerConnection.prototype.getReceivers = function () {
 };
 
 RTCPeerConnection.prototype.getSenders = function () {
-	var tracks = [],
-		id;
+	var self = this,
+		senders = [],
+		localStreams = self.localStreams,
+		id, stream;
 
-	for (id in this.localStreams) {
-		if (this.localStreams.hasOwnProperty(id)) {
-			tracks = tracks.concat(this.localStreams[id].getTracks());
+	for (id in localStreams) {
+		if (localStreams.hasOwnProperty(id)) {
+			stream = localStreams[id];
+			stream.getTracks().forEach(function (track) { // jshint ignore:line
+				senders.push(new RTCRtpSender({
+					pc: self,
+					stream: stream,
+					track: track
+				}));
+			});
 		}
 	}
 
-	return tracks.map(function (track) {
-		return new RTCRtpSender({
-			track: track
-		});
-	});
+	return senders;
 };
 
 RTCPeerConnection.prototype.getTransceivers = function () {

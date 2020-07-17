@@ -2213,20 +2213,25 @@ RTCPeerConnection.prototype.getReceivers = function () {
 };
 
 RTCPeerConnection.prototype.getSenders = function () {
-	var tracks = [],
-		id;
+	var self = this,
+		senders = [],
+		localStreams = self.localStreams,
+		id, stream;
 
-	for (id in this.localStreams) {
-		if (this.localStreams.hasOwnProperty(id)) {
-			tracks = tracks.concat(this.localStreams[id].getTracks());
+	for (id in localStreams) {
+		if (localStreams.hasOwnProperty(id)) {
+			stream = localStreams[id];
+			stream.getTracks().forEach(function (track) { // jshint ignore:line
+				senders.push(new RTCRtpSender({
+					pc: self,
+					stream: stream,
+					track: track
+				}));
+			});
 		}
 	}
 
-	return tracks.map(function (track) {
-		return new RTCRtpSender({
-			track: track
-		});
-	});
+	return senders;
 };
 
 RTCPeerConnection.prototype.getTransceivers = function () {
@@ -2607,6 +2612,8 @@ module.exports = RTCRtpSender;
 function RTCRtpSender(data) {
 	data = data || {};
 
+	this.pc = data.pc;
+	this.stream = data.stream;
 	this.track = data.track;
     this.params = data.params || {};
 }
@@ -2618,6 +2625,32 @@ RTCRtpSender.prototype.getParameters = function () {
 RTCRtpSender.prototype.setParameters = function (params) {
     Object.assign(this.params, params);
     return Promise.resolve(this.params);
+};
+
+RTCRtpSender.prototype.replaceTrack = function (withTrack) {
+	var self = this,
+		pc = self.pc,
+		track = self.track,
+		stream = self.stream;
+
+	return new Promise(function (resolve, reject) {
+    	stream.removeTrack(track);
+    	stream.addTrack(withTrack);
+    	self.track = withTrack;
+
+    	pc.removeStream(stream);
+    	pc.addStream(stream);
+
+  		pc.addEventListener("signalingstatechange", function listener() {
+  			if (pc.signalingState === "closed") {
+				pc.removeEventListener("signalingstatechange", listener);
+				reject();
+	  		} else if (pc.signalingState === "stable") {
+				pc.removeEventListener("signalingstatechange", listener);
+    			resolve();
+	  		}
+    	});
+  });
 };
 },{}],16:[function(_dereq_,module,exports){
 /**
