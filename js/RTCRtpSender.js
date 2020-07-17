@@ -6,8 +6,8 @@ module.exports = RTCRtpSender;
 function RTCRtpSender(data) {
 	data = data || {};
 
-	this.pc = data.pc;
-	this.stream = data.stream;
+	this._pc = data.pc;
+	this._stream = data.stream;
 	this.track = data.track;
 	this.params = data.params || {};
 }
@@ -23,9 +23,9 @@ RTCRtpSender.prototype.setParameters = function (params) {
 
 RTCRtpSender.prototype.replaceTrack = function (withTrack) {
 	var self = this,
-		pc = self.pc,
-		track = self.track,
-		stream = self.stream;
+		pc = self._pc,
+		stream = self._stream,
+		track = self.track;
 
 	return new Promise(function (resolve, reject) {
 		stream.removeTrack(track);
@@ -34,6 +34,11 @@ RTCRtpSender.prototype.replaceTrack = function (withTrack) {
 
 		pc.removeStream(stream);
 		pc.addStream(stream);
+
+		// https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/negotiationneeded_event
+		pc.dispatchEvent('negotiationneeded', {
+
+		});
 
 		pc.addEventListener("signalingstatechange", function listener() {
 			if (pc.signalingState === "closed") {
