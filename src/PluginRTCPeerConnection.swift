@@ -629,9 +629,10 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 
 		NSLog("PluginRTCPeerConnection | onaddtrack")
 
-		// TODO investigate why no stream sometimes and confirm still the case.
+			// TODO investigate why no stream sometimes and confirm still the case.
 	        let pluginMediaTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: rtpReceiver.track!)
 
+	        // Add stream only if available in case of Unified-Plan of track event without stream
 	        if (streams.isEmpty) {
 	            self.eventListener([
 	                "type": "track",
