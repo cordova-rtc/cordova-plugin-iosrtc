@@ -26,6 +26,7 @@ var
 	RTCPeerConnection      = require('./RTCPeerConnection'),
 	RTCSessionDescription  = require('./RTCSessionDescription'),
 	RTCIceCandidate        = require('./RTCIceCandidate'),
+	MediaDevices           = require('./MediaDevices'),
 	MediaStream            = require('./MediaStream'),
 	MediaStreamTrack       = require('./MediaStreamTrack'),
 	videoElementsHandler   = require('./videoElementsHandler');
@@ -42,6 +43,7 @@ module.exports = {
 	RTCPeerConnection:     RTCPeerConnection,
 	RTCSessionDescription: RTCSessionDescription,
 	RTCIceCandidate:       RTCIceCandidate,
+	MediaDevices:          MediaDevices,
 	MediaStream:           MediaStream,
 	MediaStreamTrack:      MediaStreamTrack,
 
@@ -59,6 +61,9 @@ module.exports = {
 
 	// Checking permision (audio and camera)
 	requestPermission: requestPermission,
+
+	// Expose a function to initAudioDevices if needed, sets the audio session active
+	initAudioDevices: initAudioDevices,
 
 	// Expose a function to pollute window and naigator namespaces.
 	registerGlobals:       registerGlobals,
@@ -121,6 +126,12 @@ function requestPermission(needMic, needCamera, callback) {
 	exec(ok, error, 'iosrtcPlugin', "RTCRequestPermission", [needMic, needCamera]);
 }
 
+function initAudioDevices() {
+	debug('initAudioDevices()');
+
+	exec(null, null, 'iosrtcPlugin', "initAudioDevices", []);
+}
+
 function callbackifyMethod(originalMethod) {
 	return function (arg) { // jshint ignore:line
 		var success, failure,
@@ -180,7 +191,7 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 	}
 
 	if (!navigator.mediaDevices) {
-		navigator.mediaDevices = {};
+		navigator.mediaDevices = new MediaDevices();
 	}
 
 	// Restore Callback support

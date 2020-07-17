@@ -745,15 +745,16 @@ function onEvent(data) {
 			break;
 
 		case 'track':
-			var track = new MediaStreamTrack(data.track),
-				stream = this.remoteStreams[data.streamId] || MediaStream.create(data.stream),
-				receiver = new RTCRtpReceiver({ track: track }),
-				transceiver = new RTCRtpTransceiver({ receiver: receiver });
+			event.track = new MediaStreamTrack(data.track);
+			event.receiver = new RTCRtpReceiver({ track: event.track });
+			event.transceiver = new RTCRtpTransceiver({ receiver: event.receiver });
+			event.streams = [];
 
-			event.track = track;
-			event.receiver = receiver;
-			event.transceiver = transceiver;
-			event.streams = [stream];
+			// Add stream only if available in case of Unified-Plan of track event without stream
+			if (data.stream && data.streamId) {
+				var stream = this.remoteStreams[data.streamId] || MediaStream.create(data.stream);
+				event.streams.push(stream);
+			}
 			break;
 
 		case 'addstream':
