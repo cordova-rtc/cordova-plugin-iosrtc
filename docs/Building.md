@@ -52,7 +52,6 @@ If you still prefer to do it manually open it with Xcode and follow these steps:
 * Within the project "Build Settings" set "Objective-C Bridging Header" to `PROJECT_NAME/Plugins/cordova-plugin-iosrtc/cordova-plugin-iosrtc-Bridging-Header.h` (read more about the "Bridging Header" above).
 * Within the project "Build Settings" set "Enable Bitcode" to "No".
 
-
 #### iOS 10 notes
 
 On iOS 10 each permission requested must be accompanied by a description or the app will crash. Here is an example:
@@ -70,6 +69,26 @@ On iOS 10 each permission requested must be accompanied by a description or the 
     </config-file>
 </platform>
 ```
+
+#### CocoaPods
+
+Using CocoaPods will lose the bitcode setting on `pod install`. Adding post_install step to the Podfile can help
+
+```
+# Example post install to disable bitcode for pods
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      # Disable bitcode in order to support cordova-plugin-iosrtc
+      config.build_settings['ENABLE_BITCODE'] = 'NO'
+    end
+  end
+end
+```
+
+#### Capacitor
+
+When adding ios support using `npx cap add ios` the bitcode setting mentioned above will need to be set to 'NO' for the App project. Also see above for CocoaPods concerns since `pod install` will run every time you do `npx cap sync ios`
 
 #### Apple Store Submission
 
@@ -89,4 +108,4 @@ The script and example are here: https://github.com/cordova-rtc/cordova-plugin-i
 5. you can check current arch use this command  `node ios_arch.js --list` or manualy `file plugins/cordova-plugin-iosrtc/lib/WebRTC.framework/WebRTC`
 6. Remove ios cordova platform if already added and add ios platform again (e.g. with a command `cordova platform remove ios && cordova platform add ios`) or remove and add only the plugin at your own risk.
 
-
+  > Note for Capacitor users: The plugins will be in the node_modules folder so ios_arch will be run in `node_modules/cordova-plugin-iosrtc/extra`

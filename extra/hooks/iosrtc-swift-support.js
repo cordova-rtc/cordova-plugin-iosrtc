@@ -11,9 +11,10 @@ var
 	xcode = require('xcode'),
 	xmlEntities = new (require('html-entities').XmlEntities)(),
 
-	IPHONEOS_DEPLOYMENT_TARGET = '10.2',
+	DISABLE_IOSRTC_HOOK = process.env.DISABLE_IOSRTC_HOOK ? true : false,
+	IPHONEOS_DEPLOYMENT_TARGET = process.env.IPHONEOS_DEPLOYMENT_TARGET || '10.2',
 	IPHONEOS_DEPLOYMENT_TARGET_XCODE = '"' + IPHONEOS_DEPLOYMENT_TARGET + '"',
-	SWIFT_VERSION = '4.2',
+	SWIFT_VERSION = process.env.SWIFT_VERSION || '4.2',
 	SWIFT_VERSION_XCODE = '"' + SWIFT_VERSION + '"',
 	RUNPATH_SEARCH_PATHS = '@executable_path/Frameworks',
 	RUNPATH_SEARCH_PATHS_XCODE = '"' + RUNPATH_SEARCH_PATHS + '"',
@@ -22,7 +23,7 @@ var
 	UNIFIED_BRIDGING_HEADER = 'Plugins/Unified-Bridging-Header.h',
 	IOSRTC_BRIDGING_HEADER = "cordova-plugin-iosrtc-Bridging-Header.h",
 	BRIDGING_HEADER_END = '/Plugins/cordova-plugin-iosrtc/' + IOSRTC_BRIDGING_HEADER,
-	TEST_UNIFIED_BRIDGING_HEADER = false; // Set to true to test handling of existing swift bridging header
+	TEST_UNIFIED_BRIDGING_HEADER = process.env.TEST_UNIFIED_BRIDGING_HEADER ? true : false; // Set to true to test handling of existing swift bridging header
 
 // Helpers
 
@@ -32,8 +33,8 @@ function getProjectName(protoPath) {
 		cordovaConfigPath = path.join(protoPath, 'config.xml'),
 		content = fs.readFileSync(cordovaConfigPath, 'utf-8');
 
-    var name = /<name>([ \S]*)<\/name>/mi.exec(content)[1].trim();
-	
+	var name = /<name>([ \S]*)<\/name>/mi.exec(content)[1].trim();
+
 	return xmlEntities.decode(name);
 }
 
@@ -119,12 +120,17 @@ function debugError(msg) {
 module.exports = function (context) {
 
 	// This script has to be executed depending on the command line arguments, not
-  	// on the hook execution cycle.
-  	/*
+	// on the hook execution cycle.
+	/*
 	if (context.hook !== 'before_build' && !context.cmdLine.includes('build')) {
 		return;
 	}
 	*/
+
+	if (DISABLE_IOSRTC_HOOK) {
+		debug('cordova-plugin-iosrtc hook is disabled');
+		return;
+	}
 
 	var
 		projectRoot = context.opts.projectRoot,
@@ -140,7 +146,7 @@ module.exports = function (context) {
 		xcodeProject;
 
 	// Showing info about the tasks to do
-	debug('cordova-plugin-iosrtc is checking issues in the generated project files:');
+	debug('cordova-plugin-iosrtc hook is checking issues in the generated project files:');
 	debug('- Minimum "iOS Deployment Target" and "Deployment Target" to: ' + IPHONEOS_DEPLOYMENT_TARGET_XCODE);
 	debug('- "Runpath Search Paths" to: ' + RUNPATH_SEARCH_PATHS_XCODE);
 	if (TEST_UNIFIED_BRIDGING_HEADER) {
@@ -242,7 +248,14 @@ module.exports = function (context) {
 		var hasSwiftBridgingHeaderPathXcodes = [];
 		var configurations = nonComments(xcodeProject.pbxXCBuildConfigurationSection());
 		Object.keys(configurations).forEach(function (config) {
-			var buildSettings = configurations[config].buildSettings;
+
+			var configuration = configurations[config],
+				buildSettings = configuration.buildSettings;
+
+			// Skip if not SDKROOT iphoneos
+			if (buildSettings.SDKROOT !== 'iphoneos') {
+				return;
+			}
 
 			if (!hasBuildSettingsValue(buildSettings.LD_RUNPATH_SEARCH_PATHS, RUNPATH_SEARCH_PATHS_XCODE)) {
 				buildSettings.LD_RUNPATH_SEARCH_PATHS = RUNPATH_SEARCH_PATHS_XCODE;

@@ -1,5 +1,5 @@
 /*
- * cordova-plugin-iosrtc v6.0.12
+ * cordova-plugin-iosrtc v6.0.13
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015-2017 eFace2Face, Inc. (https://eface2face.com)
  * Copyright 2015-2019 BasqueVoIPMafia (https://github.com/BasqueVoIPMafia)
@@ -91,7 +91,7 @@ EventTarget.prototype.dispatchEvent = function (event) {
  * Expose the EventTarget class.
  */
 module.exports = EventTarget;
-},{"yaeti":30}],3:[function(_dereq_,module,exports){
+},{"yaeti":31}],3:[function(_dereq_,module,exports){
 /**
  * Expose the MediaDeviceInfo class.
  */
@@ -126,6 +126,51 @@ function MediaDeviceInfo(data) {
 }
 
 },{}],4:[function(_dereq_,module,exports){
+/**
+ * Expose the MediaDevices class.
+ */
+module.exports = MediaDevices;
+
+/**
+ * Spec: https://w3c.github.io/mediacapture-main/#dom-mediadevices
+ */
+
+/**
+ * Dependencies.
+ */
+var
+	EventTarget = _dereq_('./EventTarget'),
+	getUserMedia = _dereq_('./getUserMedia'),
+	enumerateDevices = _dereq_('./enumerateDevices');
+
+function MediaDevices(data) {
+
+	//ondevicechange
+	//enumerateDevices
+	//getDisplayMedia
+	//getSupportedConstraints
+	//getUserMedia
+
+	var self = this;
+
+	// Make this an EventTarget.
+	EventTarget.call(self);
+
+	data = data || {};
+}
+
+MediaDevices.prototype = Object.create(EventTarget.prototype);
+MediaDevices.prototype.constructor = MediaDevices;
+
+MediaDevices.prototype.getUserMedia = function (constraints) {
+	return getUserMedia(constraints);
+};
+
+MediaDevices.prototype.enumerateDevices = function () {
+	return enumerateDevices();
+};
+
+},{"./EventTarget":2,"./enumerateDevices":20,"./getUserMedia":22}],5:[function(_dereq_,module,exports){
 /**
  * Expose the MediaStream class.
  */
@@ -611,7 +656,7 @@ function onEvent(data) {
 	}
 }
 
-},{"./EventTarget":2,"./MediaStreamTrack":6,"cordova/exec":undefined,"debug":24}],5:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"./MediaStreamTrack":7,"cordova/exec":undefined,"debug":25}],6:[function(_dereq_,module,exports){
 /**
  * Expose the MediaStreamRenderer class.
  */
@@ -1013,7 +1058,7 @@ function getElementPositionAndSize() {
 	};
 }
 
-},{"./EventTarget":2,"./MediaStream":4,"cordova/exec":undefined,"debug":24,"random-number":29}],6:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"./MediaStream":5,"cordova/exec":undefined,"debug":25,"random-number":30}],7:[function(_dereq_,module,exports){
 /**
  * Expose the MediaStreamTrack class.
  */
@@ -1171,7 +1216,7 @@ function onEvent(data) {
 	}
 }
 
-},{"./EventTarget":2,"./MediaTrackCapabilities":7,"./MediaTrackSettings":8,"./enumerateDevices":19,"cordova/exec":undefined,"debug":24}],7:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"./MediaTrackCapabilities":8,"./MediaTrackSettings":9,"./enumerateDevices":20,"cordova/exec":undefined,"debug":25}],8:[function(_dereq_,module,exports){
 /**
  * Expose the MediaTrackSettings class.
  */
@@ -1182,7 +1227,7 @@ function MediaTrackCapabilities(data) {
 	data = data || {};
 }
 
-},{}],8:[function(_dereq_,module,exports){
+},{}],9:[function(_dereq_,module,exports){
 /**
  * Expose the MediaTrackSettings class.
  */
@@ -1193,7 +1238,7 @@ function MediaTrackSettings(data) {
 	data = data || {};
 }
 
-},{}],9:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 /**
  * Expose the RTCDTMFSender class.
  */
@@ -1327,7 +1372,7 @@ function onEvent(data) {
 	}
 }
 
-},{"./EventTarget":2,"cordova/exec":undefined,"debug":24,"random-number":29}],10:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"cordova/exec":undefined,"debug":25,"random-number":30}],11:[function(_dereq_,module,exports){
 /**
  * Expose the RTCDataChannel class.
  */
@@ -1560,7 +1605,7 @@ function onEvent(data) {
 	}
 }
 
-},{"./EventTarget":2,"cordova/exec":undefined,"debug":24,"random-number":29}],11:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"cordova/exec":undefined,"debug":25,"random-number":30}],12:[function(_dereq_,module,exports){
 /**
  * Expose the RTCIceCandidate class.
  */
@@ -1749,7 +1794,7 @@ function RTCIceCandidate(data) {
 		this.relatedPort = iceCandidateFields.remotePort || null;
 	}
 }
-},{}],12:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
 (function (global){
 /**
  * Expose the RTCPeerConnection class.
@@ -2498,15 +2543,16 @@ function onEvent(data) {
 			break;
 
 		case 'track':
-			var track = new MediaStreamTrack(data.track),
-				stream = this.remoteStreams[data.streamId] || MediaStream.create(data.stream),
-				receiver = new RTCRtpReceiver({ track: track }),
-				transceiver = new RTCRtpTransceiver({ receiver: receiver });
+			event.track = new MediaStreamTrack(data.track);
+			event.receiver = new RTCRtpReceiver({ track: event.track });
+			event.transceiver = new RTCRtpTransceiver({ receiver: event.receiver });
+			event.streams = [];
 
-			event.track = track;
-			event.receiver = receiver;
-			event.transceiver = transceiver;
-			event.streams = [stream];
+			// Add stream only if available in case of Unified-Plan of track event without stream
+			if (data.stream && data.streamId) {
+				var stream = this.remoteStreams[data.streamId] || MediaStream.create(data.stream);
+				event.streams.push(stream);
+			}
 			break;
 
 		case 'addstream':
@@ -2539,7 +2585,7 @@ function onEvent(data) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./Errors":1,"./EventTarget":2,"./MediaStream":4,"./MediaStreamTrack":6,"./RTCDTMFSender":9,"./RTCDataChannel":10,"./RTCIceCandidate":11,"./RTCRtpReceiver":13,"./RTCRtpSender":14,"./RTCRtpTransceiver":15,"./RTCSessionDescription":16,"./RTCStatsReport":17,"./RTCStatsResponse":18,"cordova/exec":undefined,"debug":24,"random-number":29}],13:[function(_dereq_,module,exports){
+},{"./Errors":1,"./EventTarget":2,"./MediaStream":5,"./MediaStreamTrack":7,"./RTCDTMFSender":10,"./RTCDataChannel":11,"./RTCIceCandidate":12,"./RTCRtpReceiver":14,"./RTCRtpSender":15,"./RTCRtpTransceiver":16,"./RTCSessionDescription":17,"./RTCStatsReport":18,"./RTCStatsResponse":19,"cordova/exec":undefined,"debug":25,"random-number":30}],14:[function(_dereq_,module,exports){
 /**
  * Expose the RTCRtpReceiver class.
  */
@@ -2552,7 +2598,7 @@ function RTCRtpReceiver(data) {
 	this.track = data.track;
 }
 
-},{}],14:[function(_dereq_,module,exports){
+},{}],15:[function(_dereq_,module,exports){
 /**
  * Expose the RTCRtpSender class.
  */
@@ -2573,7 +2619,7 @@ RTCRtpSender.prototype.setParameters = function (params) {
     Object.assign(this.params, params);
     return Promise.resolve(this.params);
 };
-},{}],15:[function(_dereq_,module,exports){
+},{}],16:[function(_dereq_,module,exports){
 /**
  * Expose the RTCRtpTransceiver class.
  */
@@ -2592,7 +2638,7 @@ function RTCRtpTransceiver(data) {
 // https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpTransceiverDirection
 // https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpTransceiver/mid
 // https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpTransceiver/stop
-},{}],16:[function(_dereq_,module,exports){
+},{}],17:[function(_dereq_,module,exports){
 /**
  * Expose the RTCSessionDescription class.
  */
@@ -2607,7 +2653,7 @@ function RTCSessionDescription(data) {
 	this.sdp = data.sdp;
 }
 
-},{}],17:[function(_dereq_,module,exports){
+},{}],18:[function(_dereq_,module,exports){
 /**
  * Expose the RTCStatsReport class.
  */
@@ -2629,7 +2675,7 @@ function RTCStatsReport(data) {
 	};
 }
 
-},{}],18:[function(_dereq_,module,exports){
+},{}],19:[function(_dereq_,module,exports){
 /**
  * Expose the RTCStatsResponse class.
  */
@@ -2651,7 +2697,7 @@ function RTCStatsResponse(data) {
 	};
 }
 
-},{}],19:[function(_dereq_,module,exports){
+},{}],20:[function(_dereq_,module,exports){
 /**
  * Expose the enumerateDevices function.
  */
@@ -2705,7 +2751,7 @@ function getMediaDeviceInfos(devices) {
 	return mediaDeviceInfos;
 }
 
-},{"./Errors":1,"./MediaDeviceInfo":3,"cordova/exec":undefined,"debug":24}],20:[function(_dereq_,module,exports){
+},{"./Errors":1,"./MediaDeviceInfo":3,"cordova/exec":undefined,"debug":25}],21:[function(_dereq_,module,exports){
 /**
  * Expose the getDisplayMedia function.
  */
@@ -2760,7 +2806,7 @@ function getDisplayMedia(constraints) {
 		exec(onResultOK, onResultError, 'iosrtcPlugin', 'getDisplayMedia', [newConstraints]);
 	});
 }
-},{"./Errors":1,"./MediaStream":4,"cordova/exec":undefined,"debug":24}],21:[function(_dereq_,module,exports){
+},{"./Errors":1,"./MediaStream":5,"cordova/exec":undefined,"debug":25}],22:[function(_dereq_,module,exports){
 /**
  * Expose the getUserMedia function.
  */
@@ -3213,7 +3259,7 @@ function getUserMedia(constraints) {
 		exec(onResultOK, onResultError, 'iosrtcPlugin', 'getUserMedia', [newConstraints]);
 	});
 }
-},{"./Errors":1,"./MediaStream":4,"cordova/exec":undefined,"debug":24}],22:[function(_dereq_,module,exports){
+},{"./Errors":1,"./MediaStream":5,"cordova/exec":undefined,"debug":25}],23:[function(_dereq_,module,exports){
 (function (global){
 /**
  * Variables.
@@ -3244,6 +3290,7 @@ var
 	RTCPeerConnection      = _dereq_('./RTCPeerConnection'),
 	RTCSessionDescription  = _dereq_('./RTCSessionDescription'),
 	RTCIceCandidate        = _dereq_('./RTCIceCandidate'),
+	MediaDevices           = _dereq_('./MediaDevices'),
 	MediaStream            = _dereq_('./MediaStream'),
 	MediaStreamTrack       = _dereq_('./MediaStreamTrack'),
 	videoElementsHandler   = _dereq_('./videoElementsHandler');
@@ -3261,6 +3308,7 @@ module.exports = {
 	RTCPeerConnection:     RTCPeerConnection,
 	RTCSessionDescription: RTCSessionDescription,
 	RTCIceCandidate:       RTCIceCandidate,
+	MediaDevices:          MediaDevices,
 	MediaStream:           MediaStream,
 	MediaStreamTrack:      MediaStreamTrack,
 
@@ -3278,6 +3326,9 @@ module.exports = {
 
 	// Checking permision (audio and camera)
 	requestPermission: requestPermission,
+
+	// Expose a function to initAudioDevices if needed, sets the audio session active
+	initAudioDevices: initAudioDevices,
 
 	// Expose a function to pollute window and naigator namespaces.
 	registerGlobals:       registerGlobals,
@@ -3340,6 +3391,12 @@ function requestPermission(needMic, needCamera, callback) {
 	exec(ok, error, 'iosrtcPlugin', "RTCRequestPermission", [needMic, needCamera]);
 }
 
+function initAudioDevices() {
+	debug('initAudioDevices()');
+
+	exec(null, null, 'iosrtcPlugin', "initAudioDevices", []);
+}
+
 function callbackifyMethod(originalMethod) {
 	return function (arg) { // jshint ignore:line
 		var success, failure,
@@ -3399,7 +3456,7 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 	}
 
 	if (!navigator.mediaDevices) {
-		navigator.mediaDevices = {};
+		navigator.mediaDevices = new MediaDevices();
 	}
 
 	// Restore Callback support
@@ -3428,7 +3485,7 @@ function dump() {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./MediaStream":4,"./MediaStreamTrack":6,"./RTCIceCandidate":11,"./RTCPeerConnection":12,"./RTCSessionDescription":16,"./enumerateDevices":19,"./getDisplayMedia":20,"./getUserMedia":21,"./videoElementsHandler":23,"cordova/exec":undefined,"debug":24,"domready":26}],23:[function(_dereq_,module,exports){
+},{"./MediaDevices":4,"./MediaStream":5,"./MediaStreamTrack":7,"./RTCIceCandidate":12,"./RTCPeerConnection":13,"./RTCSessionDescription":17,"./enumerateDevices":20,"./getDisplayMedia":21,"./getUserMedia":22,"./videoElementsHandler":24,"cordova/exec":undefined,"debug":25,"domready":27}],24:[function(_dereq_,module,exports){
 /**
  * Expose a function that must be called when the library is loaded.
  * And also a helper function.
@@ -3825,7 +3882,7 @@ function releaseMediaStreamRenderer(video) {
 	delete video.readyState;
 }
 
-},{"./MediaStreamRenderer":5,"debug":24}],24:[function(_dereq_,module,exports){
+},{"./MediaStreamRenderer":6,"debug":25}],25:[function(_dereq_,module,exports){
 (function (process){
 /* eslint-env browser */
 
@@ -4093,7 +4150,7 @@ formatters.j = function (v) {
 };
 
 }).call(this,_dereq_('_process'))
-},{"./common":25,"_process":28}],25:[function(_dereq_,module,exports){
+},{"./common":26,"_process":29}],26:[function(_dereq_,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -4361,7 +4418,7 @@ function setup(env) {
 
 module.exports = setup;
 
-},{"ms":27}],26:[function(_dereq_,module,exports){
+},{"ms":28}],27:[function(_dereq_,module,exports){
 /*!
   * domready (c) Dustin Diaz 2014 - License MIT
   */
@@ -4393,7 +4450,7 @@ module.exports = setup;
 
 });
 
-},{}],27:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
 /**
  * Helpers.
  */
@@ -4557,7 +4614,7 @@ function plural(ms, msAbs, n, name) {
   return Math.round(ms / n) + ' ' + name + (isPlural ? 's' : '');
 }
 
-},{}],28:[function(_dereq_,module,exports){
+},{}],29:[function(_dereq_,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -4743,7 +4800,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],29:[function(_dereq_,module,exports){
+},{}],30:[function(_dereq_,module,exports){
 void function(root){
 
   function defaults(options){
@@ -4789,14 +4846,14 @@ void function(root){
   module.exports.defaults = defaults
 }(this)
 
-},{}],30:[function(_dereq_,module,exports){
+},{}],31:[function(_dereq_,module,exports){
 module.exports =
 {
 	EventTarget : _dereq_('./lib/EventTarget'),
 	Event       : _dereq_('./lib/Event')
 };
 
-},{"./lib/Event":31,"./lib/EventTarget":32}],31:[function(_dereq_,module,exports){
+},{"./lib/Event":32,"./lib/EventTarget":33}],32:[function(_dereq_,module,exports){
 (function (global){
 /**
  * In browsers export the native Event interface.
@@ -4805,7 +4862,7 @@ module.exports =
 module.exports = global.Event;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],32:[function(_dereq_,module,exports){
+},{}],33:[function(_dereq_,module,exports){
 function yaetiEventTarget()
 {
 	this._listeners = {};
@@ -4940,5 +4997,5 @@ yaetiEventTarget.prototype.dispatchEvent = function(event)
 
 module.exports = yaetiEventTarget;
 
-},{}]},{},[22])(22)
+},{}]},{},[23])(23)
 });
