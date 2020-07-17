@@ -44,5 +44,5 @@ RTCRtpSender.prototype.replaceTrack = function (withTrack) {
 				resolve();
 			}
 		});
-  });
+	});
 };
