@@ -51,7 +51,6 @@ class PluginEnumerateDevices {
 fileprivate func getAllVideoDevices() -> [MediaDeviceInfo] {
 
 	var videoDevicesArr : [MediaDeviceInfo] = []
-	var videoDevicesArr : [MediaDeviceInfo] = []
 	var deviceTypes: [AVCaptureDevice.DeviceType] = [.builtInTelephotoCamera, .builtInWideAngleCamera]
 	if #available(iOS 10.2, *) {
 		deviceTypes.append(.builtInDualCamera)
