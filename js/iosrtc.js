@@ -26,6 +26,7 @@ var
 	RTCPeerConnection      = require('./RTCPeerConnection'),
 	RTCSessionDescription  = require('./RTCSessionDescription'),
 	RTCIceCandidate        = require('./RTCIceCandidate'),
+	MediaDevices           = require('./MediaDevices'),
 	MediaStream            = require('./MediaStream'),
 	MediaStreamTrack       = require('./MediaStreamTrack'),
 	videoElementsHandler   = require('./videoElementsHandler');
@@ -42,6 +43,7 @@ module.exports = {
 	RTCPeerConnection:     RTCPeerConnection,
 	RTCSessionDescription: RTCSessionDescription,
 	RTCIceCandidate:       RTCIceCandidate,
+	MediaDevices:          MediaDevices,
 	MediaStream:           MediaStream,
 	MediaStreamTrack:      MediaStreamTrack,
 
@@ -189,7 +191,7 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 	}
 
 	if (!navigator.mediaDevices) {
-		navigator.mediaDevices = {};
+		navigator.mediaDevices = new MediaDevices();
 	}
 
 	// Restore Callback support
