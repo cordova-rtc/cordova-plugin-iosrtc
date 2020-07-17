@@ -159,6 +159,9 @@ function MediaDevices(data) {
 	data = data || {};
 }
 
+MediaDevices.prototype = Object.create(EventTarget.prototype);
+MediaDevices.prototype.constructor = MediaDevices;
+
 MediaDevices.prototype.getUserMedia = function (constraints) {
 	return getUserMedia(constraints);
 };
