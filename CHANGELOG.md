@@ -1,3 +1,6 @@
+#### Version 8.0.0
+* Update to WebRTC.framework M84
+
 #### Version 7.0.0
 * Update to WebRTC.framework M75
 
