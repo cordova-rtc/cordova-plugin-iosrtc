@@ -75,11 +75,13 @@ class iosrtcPlugin : CDVPlugin {
 	}
 
 	@objc(onReset) override func onReset() {
-		NSLog("iosrtcPlugin#onReset() | doing nothing")
+		NSLog("iosrtcPlugin#onReset() | cleanup")
+		cleanup();
 	}
 
 	@objc(onAppTerminate) override func onAppTerminate() {
-		NSLog("iosrtcPlugin#onAppTerminate() | doing nothing")
+		NSLog("iosrtcPlugin#onAppTerminate() | cleanup")
+		cleanup();
 	}
 
 	@objc(new_RTCPeerConnection:) func new_RTCPeerConnection(_ command: CDVInvokedUrlCommand) {
@@ -1123,15 +1125,12 @@ class iosrtcPlugin : CDVPlugin {
 		}
 
 		// Store its PluginMediaStreamTracks' into the dictionary.
-		for (id, track) in pluginMediaStream.audioTracks {
-			if self.pluginMediaStreamTracks[id] == nil {
-				self.pluginMediaStreamTracks[id] = track
-			}
+		for (_, pluginMediaStreamTrack) in pluginMediaStream.audioTracks {
+			saveMediaStreamTrack(pluginMediaStreamTrack);
 		}
-		for (id, track) in pluginMediaStream.videoTracks {
-			if self.pluginMediaStreamTracks[id] == nil {
-				self.pluginMediaStreamTracks[id] = track
-			}
+
+		for (_, pluginMediaStreamTrack) in pluginMediaStream.videoTracks {
+			saveMediaStreamTrack(pluginMediaStreamTrack);
 		}
 	}
 
@@ -1147,5 +1146,42 @@ class iosrtcPlugin : CDVPlugin {
 
 	fileprivate func deleteMediaStreamTrack(_ id: String) {
 		self.pluginMediaStreamTracks[id] = nil
+	}
+
+	fileprivate func cleanup() {
+
+		// Close all RTCPeerConnections
+		for (pcId, pluginRTCPeerConnection) in self.pluginRTCPeerConnections {
+			pluginRTCPeerConnection.close()
+			self.pluginRTCPeerConnections[pcId] = nil;
+		}
+
+		// Close all StreamRenderers
+		for (id, pluginMediaStreamRenderer) in self.pluginMediaStreamRenderers {
+			pluginMediaStreamRenderer.close()
+			self.pluginMediaStreamRenderers[id] = nil;
+		}
+
+		// Close All MediaStream
+		for (streamId, pluginMediaStream) in self.pluginMediaStreams {
+			// Store its PluginMediaStreamTracks' into the dictionary.
+			for (trackId, pluginMediaStreamTrack) in pluginMediaStream.audioTracks {
+				pluginMediaStream.removeTrack(pluginMediaStreamTrack);
+				deleteMediaStreamTrack(trackId);
+			}
+
+			for (trackId, pluginMediaStreamTrack) in pluginMediaStream.videoTracks {
+				pluginMediaStream.removeTrack(pluginMediaStreamTrack);
+				deleteMediaStreamTrack(trackId);
+			}
+
+			deleteMediaStream(streamId);
+		}
+
+		// Close All MediaStreamTracks without MediaStream
+		for (trackId, pluginMediaStreamTrack) in self.pluginMediaStreamTracks {
+			pluginMediaStreamTrack.stop()
+			deleteMediaStreamTrack(trackId);
+		}
 	}
 }
