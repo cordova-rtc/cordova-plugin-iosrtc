@@ -1,9 +1,9 @@
 /*
- * cordova-plugin-iosrtc v6.0.4
+ * cordova-plugin-iosrtc v6.0.13
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015-2017 eFace2Face, Inc. (https://eface2face.com)
  * Copyright 2015-2019 BasqueVoIPMafia (https://github.com/BasqueVoIPMafia)
- * Copyright 2017-2019 Cordova-RTC (https://github.com/cordova-rtc)
+ * Copyright 2017-2020 Cordova-RTC (https://github.com/cordova-rtc)
  * License MIT
  */
 
@@ -65,21 +65,33 @@ Errors.detectDeprecatedCallbaksUsage = function detectDeprecatedCallbaksUsage(fu
 /**
  * Dependencies.
  */
-var 
+var
 	YaetiEventTarget = _dereq_('yaeti').EventTarget;
 
 var EventTarget = function () {
-	YaetiEventTarget.call(this);	
+	YaetiEventTarget.call(this);
 };
 
 EventTarget.prototype = Object.create(YaetiEventTarget.prototype);
 EventTarget.prototype.constructor = EventTarget;
 
+Object.defineProperties(EventTarget.prototype, Object.getOwnPropertyDescriptors(YaetiEventTarget.prototype));
+
+EventTarget.prototype.dispatchEvent = function (event) {
+
+	Object.defineProperty(event, 'target', {
+	  value: this,
+	  writable: false
+	});
+
+	YaetiEventTarget.prototype.dispatchEvent.call(this, event);
+};
+
 /**
  * Expose the EventTarget class.
  */
 module.exports = EventTarget;
-},{"yaeti":24}],3:[function(_dereq_,module,exports){
+},{"yaeti":30}],3:[function(_dereq_,module,exports){
 /**
  * Expose the MediaDeviceInfo class.
  */
@@ -115,6 +127,51 @@ function MediaDeviceInfo(data) {
 
 },{}],4:[function(_dereq_,module,exports){
 /**
+ * Expose the MediaDevices class.
+ */
+module.exports = MediaDevices;
+
+/**
+ * Spec: https://w3c.github.io/mediacapture-main/#dom-mediadevices
+ */
+
+/**
+ * Dependencies.
+ */
+var
+	EventTarget = _dereq_('./EventTarget'),
+	getUserMedia = _dereq_('./getUserMedia'),
+	enumerateDevices = _dereq_('./enumerateDevices');
+
+function MediaDevices(data) {
+
+	//ondevicechange
+	//enumerateDevices
+	//getDisplayMedia
+	//getSupportedConstraints
+	//getUserMedia
+
+	var self = this;
+
+	// Make this an EventTarget.
+	EventTarget.call(self);
+
+	data = data || {};
+}
+
+MediaDevices.prototype = Object.create(EventTarget.prototype);
+MediaDevices.prototype.constructor = MediaDevices;
+
+MediaDevices.prototype.getUserMedia = function (constraints) {
+	return getUserMedia(constraints);
+};
+
+MediaDevices.prototype.enumerateDevices = function () {
+	return enumerateDevices();
+};
+
+},{"./EventTarget":2,"./enumerateDevices":20,"./getUserMedia":21}],5:[function(_dereq_,module,exports){
+/**
  * Expose the MediaStream class.
  */
 module.exports = MediaStream;
@@ -148,7 +205,8 @@ function newMediaStreamId() {
 }
 
 // Save original MediaStream
-var originalMediaStream = window.MediaStream;
+var originalMediaStream = window.MediaStream || window.Blob;
+//var originalMediaStream = window.Blob;
 var originalMediaStreamTrack = MediaStreamTrack.originalMediaStreamTrack;
 
 /**
@@ -157,12 +215,13 @@ var originalMediaStreamTrack = MediaStreamTrack.originalMediaStreamTrack;
 function MediaStream(arg, id) {
 	debug('new MediaStream(arg) | [arg:%o]', arg);
 
-	// Detect native MediaStream usage	
+	// Detect native MediaStream usage
 	// new MediaStream(originalMediaStream) // stream
-	// new MediaStream(originalMediaStreamTrack[]) // tracks		
+	// new MediaStream(originalMediaStreamTrack[]) // tracks
 	if (
-		(arg instanceof originalMediaStream && typeof arg.getBlobId === 'undefined') || 
-			(Array.isArray(arg) && arg[0] instanceof originalMediaStreamTrack)
+		!(arg instanceof window.Blob) &&
+			(arg instanceof originalMediaStream && typeof arg.getBlobId === 'undefined') ||
+				(Array.isArray(arg) && arg[0] instanceof originalMediaStreamTrack)
 	) {
 		return new originalMediaStream(arg);
 	}
@@ -171,9 +230,26 @@ function MediaStream(arg, id) {
 	// new MediaStream(MediaStreamTrack[]) // tracks
 	// new MediaStream() // empty
 
-	// TODO attempt CustomMediaStream extend.
+	id = id || newMediaStreamId();
+	var blobId = 'MediaStream_' + id;
+
 	// Extend returned MediaTream with custom MediaStream
-	var stream = new (Function.prototype.bind.apply(originalMediaStream.bind(this), [])); // jshint ignore:line
+	var stream;
+	if (originalMediaStream !== window.Blob) {
+		stream = new (Function.prototype.bind.apply(originalMediaStream.bind(this), [])); // jshint ignore:line
+
+	// Fallback on Blob if originalMediaStream is not a MediaStream and Emulate EventTarget
+	} else {
+		stream = new Blob([blobId], {
+			type: 'stream'
+		});
+
+		var target = document.createTextNode(null);
+		stream.addEventListener = target.addEventListener.bind(target);
+		stream.removeEventListener = target.removeEventListener.bind(target);
+		stream.dispatchEvent = target.dispatchEvent.bind(target);
+	}
+
 	Object.defineProperties(stream, Object.getOwnPropertyDescriptors(MediaStream.prototype));
 
 	// Make it an EventTarget.
@@ -194,12 +270,12 @@ function MediaStream(arg, id) {
 	stream._videoTracks = {};
 
 	// Store the stream into the dictionary.
-	stream._blobId = 'MediaStream_' + stream.id;
+	stream._blobId = blobId;
 	mediaStreams[stream._blobId] = stream;
 
 	// Convert arg to array of tracks if possible
 	if (
-		(arg instanceof MediaStream) || 
+		(arg instanceof MediaStream) ||
 			(arg instanceof MediaStream.originalMediaStream)
 	) {
 		arg = arg.getTracks();
@@ -265,7 +341,7 @@ MediaStream.create = function (dataFromEvent) {
 	var trackId, track,
 		stream = new MediaStream([], dataFromEvent.id);
 
-	// We do not use addTrack to prevent false positive "ERROR: video track not added" and "ERROR: audio track not added" 
+	// We do not use addTrack to prevent false positive "ERROR: video track not added" and "ERROR: audio track not added"
 	// cause the rtcMediaStream already has them internaly.
 
 	for (trackId in dataFromEvent.audioTracks) {
@@ -355,7 +431,6 @@ MediaStream.prototype.getTrackById = function (id) {
 	return this._audioTracks[id] || this._videoTracks[id] || null;
 };
 
-
 MediaStream.prototype.addTrack = function (track) {
 	debug('addTrack() [track:%o]', track);
 
@@ -378,8 +453,11 @@ MediaStream.prototype.addTrack = function (track) {
 	addListenerForTrackEnded.call(this, track);
 
 	exec(null, null, 'iosrtcPlugin', 'MediaStream_addTrack', [this.id, track.id]);
-};
 
+	this.dispatchEvent(new Event('update'));
+
+	this.emitConnected();
+};
 
 MediaStream.prototype.removeTrack = function (track) {
 	debug('removeTrack() [track:%o]', track);
@@ -401,6 +479,8 @@ MediaStream.prototype.removeTrack = function (track) {
 	}
 
 	exec(null, null, 'iosrtcPlugin', 'MediaStream_removeTrack', [this.id, track.id]);
+
+	this.dispatchEvent(new Event('update'));
 
 	checkActive.call(this);
 };
@@ -566,6 +646,7 @@ function onEvent(data) {
 			event.track = track;
 
 			this.dispatchEvent(event);
+
 			// Also emit 'update' for the MediaStreamRenderer.
 			this.dispatchEvent(new Event('update'));
 
@@ -575,7 +656,7 @@ function onEvent(data) {
 	}
 }
 
-},{"./EventTarget":2,"./MediaStreamTrack":6,"cordova/exec":undefined,"debug":18}],5:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"./MediaStreamTrack":7,"cordova/exec":undefined,"debug":24}],6:[function(_dereq_,module,exports){
 /**
  * Expose the MediaStreamRenderer class.
  */
@@ -622,7 +703,7 @@ function MediaStreamRenderer(element) {
 
 	this.refresh();
 
-	// TODO cause video resizing jiggling add semaphore 
+	// TODO cause video resizing jiggling add semaphore
 	//this.refreshInterval = setInterval(function () {
 	//	self.refresh(self);
 	//}, 500);
@@ -642,9 +723,9 @@ MediaStreamRenderer.prototype.render = function (stream) {
 		throw new Error('render() requires a MediaStream instance as argument');
 	}
 
-	this.stream = stream;
+	self.stream = stream;
 
-	exec(null, null, 'iosrtcPlugin', 'MediaStreamRenderer_render', [this.id, stream.id]);
+	exec(null, null, 'iosrtcPlugin', 'MediaStreamRenderer_render', [self.id, stream.id]);
 
 	// Subscribe to 'update' event so we call native mediaStreamChanged() on it.
 	stream.addEventListener('update', function () {
@@ -977,7 +1058,7 @@ function getElementPositionAndSize() {
 	};
 }
 
-},{"./EventTarget":2,"./MediaStream":4,"cordova/exec":undefined,"debug":18,"random-number":23}],6:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"./MediaStream":5,"cordova/exec":undefined,"debug":24,"random-number":29}],7:[function(_dereq_,module,exports){
 /**
  * Expose the MediaStreamTrack class.
  */
@@ -996,12 +1077,18 @@ var
 	debug = _dereq_('debug')('iosrtc:MediaStreamTrack'),
 	exec = _dereq_('cordova/exec'),
 	enumerateDevices = _dereq_('./enumerateDevices'),
+	MediaTrackCapabilities = _dereq_('./MediaTrackCapabilities'),
+	MediaTrackSettings = _dereq_('./MediaTrackSettings'),
 	EventTarget = _dereq_('./EventTarget');
 
 // Save original MediaStreamTrack
-var originalMediaStreamTrack = window.MediaStreamTrack;
+var originalMediaStreamTrack = window.MediaStreamTrack || function dummyMediaStreamTrack() {};
 
 function MediaStreamTrack(dataFromEvent) {
+	if (!dataFromEvent) {
+		throw new Error('Illegal constructor');
+	}
+
 	debug('new() | [dataFromEvent:%o]', dataFromEvent);
 
 	var self = this;
@@ -1046,6 +1133,31 @@ Object.defineProperty(MediaStreamTrack.prototype, 'enabled', {
 	}
 });
 
+MediaStreamTrack.prototype.getConstraints = function () {
+	throw new Error('Not implemented.');
+};
+
+MediaStreamTrack.prototype.applyConstraints = function () {
+	throw new Error('Not implemented.');
+};
+
+MediaStreamTrack.prototype.clone = function () {
+	//throw new Error('Not implemented.');
+	// SHAM
+	return this;
+};
+
+MediaStreamTrack.prototype.getCapabilities = function () {
+	//throw new Error('Not implemented.');
+	// SHAM
+	return new MediaTrackCapabilities();
+};
+
+MediaStreamTrack.prototype.getSettings = function () {
+	//throw new Error('Not implemented.');
+	// SHAM
+	return new MediaTrackSettings();
+};
 
 MediaStreamTrack.prototype.stop = function () {
 	debug('stop()');
@@ -1104,7 +1216,29 @@ function onEvent(data) {
 	}
 }
 
-},{"./EventTarget":2,"./enumerateDevices":14,"cordova/exec":undefined,"debug":18}],7:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"./MediaTrackCapabilities":8,"./MediaTrackSettings":9,"./enumerateDevices":20,"cordova/exec":undefined,"debug":24}],8:[function(_dereq_,module,exports){
+/**
+ * Expose the MediaTrackSettings class.
+ */
+module.exports = MediaTrackCapabilities;
+
+// Ref https://www.w3.org/TR/mediacapture-streams/#dom-mediatrackcapabilities
+function MediaTrackCapabilities(data) {
+	data = data || {};
+}
+
+},{}],9:[function(_dereq_,module,exports){
+/**
+ * Expose the MediaTrackSettings class.
+ */
+module.exports = MediaTrackSettings;
+
+// Ref https://www.w3.org/TR/mediacapture-streams/#dom-mediatracksettings
+function MediaTrackSettings(data) {
+	data = data || {};
+}
+
+},{}],10:[function(_dereq_,module,exports){
 /**
  * Expose the RTCDTMFSender class.
  */
@@ -1238,7 +1372,7 @@ function onEvent(data) {
 	}
 }
 
-},{"./EventTarget":2,"cordova/exec":undefined,"debug":18,"random-number":23}],8:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"cordova/exec":undefined,"debug":24,"random-number":29}],11:[function(_dereq_,module,exports){
 /**
  * Expose the RTCDataChannel class.
  */
@@ -1471,13 +1605,169 @@ function onEvent(data) {
 	}
 }
 
-},{"./EventTarget":2,"cordova/exec":undefined,"debug":18,"random-number":23}],9:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"cordova/exec":undefined,"debug":24,"random-number":29}],12:[function(_dereq_,module,exports){
 /**
  * Expose the RTCIceCandidate class.
  */
 module.exports = RTCIceCandidate;
 
 
+
+/**
+* RFC-5245: http://tools.ietf.org/html/rfc5245#section-15.1
+*
+* candidate-attribute   = "candidate" ":" foundation SP component-id SP
+                           transport SP
+                           priority SP
+                           connection-address SP     ;from RFC 4566
+                           port         ;port from RFC 4566
+                           SP cand-type
+                           [SP rel-addr]
+                           [SP rel-port]
+                           *(SP extension-att-name SP
+                                extension-att-value)
+*
+* foundation            = 1*32ice-char
+* component-id          = 1*5DIGIT
+* transport             = "UDP" / transport-extension
+* transport-extension   = token              ; from RFC 3261
+* priority              = 1*10DIGIT
+* cand-type             = "typ" SP candidate-types
+* candidate-types       = "host" / "srflx" / "prflx" / "relay" / token
+* rel-addr              = "raddr" SP connection-address
+* rel-port              = "rport" SP port
+* extension-att-name    = byte-string    ;from RFC 4566
+* extension-att-value   = byte-string
+* ice-char              = ALPHA / DIGIT / "+" / "/"
+*/
+
+/**
+* RFC-3261: https://tools.ietf.org/html/rfc3261#section-25.1
+*
+* token          =  1*(alphanum / "-" / "." / "!" / "%" / "*"
+                     / "_" / "+" / "`" / "'" / "~" )
+*/
+
+/*
+* RFC-4566: https://tools.ietf.org/html/rfc4566#section-9
+*
+* port =                1*DIGIT
+* IP4-address =         b1 3("." decimal-uchar)
+* b1 =                  decimal-uchar
+                         ; less than "224"
+* ; The following is consistent with RFC 2373 [30], Appendix B.
+* IP6-address =         hexpart [ ":" IP4-address ]
+* hexpart =             hexseq / hexseq "::" [ hexseq ] /
+                         "::" [ hexseq ]
+* hexseq  =             hex4 *( ":" hex4)
+* hex4    =             1*4HEXDIG
+* decimal-uchar =       DIGIT
+                         / POS-DIGIT DIGIT
+                         / ("1" 2*(DIGIT))
+                         / ("2" ("0"/"1"/"2"/"3"/"4") DIGIT)
+                         / ("2" "5" ("0"/"1"/"2"/"3"/"4"/"5"))
+*/
+
+var candidateToJson = (function () {
+	var candidateFieldName = {
+	  FOUNDATION: 'foundation',
+	  COMPONENT_ID: 'componentId',
+	  TRANSPORT: 'transport',
+	  PRIORITY: 'priority',
+	  CONNECTION_ADDRESS: 'connectionAddress',
+	  PORT: 'port',
+	  CANDIDATE_TYPE: 'candidateType',
+	  REMOTE_CANDIDATE_ADDRESS: 'remoteConnectionAddress',
+	  REMOTE_CANDIDATE_PORT: 'remotePort'
+	};
+
+	var candidateType = {
+	  HOST: 'host',
+	  SRFLX: 'srflx',
+	  PRFLX: 'prflx',
+	  RELAY: 'relay'
+	};
+
+	var transport = {
+	  TCP: 'TCP',
+	  UDP: 'UDP'
+	};
+
+	var IPV4SEG = '(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])';
+	var IPV4ADDR = '(?:' + IPV4SEG + '\\.){3}' + IPV4SEG + '';
+	var IPV6SEG = '[0-9a-fA-F]{1,4}';
+	var IPV6ADDR =
+	    '(?:' + IPV6SEG + ':){7,7}' + IPV6SEG + '|' +				// 1:2:3:4:5:6:7:8
+	    '(?:' + IPV6SEG + ':){1,7}:|' +								// 1::                              1:2:3:4:5:6:7::
+	    '(?:' + IPV6SEG + ':){1,6}:' + IPV6SEG + '|' +				// 1::8             1:2:3:4:5:6::8  1:2:3:4:5:6::8
+	    '(?:' + IPV6SEG + ':){1,5}(?::' + IPV6SEG + '){1,2}|' +		// 1::7:8           1:2:3:4:5::7:8  1:2:3:4:5::8
+	    '(?:' + IPV6SEG + ':){1,4}(?::' + IPV6SEG + '){1,3}|' +		// 1::6:7:8         1:2:3:4::6:7:8  1:2:3:4::8
+	    '(?:' + IPV6SEG + ':){1,3}(?::' + IPV6SEG + '){1,4}|' +		// 1::5:6:7:8       1:2:3::5:6:7:8  1:2:3::8
+	    '(?:' + IPV6SEG + ':){1,2}(?::' + IPV6SEG + '){1,5}|' +		// 1::4:5:6:7:8     1:2::4:5:6:7:8  1:2::8
+	    '' + IPV6SEG + ':(?:(?::' + IPV6SEG + '){1,6})|' +			// 1::3:4:5:6:7:8   1::3:4:5:6:7:8  1::8
+	    ':(?:(?::' + IPV6SEG + '){1,7}|:)|' +						// ::2:3:4:5:6:7:8  ::2:3:4:5:6:7:8 ::8       ::
+	    'fe80:(?::' + IPV6SEG + '){0,4}%[0-9a-zA-Z]{1,}|' +			// fe80::7:8%eth0   fe80::7:8%1     (link-local IPv6 addresses with zone index)
+	    '::(?:ffff(?::0{1,4}){0,1}:){0,1}' + IPV4ADDR + '|' +		// ::255.255.255.255   ::ffff:255.255.255.255  ::ffff:0:255.255.255.255 (IPv4-mapped IPv6 addresses and IPv4-translated addresses)
+	    '(?:' + IPV6SEG + ':){1,4}:' + IPV4ADDR + '';				// 2001:db8:3:4::192.0.2.33  64:ff9b::192.0.2.33 (IPv4-Embedded IPv6 Address)
+
+	var TOKEN = '[0-9a-zA-Z\\-\\.!\\%\\*_\\+\\`\\\'\\~]+';
+
+	var CANDIDATE_TYPE = '';
+	Object.keys(candidateType).forEach(function (key) {
+	  CANDIDATE_TYPE += candidateType[key] + '|';
+	});
+	CANDIDATE_TYPE += TOKEN;
+
+	var pattern = {
+	  COMPONENT_ID: '[0-9]{1,5}',
+	  FOUNDATION: '[a-zA-Z0-9\\+\\/\\-]+',
+	  PRIORITY: '[0-9]{1,10}',
+	  TRANSPORT: transport.UPD + '|' + TOKEN,
+	  CONNECTION_ADDRESS: IPV4ADDR + '|' + IPV6ADDR,
+	  PORT: '[0-9]{1,5}',
+	  CANDIDATE_TYPE: CANDIDATE_TYPE
+	};
+
+	return function candidateToJson(iceCandidate) {
+	    var iceCandidateJson = null;
+
+	    if (iceCandidate && typeof iceCandidate === 'string') {
+	      var ICE_CANDIDATE_PATTERN = new RegExp(
+	        'candidate:(' + pattern.FOUNDATION + ')' +      // 10
+	        '\\s(' + pattern.COMPONENT_ID + ')' +           // 1
+	        '\\s(' + pattern.TRANSPORT + ')' +              // UDP
+	        '\\s(' + pattern.PRIORITY + ')' +               // 1845494271
+	        '\\s(' + pattern.CONNECTION_ADDRESS + ')' +     // 13.93.107.159
+	        '\\s(' + pattern.PORT + ')' +                   // 53705
+	        '\\s' +
+	        'typ' +
+	        '\\s(' + pattern.CANDIDATE_TYPE + ')' +         // typ prflx
+	        '(?:\\s' +
+	        'raddr' +
+	        '\\s(' + pattern.CONNECTION_ADDRESS + ')' +     // raddr 10.1.221.7
+	        '\\s' +
+	        'rport' +
+	        '\\s(' + pattern.PORT + '))?'                    // rport 54805
+	      );
+
+	      var iceCandidateFields = iceCandidate.match(ICE_CANDIDATE_PATTERN);
+	      if (iceCandidateFields) {
+	        iceCandidateJson = {};
+	        Object.keys(candidateFieldName).forEach(function (key, i) {
+	          // i+1 because match returns the entire match result
+	          // and the parentheses-captured matched results.
+	          if (iceCandidateFields.length > (i + 1) && iceCandidateFields[i + 1]) {
+	            iceCandidateJson[candidateFieldName[key]] = iceCandidateFields[i + 1];
+	          }
+	        });
+	      }
+	    }
+
+	    return iceCandidateJson;
+	};
+}());
+
+// See https://developer.mozilla.org/en-US/docs/Web/API/RTCIceCandidate/RTCIceCandidate
 function RTCIceCandidate(data) {
 	data = data || {};
 
@@ -1485,9 +1775,26 @@ function RTCIceCandidate(data) {
 	this.sdpMid = data.sdpMid;
 	this.sdpMLineIndex = data.sdpMLineIndex;
 	this.candidate = data.candidate;
-}
 
-},{}],10:[function(_dereq_,module,exports){
+	// Parse candidate SDP:
+	// Example: candidate:1829696681 1 udp 2122262783 2a01:cb05:8d3e:a300:e1ad:79c1:7096:8ba0 49778 typ host generation 0 ufrag c9L6 network-id 2 network-cost 10
+	var iceCandidateFields = candidateToJson(this.candidate);
+	if (iceCandidateFields) {
+		this.foundation = iceCandidateFields.foundation;
+		this.component = iceCandidateFields.componentId;
+		this.priority = iceCandidateFields.priority;
+		this.type = iceCandidateFields.candidateType;
+
+		this.address = iceCandidateFields.connectionAddress;
+		this.ip = iceCandidateFields.connectionAddress;
+		this.protocol = iceCandidateFields.transport;
+		this.port = iceCandidateFields.port;
+
+		this.relatedAddress = iceCandidateFields.remoteConnectionAddress || null;
+		this.relatedPort = iceCandidateFields.remotePort || null;
+	}
+}
+},{}],13:[function(_dereq_,module,exports){
 (function (global){
 /**
  * Expose the RTCPeerConnection class.
@@ -1498,7 +1805,7 @@ module.exports = RTCPeerConnection;
 /**
  * Dependencies.
  */
-var 
+var
 	debug = _dereq_('debug')('iosrtc:RTCPeerConnection'),
 	debugerror = _dereq_('debug')('iosrtc:ERROR:RTCPeerConnection'),
 	exec = _dereq_('cordova/exec'),
@@ -1508,6 +1815,9 @@ var
 	RTCIceCandidate = _dereq_('./RTCIceCandidate'),
 	RTCDataChannel = _dereq_('./RTCDataChannel'),
 	RTCDTMFSender = _dereq_('./RTCDTMFSender'),
+	RTCRtpReceiver = _dereq_('./RTCRtpReceiver'),
+	RTCRtpSender = _dereq_('./RTCRtpSender'),
+	RTCRtpTransceiver = _dereq_('./RTCRtpTransceiver'),
 	RTCStatsResponse = _dereq_('./RTCStatsResponse'),
 	RTCStatsReport = _dereq_('./RTCStatsReport'),
 	MediaStream = _dereq_('./MediaStream'),
@@ -1520,7 +1830,7 @@ function deprecateWarning(method, newMethod) {
 	if (!newMethod) {
 		console.warn(method + ' is deprecated.');
 	} else {
-		console.warn(method + ' method is deprecated, use ' + newMethod + ' instead.');	
+		console.warn(method + ' method is deprecated, use ' + newMethod + ' instead.');
 	}
 }
 
@@ -1537,10 +1847,11 @@ function RTCPeerConnection(pcConfig, pcConstraints) {
 	// Object.defineProperties(this, RTCPeerConnection.prototype_descriptor);
 
 	// Fix webrtc-adapter bad SHIM on addTrack causing error when original does support multiple streams.
-	// NotSupportedError: The adapter.js addTrack polyfill only supports a single stream which is associated with the specified track.
+	// NotSupportedError: The adapter.js addTrack, addStream polyfill only supports a single stream which is associated with the specified track.
 	Object.defineProperty(this, 'addTrack', RTCPeerConnection.prototype_descriptor.addTrack);
+	Object.defineProperty(this, 'addStream', RTCPeerConnection.prototype_descriptor.addStream);
 	Object.defineProperty(this, 'getLocalStreams', RTCPeerConnection.prototype_descriptor.getLocalStreams);
-	
+
 	// Public atributes.
 	this._localDescription = null;
 	this.remoteDescription = null;
@@ -1565,17 +1876,17 @@ RTCPeerConnection.prototype = Object.create(EventTarget.prototype);
 RTCPeerConnection.prototype.constructor = RTCPeerConnection;
 
 Object.defineProperties(RTCPeerConnection.prototype, {
-	'localDescription': { 
+	'localDescription': {
 		// Fix webrtc-adapter TypeError: Attempting to change the getter of an unconfigurable property.
 		configurable: true,
-		get: function() { 
+		get: function() {
 			return this._localDescription;
 		}
 	},
-	'connectionState': { 
-		get: function() { 
+	'connectionState': {
+		get: function() {
 			return this.iceConnectionState;
-		} 
+		}
 	},
 	'onicecandidate': {
 		// Fix webrtc-adapter TypeError: Attempting to change the getter of an unconfigurable property.
@@ -1589,6 +1900,13 @@ Object.defineProperties(RTCPeerConnection.prototype, {
 		configurable: true,
 		set: function (callback) {
 			return this.addEventListener('addstream', callback);
+		}
+	},
+	'ontrack': {
+		// Fix webrtc-adapter TypeError: Attempting to change the getter of an unconfigurable property.
+		configurable: true,
+		set: function (callback) {
+			return this.addEventListener('track', callback);
 		}
 	},
 	'oniceconnectionstatechange': {
@@ -1700,8 +2018,8 @@ RTCPeerConnection.prototype.setLocalDescription = function (desc) {
 		});
 	}
 
-	// "This is no longer necessary, however; RTCPeerConnection.setLocalDescription() and other 
-	// methods which take SDP as input now directly accept an object conforming to the RTCSessionDescriptionInit dictionary, 
+	// "This is no longer necessary, however; RTCPeerConnection.setLocalDescription() and other
+	// methods which take SDP as input now directly accept an object conforming to the RTCSessionDescriptionInit dictionary,
 	// so you don't have to instantiate an RTCSessionDescription yourself.""
 	// Source: https://developer.mozilla.org/en-US/docs/Web/API/RTCSessionDescription/RTCSessionDescription#Example
 	// Still we do instnanciate RTCSessionDescription, so internal object is used properly.
@@ -1751,8 +2069,8 @@ RTCPeerConnection.prototype.setRemoteDescription = function (desc) {
 
 	debug('setRemoteDescription() [desc:%o]', desc);
 
-	// "This is no longer necessary, however; RTCPeerConnection.setLocalDescription() and other 
-	// methods which take SDP as input now directly accept an object conforming to the RTCSessionDescriptionInit dictionary, 
+	// "This is no longer necessary, however; RTCPeerConnection.setLocalDescription() and other
+	// methods which take SDP as input now directly accept an object conforming to the RTCSessionDescriptionInit dictionary,
 	// so you don't have to instantiate an RTCSessionDescription yourself.""
 	// Source: https://developer.mozilla.org/en-US/docs/Web/API/RTCSessionDescription/RTCSessionDescription#Example
 	// Still we do instnanciate RTCSessionDescription so internal object is used properly.
@@ -1887,7 +2205,11 @@ RTCPeerConnection.prototype.getReceivers = function () {
 		}
 	}
 
-	return tracks;
+	return tracks.map(function (track) {
+		return new RTCRtpReceiver({
+			track: track
+		});
+	});
 };
 
 RTCPeerConnection.prototype.getSenders = function () {
@@ -1900,8 +2222,31 @@ RTCPeerConnection.prototype.getSenders = function () {
 		}
 	}
 
-	return tracks;
+	return tracks.map(function (track) {
+		return new RTCRtpSender({
+			track: track
+		});
+	});
 };
+
+RTCPeerConnection.prototype.getTransceivers = function () {
+	var transceivers = [];
+
+	this.getReceivers().map(function (receiver) {
+		transceivers.push(new RTCRtpTransceiver({
+			receiver: receiver
+		}));
+	});
+
+	this.getSenders().map(function (sender) {
+		transceivers.push(new RTCRtpTransceiver({
+			sender: sender
+		}));
+	});
+
+	return transceivers;
+};
+
 
 RTCPeerConnection.prototype.addTrack = function (track, stream) {
 	var id;
@@ -1930,7 +2275,7 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 	for (id in this.localStreams) {
 		if (this.localStreams.hasOwnProperty(id)) {
 			// Target provided stream argument or first added stream to group track
-			if (!stream || (stream && stream.id === id)) { 
+			if (!stream || (stream && stream.id === id)) {
 				stream = this.localStreams[id];
 				stream.addTrack(track);
 				exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [this.pcId, track.id, id]);
@@ -1945,10 +2290,17 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 	}
 };
 
-RTCPeerConnection.prototype.removeTrack = function (track) {
+RTCPeerConnection.prototype.removeTrack = function (sender) {
 	var id,
+		track,
 		stream,
 		hasTrack;
+
+	if (!(sender instanceof RTCRtpSender)) {
+		throw new Error('removeTrack() must be called with a RTCRtpSender instance as argument');
+	}
+
+	track = sender.track;
 
 	function matchLocalTrack(localTrack) {
 		return localTrack.id === track.id;
@@ -2143,7 +2495,6 @@ function onEvent(data) {
 	var type = data.type,
 		self = this,
 		event = new Event(type),
-		stream,
 		dataChannel,
 		id;
 
@@ -2191,29 +2542,37 @@ function onEvent(data) {
 		case 'negotiationneeded':
 			break;
 
-		case 'addtrack':
-			event.track = data.track;
+		case 'track':
+			event.track = new MediaStreamTrack(data.track);
+			event.receiver = new RTCRtpReceiver({ track: event.track });
+			event.transceiver = new RTCRtpTransceiver({ receiver: event.receiver });
+			event.streams = [];
+
+			// Add stream only if available in case of Unified-Plan of track event without stream
+			if (data.stream && data.streamId) {
+				var stream = this.remoteStreams[data.streamId] || MediaStream.create(data.stream);
+				event.streams.push(stream);
+			}
 			break;
 
 		case 'addstream':
-			stream = MediaStream.create(data.stream);
-			event.stream = stream;
 
 			// Append to the remote streams.
-			this.remoteStreams[stream.id] = stream;
+			this.remoteStreams[data.streamId] = this.remoteStreams[data.streamId] || MediaStream.create(data.stream);
+
+			event.stream = this.remoteStreams[data.streamId];
 
 			// Emit "connected" on the stream if ICE connected.
 			if (this.iceConnectionState === 'connected' || this.iceConnectionState === 'completed') {
-				stream.emitConnected();
+				event.stream.emitConnected();
 			}
 			break;
 
 		case 'removestream':
-			stream = this.remoteStreams[data.streamId];
-			event.stream = stream;
+			event.stream = this.remoteStreams[data.streamId];
 
 			// Remove from the remote streams.
-			delete this.remoteStreams[stream.id];
+			delete this.remoteStreams[data.streamId];
 			break;
 
 		case 'datachannel':
@@ -2226,7 +2585,60 @@ function onEvent(data) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./Errors":1,"./EventTarget":2,"./MediaStream":4,"./MediaStreamTrack":6,"./RTCDTMFSender":7,"./RTCDataChannel":8,"./RTCIceCandidate":9,"./RTCSessionDescription":11,"./RTCStatsReport":12,"./RTCStatsResponse":13,"cordova/exec":undefined,"debug":18,"random-number":23}],11:[function(_dereq_,module,exports){
+},{"./Errors":1,"./EventTarget":2,"./MediaStream":5,"./MediaStreamTrack":7,"./RTCDTMFSender":10,"./RTCDataChannel":11,"./RTCIceCandidate":12,"./RTCRtpReceiver":14,"./RTCRtpSender":15,"./RTCRtpTransceiver":16,"./RTCSessionDescription":17,"./RTCStatsReport":18,"./RTCStatsResponse":19,"cordova/exec":undefined,"debug":24,"random-number":29}],14:[function(_dereq_,module,exports){
+/**
+ * Expose the RTCRtpReceiver class.
+ */
+module.exports = RTCRtpReceiver;
+
+
+function RTCRtpReceiver(data) {
+	data = data || {};
+
+	this.track = data.track;
+}
+
+},{}],15:[function(_dereq_,module,exports){
+/**
+ * Expose the RTCRtpSender class.
+ */
+module.exports = RTCRtpSender;
+
+function RTCRtpSender(data) {
+	data = data || {};
+
+	this.track = data.track;
+    this.params = data.params || {};
+}
+
+RTCRtpSender.prototype.getParameters = function () {
+    return this.params;
+};
+
+RTCRtpSender.prototype.setParameters = function (params) {
+    Object.assign(this.params, params);
+    return Promise.resolve(this.params);
+};
+},{}],16:[function(_dereq_,module,exports){
+/**
+ * Expose the RTCRtpTransceiver class.
+ */
+module.exports = RTCRtpTransceiver;
+
+
+function RTCRtpTransceiver(data) {
+	data = data || {};
+
+	this.receiver = data.receiver;
+	this.sender = data.sender;
+}
+
+// TODO
+// https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpTransceiver/currentDirection
+// https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpTransceiverDirection
+// https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpTransceiver/mid
+// https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpTransceiver/stop
+},{}],17:[function(_dereq_,module,exports){
 /**
  * Expose the RTCSessionDescription class.
  */
@@ -2241,14 +2653,14 @@ function RTCSessionDescription(data) {
 	this.sdp = data.sdp;
 }
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],18:[function(_dereq_,module,exports){
 /**
  * Expose the RTCStatsReport class.
  */
 module.exports = RTCStatsReport;
 
 function RTCStatsReport(data) {
-	data = data || [];
+	data = data || {};
 
 	this.id = data.reportId;
 	this.timestamp = data.timestamp;
@@ -2263,7 +2675,7 @@ function RTCStatsReport(data) {
 	};
 }
 
-},{}],13:[function(_dereq_,module,exports){
+},{}],19:[function(_dereq_,module,exports){
 /**
  * Expose the RTCStatsResponse class.
  */
@@ -2276,12 +2688,16 @@ function RTCStatsResponse(data) {
 		return data;
 	};
 
+	this.forEach = function (callback, thisArg) {
+		return data.forEach(callback, thisArg);
+	};
+
 	this.namedItem = function () {
 		return null;
 	};
 }
 
-},{}],14:[function(_dereq_,module,exports){
+},{}],20:[function(_dereq_,module,exports){
 /**
  * Expose the enumerateDevices function.
  */
@@ -2335,7 +2751,7 @@ function getMediaDeviceInfos(devices) {
 	return mediaDeviceInfos;
 }
 
-},{"./Errors":1,"./MediaDeviceInfo":3,"cordova/exec":undefined,"debug":18}],15:[function(_dereq_,module,exports){
+},{"./Errors":1,"./MediaDeviceInfo":3,"cordova/exec":undefined,"debug":24}],21:[function(_dereq_,module,exports){
 /**
  * Expose the getUserMedia function.
  */
@@ -2432,7 +2848,7 @@ function getUserMedia(constraints) {
 	 ConstrainDOMString deviceId;
 	 ConstrainDOMString groupId;
 	};
-	 
+
 	 // typedef ([Clamp] unsigned long or ConstrainULongRange) ConstrainULong;
 	 // We convert unsigned long to ConstrainULongRange.exact
 
@@ -2445,7 +2861,7 @@ function getUserMedia(constraints) {
 		  [Clamp] unsigned long exact;
 		  [Clamp] unsigned long ideal;
 	 };
-	 
+
 	 // See: https://www.w3.org/TR/mediacapture-streams/#dom-doublerange
 	 // typedef (double or ConstrainDoubleRange) ConstrainDouble;
 	 // We convert double to ConstrainDoubleRange.exact
@@ -2453,18 +2869,18 @@ function getUserMedia(constraints) {
 		double max;
 		double min;
 	 };
-	 
+
 	 dictionary ConstrainDoubleRange : DoubleRange {
 		double exact;
 		double ideal;
 	 };
-	 
+
 	 // typedef (boolean or ConstrainBooleanParameters) ConstrainBoolean;
 	 dictionary ConstrainBooleanParameters {
 		boolean exact;
 		boolean ideal;
 	 };
-	 
+
 	 // typedef (DOMString or sequence<DOMString> or ConstrainDOMStringParameters) ConstrainDOMString;
 	 // We convert DOMString to ConstrainDOMStringParameters.exact
 	 dictionary ConstrainDOMStringParameters {
@@ -2480,42 +2896,57 @@ function getUserMedia(constraints) {
 		newConstraints.video = {};
 
 		// Handle Stupid not up-to-date webrtc-adapter
-		// Note: Firefox [38+] does support a subset of constraints with getUserMedia(), but not the outdated syntax that Chrome and Opera are using. 
+		// Note: Firefox [38+] does support a subset of constraints with getUserMedia(), but not the outdated syntax that Chrome and Opera are using.
 		// The mandatory / optional syntax was deprecated a in 2014, and minWidth and minHeight the year before that.
-		
 		if (
 			typeof constraints.video === 'object' &&
 				(typeof constraints.video.optional === 'object' || typeof constraints.video.mandatory === 'object')
 		) {
 
-			if (
-				typeof constraints.video.optional === 'object'
-			) {
-				if (typeof constraints.video.optional.sourceId === 'string') {
-					newConstraints.video.deviceId = {
-						ideal: constraints.video.optional.sourceId
-					};
-				} else if (
-					Array.isArray(constraints.video.optional) &&
-						typeof constraints.video.optional[0] === 'object' &&
-							typeof constraints.video.optional[0].sourceId === 'string'
-				) {
-					newConstraints.video.deviceId = {
-						ideal: constraints.video.optional[0].sourceId
-					};
-				}
-			} else if (
-				constraints.video.mandatory && 
-					typeof constraints.video.mandatory.sourceId === 'string'
-			) {
-				newConstraints.video.deviceId = {
-					exact: constraints.video.mandatory.sourceId
-				};  
+			var videoConstraints = {};
+
+			if (Array.isArray(constraints.video.optional)) {
+
+				/*
+				Example of constraints.video.optional:
+					{
+						"optional": [
+							{
+								"minWidth": 640
+							},
+							{
+								"maxWidth": 640
+							},
+							{
+								"minHeight": 480
+							},
+							{
+								"maxHeight": 480
+							},
+							{
+								"sourceId": "com.apple.avfoundation.avcapturedevice.built-in_video:0"
+							}
+						]
+					}
+				*/
+
+				// Convert optional array to object
+				Object.values(constraints.video.optional).forEach(function (optional) {
+					var optionalConstraintName = Object.keys(optional)[0],
+						optionalConstraintValue = optional[optionalConstraintName];
+					videoConstraints[optionalConstraintName] = Array.isArray(optionalConstraintValue) ?
+																optionalConstraintValue[0] : optionalConstraintValue;
+				});
+
+			} else if (typeof constraints.video.mandatory === 'object') {
+				videoConstraints = constraints.video.mandatory;
 			}
 
-			// Only apply mandatory over optional
-			var videoConstraints = constraints.video.mandatory || constraints.video.optional;
-			videoConstraints = Array.isArray(videoConstraints) ? videoConstraints[0] : videoConstraints;
+			if (typeof videoConstraints.sourceId === 'string') {
+				newConstraints.video.deviceId = {
+					ideal: videoConstraints.sourceId
+				};
+			}
 
 			if (isPositiveInteger(videoConstraints.minWidth)) {
 				newConstraints.video.width = {
@@ -2523,10 +2954,20 @@ function getUserMedia(constraints) {
 				};
 			}
 
+			if (isPositiveInteger(videoConstraints.maxWidth)) {
+				newConstraints.video.width = newConstraints.video.width || {};
+				newConstraints.video.width.max = videoConstraints.maxWidth;
+			}
+
 			if (isPositiveInteger(videoConstraints.minHeight)) {
 				newConstraints.video.height = {
 					min: videoConstraints.minHeight
 				};
+			}
+
+			if (isPositiveInteger(videoConstraints.maxHeight)) {
+				newConstraints.video.height = newConstraints.video.height || {};
+				newConstraints.video.height.max = videoConstraints.maxHeight;
 			}
 
 			if (isPositiveFloat(videoConstraints.minFrameRate)) {
@@ -2557,12 +2998,12 @@ function getUserMedia(constraints) {
 		} else if (typeof constraints.video.deviceId === 'object') {
 			if (!!constraints.video.deviceId.exact) {
 				newConstraints.video.deviceId = {
-					exact: Array.isArray(constraints.video.deviceId.exact) ? 
+					exact: Array.isArray(constraints.video.deviceId.exact) ?
 						constraints.video.deviceId.exact[0] : constraints.video.deviceId.exact
 				};
 			} else if (!!constraints.video.deviceId.ideal) {
 				newConstraints.video.deviceId = {
-					ideal: Array.isArray(constraints.video.deviceId.ideal) ? 
+					ideal: Array.isArray(constraints.video.deviceId.ideal) ?
 							constraints.video.deviceId.ideal[0] : constraints.video.deviceId.ideal
 				};
 			}
@@ -2669,7 +3110,7 @@ function getUserMedia(constraints) {
 				newConstraints.video.facingMode = {
 					exact: constraints.video.facingMode.exact
 				};
-			} else if (constraints.video.facingMode.ideal === 'string') {
+			} else if (typeof constraints.video.facingMode.ideal === 'string') {
 				newConstraints.video.facingMode = {
 					ideal: constraints.video.facingMode.ideal
 				};
@@ -2684,7 +3125,7 @@ function getUserMedia(constraints) {
 		newConstraints.audio = {};
 
 		// Handle Stupid not up-to-date webrtc-adapter
-		// Note: Firefox [38+] does support a subset of constraints with getUserMedia(), but not the outdated syntax that Chrome and Opera are using. 
+		// Note: Firefox [38+] does support a subset of constraints with getUserMedia(), but not the outdated syntax that Chrome and Opera are using.
 		// The mandatory / optional syntax was deprecated a in 2014, and minWidth and minHeight the year before that.
 		if (
 			typeof constraints.audio === 'object' &&
@@ -2707,13 +3148,13 @@ function getUserMedia(constraints) {
 					};
 				}
 			} else if (
-				constraints.audio.mandatory && 
+				constraints.audio.mandatory &&
 					typeof constraints.audio.mandatory.sourceId === 'string'
 			) {
 				newConstraints.audio.deviceId = {
 					exact: constraints.audio.mandatory.sourceId
-				};  
-			} 
+				};
+			}
 		}
 
 		// Get requested audio deviceId.
@@ -2732,16 +3173,16 @@ function getUserMedia(constraints) {
 		} else if (typeof constraints.audio.deviceId === 'object') {
 			if (!!constraints.audio.deviceId.exact) {
 				newConstraints.audio.deviceId = {
-					exact: Array.isArray(constraints.audio.deviceId.exact) ? 
+					exact: Array.isArray(constraints.audio.deviceId.exact) ?
 						constraints.audio.deviceId.exact[0] : constraints.audio.deviceId.exact
 				};
 			} else if (!!constraints.audio.deviceId.ideal) {
 				newConstraints.audio.deviceId = {
-					ideal: Array.isArray(constraints.audio.deviceId.ideal) ? 
+					ideal: Array.isArray(constraints.audio.deviceId.ideal) ?
 							constraints.audio.deviceId.ideal[0] : constraints.audio.deviceId.ideal
 				};
 			}
-		}   
+		}
 	}
 
 	debug('[computed constraints:%o]', newConstraints);
@@ -2763,7 +3204,7 @@ function getUserMedia(constraints) {
 		exec(onResultOK, onResultError, 'iosrtcPlugin', 'getUserMedia', [newConstraints]);
 	});
 }
-},{"./Errors":1,"./MediaStream":4,"cordova/exec":undefined,"debug":18}],16:[function(_dereq_,module,exports){
+},{"./Errors":1,"./MediaStream":5,"cordova/exec":undefined,"debug":24}],22:[function(_dereq_,module,exports){
 (function (global){
 /**
  * Variables.
@@ -2793,6 +3234,7 @@ var
 	RTCPeerConnection      = _dereq_('./RTCPeerConnection'),
 	RTCSessionDescription  = _dereq_('./RTCSessionDescription'),
 	RTCIceCandidate        = _dereq_('./RTCIceCandidate'),
+	MediaDevices           = _dereq_('./MediaDevices'),
 	MediaStream            = _dereq_('./MediaStream'),
 	MediaStreamTrack       = _dereq_('./MediaStreamTrack'),
 	videoElementsHandler   = _dereq_('./videoElementsHandler');
@@ -2809,6 +3251,7 @@ module.exports = {
 	RTCPeerConnection:     RTCPeerConnection,
 	RTCSessionDescription: RTCSessionDescription,
 	RTCIceCandidate:       RTCIceCandidate,
+	MediaDevices:          MediaDevices,
 	MediaStream:           MediaStream,
 	MediaStreamTrack:      MediaStreamTrack,
 
@@ -2826,6 +3269,9 @@ module.exports = {
 
 	// Checking permision (audio and camera)
 	requestPermission: requestPermission,
+
+	// Expose a function to initAudioDevices if needed, sets the audio session active
+	initAudioDevices: initAudioDevices,
 
 	// Expose a function to pollute window and naigator namespaces.
 	registerGlobals:       registerGlobals,
@@ -2847,10 +3293,10 @@ domready(function () {
 	MediaStream.setMediaStreams(mediaStreams);
 	videoElementsHandler(mediaStreams, mediaStreamRenderers);
 
-	// refreshVideos on device orientation change to resize peers video 
+	// refreshVideos on device orientation change to resize peers video
 	// while local video will resize du orientation change
 	window.addEventListener('resize', function () {
-	    videoElementsHandler.refreshVideos();
+		videoElementsHandler.refreshVideos();
 	});
 });
 
@@ -2888,22 +3334,28 @@ function requestPermission(needMic, needCamera, callback) {
 	exec(ok, error, 'iosrtcPlugin', "RTCRequestPermission", [needMic, needCamera]);
 }
 
+function initAudioDevices() {
+	debug('initAudioDevices()');
+
+	exec(null, null, 'iosrtcPlugin', "initAudioDevices", []);
+}
+
 function callbackifyMethod(originalMethod) {
-  	return function () {
+	return function (arg) { // jshint ignore:line
 		var success, failure,
 		  originalArgs = Array.prototype.slice.call(arguments);
 
 		var callbackArgs = [];
 		originalArgs.forEach(function (arg) {
-		  if (typeof arg === 'function') {
-			if (!success) {
-			  success = arg;
+			if (typeof arg === 'function') {
+				if (!success) {
+					success = arg;
+				} else {
+					failure = arg;
+				}
 			} else {
-			  failure = arg;
+				callbackArgs.push(arg);
 			}
-		  } else {
-			callbackArgs.push(arg);
-		  }
 		});
 
 		var promiseResult = originalMethod.apply(this, callbackArgs);
@@ -2936,6 +3388,7 @@ function restoreCallbacksSupport() {
 	callbackifyPrototype(RTCPeerConnection.prototype, 'setRemoteDescription');
 	callbackifyPrototype(RTCPeerConnection.prototype, 'setLocalDescription');
 	callbackifyPrototype(RTCPeerConnection.prototype, 'addIceCandidate');
+	callbackifyPrototype(RTCPeerConnection.prototype, 'getStats');
 }
 
 function registerGlobals(doNotRestoreCallbacksSupport) {
@@ -2946,18 +3399,18 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 	}
 
 	if (!navigator.mediaDevices) {
-		navigator.mediaDevices = {};
+		navigator.mediaDevices = new MediaDevices();
+	}
+
+	// Restore Callback support
+	if (!doNotRestoreCallbacksSupport) {
+		restoreCallbacksSupport();
 	}
 
 	navigator.getUserMedia                  = getUserMedia;
 	navigator.webkitGetUserMedia            = getUserMedia;
 	navigator.mediaDevices.getUserMedia     = getUserMedia;
 	navigator.mediaDevices.enumerateDevices = enumerateDevices;
-
-	// Restore Callback support
-	if (!doNotRestoreCallbacksSupport) {
-		restoreCallbacksSupport();
-	}
 
 	window.RTCPeerConnection                = RTCPeerConnection;
 	window.webkitRTCPeerConnection          = RTCPeerConnection;
@@ -2973,7 +3426,7 @@ function dump() {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./MediaStream":4,"./MediaStreamTrack":6,"./RTCIceCandidate":9,"./RTCPeerConnection":10,"./RTCSessionDescription":11,"./enumerateDevices":14,"./getUserMedia":15,"./videoElementsHandler":17,"cordova/exec":undefined,"debug":18,"domready":20}],17:[function(_dereq_,module,exports){
+},{"./MediaDevices":4,"./MediaStream":5,"./MediaStreamTrack":7,"./RTCIceCandidate":12,"./RTCPeerConnection":13,"./RTCSessionDescription":17,"./enumerateDevices":20,"./getUserMedia":21,"./videoElementsHandler":23,"cordova/exec":undefined,"debug":24,"domready":26}],23:[function(_dereq_,module,exports){
 /**
  * Expose a function that must be called when the library is loaded.
  * And also a helper function.
@@ -2994,6 +3447,9 @@ var
 /**
  * Local variables.
  */
+
+	// RegExp for Blob URI.
+	BLOB_INTERNAL_URI_REGEX = new RegExp(/^blob:/),
 
 	// Dictionary of MediaStreamRenderers (provided via module argument).
 	// - key: MediaStreamRenderer id.
@@ -3016,7 +3472,7 @@ var
 			video = mutation.target;
 
 			// .srcObject removed.
-			if (!video.srcObject) {
+			if (!video.srcObject && !video.src) {
 				// If this video element was previously handling a MediaStreamRenderer, release it.
 				releaseMediaStreamRenderer(video);
 				continue;
@@ -3154,7 +3610,8 @@ function observeVideo(video) {
 
 	// If the video already has a srcObject property but is not yet handled by the plugin
 	// then handle it now.
-	if ((video.srcObject) && !video._iosrtcMediaStreamRendererId) {
+	var hasStream = video.srcObject || video.src;
+	if (hasStream && !video._iosrtcMediaStreamRendererId) {
 		handleVideo(video);
 	}
 
@@ -3178,7 +3635,7 @@ function observeVideo(video) {
 		// Set to an array of attribute local names (without namespace) if not all attribute mutations
 		// need to be observed.
 		// srcObject DO not trigger MutationObserver
-		attributeFilter: ['srcObject']
+		attributeFilter: ['srcObject', 'src']
 	});
 
 	// MutationObserver fail to trigger when using srcObject on ony tested browser.
@@ -3186,10 +3643,13 @@ function observeVideo(video) {
 	// video.srcObject = null will trigger onemptied events.
 
 	video.addEventListener('loadstart', function () {
-		if (video.srcObject && !video._iosrtcMediaStreamRendererId) {
+
+		var hasStream = video.srcObject || video.src;
+
+		if (hasStream && !video._iosrtcMediaStreamRendererId) {
 			// If this video element was NOT previously handling a MediaStreamRenderer, release it.
 			handleVideo(video);
-		} else if (video.srcObject && video._iosrtcMediaStreamRendererId) {
+		} else if (hasStream && video._iosrtcMediaStreamRendererId) {
 			// The video element has received a new srcObject.
 			var stream = video.srcObject;
 			if (stream && typeof stream.getBlobId === 'function') {
@@ -3202,9 +3662,19 @@ function observeVideo(video) {
 	});
 
 	video.addEventListener('emptied', function () {
-		if (!video.srcObject && video._iosrtcMediaStreamRendererId) {
+		var hasStream = video.srcObject || video.src;
+		if (!hasStream && video._iosrtcMediaStreamRendererId) {
 			// If this video element was previously handling a MediaStreamRenderer, release it.
 			releaseMediaStreamRenderer(video);
+		}
+	});
+
+	// Intercept video 'error' events if it's due to the attached MediaStream.
+	video.addEventListener('error', function (event) {
+		if (video.error.code === window.MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED && BLOB_INTERNAL_URI_REGEX.test(video.src)) {
+			debug('stopping "error" event propagation for video element');
+
+			event.stopImmediatePropagation();
 		}
 	});
 }
@@ -3232,6 +3702,45 @@ function handleVideo(video) {
 
 			provideMediaStreamRenderer(video, stream.getBlobId());
 		}
+	} else if (video.src) {
+
+		var xhr = new XMLHttpRequest();
+		xhr.open('GET', video.src, true);
+		xhr.responseType = 'blob';
+		xhr.onload = function () {
+			if (xhr.status !== 200) {
+				// If this video element was previously handling a MediaStreamRenderer, release it.
+				releaseMediaStreamRenderer(video);
+
+				return;
+			}
+
+			var reader = new FileReader();
+
+			// Some versions of Safari fail to set onloadend property, some others do not react
+			// on 'loadend' event. Try everything here.
+			try {
+				reader.onloadend = onloadend;
+			} catch (error) {
+				reader.addEventListener('loadend', onloadend);
+			}
+			reader.readAsText(xhr.response);
+
+			function onloadend() {
+				var mediaStreamBlobId = reader.result;
+
+				// The retrieved URL does not point to a MediaStream.
+				if (!mediaStreamBlobId || typeof mediaStreamBlobId !== 'string') {
+					// If this video element was previously handling a MediaStreamRenderer, release it.
+					releaseMediaStreamRenderer(video);
+
+					return;
+				}
+
+				provideMediaStreamRenderer(video, mediaStreamBlobId);
+			}
+		};
+		xhr.send();
 	}
 }
 
@@ -3314,7 +3823,7 @@ function releaseMediaStreamRenderer(video) {
 	delete video.readyState;
 }
 
-},{"./MediaStreamRenderer":5,"debug":18}],18:[function(_dereq_,module,exports){
+},{"./MediaStreamRenderer":6,"debug":24}],24:[function(_dereq_,module,exports){
 (function (process){
 /* eslint-env browser */
 
@@ -3582,7 +4091,7 @@ formatters.j = function (v) {
 };
 
 }).call(this,_dereq_('_process'))
-},{"./common":19,"_process":22}],19:[function(_dereq_,module,exports){
+},{"./common":25,"_process":28}],25:[function(_dereq_,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -3850,7 +4359,7 @@ function setup(env) {
 
 module.exports = setup;
 
-},{"ms":21}],20:[function(_dereq_,module,exports){
+},{"ms":27}],26:[function(_dereq_,module,exports){
 /*!
   * domready (c) Dustin Diaz 2014 - License MIT
   */
@@ -3882,7 +4391,7 @@ module.exports = setup;
 
 });
 
-},{}],21:[function(_dereq_,module,exports){
+},{}],27:[function(_dereq_,module,exports){
 /**
  * Helpers.
  */
@@ -4046,7 +4555,7 @@ function plural(ms, msAbs, n, name) {
   return Math.round(ms / n) + ' ' + name + (isPlural ? 's' : '');
 }
 
-},{}],22:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -4232,7 +4741,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],23:[function(_dereq_,module,exports){
+},{}],29:[function(_dereq_,module,exports){
 void function(root){
 
   function defaults(options){
@@ -4278,14 +4787,14 @@ void function(root){
   module.exports.defaults = defaults
 }(this)
 
-},{}],24:[function(_dereq_,module,exports){
+},{}],30:[function(_dereq_,module,exports){
 module.exports =
 {
 	EventTarget : _dereq_('./lib/EventTarget'),
 	Event       : _dereq_('./lib/Event')
 };
 
-},{"./lib/Event":25,"./lib/EventTarget":26}],25:[function(_dereq_,module,exports){
+},{"./lib/Event":31,"./lib/EventTarget":32}],31:[function(_dereq_,module,exports){
 (function (global){
 /**
  * In browsers export the native Event interface.
@@ -4294,7 +4803,7 @@ module.exports =
 module.exports = global.Event;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],26:[function(_dereq_,module,exports){
+},{}],32:[function(_dereq_,module,exports){
 function yaetiEventTarget()
 {
 	this._listeners = {};
@@ -4429,5 +4938,5 @@ yaetiEventTarget.prototype.dispatchEvent = function(event)
 
 module.exports = yaetiEventTarget;
 
-},{}]},{},[16])(16)
+},{}]},{},[22])(22)
 });

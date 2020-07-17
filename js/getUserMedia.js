@@ -94,7 +94,7 @@ function getUserMedia(constraints) {
 	 ConstrainDOMString deviceId;
 	 ConstrainDOMString groupId;
 	};
-	 
+
 	 // typedef ([Clamp] unsigned long or ConstrainULongRange) ConstrainULong;
 	 // We convert unsigned long to ConstrainULongRange.exact
 
@@ -107,7 +107,7 @@ function getUserMedia(constraints) {
 		  [Clamp] unsigned long exact;
 		  [Clamp] unsigned long ideal;
 	 };
-	 
+
 	 // See: https://www.w3.org/TR/mediacapture-streams/#dom-doublerange
 	 // typedef (double or ConstrainDoubleRange) ConstrainDouble;
 	 // We convert double to ConstrainDoubleRange.exact
@@ -115,18 +115,18 @@ function getUserMedia(constraints) {
 		double max;
 		double min;
 	 };
-	 
+
 	 dictionary ConstrainDoubleRange : DoubleRange {
 		double exact;
 		double ideal;
 	 };
-	 
+
 	 // typedef (boolean or ConstrainBooleanParameters) ConstrainBoolean;
 	 dictionary ConstrainBooleanParameters {
 		boolean exact;
 		boolean ideal;
 	 };
-	 
+
 	 // typedef (DOMString or sequence<DOMString> or ConstrainDOMStringParameters) ConstrainDOMString;
 	 // We convert DOMString to ConstrainDOMStringParameters.exact
 	 dictionary ConstrainDOMStringParameters {
@@ -142,42 +142,57 @@ function getUserMedia(constraints) {
 		newConstraints.video = {};
 
 		// Handle Stupid not up-to-date webrtc-adapter
-		// Note: Firefox [38+] does support a subset of constraints with getUserMedia(), but not the outdated syntax that Chrome and Opera are using. 
+		// Note: Firefox [38+] does support a subset of constraints with getUserMedia(), but not the outdated syntax that Chrome and Opera are using.
 		// The mandatory / optional syntax was deprecated a in 2014, and minWidth and minHeight the year before that.
-		
 		if (
 			typeof constraints.video === 'object' &&
 				(typeof constraints.video.optional === 'object' || typeof constraints.video.mandatory === 'object')
 		) {
 
-			if (
-				typeof constraints.video.optional === 'object'
-			) {
-				if (typeof constraints.video.optional.sourceId === 'string') {
-					newConstraints.video.deviceId = {
-						ideal: constraints.video.optional.sourceId
-					};
-				} else if (
-					Array.isArray(constraints.video.optional) &&
-						typeof constraints.video.optional[0] === 'object' &&
-							typeof constraints.video.optional[0].sourceId === 'string'
-				) {
-					newConstraints.video.deviceId = {
-						ideal: constraints.video.optional[0].sourceId
-					};
-				}
-			} else if (
-				constraints.video.mandatory && 
-					typeof constraints.video.mandatory.sourceId === 'string'
-			) {
-				newConstraints.video.deviceId = {
-					exact: constraints.video.mandatory.sourceId
-				};  
+			var videoConstraints = {};
+
+			if (Array.isArray(constraints.video.optional)) {
+
+				/*
+				Example of constraints.video.optional:
+					{
+						"optional": [
+							{
+								"minWidth": 640
+							},
+							{
+								"maxWidth": 640
+							},
+							{
+								"minHeight": 480
+							},
+							{
+								"maxHeight": 480
+							},
+							{
+								"sourceId": "com.apple.avfoundation.avcapturedevice.built-in_video:0"
+							}
+						]
+					}
+				*/
+
+				// Convert optional array to object
+				Object.values(constraints.video.optional).forEach(function (optional) {
+					var optionalConstraintName = Object.keys(optional)[0],
+						optionalConstraintValue = optional[optionalConstraintName];
+					videoConstraints[optionalConstraintName] = Array.isArray(optionalConstraintValue) ?
+																optionalConstraintValue[0] : optionalConstraintValue;
+				});
+
+			} else if (typeof constraints.video.mandatory === 'object') {
+				videoConstraints = constraints.video.mandatory;
 			}
 
-			// Only apply mandatory over optional
-			var videoConstraints = constraints.video.mandatory || constraints.video.optional;
-			videoConstraints = Array.isArray(videoConstraints) ? videoConstraints[0] : videoConstraints;
+			if (typeof videoConstraints.sourceId === 'string') {
+				newConstraints.video.deviceId = {
+					ideal: videoConstraints.sourceId
+				};
+			}
 
 			if (isPositiveInteger(videoConstraints.minWidth)) {
 				newConstraints.video.width = {
@@ -185,10 +200,20 @@ function getUserMedia(constraints) {
 				};
 			}
 
+			if (isPositiveInteger(videoConstraints.maxWidth)) {
+				newConstraints.video.width = newConstraints.video.width || {};
+				newConstraints.video.width.max = videoConstraints.maxWidth;
+			}
+
 			if (isPositiveInteger(videoConstraints.minHeight)) {
 				newConstraints.video.height = {
 					min: videoConstraints.minHeight
 				};
+			}
+
+			if (isPositiveInteger(videoConstraints.maxHeight)) {
+				newConstraints.video.height = newConstraints.video.height || {};
+				newConstraints.video.height.max = videoConstraints.maxHeight;
 			}
 
 			if (isPositiveFloat(videoConstraints.minFrameRate)) {
@@ -219,12 +244,12 @@ function getUserMedia(constraints) {
 		} else if (typeof constraints.video.deviceId === 'object') {
 			if (!!constraints.video.deviceId.exact) {
 				newConstraints.video.deviceId = {
-					exact: Array.isArray(constraints.video.deviceId.exact) ? 
+					exact: Array.isArray(constraints.video.deviceId.exact) ?
 						constraints.video.deviceId.exact[0] : constraints.video.deviceId.exact
 				};
 			} else if (!!constraints.video.deviceId.ideal) {
 				newConstraints.video.deviceId = {
-					ideal: Array.isArray(constraints.video.deviceId.ideal) ? 
+					ideal: Array.isArray(constraints.video.deviceId.ideal) ?
 							constraints.video.deviceId.ideal[0] : constraints.video.deviceId.ideal
 				};
 			}
@@ -331,7 +356,7 @@ function getUserMedia(constraints) {
 				newConstraints.video.facingMode = {
 					exact: constraints.video.facingMode.exact
 				};
-			} else if (constraints.video.facingMode.ideal === 'string') {
+			} else if (typeof constraints.video.facingMode.ideal === 'string') {
 				newConstraints.video.facingMode = {
 					ideal: constraints.video.facingMode.ideal
 				};
@@ -346,7 +371,7 @@ function getUserMedia(constraints) {
 		newConstraints.audio = {};
 
 		// Handle Stupid not up-to-date webrtc-adapter
-		// Note: Firefox [38+] does support a subset of constraints with getUserMedia(), but not the outdated syntax that Chrome and Opera are using. 
+		// Note: Firefox [38+] does support a subset of constraints with getUserMedia(), but not the outdated syntax that Chrome and Opera are using.
 		// The mandatory / optional syntax was deprecated a in 2014, and minWidth and minHeight the year before that.
 		if (
 			typeof constraints.audio === 'object' &&
@@ -369,13 +394,13 @@ function getUserMedia(constraints) {
 					};
 				}
 			} else if (
-				constraints.audio.mandatory && 
+				constraints.audio.mandatory &&
 					typeof constraints.audio.mandatory.sourceId === 'string'
 			) {
 				newConstraints.audio.deviceId = {
 					exact: constraints.audio.mandatory.sourceId
-				};  
-			} 
+				};
+			}
 		}
 
 		// Get requested audio deviceId.
@@ -394,16 +419,16 @@ function getUserMedia(constraints) {
 		} else if (typeof constraints.audio.deviceId === 'object') {
 			if (!!constraints.audio.deviceId.exact) {
 				newConstraints.audio.deviceId = {
-					exact: Array.isArray(constraints.audio.deviceId.exact) ? 
+					exact: Array.isArray(constraints.audio.deviceId.exact) ?
 						constraints.audio.deviceId.exact[0] : constraints.audio.deviceId.exact
 				};
 			} else if (!!constraints.audio.deviceId.ideal) {
 				newConstraints.audio.deviceId = {
-					ideal: Array.isArray(constraints.audio.deviceId.ideal) ? 
+					ideal: Array.isArray(constraints.audio.deviceId.ideal) ?
 							constraints.audio.deviceId.ideal[0] : constraints.audio.deviceId.ideal
 				};
 			}
-		}   
+		}
 	}
 
 	debug('[computed constraints:%o]', newConstraints);

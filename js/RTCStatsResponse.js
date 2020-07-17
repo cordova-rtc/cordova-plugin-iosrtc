@@ -10,6 +10,10 @@ function RTCStatsResponse(data) {
 		return data;
 	};
 
+	this.forEach = function (callback, thisArg) {
+		return data.forEach(callback, thisArg);
+	};
+
 	this.namedItem = function () {
 		return null;
 	};

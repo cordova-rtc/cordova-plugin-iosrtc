@@ -257,6 +257,20 @@ cordova.plugins.iosrtc.requestPermission(needMic, needCamera, function (permissi
 })
 ```
 
+### `iosrtc.initAudioDevices`
+
+Initialize the audio session, specifically setting the session's category and activating the session.
+This is to avoid cutting the audio of other applications on app boot.
+
+To use this install plugin using 
+```bash
+cordova plugin add cordova-plugin-iosrtc --variable MANUAL_INIT_AUDIO_DEVICE=TRUE
+```
+
+```javascript
+cordova.plugins.iosrtc.initAudioDevices();
+```
+
 ## Others
 
 

@@ -11,9 +11,10 @@ var
 	xcode = require('xcode'),
 	xmlEntities = new (require('html-entities').XmlEntities)(),
 
-	IPHONEOS_DEPLOYMENT_TARGET = '10.2',
+	DISABLE_IOSRTC_HOOK = process.env.DISABLE_IOSRTC_HOOK ? true : false,
+	IPHONEOS_DEPLOYMENT_TARGET = process.env.IPHONEOS_DEPLOYMENT_TARGET || '10.2',
 	IPHONEOS_DEPLOYMENT_TARGET_XCODE = '"' + IPHONEOS_DEPLOYMENT_TARGET + '"',
-	SWIFT_VERSION = '4.2',
+	SWIFT_VERSION = process.env.SWIFT_VERSION || '4.2',
 	SWIFT_VERSION_XCODE = '"' + SWIFT_VERSION + '"',
 	RUNPATH_SEARCH_PATHS = '@executable_path/Frameworks',
 	RUNPATH_SEARCH_PATHS_XCODE = '"' + RUNPATH_SEARCH_PATHS + '"',
@@ -22,7 +23,7 @@ var
 	UNIFIED_BRIDGING_HEADER = 'Plugins/Unified-Bridging-Header.h',
 	IOSRTC_BRIDGING_HEADER = "cordova-plugin-iosrtc-Bridging-Header.h",
 	BRIDGING_HEADER_END = '/Plugins/cordova-plugin-iosrtc/' + IOSRTC_BRIDGING_HEADER,
-	TEST_UNIFIED_BRIDGING_HEADER = false; // Set to true to test handling of existing swift bridging header
+	TEST_UNIFIED_BRIDGING_HEADER = process.env.TEST_UNIFIED_BRIDGING_HEADER ? true : false; // Set to true to test handling of existing swift bridging header
 
 // Helpers
 
@@ -32,7 +33,8 @@ function getProjectName(protoPath) {
 		cordovaConfigPath = path.join(protoPath, 'config.xml'),
 		content = fs.readFileSync(cordovaConfigPath, 'utf-8');
 
-	var name = /<name>([\s\S]*)<\/name>/mi.exec(content)[1].trim();
+	var name = /<name>([ \S]*)<\/name>/mi.exec(content)[1].trim();
+
 	return xmlEntities.decode(name);
 }
 
@@ -118,12 +120,17 @@ function debugError(msg) {
 module.exports = function (context) {
 
 	// This script has to be executed depending on the command line arguments, not
-  	// on the hook execution cycle.
-  	/*
+	// on the hook execution cycle.
+	/*
 	if (context.hook !== 'before_build' && !context.cmdLine.includes('build')) {
 		return;
 	}
 	*/
+
+	if (DISABLE_IOSRTC_HOOK) {
+		debug('cordova-plugin-iosrtc hook is disabled');
+		return;
+	}
 
 	var
 		projectRoot = context.opts.projectRoot,
@@ -139,7 +146,7 @@ module.exports = function (context) {
 		xcodeProject;
 
 	// Showing info about the tasks to do
-	debug('cordova-plugin-iosrtc is checking issues in the generated project files:');
+	debug('cordova-plugin-iosrtc hook is checking issues in the generated project files:');
 	debug('- Minimum "iOS Deployment Target" and "Deployment Target" to: ' + IPHONEOS_DEPLOYMENT_TARGET_XCODE);
 	debug('- "Runpath Search Paths" to: ' + RUNPATH_SEARCH_PATHS_XCODE);
 	if (TEST_UNIFIED_BRIDGING_HEADER) {
@@ -168,7 +175,7 @@ module.exports = function (context) {
 	xcodeProject = xcode.project(xcodeProjectConfigPath);
 
 	// Massaging the files
-	
+
 	// "build.xcconfig"
 	debug('checking file: ' + getRelativeToProjectRootPath(xcconfigPath, projectRoot));
 	var xcconfigPathChanged = false;
@@ -207,16 +214,16 @@ module.exports = function (context) {
 			var currentSwiftBridgingHeader = getXcconfigPathValue(currentSwiftOptions, 'SWIFT_OBJC_BRIDGING_HEADER').replace('$(PROJECT_DIR)/$(PROJECT_NAME)/', '');
 			if (!existingSwiftBridgingHeaderPath) {
 				swiftOptions.push('SWIFT_OBJC_BRIDGING_HEADER = ' + swiftBridgingHeaderPath);
-				xcconfigPathChanged = true;	
+				xcconfigPathChanged = true;
 			} else {
 				existingSwiftBridgingHeaderPath = path.join(platformProjectPath, currentSwiftBridgingHeader);
 			}
-		}	
+		}
 	}
 
 	// NOTE: Not needed
 	// swiftOptions.push('EMBEDDED_CONTENT_CONTAINS_SWIFT = YES');
-	
+
 	if (xcconfigPathChanged) {
 		fs.appendFileSync(xcconfigPath, swiftOptions.join('\n'));
 		debug('file correctly fixed: ' + getRelativeToProjectRootPath(xcconfigPath, projectRoot));
@@ -225,7 +232,7 @@ module.exports = function (context) {
 	}
 
 	// "project.pbxproj"
-	debug('checking file: ' + getRelativeToProjectRootPath(xcodeProjectConfigPath, projectRoot));	
+	debug('checking file: ' + getRelativeToProjectRootPath(xcodeProjectConfigPath, projectRoot));
 
 	// Parsing it
 	xcodeProject.parse(function (error) {
@@ -238,10 +245,17 @@ module.exports = function (context) {
 
 		// Adding or changing the parameters only if we need
 		var buildSettingsChanged = false;
-		var hasSwiftBridgingHeaderPathXcodes = []; 
+		var hasSwiftBridgingHeaderPathXcodes = [];
 		var configurations = nonComments(xcodeProject.pbxXCBuildConfigurationSection());
 		Object.keys(configurations).forEach(function (config) {
-			var buildSettings = configurations[config].buildSettings;
+
+			var configuration = configurations[config],
+				buildSettings = configuration.buildSettings;
+
+			// Skip if not SDKROOT iphoneos
+			if (buildSettings.SDKROOT !== 'iphoneos') {
+				return;
+			}
 
 			if (!hasBuildSettingsValue(buildSettings.LD_RUNPATH_SEARCH_PATHS, RUNPATH_SEARCH_PATHS_XCODE)) {
 				buildSettings.LD_RUNPATH_SEARCH_PATHS = RUNPATH_SEARCH_PATHS_XCODE;
@@ -250,7 +264,7 @@ module.exports = function (context) {
 
 			if (!matchBuildSettingsMinValue(buildSettings.IPHONEOS_DEPLOYMENT_TARGET, IPHONEOS_DEPLOYMENT_TARGET_XCODE)) {
 				buildSettings.IPHONEOS_DEPLOYMENT_TARGET = IPHONEOS_DEPLOYMENT_TARGET_XCODE;
-				buildSettingsChanged = true;				
+				buildSettingsChanged = true;
 			}
 
 			if (!matchBuildSettingsValue(buildSettings.ENABLE_BITCODE, ENABLE_BITCODE_XCODE)) {
@@ -268,22 +282,22 @@ module.exports = function (context) {
 				xcodeProject.addHeaderFile(UNIFIED_BRIDGING_HEADER);
 			}
 
-			if (!hasBuildSettingsValue(buildSettings.SWIFT_OBJC_BRIDGING_HEADER, swiftBridgingHeaderPathXcode)) {	
+			if (!hasBuildSettingsValue(buildSettings.SWIFT_OBJC_BRIDGING_HEADER, swiftBridgingHeaderPathXcode)) {
 
 				// Play nice with existing Swift Bridging Header value
-				if (existingSwiftBridgingHeaderPath) {	
-					
+				if (existingSwiftBridgingHeaderPath) {
+
 					// Sync SWIFT_OBJC_BRIDGING_HEADER with existingSwiftBridgingHeaderPath if do not match
 					var existingSwiftBridgingHeaderPathXcode = '"' + existingSwiftBridgingHeaderPath + '"';
 					if (buildSettings.SWIFT_OBJC_BRIDGING_HEADER !== existingSwiftBridgingHeaderPathXcode) {
-						buildSettings.SWIFT_OBJC_BRIDGING_HEADER = existingSwiftBridgingHeaderPathXcode;	
-						buildSettingsChanged = true;	
+						buildSettings.SWIFT_OBJC_BRIDGING_HEADER = existingSwiftBridgingHeaderPathXcode;
+						buildSettingsChanged = true;
 					}
 
 					if (hasSwiftBridgingHeaderPathXcodes.indexOf(existingSwiftBridgingHeaderPath) === -1) {
 
 						// Check if existing existingSwiftBridgingHeaderPath exists and get file lines
-						
+
 						debug('checking file: ' + getRelativeToProjectRootPath(existingSwiftBridgingHeaderPath, projectRoot));
 
 						var existingSwiftBridgingHeaderFileLines = [];
@@ -301,7 +315,7 @@ module.exports = function (context) {
 							debug('updating existing swift bridging header file: ' + getRelativeToProjectRootPath(existingSwiftBridgingHeaderPath, projectRoot));
 							existingSwiftBridgingHeaderFileLines.push(swiftBridgingHeaderImport);
 							fs.writeFileSync(existingSwiftBridgingHeaderPath, existingSwiftBridgingHeaderFileLines.join('\n'), 'utf-8');
-							debug('file correctly fixed: ' + getRelativeToProjectRootPath(existingSwiftBridgingHeaderPath, projectRoot));	
+							debug('file correctly fixed: ' + getRelativeToProjectRootPath(existingSwiftBridgingHeaderPath, projectRoot));
 						} else {
 							debug('file is correct: ' + getRelativeToProjectRootPath(existingSwiftBridgingHeaderPath, projectRoot));
 						}
@@ -311,8 +325,8 @@ module.exports = function (context) {
 
 
 				} else {
-					buildSettings.SWIFT_OBJC_BRIDGING_HEADER = swiftBridgingHeaderPathXcode;	
-					buildSettingsChanged = true;	
+					buildSettings.SWIFT_OBJC_BRIDGING_HEADER = swiftBridgingHeaderPathXcode;
+					buildSettingsChanged = true;
 				}
 			}
 		});
@@ -320,9 +334,9 @@ module.exports = function (context) {
 		// Writing the file only if changed
 		if (buildSettingsChanged) {
 			fs.writeFileSync(xcodeProjectConfigPath, xcodeProject.writeSync(), 'utf-8');
-			debug('file correctly fixed: ' + getRelativeToProjectRootPath(xcodeProjectConfigPath, projectRoot));	
+			debug('file correctly fixed: ' + getRelativeToProjectRootPath(xcodeProjectConfigPath, projectRoot));
 		} else {
-			debug('file is correct: ' + getRelativeToProjectRootPath(xcodeProjectConfigPath, projectRoot));	
+			debug('file is correct: ' + getRelativeToProjectRootPath(xcodeProjectConfigPath, projectRoot));
 		}
 	});
 };

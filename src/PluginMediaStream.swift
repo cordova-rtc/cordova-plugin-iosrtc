@@ -1,7 +1,7 @@
 import Foundation
 
 class PluginMediaStream : NSObject {
-	
+
 	var rtcMediaStream: RTCMediaStream
 	var id: String
 	var audioTracks: [String : PluginMediaStreamTrack] = [:]
@@ -15,19 +15,26 @@ class PluginMediaStream : NSObject {
 	 */
 	init(rtcMediaStream: RTCMediaStream) {
 		NSLog("PluginMediaStream#init()")
-		
+
 		self.rtcMediaStream = rtcMediaStream
-		self.id = UUID().uuidString;
+
+		/// Handle possible duplicate remote streamId with janus or short duplicate name
+		// See: https://github.com/cordova-rtc/cordova-plugin-iosrtc/issues/432
+		if (rtcMediaStream.streamId.count < 36) {
+			self.id = rtcMediaStream.streamId + "_" + UUID().uuidString;
+		} else {
+			self.id = rtcMediaStream.streamId;
+		}
 
 		for track: RTCMediaStreamTrack in (self.rtcMediaStream.audioTracks as Array<RTCMediaStreamTrack>) {
-			let pluginMediaStreamTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: track, streamId: id)
+			let pluginMediaStreamTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: track)
 
 			pluginMediaStreamTrack.run()
 			self.audioTracks[pluginMediaStreamTrack.id] = pluginMediaStreamTrack
 		}
 
 		for track: RTCMediaStreamTrack in (self.rtcMediaStream.videoTracks as Array<RTCMediaStreamTrack>) {
-			let pluginMediaStreamTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: track, streamId: id)
+			let pluginMediaStreamTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: track)
 
 			pluginMediaStreamTrack.run()
 			self.videoTracks[pluginMediaStreamTrack.id] = pluginMediaStreamTrack
@@ -97,7 +104,7 @@ class PluginMediaStream : NSObject {
 			return false
 		}
 
-		//onAddTrack(pluginMediaStreamTrack)
+		onAddTrack(pluginMediaStreamTrack)
 		return true
 	}
 
@@ -116,7 +123,7 @@ class PluginMediaStream : NSObject {
 			return false
 		}
 
-		//onRemoveTrack(pluginMediaStreamTrack)
+		onRemoveTrack(pluginMediaStreamTrack)
 		return true
 	}
 
