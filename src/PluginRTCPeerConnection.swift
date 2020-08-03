@@ -569,7 +569,6 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		pluginRTCDTMFSender!.insertDTMF(tones, duration: duration as TimeInterval, interToneGap: interToneGap as TimeInterval)
 	}
 
-
 	/**
 	 * Methods inherited from RTCPeerConnectionDelegate.
 	 */
@@ -580,7 +579,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 			return nil;
 		}
 
-		if (pluginMediaStreams[stream!.streamId] == nil) {
+		//if (pluginMediaStreams[stream!.streamId] == nil) {
 			let pluginMediaStream = PluginMediaStream(rtcMediaStream: stream!)
 
 			pluginMediaStream.run()
@@ -590,7 +589,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 			pluginMediaStreams[stream!.streamId] = pluginMediaStream;
 
 			self.eventListenerForAddStream(pluginMediaStream)
-		}
+		//}
 
 		return pluginMediaStreams[stream!.streamId]!;
 	}
@@ -629,26 +628,26 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 
 		NSLog("PluginRTCPeerConnection | onaddtrack")
 
-			let pluginMediaTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: rtpReceiver.track!)
+		let pluginMediaTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: rtpReceiver.track!)
 
-			// Add stream only if available in case of Unified-Plan of track event without stream
-			// TODO investigate why no stream sometimes with Unified-Plan and confirm that expexted behavior.
+		// Add stream only if available in case of Unified-Plan of track event without stream
+		// TODO investigate why no stream sometimes with Unified-Plan and confirm that expexted behavior.
 
-			if (streams.isEmpty) {
-				self.eventListener([
-					"type": "track",
-					"track": pluginMediaTrack.getJSON(),
-				])
-			} else {
-				let pluginMediaStream = getPluginMediaStream(stream: streams[0]);
+		if (streams.isEmpty) {
+			self.eventListener([
+				"type": "track",
+				"track": pluginMediaTrack.getJSON(),
+			])
+		} else {
+			let pluginMediaStream = getPluginMediaStream(stream: streams[0]);
 
-				self.eventListener([
-					"type": "track",
-					"track": pluginMediaTrack.getJSON(),
-					"streamId": pluginMediaStream!.id,
-					"stream": pluginMediaStream!.getJSON()
-				])
-			}
+			self.eventListener([
+				"type": "track",
+				"track": pluginMediaTrack.getJSON(),
+				"streamId": pluginMediaStream!.id,
+				"stream": pluginMediaStream!.getJSON()
+			])
+		}
 	}
 
 	/** Called when the SignalingState changed. */
