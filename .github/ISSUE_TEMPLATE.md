@@ -10,6 +10,7 @@ Please use [Public Google Group (mailing list)](https://groups.google.com/forum/
 #### Versions affected
 
 * **Cordova version (e.g 7.1.0)**:
+* **Cordova iOS version (e.g 5.1.0)**:
 * **Plugin version (e.g 6.0.12)**:
 * **iOS version (e.g 10.2)**: 
 * **Xcode version (e.g 11.1 - 11A1027)**:
