@@ -22,7 +22,6 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 	var onSetDescriptionFailureCallback: ((_ error: Error) -> Void)!
 	var onGetStatsCallback: ((_ array: NSArray) -> Void)!
 
-	var streamIds: [String] = []
 	var pluginMediaStreams: [String : PluginMediaStream]! = [:]
 	var trackIdsToSenders: [String : RTCRtpSender] = [:]
 
@@ -475,17 +474,14 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 			return
 		}
 
-		for streamId: String in streamIds {
-			let pluginMediaStream = pluginMediaStreams[streamId];
-			self.eventListenerForRemoveStream(pluginMediaStream!.id)
+		for (_, pluginMediaStream) in pluginMediaStreams {
+			self.eventListenerForRemoveStream(pluginMediaStream.id)
 		}
 
-		streamIds = [];
 		pluginMediaStreams = [:];
 
 		self.rtcPeerConnection.close()
 	}
-
 
 	func RTCDataChannel_sendString(
 		_ dcId: Int,
@@ -579,19 +575,26 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 			return nil;
 		}
 
-		//if (pluginMediaStreams[stream!.streamId] == nil) {
-			let pluginMediaStream = PluginMediaStream(rtcMediaStream: stream!)
+		var currentPluginMediaStream : PluginMediaStream? = nil;
 
-			pluginMediaStream.run()
+		for (_, pluginMediaStream) in pluginMediaStreams {
+			if (pluginMediaStream.rtcMediaStream == stream) {
+				currentPluginMediaStream = pluginMediaStream;
+				break;
+			}
+		}
+
+		if (currentPluginMediaStream == nil) {
+
+			currentPluginMediaStream = PluginMediaStream(rtcMediaStream: stream!)
+
+			currentPluginMediaStream!.run()
 
 			// Let the plugin store it in its dictionary.
-			streamIds.append(stream!.streamId)
-			pluginMediaStreams[stream!.streamId] = pluginMediaStream;
+			pluginMediaStreams[currentPluginMediaStream!.id] = currentPluginMediaStream;
+		}
 
-			self.eventListenerForAddStream(pluginMediaStream)
-		//}
-
-		return pluginMediaStreams[stream!.streamId]!;
+		return currentPluginMediaStream;
 	}
 
 	/** Called when media is received on a new stream from remote peer. */
@@ -599,6 +602,8 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		NSLog("PluginRTCPeerConnection | onaddstream")
 
 		let pluginMediaStream = getPluginMediaStream(stream: stream);
+
+		self.eventListenerForAddStream(pluginMediaStream!)
 
 		// Fire the 'addstream' event so the JS will create a new MediaStream.
 		self.eventListener([
@@ -612,10 +617,12 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 	func peerConnection(_ peerConnection: RTCPeerConnection, didRemove stream: RTCMediaStream) {
 		NSLog("PluginRTCPeerConnection | onremovestream")
 
-		let pluginMediaStream = pluginMediaStreams[stream.streamId];
+		let pluginMediaStream = getPluginMediaStream(stream: stream);
+
+		self.eventListenerForRemoveStream(pluginMediaStream!.id)
 
 		// Let the plugin remove it from its dictionary.
-		self.eventListenerForRemoveStream(pluginMediaStream!.id)
+		pluginMediaStreams[pluginMediaStream!.id] = nil;
 
 		self.eventListener([
 			"type": "removestream",
