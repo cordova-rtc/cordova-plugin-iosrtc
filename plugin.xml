@@ -15,7 +15,8 @@
 	</info>
 
 	<engines>
-		<engine name="cordova-ios" version=">=4.5.1" />
+		<engine name="cordova" version=">=9.0.0" />
+		<engine name="cordova-ios" version=">=6.1.0" />
 	</engines>
 
 	<platform name="ios">
@@ -92,7 +93,15 @@
 		<framework src="VideoToolbox.framework" />
 
 		<!-- WebRTC library -->
-		<framework src="lib/WebRTC.framework" custom="true" embed="true" />
+		<!-- <framework src="lib/WebRTC.framework" custom="true" embed="true" /> -->
+		<!-- <framework src="iosrtc.webRTC.framework.podspec" type="podspec" spec=":path => &quot;/frameworks/iosrtc.webRTC.framework.podspec/&quot;" />  -->
+		<podspec>
+		  <config>
+		  </config>
+		  <pods use-frameworks="true">
+			<pod name="iosrtc.webRTC.framework" git="https://github.com/cordova-rtc/iosrtc.webRTC.framework.git" branch="M69" />
+		  </pods>
+		</podspec>
 	</platform>
 
 </plugin>
