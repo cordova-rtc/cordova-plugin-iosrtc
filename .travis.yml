@@ -119,5 +119,5 @@ script:
   - "ionic cordova platform add $CORDOVA_PLATFORM@latest --verbose"
   - "ionic cordova plugin add https://github.com/$REPO_SLUG.git#$BRANCH --verbose"
   # See https://ionic.zendesk.com/hc/en-us/articles/360010049673-Managing-plugins-using-CocoaPods-in-Ionic-Appflow-
-  - "if [ $CORDOVA_PLATFORM == "ios" ]; then pod install --project-directory='./platforms/ios/'; fi"
+  - "if [ "$CORDOVA_PLATFORM" == "ios" ]; then pod install --project-directory=./platforms/ios/; fi"
   - "ionic cordova build $CORDOVA_PLATFORM --verbose"
