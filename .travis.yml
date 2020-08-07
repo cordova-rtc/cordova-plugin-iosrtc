@@ -110,13 +110,14 @@ script:
   # Lint and Build plugin
   - "gulp"
   # Test Plugin platform build with cordova only
-  - "cordova create myApp org.apache.cordova.myApp myApp; cd myApp;"
+  - "cordova create myApp-cordova org.apache.cordova.myApp myApp; cd myApp-cordova;"
   - "cordova platform add $CORDOVA_PLATFORM@latest --verbose"
   - "cordova plugin add https://github.com/$REPO_SLUG.git#$BRANCH --verbose"
   - "cordova build $CORDOVA_PLATFORM --verbose"
   # Test Plugin platform build with ionic
-  - "ionic start myApp blank; cd myApp;"
+  - "ionic start myApp-ionic blank; cd myApp-ionic;"
   - "ionic cordova platform add $CORDOVA_PLATFORM@latest --verbose"
   - "ionic cordova plugin add https://github.com/$REPO_SLUG.git#$BRANCH --verbose"
+  # See https://ionic.zendesk.com/hc/en-us/articles/360010049673-Managing-plugins-using-CocoaPods-in-Ionic-Appflow-
   - "pod install --project-directory='./platforms/ios/'"
   - "ionic cordova build $CORDOVA_PLATFORM --verbose"
