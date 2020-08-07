@@ -129,5 +129,5 @@ script:
   - "npx cap add $CORDOVA_PLATFORM_CAPACITOR"
   - "npm install https://github.com/$REPO_SLUG.git#$BRANCH"
   - "npx cap sync"
-  - "npm run build"
+  - "npx cap copy $CORDOVA_PLATFORM_CAPACITOR"
 
