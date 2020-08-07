@@ -124,7 +124,7 @@ script:
   #- "pod install --project-directory='./platforms/ios/'"
   - "ionic cordova build $CORDOVA_PLATFORM --verbose"
    # Test Plugin platform build with capacitor
-  - export CORDOVA_PLATFORM_CAPACITOR=$(if [ "$CORDOVA_PLATFORM" == "browser" ]; then echo "web"; else echo $CORDOVA_PLATFORM; fi)
+  - export CORDOVA_PLATFORM_CAPACITOR=$(if [ "$CORDOVA_PLATFORM" == "browser" ]; then echo "electron"; else echo $CORDOVA_PLATFORM; fi)
   - "npx @capacitor/cli create --npm-client=npm myApp-capacitor myApp-capacitor myApp.capacitor; cd myApp-capacitor;"
   - "npx cap add $CORDOVA_PLATFORM_CAPACITOR"
   - "npm install https://github.com/$REPO_SLUG.git#$BRANCH"
