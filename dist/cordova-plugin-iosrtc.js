@@ -170,6 +170,44 @@ MediaDevices.prototype.enumerateDevices = function () {
 	return enumerateDevices();
 };
 
+MediaDevices.prototype.getSupportedConstraints = function () {
+	return {
+		// Supported
+		"height": true,
+		"width": true,
+		"deviceId": true,
+		"frameRate": true,
+		"sampleRate": true,
+		"aspectRatio": true,
+		// Not Supported
+		"autoGainControl": false,
+		"brightness": false,
+		"channelCount": false,
+		"colorTemperature": false,
+		"contrast": false,
+		"echoCancellation": false,
+		"exposureCompensation": false,
+		"exposureMode": false,
+		"exposureTime": false,
+		"facingMode": true,
+		"focusDistance": false,
+		"focusMode": false,
+		"groupId": false,
+		"iso": false,
+		"latency": false,
+		"noiseSuppression": false,
+		"pointsOfInterest": false,
+		"resizeMode": false,
+		"sampleSize": false,
+		"saturation": false,
+		"sharpness": false,
+		"torch": false,
+		"whiteBalanceMode": false,
+		"zoom": false
+	};
+};
+
+
 },{"./EventTarget":2,"./enumerateDevices":20,"./getUserMedia":22}],5:[function(_dereq_,module,exports){
 /**
  * Expose the MediaStream class.
