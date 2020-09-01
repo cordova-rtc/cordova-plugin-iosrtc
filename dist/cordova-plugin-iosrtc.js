@@ -2612,45 +2612,50 @@ module.exports = RTCRtpSender;
 function RTCRtpSender(data) {
 	data = data || {};
 
-	this.pc = data.pc;
-	this.stream = data.stream;
+	this._pc = data.pc;
+	this._stream = data.stream;
 	this.track = data.track;
-    this.params = data.params || {};
+	this.params = data.params || {};
 }
 
 RTCRtpSender.prototype.getParameters = function () {
-    return this.params;
+	return this.params;
 };
 
 RTCRtpSender.prototype.setParameters = function (params) {
-    Object.assign(this.params, params);
-    return Promise.resolve(this.params);
+	Object.assign(this.params, params);
+	return Promise.resolve(this.params);
 };
 
 RTCRtpSender.prototype.replaceTrack = function (withTrack) {
 	var self = this,
-		pc = self.pc,
-		track = self.track,
-		stream = self.stream;
+		pc = self._pc,
+		stream = self._stream,
+		track = self.track;
 
 	return new Promise(function (resolve, reject) {
-    	stream.removeTrack(track);
-    	stream.addTrack(withTrack);
-    	self.track = withTrack;
+		stream.removeTrack(track);
+		stream.addTrack(withTrack);
+		self.track = withTrack;
 
-    	pc.removeStream(stream);
-    	pc.addStream(stream);
+		pc.removeStream(stream);
+		pc.addStream(stream);
 
-  		pc.addEventListener("signalingstatechange", function listener() {
-  			if (pc.signalingState === "closed") {
+		// https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/negotiationneeded_event
+		pc.dispatchEvent('negotiationneeded', {
+
+		});
+
+		pc.addEventListener("signalingstatechange", function listener() {
+			if (pc.signalingState === "closed") {
 				pc.removeEventListener("signalingstatechange", listener);
 				reject();
-	  		} else if (pc.signalingState === "stable") {
+			} else if (pc.signalingState === "stable") {
 				pc.removeEventListener("signalingstatechange", listener);
-    			resolve();
-	  		}
-    	});
-  });
+				resolve();
+			}
+		});
+	});
 };
 },{}],16:[function(_dereq_,module,exports){
 /**
