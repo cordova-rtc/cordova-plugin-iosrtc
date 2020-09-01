@@ -3136,6 +3136,7 @@ function getUserMedia(constraints) {
 		// get aspectRatio (e.g 1.7777777777777777)
 		// TODO ConstrainDouble min, max
 		if (typeof constraints.video.aspectRatio === 'object') {
+			newConstraints.video.aspectRatio = {};
 			if (isPositiveFloat(constraints.video.aspectRatio.min)) {
 				newConstraints.video.aspectRatio.min = parseFloat(constraints.video.aspectRatio.min, 10);
 			}
@@ -3259,6 +3260,7 @@ function getUserMedia(constraints) {
 		exec(onResultOK, onResultError, 'iosrtcPlugin', 'getUserMedia', [newConstraints]);
 	});
 }
+
 },{"./Errors":1,"./MediaStream":5,"cordova/exec":undefined,"debug":25}],23:[function(_dereq_,module,exports){
 (function (global){
 /**

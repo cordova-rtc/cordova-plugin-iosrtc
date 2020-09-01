@@ -119,8 +119,8 @@ class iosrtcPlugin : CDVPlugin {
 				result?.setKeepCallbackAs(true);
 				self.emit(command.callbackId, result: result!)
 			},
-			eventListenerForAddStream: self.saveMediaStream,
-			eventListenerForRemoveStream: self.deleteMediaStream
+			eventListenerForAddStream: self.addMediaStream,
+			eventListenerForRemoveStream: self.removeMediaStream
 		)
 
 		// Store the pluginRTCPeerConnection into the dictionary.
@@ -1145,11 +1145,25 @@ class iosrtcPlugin : CDVPlugin {
 		}
 	}
 
+	fileprivate func addMediaStream(_ pluginMediaStream: PluginMediaStream) {
+		// Create Handled by MediaStream_init
+
+		if self.pluginMediaStreams[pluginMediaStream.id] == nil {
+			self.saveMediaStream(pluginMediaStream)
+		} else {
+			NSLog("iosrtcPlugin#addMediaStream() | WARN: pluginMediaStream with id=%@ already exist", String(pluginMediaStream.id))
+		}
+	}
+
+	fileprivate func removeMediaStream(_ id: String) {
+		// GC Handled by MediaStream_release
+	}
+
 	fileprivate func saveMediaStream(_ pluginMediaStream: PluginMediaStream) {
 		if self.pluginMediaStreams[pluginMediaStream.id] == nil {
 			self.pluginMediaStreams[pluginMediaStream.id] = pluginMediaStream
 		} else {
-			NSLog("- PluginMediaStreams already exist [id:%@]", String(pluginMediaStream.id))
+			NSLog("iosrtcPlugin#saveMediaStream() | WARN: PluginMediaStream already exist [id:%@]", String(pluginMediaStream.id))
 			return;
 		}
 
