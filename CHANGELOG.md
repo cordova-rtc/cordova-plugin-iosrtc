@@ -1,13 +1,21 @@
-#### Version 6.0.13-RC1
+#### Version 6.0.13
 * Bump lodash from 4.17.15 to 4.17.19 #543
+* Bump elliptic from 6.5.0 to 6.5.3 #553
 * Add build doc for CocoaPods and Capacitor users #538
 * Add SWIFT_VERSION and IPHONEOS_DEPLOYMENT_TARGET and DISABLE_IOSRTC_HOOK env options for extra/hooks/iosrtc-swift-support.js #512
+* Improve PluginEnumerateDevices.getAllVideoDevices with builtInTrueDepthCamera and better ios 10.0 support #548
+* Improve cleanup RTCPeerConnections, StreamRenderers, MediaStream, MediaStreamTracks when onReset and onAppTerminate is trigger
+* Implement MediaDevices SHAM
+* Fix crash in PluginEnumerateDevices when audioSession.availableInputs is empty
+* Fix MediaDevices.prototype Object.create(EventTarget.prototype)
 * Fix onaddtrack wihout stream crash during call initializing #532
 * Fix Video Element Redundancy on Refresh / Re-Navigation on same page #535
 * Fix Bridging header is getting added into the Widget/Extension as well causing build process to fail #504 via #513
 * Fix iceRestart constraint doesnt work #530 ([PR #531](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/531) by @andrewvmail) 
 * Add Plugin option MANUAL_INIT_AUDIO_DEVICE default to false  ([PR #503](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/503) by @andrewvmail) 
 * Fix getUserMedia compatiblity with Twilio Video #497
+* Fix attach stream to ontrack events only when available.
+* Fix issue with pluginMediaStream creation causing black screen due duplicate rtcMediaStream.streamId
 
 #### Version 6.0.12
 * Implement RTCPeerConnection track event on PluginRTCPeerConnection and RTCPeerConnection SHIM #508
