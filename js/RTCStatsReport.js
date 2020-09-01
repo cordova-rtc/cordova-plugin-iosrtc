@@ -4,7 +4,7 @@
 module.exports = RTCStatsReport;
 
 function RTCStatsReport(data) {
-	data = data || [];
+	data = data || {};
 
 	this.id = data.reportId;
 	this.timestamp = data.timestamp;

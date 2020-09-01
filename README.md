@@ -5,6 +5,8 @@
 [![npm version](https://img.shields.io/npm/v/cordova-plugin-iosrtc.svg?style=flat)](https://www.npmjs.com/package/cordova-plugin-iosrtc)
 [![Build Status](https://travis-ci.org/cordova-rtc/cordova-plugin-iosrtc.svg?branch=master)](https://travis-ci.org/cordova-rtc/cordova-plugin-iosrtc)
 
+[![NPM](https://nodei.co/npm/cordova-plugin-iosrtc.png)](https://npmjs.org/package/cordova-plugin-iosrtc)
+
 [Cordova](http://cordova.apache.org/) iOS plugin exposing the  ̶f̶u̶l̶l̶ [WebRTC W3C JavaScript APIs](http://www.w3.org/TR/webrtc/).
 
 * [Public Google Group (mailing list)](https://groups.google.com/forum/#!forum/cordova-plugin-iosrtc) for questions and discussions about *cordova-plugin-iosrtc*.
@@ -54,19 +56,17 @@ $ cordova plugin add cordova-plugin-iosrtc
 
 (or add it into a `<plugin>` entry in the `config.xml` of your app).
 
-
-* Remove the iOS platform and add it again (this apply "hook" file):
-```bash
-$ cordova platform remove ios
-$ cordova platform add ios
-```
-
 ## Building
 
 * Last [Tested WebRTC.framework](./lib/WebRTC.framework/) version: M69 on cordova-plugin-iosrtc version 6.0.0
 * [Building](docs/Building.md): Guidelines for building a Cordova iOS application including the *cordova-plugin-iosrtc* plugin.
 * [Building `libwebrtc`](docs/BuildingLibWebRTC.md): Guidelines for building Google's *libwebrtc* with modifications needed by the *cordova-plugin-iosrtc* plugin (just in case you want to use a different version of *libwebrtc* or apply your own changes to it).
 
+## Sample Application
+
+The `cordova-plugin-iosrtc-sample` include mutiple example for using `cordova-plugin-iosrtc` with JsSip, Janus, EasyRTC, and basic WebSocket Signaling. It's is used to test `cordova-plugin-iosrtc` new release and reproduce reported issues.
+
+- https://github.com/cordova-rtc/cordova-plugin-iosrtc-sample
 
 ## Usage
 
@@ -75,23 +75,13 @@ The plugin exposes the `cordova.plugins.iosrtc` JavaScript namespace which conta
 ```javascript
 /* global RTCPeerConnection */
 
-// Note: This allow this sample to run on any Browser
-var cordova = window.cordova;
-if (cordova && cordova.plugins && cordova.plugins.iosrtc) {
-  
-  // Expose WebRTC and GetUserMedia SHIM as Globals (Optional)
-  // Alternatively WebRTC API will be inside cordova.plugins.iosrtc namespace
-  cordova.plugins.iosrtc.registerGlobals();
-
-  // Enable iosrtc debug (Optional)
-  cordova.plugins.iosrtc.debug.enable('*', true);
-}
 
 //
 // Container for this sample
 //
 
 var appContainer = document.body;
+appContainer.innerHTML = "";
 
 //
 // Sample getUserMedia
@@ -101,6 +91,7 @@ var appContainer = document.body;
 var localStream, localVideoEl;
 function TestGetUserMedia() {
   localVideoEl = document.createElement('video');
+  localVideoEl.style.height = "50vh";
   localVideoEl.setAttribute('autoplay', 'autoplay');
   localVideoEl.setAttribute('playsinline', 'playsinline');
   appContainer.appendChild(localVideoEl);
@@ -147,19 +138,37 @@ function TestGetUserMedia() {
 // Sample RTCPeerConnection
 // 
 
-var pc1 = new RTCPeerConnection(),
-    pc2 = new RTCPeerConnection();
+var pc1, pc2;
+
+var peerConnectionConfig = {
+    offerToReceiveVideo: true,
+    offerToReceiveAudio: true,
+    //iceTransportPolicy: 'relay',
+    sdpSemantics: 'unified-plan',
+    //sdpSemantics: 'plan-b',
+    bundlePolicy: 'max-compat',
+    rtcpMuxPolicy: 'negotiate',
+    iceServers: [
+        {
+            url: "stun:stun.stunprotocol.org"
+        }
+    ]
+};
 
 var peerVideoEl, peerStream;
 function TestRTCPeerConnection(localStream) {
 
+  pc1 = new RTCPeerConnection(peerConnectionConfig);
+  pc2 = new RTCPeerConnection(peerConnectionConfig);
+  
   // Note: Deprecated but supported
   //pc1.addStream(localStream);
 
   // Add local stream tracks to RTCPeerConnection
+  var localPeerStream = new MediaStream();
   localStream.getTracks().forEach(function (track) {
-    console.log('addTrack', track);
-    pc1.addTrack(track);
+    console.log('pc1.addTrack', track, localPeerStream);
+    pc1.addTrack(track, localPeerStream);
   });
 
   // Basic RTCPeerConnection Local WebRTC Signaling follow.
@@ -178,19 +187,40 @@ function TestRTCPeerConnection(localStream) {
     onAddIceCandidate(pc1, e.candidate);
   });
 
-  pc2.addEventListener('addstream', function (e) {
-    console.log('pc2.addStream', e);
+  function setPeerVideoStream(stream) {
+
+    // Create peer video element
     peerVideoEl = document.createElement('video');
+    peerVideoEl.style.height = "50vh";
     peerVideoEl.setAttribute('autoplay', 'autoplay');
     peerVideoEl.setAttribute('playsinline', 'playsinline');
     appContainer.appendChild(peerVideoEl);
 
     // Note: Expose for debug
-    peerStream = e.stream;
+    peerStream = stream;
 
     // Attach peer stream to video element
     peerVideoEl.srcObject = peerStream;
-  });
+  }
+
+  // This plugin handle 'addstream' and 'track' event for MediaStream creation.
+  var useTrackEvent = Object.getOwnPropertyDescriptors(RTCPeerConnection.prototype).ontrack;
+
+  // Using 'track' event with existing MediaStream
+  if (useTrackEvent) {
+    setPeerVideoStream(new MediaStream());
+    pc2.addEventListener('track', function (e) {
+      console.log('pc2.track', e);
+      peerStream.addTrack(e.track);
+    });
+
+  // Using addstream to get  MediaStream
+  } else {
+    pc2.addEventListener('addstream', function (e) {
+      console.log('pc2.addStream', e);
+      setPeerVideoStream(e.stream);
+    });
+  }
 
   pc1.addEventListener('iceconnectionstatechange', function (e) {
     console.log('pc1.iceConnectionState', e, pc1.iceConnectionState);
@@ -245,10 +275,31 @@ function TestRTCPeerConnection(localStream) {
   });
 }
 
-// Run sample
-TestGetUserMedia().then(function (localStream) {
+function TestRTCPeerConnectionLocal() {
+    
+  // Note: This allow this sample to run on any Browser
+  var cordova = window.cordova;
+  if (cordova && cordova.plugins && cordova.plugins.iosrtc) {
+
+    // Expose WebRTC and GetUserMedia SHIM as Globals (Optional)
+    // Alternatively WebRTC API will be inside cordova.plugins.iosrtc namespace
+    cordova.plugins.iosrtc.registerGlobals();
+
+    // Enable iosrtc debug (Optional)
+    cordova.plugins.iosrtc.debug.enable('*', true);
+  }
+
+  // Run sample
+  TestGetUserMedia().then(function (localStream) {
     TestRTCPeerConnection(localStream); 
-});
+  });
+}
+
+if (document.readyState === "complete" || document.readyState === "loaded") {
+  TestRTCPeerConnectionLocal();
+} else {
+  window.addEventListener("DOMContentLoaded", TestRTCPeerConnectionLocal);  
+}
 
 // See ./extra/renderer-and-libwebrtc-tests.js for more samples usage.
 ```
@@ -313,6 +364,9 @@ There is no real media source attached to the `<video>` element so some [HTML5 v
 
 Methods such as `play()`, `pause()` are not implemented. In order to pause a video just set `enabled = false` on the associated `MediaStreamTrack`.
 
+#### iOS >= 13.3.1 Device support
+
+To run on Devices with iOS >= 13.3.1, you need a valid Apple Developer account to sign the WebRTC dynamic frameworks for more info see https://stackoverflow.com/a/60090629/8691951
 
 ## Changelog
 

@@ -44,7 +44,7 @@ function MediaStreamRenderer(element) {
 
 	this.refresh();
 
-	// TODO cause video resizing jiggling add semaphore 
+	// TODO cause video resizing jiggling add semaphore
 	//this.refreshInterval = setInterval(function () {
 	//	self.refresh(self);
 	//}, 500);
@@ -64,9 +64,9 @@ MediaStreamRenderer.prototype.render = function (stream) {
 		throw new Error('render() requires a MediaStream instance as argument');
 	}
 
-	this.stream = stream;
+	self.stream = stream;
 
-	exec(null, null, 'iosrtcPlugin', 'MediaStreamRenderer_render', [this.id, stream.id]);
+	exec(null, null, 'iosrtcPlugin', 'MediaStreamRenderer_render', [self.id, stream.id]);
 
 	// Subscribe to 'update' event so we call native mediaStreamChanged() on it.
 	stream.addEventListener('update', function () {

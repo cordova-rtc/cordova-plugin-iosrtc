@@ -14,7 +14,15 @@ class PluginMediaStreamTrack : NSObject {
 		NSLog("PluginMediaStreamTrack#init()")
 
 		self.rtcMediaStreamTrack = rtcMediaStreamTrack
-		self.id = rtcMediaStreamTrack.trackId
+
+		// Handle possible duplicate remote trackId with  janus or short duplicate name
+		// See: https://github.com/cordova-rtc/cordova-plugin-iosrtc/issues/432
+		if (rtcMediaStreamTrack.trackId.count < 36) {
+			self.id = rtcMediaStreamTrack.trackId + "_" + UUID().uuidString;
+		} else {
+			self.id = rtcMediaStreamTrack.trackId;
+		}
+
 		self.kind = rtcMediaStreamTrack.kind
 		self.renders = [:]
 	}
@@ -26,7 +34,7 @@ class PluginMediaStreamTrack : NSObject {
 	func run() {
 		NSLog("PluginMediaStreamTrack#run() [kind:%@, id:%@]", String(self.kind), String(self.id))
 	}
-	
+
 	func getReadyState() -> String {
 		switch self.rtcMediaStreamTrack.readyState  {
 		case RTCMediaStreamTrackState.live:
@@ -36,7 +44,6 @@ class PluginMediaStreamTrack : NSObject {
 		default:
 			return "ended"
 		}
-		return "ended"
 	}
 
 	func getJSON() -> NSDictionary {
@@ -87,37 +94,31 @@ class PluginMediaStreamTrack : NSObject {
 			}
 		}
 	}
-	
+
 	func switchCamera() {
 		self.rtcMediaStreamTrack.videoCaptureController?.switchCamera()
 	}
 
 	func registerRender(render: PluginMediaStreamRenderer) {
-		if let exist = self.renders[render.uuid] {
+		if let exist = self.renders[render.id] {
 			_ = exist
 		} else {
-			self.renders[render.uuid] = render
+			self.renders[render.id] = render
 		}
 	}
-	
+
 	func unregisterRender(render: PluginMediaStreamRenderer) {
-		self.renders.removeValue(forKey: render.uuid);
+		self.renders.removeValue(forKey: render.id);
 	}
 
-	// TODO: No way to stop the track.
-	// Check https://github.com/cordova-rtc/cordova-plugin-iosrtc/issues/140
 	func stop() {
 		NSLog("PluginMediaStreamTrack#stop() [kind:%@, id:%@]", String(self.kind), String(self.id))
 
-		NSLog("PluginMediaStreamTrack#stop() | stop() not implemented (see: https://github.com/cordova-rtc/cordova-plugin-iosrtc/issues/140")
-
-		// NOTE: There is no setState() anymore
-		// self.rtcMediaStreamTrack.setState(RTCTrackStateEnded)
 		self.rtcMediaStreamTrack.videoCaptureController?.stopCapture();
-		
+
 		// Let's try setEnabled(false), but it also fails.
 		self.rtcMediaStreamTrack.isEnabled = false
-		
+
 		for (_, render) in self.renders {
 			render.stop()
 		}

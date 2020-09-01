@@ -1,4 +1,4 @@
-/* global RTCPeerConnection */
+/* global RTCPeerConnection, MediaStream */
 // jshint unused:false
 
 var cordova = window.cordova;
@@ -6,7 +6,9 @@ var cordova = window.cordova;
 // Expose WebRTC Globals
 if (cordova && cordova.plugins && cordova.plugins.iosrtc) {
   cordova.plugins.iosrtc.registerGlobals();
+  //cordova.plugins.iosrtc.debug.disable('*', true);
   //cordova.plugins.iosrtc.debug.enable('*', true);
+  cordova.plugins.iosrtc.initAudioDevices();
   cordova.plugins.iosrtc.turnOnSpeaker(true);
   cordova.plugins.iosrtc.requestPermission(true, true, function (result) {
     console.log('requestPermission.result', result);
@@ -36,9 +38,11 @@ function TestGetUserMedia() {
     localStream.stop();
 
     // Clear local video element
-    if (localVideoEl.srcObject) {       
+    if (localVideoEl.srcObject) {
       localVideoEl.srcObject = null;
-      appContainer.removeChild(localVideoEl); 
+      if (localVideoEl.parentNode === appContainer) {
+        appContainer.removeChild(localVideoEl);
+      }
     }
   }
 
@@ -76,7 +80,7 @@ function TestGetUserMedia() {
       deviceId: {
         exact: 'com.apple.avfoundation.avcapturedevice.built-in_video:0'
       }
-    }, 
+    },
     audio: {
       exact: 'Built-In Microphone'
     }*/
@@ -95,7 +99,7 @@ function TestGetUserMedia() {
     TestPluginMediaStreamRenderer(localVideoEl);
 
     return localStream;
-   
+
   }).catch(function (err) {
     console.log('getUserMediaError', err, err.stack);
   });
@@ -113,7 +117,7 @@ function TestPluginMediaStreamRenderer(localVideoEl) {
 
   var animateTimer;
   function animateVideo() {
-    
+
     currentPosition.x = currentPosition.x < (window.innerWidth - parseInt(localVideoEl.style.width, 10)) ? currentPosition.x + 1 : 0;
     currentPosition.y = currentPosition.y < (window.innerHeight - parseInt(localVideoEl.style.height, 10)) ? currentPosition.y + 1 : 0;
 
@@ -128,7 +132,7 @@ function TestPluginMediaStreamRenderer(localVideoEl) {
   }
 
   if (useAnimateVideo) {
-    animateTimer = animateVideo(); 
+    animateTimer = animateVideo();
   }
 
   //
@@ -168,13 +172,20 @@ function TestPluginMediaStreamRenderer(localVideoEl) {
 
 //
 // Test RTCPeerConnection
-// 
+//
 
 var peerConnectionConfig = {
-    iceServers: [     
-      {
-        urls: "stun:stun.stunprotocol.org"
-      }
+    offerToReceiveVideo: true,
+    //iceTransportPolicy: 'relay',
+    sdpSemantics: 'unified-plan',
+    offerToReceiveAudio: true,
+    //sdpSemantics: 'plan-b',
+    //bundlePolicy: 'max-compat',
+    //rtcpMuxPolicy: 'negotiate',
+    iceServers: [
+        {
+            url: "stun:stun.stunprotocol.org"
+        }
     ]
 };
 var pc1 = new RTCPeerConnection(peerConnectionConfig),
@@ -217,18 +228,18 @@ function TestRTCPeerConnection(localStream) {
 
   // Note: Support for Multiple TestRTCPeerConnection calls
   if (peerStream) {
-    
+
     // Close peer Stream if already connected
     peerStream.stop();
 
     // Clear peer video element
     if (peerVideoEl.srcObject) {
       peerVideoEl.srcObject = null;
-      appContainer.removeChild(peerVideoEl); 
+      appContainer.removeChild(peerVideoEl);
     }
 
     // Disconnect peer
-    if (pc1.iceConnectionState === 'completed') {  
+    if (pc1.iceConnectionState === 'completed') {
       pc1.close();
 
       // Current you cannot reuse previous RTCPeerConnection
@@ -243,13 +254,13 @@ function TestRTCPeerConnection(localStream) {
   // Note: Deprecated Test removeStream
   // pc1.removeStream(pc1.getLocalStreams()[0])
 
-  // Note: Chrome Version 77.0.3865.90 (Official Build) still 
+  // Note: Chrome Version 77.0.3865.90 (Official Build) still
   // require to use addStream without webrtc-adapter.
   localStream.getTracks().forEach(function (track) {
     console.log('addTrack', track);
     pc1.addTrack(track);
   });
-  
+
   function onAddIceCandidate(pc, can) {
     console.log('addIceCandidate', pc, can);
     return can && pc.addIceCandidate(can).catch(function (err) {
@@ -260,7 +271,7 @@ function TestRTCPeerConnection(localStream) {
   pc1.addEventListener('icecandidate', function (e) {
     onAddIceCandidate(pc2, e.candidate);
   });
-  
+
   pc2.addEventListener('icecandidate', function (e) {
     onAddIceCandidate(pc1, e.candidate);
   });
@@ -269,12 +280,12 @@ function TestRTCPeerConnection(localStream) {
     console.log('pc2.track', e);
   });
 
-  pc2.addEventListener('removetrack', function (e) {
-    console.log('pc2.removeTrack', e);
+  pc2.addEventListener('removestream', function (e) {
+    console.log('pc2.removeStream', e);
   });
 
-  pc2.addEventListener('addstream', function (e) {
-    console.log('pc2.addStream', e);
+  function setPeerVideoStream(stream) {
+
     peerVideoEl = document.createElement('video');
     peerVideoEl.setAttribute('autoplay', 'autoplay');
     peerVideoEl.setAttribute('playsinline', 'playsinline');
@@ -292,16 +303,35 @@ function TestRTCPeerConnection(localStream) {
     appContainer.appendChild(peerVideoEl);
 
     // Note: Expose for debug
-    peerStream = e.stream;
+    peerStream = stream;
 
     // Attach peer stream to video element
     peerVideoEl.srcObject = peerStream;
-  });
+  }
+
+  // This plugin handle 'addstream' and 'track' event for MediaStream creation.
+  var useTrackEvent = Object.getOwnPropertyDescriptors(RTCPeerConnection.prototype).ontrack;
+
+  // Using 'track' event with existing MediaStream
+  if (useTrackEvent) {
+    setPeerVideoStream(new MediaStream());
+    pc2.addEventListener('track', function (e) {
+      console.log('pc2.track', e);
+      peerStream.addTrack(e.track);
+    });
+
+  // Using addstream to get  MediaStream
+  } else {
+    pc2.addEventListener('addstream', function (e) {
+      console.log('pc2.addStream', e);
+      setPeerVideoStream(e.stream);
+    });
+  }
 
   pc1.addEventListener('iceconnectionstatechange', function (e) {
     console.log('pc1.iceConnectionState', e, pc1.iceConnectionState);
 
-    if (pc1.iceConnectionState === 'completed') {      
+    if (pc1.iceConnectionState === 'completed') {
       console.log('pc1.getSenders', pc1.getSenders());
       console.log('pc2.getReceivers', pc2.getReceivers());
     }
@@ -374,7 +404,7 @@ function TestRTCPeerConnection(localStream) {
 var canvasEl;
 function TestMediaRenderCatpure(videoEl) {
 
-  if (!canvasEl) {       
+  if (!canvasEl) {
     canvasEl = document.createElement('canvas');
   }
 
@@ -389,10 +419,10 @@ function TestMediaRenderCatpure(videoEl) {
     canvasEl.height = image.height;
     ctx.drawImage(image, 0, 0);
   });
-  videoEl.render.save(function (data) {
+  localVideoEl.render.save(function (data) {
     image.src = "data:image/jpg;base64," + data;
   });
-} 
+}
 
 var testMediaRenderCatpureAnimateFrame;
 function TestMediaRenderCatpureAnimate() {
@@ -438,12 +468,12 @@ if (useWebRTCAdapter && typeof window.adapter === 'undefined') {
     script.addEventListener('load', function () {
       console.log('useWebRTCAdapter.loaded', script.src);
       TestGetUserMedia().then(function (localStream) {
-        TestRTCPeerConnection(localStream); 
+        TestRTCPeerConnection(localStream);
       });
     });
 } else {
   TestGetUserMedia().then(function (localStream) {
-    TestRTCPeerConnection(localStream); 
+    TestRTCPeerConnection(localStream);
   });
 }
 

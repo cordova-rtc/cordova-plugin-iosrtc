@@ -26,6 +26,7 @@ var
 	RTCPeerConnection      = require('./RTCPeerConnection'),
 	RTCSessionDescription  = require('./RTCSessionDescription'),
 	RTCIceCandidate        = require('./RTCIceCandidate'),
+	MediaDevices           = require('./MediaDevices'),
 	MediaStream            = require('./MediaStream'),
 	MediaStreamTrack       = require('./MediaStreamTrack'),
 	videoElementsHandler   = require('./videoElementsHandler');
@@ -42,11 +43,12 @@ module.exports = {
 	RTCPeerConnection:     RTCPeerConnection,
 	RTCSessionDescription: RTCSessionDescription,
 	RTCIceCandidate:       RTCIceCandidate,
+	MediaDevices:          MediaDevices,
 	MediaStream:           MediaStream,
 	MediaStreamTrack:      MediaStreamTrack,
 
 	// Expose a function to refresh current videos rendering a MediaStream.
-	refreshVideos:         refreshVideos,
+	refreshVideos:         videoElementsHandler.refreshVideos,
 
 	// Expose a function to handle a video not yet inserted in the DOM.
 	observeVideo:          videoElementsHandler.observeVideo,
@@ -60,6 +62,9 @@ module.exports = {
 	// Checking permision (audio and camera)
 	requestPermission: requestPermission,
 
+	// Expose a function to initAudioDevices if needed, sets the audio session active
+	initAudioDevices: initAudioDevices,
+
 	// Expose a function to pollute window and naigator namespaces.
 	registerGlobals:       registerGlobals,
 
@@ -67,7 +72,11 @@ module.exports = {
 	debug:                 require('debug'),
 
 	// Debug function to see what happens internally.
-	dump:                  dump
+	dump:                  dump,
+
+	// Debug Stores to see what happens internally.
+	mediaStreamRenderers:  mediaStreamRenderers,
+	mediaStreams:          mediaStreams
 };
 
 
@@ -75,25 +84,12 @@ domready(function () {
 	// Let the MediaStream class and the videoElementsHandler share same MediaStreams container.
 	MediaStream.setMediaStreams(mediaStreams);
 	videoElementsHandler(mediaStreams, mediaStreamRenderers);
-});
 
-
-function refreshVideos() {
-	debug('refreshVideos()');
-
-	var id;
-
-	for (id in mediaStreamRenderers) {
-		if (mediaStreamRenderers.hasOwnProperty(id)) {
-			mediaStreamRenderers[id].refresh();
-		}
-	}
-}
-
-// refreshVideos on device orientation change to resize peers video 
-// while local video will resize du orientation change
-window.addEventListener('resize', function () {
-    refreshVideos();
+	// refreshVideos on device orientation change to resize peers video
+	// while local video will resize du orientation change
+	window.addEventListener('resize', function () {
+		videoElementsHandler.refreshVideos();
+	});
 });
 
 function selectAudioOutput(output) {
@@ -130,22 +126,28 @@ function requestPermission(needMic, needCamera, callback) {
 	exec(ok, error, 'iosrtcPlugin', "RTCRequestPermission", [needMic, needCamera]);
 }
 
+function initAudioDevices() {
+	debug('initAudioDevices()');
+
+	exec(null, null, 'iosrtcPlugin', "initAudioDevices", []);
+}
+
 function callbackifyMethod(originalMethod) {
-  	return function () {
+	return function (arg) { // jshint ignore:line
 		var success, failure,
 		  originalArgs = Array.prototype.slice.call(arguments);
 
 		var callbackArgs = [];
 		originalArgs.forEach(function (arg) {
-		  if (typeof arg === 'function') {
-			if (!success) {
-			  success = arg;
+			if (typeof arg === 'function') {
+				if (!success) {
+					success = arg;
+				} else {
+					failure = arg;
+				}
 			} else {
-			  failure = arg;
+				callbackArgs.push(arg);
 			}
-		  } else {
-			callbackArgs.push(arg);
-		  }
 		});
 
 		var promiseResult = originalMethod.apply(this, callbackArgs);
@@ -178,6 +180,7 @@ function restoreCallbacksSupport() {
 	callbackifyPrototype(RTCPeerConnection.prototype, 'setRemoteDescription');
 	callbackifyPrototype(RTCPeerConnection.prototype, 'setLocalDescription');
 	callbackifyPrototype(RTCPeerConnection.prototype, 'addIceCandidate');
+	callbackifyPrototype(RTCPeerConnection.prototype, 'getStats');
 }
 
 function registerGlobals(doNotRestoreCallbacksSupport) {
@@ -188,18 +191,18 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 	}
 
 	if (!navigator.mediaDevices) {
-		navigator.mediaDevices = {};
+		navigator.mediaDevices = new MediaDevices();
+	}
+
+	// Restore Callback support
+	if (!doNotRestoreCallbacksSupport) {
+		restoreCallbacksSupport();
 	}
 
 	navigator.getUserMedia                  = getUserMedia;
 	navigator.webkitGetUserMedia            = getUserMedia;
 	navigator.mediaDevices.getUserMedia     = getUserMedia;
 	navigator.mediaDevices.enumerateDevices = enumerateDevices;
-
-	// Restore Callback support
-	if (!doNotRestoreCallbacksSupport) {
-		restoreCallbacksSupport();
-	}
 
 	window.RTCPeerConnection                = RTCPeerConnection;
 	window.webkitRTCPeerConnection          = RTCPeerConnection;
