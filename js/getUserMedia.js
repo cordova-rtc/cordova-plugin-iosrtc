@@ -327,6 +327,7 @@ function getUserMedia(constraints) {
 		// get aspectRatio (e.g 1.7777777777777777)
 		// TODO ConstrainDouble min, max
 		if (typeof constraints.video.aspectRatio === 'object') {
+			newConstraints.video.aspectRatio = {};
 			if (isPositiveFloat(constraints.video.aspectRatio.min)) {
 				newConstraints.video.aspectRatio.min = parseFloat(constraints.video.aspectRatio.min, 10);
 			}
