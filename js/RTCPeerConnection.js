@@ -490,6 +490,10 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 	if (!stream) {
 		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [this.pcId, track.id, null]);
 	}
+	
+	return new RTCRtpSender({
+		track: track
+	});
 };
 
 RTCPeerConnection.prototype.removeTrack = function (sender) {
