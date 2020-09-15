@@ -36,7 +36,7 @@ RTCRtpSender.prototype.replaceTrack = function (withTrack) {
 		pc.addStream(stream);
 
 		// https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/negotiationneeded_event
-		var event = new Event('negotiationneeded')
+		var event = new Event('negotiationneeded');
 		pc.dispatchEvent('negotiationneeded', event);
 
 		pc.addEventListener("signalingstatechange", function listener() {
