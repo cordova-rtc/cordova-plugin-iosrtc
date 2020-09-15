@@ -114,7 +114,7 @@ class iosrtcPlugin : CDVPlugin {
 				self.emit(command.callbackId, result: result!)
 			},
 			eventListenerForAddStream: self.addMediaStream,
-			eventListenerForRemoveStream: self.removeMediaStream
+			eventListenerForRemoveStream: self.deleteMediaStream
 		)
 
 		// Store the pluginRTCPeerConnection into the dictionary.
