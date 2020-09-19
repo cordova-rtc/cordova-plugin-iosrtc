@@ -78,3 +78,12 @@ This is a community supported, open source project for enabling developers to us
 experience on mobile devices.
 
 
+### [VEEDEEO](http://www.veedeeo.me)
+
+<img src="https://www.veedeeo.me/resource/1599641653000/vdo_website_css6_2020/images/logo.png" />
+
+VEEDEEO is a enterprise video communications platform and we use iosrtc - by far the best WebRTC plugin for mobile - to power our [mobile apps](https://itunes.apple.com/us/app/veedeeo/id1337029218) on iOS.
+
+
+
+
