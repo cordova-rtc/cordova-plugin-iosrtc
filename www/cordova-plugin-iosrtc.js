@@ -2251,25 +2251,20 @@ RTCPeerConnection.prototype.getReceivers = function () {
 };
 
 RTCPeerConnection.prototype.getSenders = function () {
-	var self = this,
-		senders = [],
-		localStreams = self.localStreams,
-		id, stream;
+	var tracks = [],
+		id;
 
-	for (id in localStreams) {
-		if (localStreams.hasOwnProperty(id)) {
-			stream = localStreams[id];
-			stream.getTracks().forEach(function (track) { // jshint ignore:line
-				senders.push(new RTCRtpSender({
-					pc: self,
-					stream: stream,
-					track: track
-				}));
-			});
+	for (id in this.localStreams) {
+		if (this.localStreams.hasOwnProperty(id)) {
+			tracks = tracks.concat(this.localStreams[id].getTracks());
 		}
 	}
 
-	return senders;
+	return tracks.map(function (track) {
+		return new RTCRtpSender({
+			track: track
+		});
+	});
 };
 
 RTCPeerConnection.prototype.getTransceivers = function () {
@@ -2654,49 +2649,17 @@ module.exports = RTCRtpSender;
 function RTCRtpSender(data) {
 	data = data || {};
 
-	this._pc = data.pc;
-	this._stream = data.stream;
 	this.track = data.track;
-	this.params = data.params || {};
+    this.params = data.params || {};
 }
 
 RTCRtpSender.prototype.getParameters = function () {
-	return this.params;
+    return this.params;
 };
 
 RTCRtpSender.prototype.setParameters = function (params) {
-	Object.assign(this.params, params);
-	return Promise.resolve(this.params);
-};
-
-RTCRtpSender.prototype.replaceTrack = function (withTrack) {
-	var self = this,
-		pc = self._pc,
-		stream = self._stream,
-		track = self.track;
-
-	return new Promise(function (resolve, reject) {
-		stream.removeTrack(track);
-		stream.addTrack(withTrack);
-		self.track = withTrack;
-
-		pc.removeStream(stream);
-		pc.addStream(stream);
-
-		// https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/negotiationneeded_event
-		var event = new Event('negotiationneeded');
-		pc.dispatchEvent('negotiationneeded', event);
-
-		pc.addEventListener("signalingstatechange", function listener() {
-			if (pc.signalingState === "closed") {
-				pc.removeEventListener("signalingstatechange", listener);
-				reject();
-			} else if (pc.signalingState === "stable") {
-				pc.removeEventListener("signalingstatechange", listener);
-				resolve();
-			}
-		});
-	});
+    Object.assign(this.params, params);
+    return Promise.resolve(this.params);
 };
 },{}],16:[function(_dereq_,module,exports){
 /**
