@@ -188,7 +188,7 @@ class PluginRTCDataChannel : NSObject, RTCDataChannelDelegate {
 
 		self.rtcDataChannel!.close()
 	}
-	
+
 	static func stateToString(state: RTCDataChannelState) -> String {
 		switch state {
 		case RTCDataChannelState.connecting:

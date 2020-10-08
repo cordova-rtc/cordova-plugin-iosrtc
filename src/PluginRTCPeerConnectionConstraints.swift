@@ -8,24 +8,24 @@ class PluginRTCPeerConnectionConstraints {
 		NSLog("PluginRTCPeerConnectionConstraints#init()")
 		var mandatoryConstraints: [String : String] = [:]
 		var optionalConstraints: [String : String] = [:]
-		
+
 		// Handle constraints at the root of pcConstraints.mandatory
 		let _mandatoryConstraints = pcConstraints?.object(forKey: "mandatory") as? NSDictionary
 		if _mandatoryConstraints != nil {
 			mandatoryConstraints = PluginRTCPeerConnectionConstraints.parseConstraints(constraints: _mandatoryConstraints!)
 		}
-		
+
 		// Handle constraints at the root of pcConstraints.optional
 		let _optionalConstraints = pcConstraints?.object(forKey: "optional") as? NSArray
 		if _optionalConstraints != nil {
 			optionalConstraints = PluginRTCPeerConnectionConstraints.parseOptionalConstraints(optionalConstraints: _optionalConstraints!)
 		}
-		
+
 		// Handle constraints at the root of pcConstraints
 		if pcConstraints != nil && _optionalConstraints == nil && _mandatoryConstraints == nil  {
 			mandatoryConstraints = PluginRTCPeerConnectionConstraints.parseConstraints(constraints: pcConstraints!)
 		}
-		
+
 		NSLog("PluginRTCPeerConnectionConstraints#init() | [mandatoryConstraints:%@, optionalConstraints:%@]",
 			mandatoryConstraints, optionalConstraints)
 
@@ -34,7 +34,7 @@ class PluginRTCPeerConnectionConstraints {
 			optionalConstraints: optionalConstraints
 		)
 	}
-	
+
 	// Custom proprietary constrains in libwebrtc
 	fileprivate static let allowedOptionalConstraints : Array = [
 		// Temporary pseudo-constraints used to enable DTLS-SRT
@@ -55,15 +55,15 @@ class PluginRTCPeerConnectionConstraints {
 		"googSuspendBelowMinBitrate",
 		//"googScreencastMinBitrate"
 	]
-	
+
 	fileprivate static func parseOptionalConstraints(optionalConstraints: NSArray) -> [String : String] {
 		var _constraints : [String : String] = [:]
-		
+
 		for optionalConstraint in optionalConstraints {
 			if (optionalConstraint is NSDictionary) {
 				for (key, value) in optionalConstraint as! NSDictionary {
 					let finalKey: String = key as! String;
-					
+
 					// Parse only allowedOptionalConstraints
 					if (allowedOptionalConstraints.firstIndex(of: finalKey) != nil) {
 					   if value is Int32 {
@@ -77,10 +77,10 @@ class PluginRTCPeerConnectionConstraints {
 				}
 			}
 		}
-		
+
 		return _constraints;
 	}
-	
+
 	// https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/createOffer#RTCOfferOptions_dictionary
 	// TODO TODO voiceActivityDetection This option defaults to true
 	fileprivate static let allowedConstraints : Array = [
@@ -89,14 +89,14 @@ class PluginRTCPeerConnectionConstraints {
 		"OfferToReceiveAudio",
 		"voiceActivityDetection"
 	]
-	
+
 	fileprivate static func parseConstraints(constraints: NSDictionary) -> [String : String] {
 		var _constraints : [String : String] = [:]
-		
+
 		for (key, value) in constraints {
 			var finalValue: String,
 				finalKey: String = key as! String;
-			
+
 			if value is Bool {
 				finalValue = value as! Bool ? "true" : "false"
 			} else if value is String {
@@ -104,7 +104,7 @@ class PluginRTCPeerConnectionConstraints {
 			} else {
 				continue
 			}
-			
+
 			// Handle Spec for offerToReceiveAudio|offerToReceiveVideo but
 			// libwebrtc still use OfferToReceiveAudio|OfferToReceiveVideo
 			if (finalKey == "offerToReceiveAudio") {
@@ -114,16 +114,16 @@ class PluginRTCPeerConnectionConstraints {
 			} else if (finalKey == "iceRestart") {
 				finalKey =  "IceRestart";
 			}
-			
+
 			// Filter to avoid injection
 			if (allowedConstraints.firstIndex(of: finalKey) != nil) {
 				_constraints[finalKey] = finalValue
 			}
 		}
-		
+
 		return _constraints;
 	}
-	
+
 	deinit {
 		NSLog("PluginRTCPeerConnectionConstraints#deinit()")
 	}

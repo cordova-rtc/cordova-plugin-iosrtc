@@ -162,10 +162,10 @@ MediaStreamRenderer.prototype.refresh = function () {
 	computedStyle = window.getComputedStyle(this.element);
 
 	// get background color
-	backgroundColorRgba = computedStyle.backgroundColor.replace(/rgba?\((.*)\)/, '$1').split(',').map(function(x){ return x.trim() });
-	backgroundColorRgba[3] = '0'
-	this.element.style.backgroundColor = 'rgba(' + backgroundColorRgba.join(',') + ')'
-	backgroundColorRgba.length = 3
+	backgroundColorRgba = computedStyle.backgroundColor.replace(/rgba?\((.*)\)/, '$1').split(',').map(function(x){ return x.trim(); });
+	backgroundColorRgba[3] = '0';
+	this.element.style.backgroundColor = 'rgba(' + backgroundColorRgba.join(',') + ')';
+	backgroundColorRgba.length = 3;
 
 	// get padding values
 	paddingTop = parseInt(computedStyle.paddingTop) | 0;
@@ -312,7 +312,7 @@ MediaStreamRenderer.prototype.refresh = function () {
 
 	function hash(str) {
 		var hash = 5381,
-		i = str.length;
+			i = str.length;
 
 		while (i) {
 			hash = (hash * 33) ^ str.charCodeAt(--i);
@@ -323,22 +323,22 @@ MediaStreamRenderer.prototype.refresh = function () {
 
 	function nativeRefresh() {
 		var data = {
-			elementLeft: Math.round(elementLeft),
-			elementTop: Math.round(elementTop),
-			elementWidth: Math.round(elementWidth),
-			elementHeight: Math.round(elementHeight),
-			videoViewWidth: Math.round(videoViewWidth),
-			videoViewHeight: Math.round(videoViewHeight),
-			visible: visible,
-			backgroundColor: backgroundColorRgba.join(','),
-			opacity: opacity,
-			zIndex: zIndex,
-			mirrored: mirrored,
-			objectFit: objectFit,
-			clip: clip,
-			borderRadius: borderRadius
-		},
-		newRefreshCached = hash(JSON.stringify(data));
+				elementLeft: Math.round(elementLeft),
+				elementTop: Math.round(elementTop),
+				elementWidth: Math.round(elementWidth),
+				elementHeight: Math.round(elementHeight),
+				videoViewWidth: Math.round(videoViewWidth),
+				videoViewHeight: Math.round(videoViewHeight),
+				visible: visible,
+				backgroundColor: backgroundColorRgba.join(','),
+				opacity: opacity,
+				zIndex: zIndex,
+				mirrored: mirrored,
+				objectFit: objectFit,
+				clip: clip,
+				borderRadius: borderRadius
+			},
+			newRefreshCached = hash(JSON.stringify(data));
 
 		if (newRefreshCached === self.refreshCached) {
 			return;
