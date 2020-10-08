@@ -10,24 +10,22 @@
 
 #import <Foundation/Foundation.h>
 
-#import <WebRTC/RTCVideoFrame.h>
+#import "RTCVideoFrame.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 /**
- * RTCVideoViewShading provides a way for apps to customize the OpenGL(ES) shaders used in
- * rendering for the RTCEAGLVideoView/RTCNSGLVideoView.
+ * RTCVideoViewShading provides a way for apps to customize the OpenGL(ES shaders
+ * used in rendering for the RTCEAGLVideoView/RTCNSGLVideoView.
  */
-RTC_EXPORT
-@protocol RTCVideoViewShading <NSObject>
+RTC_OBJC_EXPORT
+@protocol RTC_OBJC_TYPE
+(RTCVideoViewShading)<NSObject>
 
-/** Callback for I420 frames. Each plane is given as a texture. */
-- (void)applyShadingForFrameWithWidth:(int)width
-                               height:(int)height
-                             rotation:(RTCVideoRotation)rotation
-                               yPlane:(GLuint)yPlane
-                               uPlane:(GLuint)uPlane
-                               vPlane:(GLuint)vPlane;
+    /** Callback for I420 frames. Each plane is given as a texture. */
+    - (void)applyShadingForFrameWithWidth : (int)width height : (int)height rotation
+    : (RTCVideoRotation)rotation yPlane : (GLuint)yPlane uPlane : (GLuint)uPlane vPlane
+    : (GLuint)vPlane;
 
 /** Callback for NV12 frames. Each plane is given as a texture. */
 - (void)applyShadingForFrameWithWidth:(int)width
