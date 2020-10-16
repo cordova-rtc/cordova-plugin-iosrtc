@@ -592,6 +592,9 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 
 			// Let the plugin store it in its dictionary.
 			pluginMediaStreams[currentPluginMediaStream!.id] = currentPluginMediaStream;
+			
+			// Fixes issue #576
+			self.eventListenerForAddStream(currentPluginMediaStream!)
 		}
 
 		return currentPluginMediaStream;
@@ -602,8 +605,6 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		NSLog("PluginRTCPeerConnection | onaddstream")
 
 		let pluginMediaStream = getPluginMediaStream(stream: stream);
-
-		self.eventListenerForAddStream(pluginMediaStream!)
 
 		// Fire the 'addstream' event so the JS will create a new MediaStream.
 		self.eventListener([
