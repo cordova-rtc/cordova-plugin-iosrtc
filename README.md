@@ -373,19 +373,19 @@ To run on Devices with iOS >= 13.3.1, you need a valid Apple Developer account t
 See [CHANGELOG.md](./CHANGELOG.md).
 
 
-## Author
+## Authors
 
-[Iñaki Baz Castillo](https://inakibaz.me)
-
-
-### Maintainers
-
-* [Harold Thetiot](https://sylaps.com)
 * [Iñaki Baz Castillo](https://inakibaz.me) (no longer active maintainer)
 * [Saúl Ibarra Corretgé](http://bettercallsaghul.com) (no longer active maintainer)
+* [Harold Thetiot](https://sylaps.com)
 
-Looking for new maintainers. Interested? Comment [here](https://github.com/cordova-rtc/cordova-plugin-iosrtc/issues/353).
 
+### Maintainer
+
+* [Harold Thetiot](https://sylaps.com)
+
+**If you like this project you can support me.**  
+<a href="https://www.buymeacoffee.com/hthetiot" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-white.png" alt="Buy Me A Coffee" style="height: 51px !important;width: 217px !important;" ></a>
 
 ## License
 
