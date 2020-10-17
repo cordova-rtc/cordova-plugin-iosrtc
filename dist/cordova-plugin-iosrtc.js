@@ -2818,7 +2818,6 @@ function isPositiveFloat(number) {
 	return typeof number === 'number' && number >= 0;
 }
 
-
 function getUserMedia(constraints) {
 
 	// Detect callback usage to assist 5.0.1 to 5.0.2 migration
@@ -3124,6 +3123,7 @@ function getUserMedia(constraints) {
 		// TODO ConstrainDouble min, max
 		if (typeof constraints.video.aspectRatio === 'object') {
 			newConstraints.video.aspectRatio = {};
+
 			if (isPositiveFloat(constraints.video.aspectRatio.min)) {
 				newConstraints.video.aspectRatio.min = parseFloat(constraints.video.aspectRatio.min, 10);
 			}
