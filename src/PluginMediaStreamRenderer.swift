@@ -9,6 +9,7 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 	
 	var webView: UIView
 	var elementView: UIView
+	var superView: UIView
 	var pluginMediaStream: PluginMediaStream?
 	
 	var videoView: RTCEAGLVideoView
@@ -31,7 +32,11 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		
 		// The video element view.
 		self.elementView = UIView()
-		
+
+		self.superView = UIView()
+		self.superView.isUserInteractionEnabled = false
+		self.superView.backgroundColor = UIColor.black
+
 		// The effective video view in which the the video stream is shown.
 		// It's placed over the elementView.
 		self.videoView = RTCEAGLVideoView()
@@ -47,7 +52,8 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		self.webView.addSubview(self.elementView)
 		self.webView.isOpaque = false
 		self.webView.backgroundColor = UIColor.clear
-		
+		self.webView.addSubview(self.superView)
+
 		// https://stackoverflow.com/questions/46317061/use-safe-area-layout-programmatically
 		// https://developer.apple.com/documentation/uikit/uiview/2891102-safearealayoutguide
 		// https://developer.apple.com/documentation/uikit/
@@ -173,6 +179,7 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		let mirrored = data.object(forKey: "mirrored") as? Bool ?? false
 		let clip = data.object(forKey: "clip") as? Bool ?? true
 		let borderRadius = data.object(forKey: "borderRadius") as? Double ?? 0
+		let backgroundColor = data.object(forKey: "backgroundColor") as? String ?? "0,0,0"
 
 		NSLog("PluginMediaStreamRenderer#refresh() [elementLeft:%@, elementTop:%@, elementWidth:%@, elementHeight:%@, videoViewWidth:%@, videoViewHeight:%@, visible:%@, opacity:%@, zIndex:%@, mirrored:%@, clip:%@, borderRadius:%@]",
 			String(elementLeft), String(elementTop), String(elementWidth), String(elementHeight),
@@ -233,6 +240,13 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		}
 
 		self.elementView.layer.cornerRadius = CGFloat(borderRadius)
+
+		self.superView.frame = self.webView.frame
+		let rgb = backgroundColor.components(separatedBy: ",").map{ CGFloat(($0 as NSString).floatValue) / 256.0 }
+		let color = UIColor(red: rgb[0], green: rgb[1], blue: rgb[2], alpha: 1)
+		self.elementView.backgroundColor = color
+		self.superView.backgroundColor = color
+		self.superView.layer.zPosition = ([self.webView.layer.zPosition, self.elementView.layer.zPosition].min() ?? 0) - 1
 	}
 	
 	func save() -> String {
@@ -259,6 +273,7 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		self.closed = true
 		self.reset()
 		self.elementView.removeFromSuperview()
+		self.superView.removeFromSuperview()
 	}
 
 	/**
