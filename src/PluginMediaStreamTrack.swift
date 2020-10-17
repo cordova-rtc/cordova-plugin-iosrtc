@@ -10,19 +10,19 @@ class PluginMediaStreamTrack : NSObject {
 	var lostStates = Array<String>()
 	var renders: [String : PluginMediaStreamRenderer]
 
-	init(rtcMediaStreamTrack: RTCMediaStreamTrack) {
+	init(rtcMediaStreamTrack: RTCMediaStreamTrack, trackId: String? = nil) {
 		NSLog("PluginMediaStreamTrack#init()")
 
 		self.rtcMediaStreamTrack = rtcMediaStreamTrack
 
-		// Handle possible duplicate remote trackId with  janus or short duplicate name
-		// See: https://github.com/cordova-rtc/cordova-plugin-iosrtc/issues/432
-		if (rtcMediaStreamTrack.trackId.count < 36) {
+		if (trackId == nil) {
+			// Handle possible duplicate remote trackId with  janus or short duplicate name
+			// See: https://github.com/cordova-rtc/cordova-plugin-iosrtc/issues/432
 			self.id = rtcMediaStreamTrack.trackId + "_" + UUID().uuidString;
 		} else {
-			self.id = rtcMediaStreamTrack.trackId;
+			self.id = trackId!;
 		}
-
+		
 		self.kind = rtcMediaStreamTrack.kind
 		self.renders = [:]
 	}
