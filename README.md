@@ -217,17 +217,18 @@ function TestRTCPeerConnection(localStream) {
   if (useTrackEvent) {
     var peerStream;
     pc2.addEventListener('track', function(e) {
-        console.log('pc2.track', e);
-        var peerStream = e.streams[0] || new MediaStream();
-        setPeerVideoStream(peerStream);   
-        peerStream.addTrack(e.track);
-      });
+      console.log('pc2.track', e);
+      var peerStream = e.streams[0] || new MediaStream();
+      setPeerVideoStream(peerStream);   
+      peerStream.addTrack(e.track);
+    });
+	
+  // Note: Deprecated but supported    
   } else {
-       
-	 pc2.addEventListener('addstream', function(e) {
-       console.log('pc2.addStream', e);
-       setPeerVideoStream(e.stream);
-     });
+    pc2.addEventListener('addstream', function(e) {
+      console.log('pc2.addStream', e);
+      setPeerVideoStream(e.stream);
+    });
   }
 
   pc1.addEventListener('iceconnectionstatechange', function (e) {
