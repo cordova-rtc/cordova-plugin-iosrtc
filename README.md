@@ -166,10 +166,13 @@ function TestRTCPeerConnection(localStream) {
   pc2 = new RTCPeerConnection(peerConnectionConfig);
   
   if (useTrackEvent) {
-     localStream.getTracks().forEach(function (track) {
-       console.log('addTrack', track);
-       pc1.addTrack(track);
-     });
+     
+    // Add local stream tracks to RTCPeerConnection
+    var localPeerStream = new MediaStream();
+    localStream.getTracks().forEach(function (track) {
+      console.log('pc1.addTrack', track, localPeerStream);
+      pc1.addTrack(track, localPeerStream);
+    });
         
    // Note: Deprecated but supported    
    } else {
@@ -178,13 +181,6 @@ function TestRTCPeerConnection(localStream) {
      // Note: Deprecated Test removeStream
      // pc1.removeStream(pc1.getLocalStreams()[0]);<
    }
-
-  // Add local stream tracks to RTCPeerConnection
-  var localPeerStream = new MediaStream();
-  localStream.getTracks().forEach(function (track) {
-    console.log('pc1.addTrack', track, localPeerStream);
-    pc1.addTrack(track, localPeerStream);
-  });
 
   // Basic RTCPeerConnection Local WebRTC Signaling follow.
   function onAddIceCandidate(pc, can) {
