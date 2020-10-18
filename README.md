@@ -45,6 +45,7 @@ In order to make this Cordova plugin run into a iOS application some requirement
 * openvidu => 2.11.0
 * Ionic => v8 
 * Jitsi ~ 3229 
+* Apizee => 2.6.11
 
 ## Installation
 
