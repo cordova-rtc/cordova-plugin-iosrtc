@@ -150,9 +150,9 @@ var peerConnectionConfig = {
     bundlePolicy: 'max-compat',
     rtcpMuxPolicy: 'negotiate',
     iceServers: [
-        {
-            url: "stun:stun.stunprotocol.org"
-        }
+      {
+         urls: ["stun:stun.stunprotocol.org"]
+      }
     ]
 };
 
@@ -172,15 +172,15 @@ function TestRTCPeerConnection(localStream) {
     localStream.getTracks().forEach(function (track) {
       console.log('pc1.addTrack', track, localPeerStream);
       pc1.addTrack(track, localPeerStream);
-    });
+	});
         
-   // Note: Deprecated but supported    
-   } else {
+  // Note: Deprecated but supported    
+  } else {
      pc1.addStream(localStream);
 
      // Note: Deprecated Test removeStream
      // pc1.removeStream(pc1.getLocalStreams()[0]);<
-   }
+  }
 
   // Basic RTCPeerConnection Local WebRTC Signaling follow.
   function onAddIceCandidate(pc, can) {
