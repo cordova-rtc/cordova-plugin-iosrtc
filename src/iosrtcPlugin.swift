@@ -839,7 +839,7 @@ class iosrtcPlugin : CDVPlugin {
 				},
 				eventListenerForEnded: { () -> Void in
 					// Remove the track from the container.
-					self.pluginMediaStreamTracks[pluginMediaStreamTrack!.id] = nil
+					self.deleteMediaStreamTrack(pluginMediaStreamTrack!);
 				}
 			)
 		}
@@ -1151,8 +1151,12 @@ class iosrtcPlugin : CDVPlugin {
 	}
 
 	fileprivate func deleteMediaStream(_ pluginMediaStream: PluginMediaStream) {
-		self.pluginMediaStreams[pluginMediaStream.id] = nil
-		pluginMediaStream.stop();
+		if (self.pluginMediaStreams[pluginMediaStream.id] != nil) {
+			self.pluginMediaStreams[pluginMediaStream.id] = nil
+			
+			// deinit should call stop by itself
+			//pluginMediaStream.stop();
+		}
 	}
 
 	fileprivate func saveMediaStreamTrack(_ pluginMediaStreamTrack: PluginMediaStreamTrack) {
@@ -1162,8 +1166,12 @@ class iosrtcPlugin : CDVPlugin {
 	}
 
 	fileprivate func deleteMediaStreamTrack(_ pluginMediaStreamTrack: PluginMediaStreamTrack) {
-		self.pluginMediaStreamTracks[pluginMediaStreamTrack.id] = nil
-		pluginMediaStreamTrack.stop();
+		if (self.pluginMediaStreamTracks[pluginMediaStreamTrack.id] != nil) {
+			self.pluginMediaStreamTracks[pluginMediaStreamTrack.id] = nil
+			
+			// deinit should call stop by itself
+			//pluginMediaStreamTrack.stop();
+		}
 	}
 
 	fileprivate func cleanup() {

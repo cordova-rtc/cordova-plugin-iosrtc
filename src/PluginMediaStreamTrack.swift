@@ -29,6 +29,7 @@ class PluginMediaStreamTrack : NSObject {
 
 	deinit {
 		NSLog("PluginMediaStreamTrack#deinit()")
+		stop()
 	}
 
 	func run() {
@@ -118,6 +119,12 @@ class PluginMediaStreamTrack : NSObject {
 
 		// Let's try setEnabled(false), but it also fails.
 		self.rtcMediaStreamTrack.isEnabled = false
+		
+		self.eventListener!([
+			"type": "statechange",
+			"readyState": "ended",
+			"enabled": self.rtcMediaStreamTrack.isEnabled ? true : false
+		])
 
 		for (_, render) in self.renders {
 			render.stop()

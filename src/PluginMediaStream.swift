@@ -43,7 +43,7 @@ class PluginMediaStream : NSObject {
 
 	deinit {
 		NSLog("PluginMediaStream#deinit()")
-		self.stop();
+		stop();
 	}
 
 	func run() {
