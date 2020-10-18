@@ -54,9 +54,11 @@ fileprivate func getAllVideoDevices() -> [MediaDeviceInfo] {
 	var deviceTypes: [AVCaptureDevice.DeviceType] = [.builtInTelephotoCamera, .builtInWideAngleCamera]
 	if #available(iOS 10.2, *) {
 		deviceTypes.append(.builtInDualCamera)
-		if #available(iOS 11.1, *) {
-			deviceTypes.append(.builtInTrueDepthCamera)
-		}
+
+		// Disabled tp prevent duplicate front camera
+		//if #available(iOS 11.1, *) {
+		//	deviceTypes.append(.builtInTrueDepthCamera)
+		//}
 	}
 
 	let videoDevices: [AVCaptureDevice] = AVCaptureDevice.DiscoverySession.init(

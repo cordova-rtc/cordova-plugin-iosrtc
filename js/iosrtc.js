@@ -211,6 +211,25 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 	window.MediaStream                      = MediaStream;
 	window.webkitMediaStream                = MediaStream;
 	window.MediaStreamTrack                 = MediaStreamTrack;
+
+	// Apply CanvasRenderingContext2D.drawImage monkey patch
+	var drawImage = CanvasRenderingContext2D.prototype.drawImage;
+	CanvasRenderingContext2D.prototype.drawImage = function (arg) {
+		var args = Array.prototype.slice.call(arguments);
+		var context = this;
+		if (arg instanceof HTMLVideoElement && arg.render) {
+			arg.render.save(function (data) {
+			    var img = new window.Image();
+			    img.addEventListener("load", function () {
+			    	args.splice(0, 1, img.src);
+			        drawImage.apply(context, args);
+			    });
+			    img.setAttribute("src", "data:image/jpg;base64," + data);
+		  	});
+		} else {
+			return drawImage.apply(context, args);
+		}
+	};
 }
 
 function dump() {
