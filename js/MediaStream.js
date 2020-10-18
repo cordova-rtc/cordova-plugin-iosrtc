@@ -314,8 +314,13 @@ MediaStream.prototype.removeTrack = function (track) {
 
 
 MediaStream.prototype.clone = function () {
-	debug('clone()');
-	return new MediaStream(this);
+
+	var newStream = MediaStream();
+	this.getTracks().forEach(function (track) {
+		newStream.addTrack(track.clone());
+	});
+
+	return newStream;
 };
 
 // Backwards compatible API.
