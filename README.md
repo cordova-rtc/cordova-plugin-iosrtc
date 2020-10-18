@@ -156,14 +156,28 @@ var peerConnectionConfig = {
     ]
 };
 
+// This plugin handle 'addstream' and 'track' event for MediaStream creation.
+var useTrackEvent = Object.getOwnPropertyDescriptors(RTCPeerConnection.prototype).ontrack;
+
 var peerVideoEl, peerStream;
 function TestRTCPeerConnection(localStream) {
 
   pc1 = new RTCPeerConnection(peerConnectionConfig);
   pc2 = new RTCPeerConnection(peerConnectionConfig);
   
-  // Note: Deprecated but supported
-  //pc1.addStream(localStream);
+  if (useTrackEvent) {
+     localStream.getTracks().forEach(function (track) {
+       console.log('addTrack', track);
+       pc1.addTrack(track);
+     });
+        
+   // Note: Deprecated but supported    
+   } else {
+     pc1.addStream(localStream);
+
+     // Note: Deprecated Test removeStream
+     // pc1.removeStream(pc1.getLocalStreams()[0]);<
+   }
 
   // Add local stream tracks to RTCPeerConnection
   var localPeerStream = new MediaStream();
@@ -204,23 +218,20 @@ function TestRTCPeerConnection(localStream) {
     peerVideoEl.srcObject = peerStream;
   }
 
-  // This plugin handle 'addstream' and 'track' event for MediaStream creation.
-  var useTrackEvent = Object.getOwnPropertyDescriptors(RTCPeerConnection.prototype).ontrack;
-
-  // Using 'track' event with existing MediaStream
   if (useTrackEvent) {
-    setPeerVideoStream(new MediaStream());
-    pc2.addEventListener('track', function (e) {
-      console.log('pc2.track', e);
-      peerStream.addTrack(e.track);
-    });
-
-  // Using addstream to get  MediaStream
+    var peerStream;
+    pc2.addEventListener('track', function(e) {
+        console.log('pc2.track', e);
+        var peerStream = e.streams[0] || new MediaStream();
+        setPeerVideoStream(peerStream);   
+        peerStream.addTrack(e.track);
+      });
   } else {
-    pc2.addEventListener('addstream', function (e) {
-      console.log('pc2.addStream', e);
-      setPeerVideoStream(e.stream);
-    });
+       
+	 pc2.addEventListener('addstream', function(e) {
+       console.log('pc2.addStream', e);
+       setPeerVideoStream(e.stream);
+     });
   }
 
   pc1.addEventListener('iceconnectionstatechange', function (e) {
