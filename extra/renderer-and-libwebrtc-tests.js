@@ -318,12 +318,12 @@ function TestRTCPeerConnection(localStream) {
   }
 
   if (useTrackEvent) {
-    var peerStream;
+    var newPeerStream;
     pc2.addEventListener('track', function(e) {
       console.log('pc2.track', e);
-      var peerStream = e.streams[0] || new MediaStream();
-      setPeerVideoStream(peerStream);
-      peerStream.addTrack(e.track);   
+      newPeerStream = e.streams[0] || newPeerStream || new MediaStream();
+      setPeerVideoStream(newPeerStream);
+      newPeerStream.addTrack(e.track);   
     });
 
   // Note: Deprecated but supported
