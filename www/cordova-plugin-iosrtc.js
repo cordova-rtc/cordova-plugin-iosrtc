@@ -525,8 +525,13 @@ MediaStream.prototype.removeTrack = function (track) {
 
 
 MediaStream.prototype.clone = function () {
-	debug('clone()');
-	return new MediaStream(this);
+
+	var newStream = MediaStream();
+	this.getTracks().forEach(function (track) {
+		newStream.addTrack(track.clone());
+	});
+
+	return newStream;
 };
 
 // Backwards compatible API.
@@ -1122,6 +1127,10 @@ var
 // Save original MediaStreamTrack
 var originalMediaStreamTrack = window.MediaStreamTrack || function dummyMediaStreamTrack() {};
 
+function newMediaStreamTrackId() {
+   return window.crypto.getRandomValues(new Uint32Array(4)).join('-');
+}
+
 function MediaStreamTrack(dataFromEvent) {
 	if (!dataFromEvent) {
 		throw new Error('Illegal constructor');
@@ -1180,9 +1189,18 @@ MediaStreamTrack.prototype.applyConstraints = function () {
 };
 
 MediaStreamTrack.prototype.clone = function () {
-	//throw new Error('Not implemented.');
-	// SHAM
-	return this;
+
+	var newTrackId = newMediaStreamTrackId();
+
+	exec(null, null, 'iosrtcPlugin', 'MediaStreamTrack_clone', [this.id, newTrackId]);
+
+	return new MediaStreamTrack({
+ 		id: newTrackId,
+ 		kind: this.kind,
+ 		label: this.label,
+ 		readyState: this.readyState,
+ 		enabled: this.enabled
+ 	});
 };
 
 MediaStreamTrack.prototype.getCapabilities = function () {
@@ -1902,6 +1920,8 @@ function RTCPeerConnection(pcConfig, pcConstraints) {
 	this.pcId = randomNumber();
 	this.localStreams = {};
 	this.remoteStreams = {};
+	this.localTracks = {};
+	this.remoteTracks = {};
 
 	function onResultOK(data) {
 		onEvent.call(self, data);
@@ -2234,34 +2254,38 @@ RTCPeerConnection.prototype.getRemoteStreams = function () {
 };
 
 RTCPeerConnection.prototype.getReceivers = function () {
-	var tracks = [],
+	var self = this,
+		tracks = [],
 		id;
 
-	for (id in this.remoteStreams) {
-		if (this.remoteStreams.hasOwnProperty(id)) {
-			tracks = tracks.concat(this.remoteStreams[id].getTracks());
+	for (id in this.remoteTracks) {
+		if (this.remoteTracks.hasOwnProperty(id)) {
+			tracks.push(this.remoteTracks[id]);
 		}
 	}
 
 	return tracks.map(function (track) {
 		return new RTCRtpReceiver({
+			pc: self,
 			track: track
 		});
 	});
 };
 
 RTCPeerConnection.prototype.getSenders = function () {
-	var tracks = [],
+	var self = this,
+		tracks = [],
 		id;
 
-	for (id in this.localStreams) {
-		if (this.localStreams.hasOwnProperty(id)) {
-			tracks = tracks.concat(this.localStreams[id].getTracks());
+	for (id in this.localTracks) {
+		if (this.localTracks.hasOwnProperty(id)) {
+			tracks.push(this.localTracks[id]);
 		}
 	}
 
 	return tracks.map(function (track) {
 		return new RTCRtpSender({
+			pc: self,
 			track: track
 		});
 	});
@@ -2326,6 +2350,8 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 	if (!stream) {
 		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [this.pcId, track.id, null]);
 	}
+
+	this.localTracks[track.id] = track;
 	
 	return new RTCRtpSender({
 		track: track
@@ -2356,9 +2382,21 @@ RTCPeerConnection.prototype.removeTrack = function (sender) {
 			if (hasTrack) {
 				stream = this.localStreams[id];
 				stream.removeTrack(track);
-
 				exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_removeTrack', [this.pcId, track.id, stream.id]);
+				delete this.localTracks[track.id];
 				break;
+			}
+		}
+	}
+
+	// No Stream matched remove track without stream
+	if (!stream) {
+		for (id in this.localTracks) {
+			if (this.localTracks.hasOwnProperty(id)) {
+				if (track.id === id) {
+					exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_removeTrack', [this.pcId, track.id, null]);	
+					delete this.localTracks[track.id];
+				}
 			}
 		}
 	}
@@ -2372,6 +2410,8 @@ RTCPeerConnection.prototype.getStreamById = function (id) {
 
 
 RTCPeerConnection.prototype.addStream = function (stream) {
+	var self = this;
+
 	if (isClosed.call(this)) {
 		throw new Errors.InvalidStateError('peerconnection is closed');
 	}
@@ -2389,11 +2429,20 @@ RTCPeerConnection.prototype.addStream = function (stream) {
 
 	this.localStreams[stream.id] = stream;
 
+	stream.getTracks().forEach(function (track) {
+		self.localTracks[track.id] = track;
+		track.addEventListener('ended', function () {
+			delete self.localTracks[track.id];
+		});
+	});
+
 	exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addStream', [this.pcId, stream.id]);
 };
 
 
 RTCPeerConnection.prototype.removeStream = function (stream) {
+	var self = this;
+
 	if (isClosed.call(this)) {
 		throw new Errors.InvalidStateError('peerconnection is closed');
 	}
@@ -2410,6 +2459,10 @@ RTCPeerConnection.prototype.removeStream = function (stream) {
 	}
 
 	delete this.localStreams[stream.id];
+
+	stream.getTracks().forEach(function (track) {
+		delete self.localTracks[track.id];
+	});
 
 	exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_removeStream', [this.pcId, stream.id]);
 };
@@ -2585,8 +2638,8 @@ function onEvent(data) {
 			break;
 
 		case 'track':
-			event.track = new MediaStreamTrack(data.track);
-			event.receiver = new RTCRtpReceiver({ track: event.track });
+			var track = event.track = new MediaStreamTrack(data.track);
+			event.receiver = new RTCRtpReceiver({ track: track });
 			event.transceiver = new RTCRtpTransceiver({ receiver: event.receiver });
 			event.streams = [];
 
@@ -2595,6 +2648,13 @@ function onEvent(data) {
 				var stream = this.remoteStreams[data.streamId] || MediaStream.create(data.stream);
 				event.streams.push(stream);
 			}
+
+			// Store remote track
+			this.remoteTracks[track.id] = track;
+			track.addEventListener('ended', function () {
+				delete self.remoteTracks[track.id];
+			});
+
 			break;
 
 		case 'addstream':
@@ -2637,6 +2697,7 @@ module.exports = RTCRtpReceiver;
 function RTCRtpReceiver(data) {
 	data = data || {};
 
+	this._pc = data.pc;
 	this.track = data.track;
 }
 
@@ -2649,17 +2710,43 @@ module.exports = RTCRtpSender;
 function RTCRtpSender(data) {
 	data = data || {};
 
+	this._pc = data.pc;
 	this.track = data.track;
-    this.params = data.params || {};
+	this.params = data.params || {};
 }
 
 RTCRtpSender.prototype.getParameters = function () {
-    return this.params;
+	return this.params;
 };
 
 RTCRtpSender.prototype.setParameters = function (params) {
-    Object.assign(this.params, params);
-    return Promise.resolve(this.params);
+	Object.assign(this.params, params);
+	return Promise.resolve(this.params);
+};
+
+RTCRtpSender.prototype.replaceTrack = function (withTrack) {
+	var self = this,
+		pc = self._pc;
+
+	return new Promise(function (resolve, reject) {
+		pc.removeTrack(self);
+		pc.addTrack(withTrack);
+		self.track = withTrack;
+
+		// https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/negotiationneeded_event
+		var event = new Event('negotiationneeded');
+		pc.dispatchEvent('negotiationneeded', event);
+
+		pc.addEventListener("signalingstatechange", function listener() {
+			if (pc.signalingState === "closed") {
+				pc.removeEventListener("signalingstatechange", listener);
+				reject();
+			} else if (pc.signalingState === "stable") {
+				pc.removeEventListener("signalingstatechange", listener);
+				resolve();
+			}
+		});
+	});
 };
 },{}],16:[function(_dereq_,module,exports){
 /**
@@ -3463,6 +3550,25 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 	window.MediaStream                      = MediaStream;
 	window.webkitMediaStream                = MediaStream;
 	window.MediaStreamTrack                 = MediaStreamTrack;
+
+	// Apply CanvasRenderingContext2D.drawImage monkey patch
+	var drawImage = CanvasRenderingContext2D.prototype.drawImage;
+	CanvasRenderingContext2D.prototype.drawImage = function (arg) {
+		var args = Array.prototype.slice.call(arguments);
+		var context = this;
+		if (arg instanceof HTMLVideoElement && arg.render) {
+			arg.render.save(function (data) {
+			    var img = new window.Image();
+			    img.addEventListener("load", function () {
+			    	args.splice(0, 1, img.src);
+			        drawImage.apply(context, args);
+			    });
+			    img.setAttribute("src", "data:image/jpg;base64," + data);
+		  	});
+		} else {
+			return drawImage.apply(context, args);
+		}
+	};
 }
 
 function dump() {
