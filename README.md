@@ -172,7 +172,7 @@ function TestRTCPeerConnection(localStream) {
     localStream.getTracks().forEach(function (track) {
       console.log('pc1.addTrack', track, localPeerStream);
       pc1.addTrack(track, localPeerStream);
-	});
+    });
         
   // Note: Deprecated but supported    
   } else {
