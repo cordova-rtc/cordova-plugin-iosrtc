@@ -45,6 +45,7 @@ In order to make this Cordova plugin run into a iOS application some requirement
 * openvidu => 2.11.0
 * Ionic => v8 
 * Jitsi ~ 3229 
+* Apizee => 2.6.11
 
 ## Installation
 
@@ -149,11 +150,14 @@ var peerConnectionConfig = {
     bundlePolicy: 'max-compat',
     rtcpMuxPolicy: 'negotiate',
     iceServers: [
-        {
-            url: "stun:stun.stunprotocol.org"
-        }
+      {
+         urls: ["stun:stun.stunprotocol.org"]
+      }
     ]
 };
+
+// This plugin handle 'addstream' and 'track' event for MediaStream creation.
+var useTrackEvent = Object.getOwnPropertyDescriptors(RTCPeerConnection.prototype).ontrack;
 
 var peerVideoEl, peerStream;
 function TestRTCPeerConnection(localStream) {
@@ -161,15 +165,22 @@ function TestRTCPeerConnection(localStream) {
   pc1 = new RTCPeerConnection(peerConnectionConfig);
   pc2 = new RTCPeerConnection(peerConnectionConfig);
   
-  // Note: Deprecated but supported
-  //pc1.addStream(localStream);
+  if (useTrackEvent) {
+     
+    // Add local stream tracks to RTCPeerConnection
+    var localPeerStream = new MediaStream();
+    localStream.getTracks().forEach(function (track) {
+      console.log('pc1.addTrack', track, localPeerStream);
+      pc1.addTrack(track, localPeerStream);
+    });
+        
+  // Note: Deprecated but supported    
+  } else {
+     pc1.addStream(localStream);
 
-  // Add local stream tracks to RTCPeerConnection
-  var localPeerStream = new MediaStream();
-  localStream.getTracks().forEach(function (track) {
-    console.log('pc1.addTrack', track, localPeerStream);
-    pc1.addTrack(track, localPeerStream);
-  });
+     // Note: Deprecated Test removeStream
+     // pc1.removeStream(pc1.getLocalStreams()[0]);<
+  }
 
   // Basic RTCPeerConnection Local WebRTC Signaling follow.
   function onAddIceCandidate(pc, can) {
@@ -203,20 +214,18 @@ function TestRTCPeerConnection(localStream) {
     peerVideoEl.srcObject = peerStream;
   }
 
-  // This plugin handle 'addstream' and 'track' event for MediaStream creation.
-  var useTrackEvent = Object.getOwnPropertyDescriptors(RTCPeerConnection.prototype).ontrack;
-
-  // Using 'track' event with existing MediaStream
   if (useTrackEvent) {
-    setPeerVideoStream(new MediaStream());
-    pc2.addEventListener('track', function (e) {
+    var newPeerStream;
+    pc2.addEventListener('track', function(e) {
       console.log('pc2.track', e);
-      peerStream.addTrack(e.track);
+      newPeerStream = e.streams[0] || newPeerStream || new MediaStream();
+      setPeerVideoStream(newPeerStream);
+      newPeerStream.addTrack(e.track);   
     });
-
-  // Using addstream to get  MediaStream
+	
+  // Note: Deprecated but supported    
   } else {
-    pc2.addEventListener('addstream', function (e) {
+    pc2.addEventListener('addstream', function(e) {
       console.log('pc2.addStream', e);
       setPeerVideoStream(e.stream);
     });

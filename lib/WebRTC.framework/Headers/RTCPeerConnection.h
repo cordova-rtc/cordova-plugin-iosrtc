@@ -147,6 +147,7 @@ RTC_OBJC_EXPORT
         didAddReceiver:(RTC_OBJC_TYPE(RTCRtpReceiver) *)rtpReceiver
                streams:(NSArray<RTC_OBJC_TYPE(RTCMediaStream) *> *)mediaStreams;
 
+<<<<<<< HEAD
 /** Called when the receiver and its track are removed. */
 - (void)peerConnection:(RTC_OBJC_TYPE(RTCPeerConnection) *)peerConnection
      didRemoveReceiver:(RTC_OBJC_TYPE(RTCRtpReceiver) *)rtpReceiver;
@@ -158,6 +159,8 @@ RTC_OBJC_EXPORT
              lastReceivedMs:(int)lastDataReceivedMs
                changeReason:(NSString *)reason;
 
+=======
+>>>>>>> bde83df2942d7da2182e6b53191cb18f4e4db1dd
 @end
 
 RTC_OBJC_EXPORT

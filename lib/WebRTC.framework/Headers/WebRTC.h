@@ -1,4 +1,5 @@
 /*
+<<<<<<< HEAD
  *  Copyright 2020 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
@@ -7,6 +8,16 @@
  *  in the file PATENTS.  All contributing project authors may
  *  be found in the AUTHORS file in the root of the source tree.
  */
+=======
+     *  Copyright 2020 The WebRTC project authors. All Rights Reserved.
+     *
+     *  Use of this source code is governed by a BSD-style license
+     *  that can be found in the LICENSE file in the root of the source
+     *  tree. An additional intellectual property rights grant can be found
+     *  in the file PATENTS.  All contributing project authors may
+     *  be found in the AUTHORS file in the root of the source tree.
+     */
+>>>>>>> bde83df2942d7da2182e6b53191cb18f4e4db1dd
 
 #import <WebRTC/RTCCodecSpecificInfo.h>
 #import <WebRTC/RTCEncodedImage.h>
