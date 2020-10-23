@@ -42,16 +42,6 @@ public class PluginWebSocketServer : NSObject, PSWebSocketServerDelegate {
 		}
 	}
 	
-	@objc public func getUUID() -> String {
-		var uuid: String = UUID().uuidString
-		//while uuid == nil || guuids[uuid] != nil {
-			// prevent collision
-		//	uuid = UUID().uuidString
-		//}
-		//guuids[uuid] = true
-		return uuid
-	}
-	
 	@objc public func getInterfaces() {
 		var obj = [String: [String: [String]]]()
 		var intfobj: [String: [String]]
@@ -131,7 +121,15 @@ public class PluginWebSocketServer : NSObject, PSWebSocketServerDelegate {
 			server.start()
 		}
 	}
-	
+
+	public func isStarted() -> Bool {
+		if (didStopOrDidFail || self.wsserver == nil) {
+			return false
+		} else {
+			return true
+		}
+	}
+
 	@objc public func stop() {
 		NSLog("WebSocketServer: stop")
 		
@@ -157,7 +155,7 @@ public class PluginWebSocketServer : NSObject, PSWebSocketServerDelegate {
 			if let client = clients[uuid!] {
 				client.sock.send(msg)
 			} else {
-				NSLog("WebSocketServer: Send: unknown socket.")
+				//NSLog("WebSocketServer: Send: unknown socket.")
 			}
 		} else {
 			NSLog("WebSocketServer: Send: UUID or msg not specified.")
@@ -175,7 +173,7 @@ public class PluginWebSocketServer : NSObject, PSWebSocketServerDelegate {
 					client.sock.close(withCode: code, reason: reason)
 				}
 			} else {
-				NSLog("WebSocketServer: Close: unknown socket.")
+				//NSLog("WebSocketServer: Close: unknown socket.")
 			}
 		} else {
 			NSLog("WebSocketServer: Close: UUID not specified.")
@@ -231,14 +229,17 @@ public class PluginWebSocketServer : NSObject, PSWebSocketServerDelegate {
 		if let o = origins {
 			let origin = request.value(forHTTPHeaderField: "Origin")
 			if o.index(of: origin!) == nil {
-				NSLog("WebSocketServer: Origin denied:%@", origin!)
-				return false
+				NSLog("WebSocketServer: Invalid Origin:%@", origin!)
+				//return false
 			}
 		}
 		
 		if let _ = protocols {
 			if let acceptedProtocol = getAcceptedProtocol(request) {
-				let headerFields = [ "Sec-WebSocket-Protocol" : acceptedProtocol ]
+				let headerFields = [
+					"Sec-WebSocket-Protocol" : acceptedProtocol,
+					"Sec-WebSocket-Extensions" : "permessage-deflate"
+				]
 				let r = HTTPURLResponse.init(
 					url: request.url!, statusCode: 200, httpVersion: "1.1", headerFields: headerFields)!
 				response.pointee = r
@@ -291,7 +292,7 @@ public class PluginWebSocketServer : NSObject, PSWebSocketServerDelegate {
 		if uuid == nil || clients[uuid] != nil {
 			NSLog("uuid is null or exists, uuid=%@", uuid)
 			// prevent collision
-			uuid = getUUID()
+			uuid = UUID().uuidString
 		}
 		
 		let client = WSClient(uuid:uuid, sock: webSocket)
