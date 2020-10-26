@@ -1,3 +1,8 @@
+#### Version 6.0.15
+* fix: refactor pluginMediaTracks lifecyle in PluginRTCPeerConnection
+* feat: add canvas drawImage SHIM for VideoElement
+* feat: add (MediaStream|MediaStreamTrack).prototype.clone
+
 #### Version 6.0.14
 * Move dist/cordova-plugin-iosrtc.js to www/cordova-plugin-iosrtc.js to match other cordova plugins practice.
 * fix: Use dispatchAsyncOnType:RTCDispatcherTypeMain instead of dispatchAsyncOnType:RTCDispatcherTypeCaptureSession to fix ios 14.0.1 crash
