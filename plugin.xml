@@ -18,6 +18,23 @@
 		<engine name="cordova-ios" version=">=4.5.1" />
 	</engines>
 
+	<platform name="android">
+
+		<js-module src="www/cordova-plugin-androidrtc.js" name="Plugin">
+			<clobbers target="cordova.plugins.androidrtc" />
+		</js-module>
+
+		<config-file parent="/*" target="res/xml/config.xml">
+            <feature name="EnumerateDevicesPlugin">
+                <param name="android-package" value="cordova.plugin.android.enumeratedevices.EnumerateDevicesPlugin" />
+                <param name="onload" value="true" />
+            </feature>
+        </config-file>
+        <config-file parent="/*" target="AndroidManifest.xml"></config-file>
+        <source-file src="src/android/EnumerateDevicesPlugin.java" target-dir="src/cordova-plugin-android-enumeratedevices/EnumerateDevicesPlugin" />
+
+	</platform>
+
 	<platform name="ios">
 
 		<hook type="after_prepare" src="extra/hooks/iosrtc-swift-support.js" />
@@ -54,24 +71,24 @@
 		</js-module>
 
 		<!-- Bridging header for using ObjetiveC libraries in Swift -->
-		<header-file src="src/cordova-plugin-iosrtc-Bridging-Header.h" />
+		<header-file src="src/ios/cordova-plugin-iosrtc-Bridging-Header.h" />
 
 		<!-- Project source files -->
-		<source-file src="src/iosrtcPlugin.swift" />
-		<source-file src="src/PluginRTCTypes.swift" />
-		<source-file src="src/PluginRTCPeerConnection.swift" />
-		<source-file src="src/PluginRTCPeerConnectionConfig.swift" />
-		<source-file src="src/PluginRTCPeerConnectionConstraints.swift" />
-		<source-file src="src/PluginRTCDataChannel.swift" />
-		<source-file src="src/PluginRTCDTMFSender.swift" />
-		<source-file src="src/PluginMediaStream.swift" />
-		<source-file src="src/PluginMediaStreamTrack.swift" />
-		<source-file src="src/PluginGetUserMedia.swift" />
-		<source-file src="src/PluginEnumerateDevices.swift" />
-		<source-file src="src/PluginUtils.swift" />
-		<source-file src="src/PluginMediaStreamRenderer.swift" />
-		<source-file src="src/PluginRTCAudioController.swift" />
-		<source-file src="src/PluginRTCVideoCaptureController.swift" />
+		<source-file src="src/ios/iosrtcPlugin.swift" />
+		<source-file src="src/ios/PluginRTCTypes.swift" />
+		<source-file src="src/ios/PluginRTCPeerConnection.swift" />
+		<source-file src="src/ios/PluginRTCPeerConnectionConfig.swift" />
+		<source-file src="src/ios/PluginRTCPeerConnectionConstraints.swift" />
+		<source-file src="src/ios/PluginRTCDataChannel.swift" />
+		<source-file src="src/ios/PluginRTCDTMFSender.swift" />
+		<source-file src="src/ios/PluginMediaStream.swift" />
+		<source-file src="src/ios/PluginMediaStreamTrack.swift" />
+		<source-file src="src/ios/PluginGetUserMedia.swift" />
+		<source-file src="src/ios/PluginEnumerateDevices.swift" />
+		<source-file src="src/ios/PluginUtils.swift" />
+		<source-file src="src/ios/PluginMediaStreamRenderer.swift" />
+		<source-file src="src/ios/PluginRTCAudioController.swift" />
+		<source-file src="src/ios/PluginRTCVideoCaptureController.swift" />
 
 		<!-- iOS shared dependencies -->
 		<framework src="AVFoundation.framework" />
@@ -92,7 +109,7 @@
 		<framework src="VideoToolbox.framework" />
 
 		<!-- WebRTC library -->
-		<framework src="lib/WebRTC.framework" custom="true" embed="true" />
+		<framework src="lib/ios/WebRTC.framework" custom="true" embed="true" />
 	</platform>
 
 </plugin>
