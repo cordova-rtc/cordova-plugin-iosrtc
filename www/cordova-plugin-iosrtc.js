@@ -858,9 +858,16 @@ MediaStreamRenderer.prototype.refresh = function () {
 		paddingBottom,
 		paddingLeft,
 		paddingRight,
+		backgroundColorRgba,
 		self = this;
 
 	computedStyle = window.getComputedStyle(this.element);
+
+	// get background color
+	backgroundColorRgba = computedStyle.backgroundColor.replace(/rgba?\((.*)\)/, '$1').split(',').map(function(x){ return x.trim(); });
+	backgroundColorRgba[3] = '0';
+	this.element.style.backgroundColor = 'rgba(' + backgroundColorRgba.join(',') + ')';
+	backgroundColorRgba.length = 3;
 
 	// get padding values
 	paddingTop = parseInt(computedStyle.paddingTop) | 0;
@@ -1025,6 +1032,7 @@ MediaStreamRenderer.prototype.refresh = function () {
 			videoViewWidth: Math.round(videoViewWidth),
 			videoViewHeight: Math.round(videoViewHeight),
 			visible: visible,
+			backgroundColor: backgroundColorRgba.join(','),
 			opacity: opacity,
 			zIndex: zIndex,
 			mirrored: mirrored,

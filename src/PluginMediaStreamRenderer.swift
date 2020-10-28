@@ -31,7 +31,7 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		
 		// The video element view.
 		self.elementView = UIView()
-		
+
 		// The effective video view in which the the video stream is shown.
 		// It's placed over the elementView.
 		self.videoView = RTCEAGLVideoView()
@@ -47,7 +47,7 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		self.webView.addSubview(self.elementView)
 		self.webView.isOpaque = false
 		self.webView.backgroundColor = UIColor.clear
-		
+
 		// https://stackoverflow.com/questions/46317061/use-safe-area-layout-programmatically
 		// https://developer.apple.com/documentation/uikit/uiview/2891102-safearealayoutguide
 		// https://developer.apple.com/documentation/uikit/
@@ -173,6 +173,7 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		let mirrored = data.object(forKey: "mirrored") as? Bool ?? false
 		let clip = data.object(forKey: "clip") as? Bool ?? true
 		let borderRadius = data.object(forKey: "borderRadius") as? Double ?? 0
+		let backgroundColor = data.object(forKey: "backgroundColor") as? String ?? "0,0,0"
 
 		NSLog("PluginMediaStreamRenderer#refresh() [elementLeft:%@, elementTop:%@, elementWidth:%@, elementHeight:%@, videoViewWidth:%@, videoViewHeight:%@, visible:%@, opacity:%@, zIndex:%@, mirrored:%@, clip:%@, borderRadius:%@]",
 			String(elementLeft), String(elementTop), String(elementWidth), String(elementHeight),
@@ -233,6 +234,9 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		}
 
 		self.elementView.layer.cornerRadius = CGFloat(borderRadius)
+		let rgb = backgroundColor.components(separatedBy: ",").map{ CGFloat(($0 as NSString).floatValue) / 256.0 }
+		let color = UIColor(red: rgb[0], green: rgb[1], blue: rgb[2], alpha: 1)
+		self.elementView.backgroundColor = color
 	}
 	
 	func save() -> String {
