@@ -419,15 +419,7 @@ function TestMediaRenderCatpure(videoEl) {
   canvasEl.style.left = 0;
   canvasEl.style.bottom = 0;
   appContainer.appendChild(canvasEl);
-  var image = new Image();
-  image.addEventListener('load', function() {
-    canvasEl.width = image.width;
-    canvasEl.height = image.height;
-    ctx.drawImage(image, 0, 0);
-  });
-  localVideoEl.render.save(function (data) {
-    image.src = "data:image/jpg;base64," + data;
-  });
+  ctx.drawImage(localVideoEl, 0, 0);
 }
 
 var testMediaRenderCatpureAnimateFrame;
@@ -435,7 +427,6 @@ function TestMediaRenderCatpureAnimate() {
   TestMediaRenderCatpure(peerVideoEl);
   testMediaRenderCatpureAnimateFrame = requestAnimationFrame(TestMediaRenderCatpureAnimate);
 }
-
 
 // Disabled to avoid confusion with remoteStream
 var cloneStream;
