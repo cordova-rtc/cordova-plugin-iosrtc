@@ -1,5 +1,6 @@
 import Foundation
 import AVFoundation
+import UIKit.UIDevice
 
 class PluginGetUserMedia {
 
@@ -8,10 +9,12 @@ class PluginGetUserMedia {
 	init(rtcPeerConnectionFactory: RTCPeerConnectionFactory) {
 		NSLog("PluginGetUserMedia#init()")
 		self.rtcPeerConnectionFactory = rtcPeerConnectionFactory
+		UIDevice.current.beginGeneratingDeviceOrientationNotifications()
 	}
 
 	deinit {
 		NSLog("PluginGetUserMedia#deinit()")
+		UIDevice.current.endGeneratingDeviceOrientationNotifications()
 	}
 
 	func call(
