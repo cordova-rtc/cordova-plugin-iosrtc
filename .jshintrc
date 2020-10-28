@@ -16,6 +16,7 @@
 	"maxdepth": 4,
 	"maxstatements": false,
 	"maxlen": 210,
+	"laxbreak": true,
 
 	"browser": true,
 	"browserify": true,
