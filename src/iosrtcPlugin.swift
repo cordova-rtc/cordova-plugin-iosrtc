@@ -965,13 +965,16 @@ class iosrtcPlugin : CDVPlugin {
 			return;
 		}
 
-		let based64 = pluginMediaStreamRenderer!.save()
-		self.emit(command.callbackId,
-			  result: CDVPluginResult(
-				status: CDVCommandStatus_OK,
-				messageAs: based64
+		// Note: May lead to crash of the app when in executed in background
+		self.queue.async {
+			let based64 = pluginMediaStreamRenderer!.save()
+			self.emit(command.callbackId,
+				  result: CDVPluginResult(
+					status: CDVCommandStatus_OK,
+					messageAs: based64
+				)
 			)
-		)
+		}
 	}
 
 	@objc(MediaStreamRenderer_close:) func MediaStreamRenderer_close(_ command: CDVInvokedUrlCommand) {
