@@ -1,3 +1,8 @@
+#### Version 6.0.16
+* fix: correct canvas drawImage SHIM for VideoElement
+* fix: ensure proper camera orientation for first launch 
+* feat: use background-color from video element css
+
 #### Version 6.0.15
 * fix: refactor pluginMediaTracks lifecyle in PluginRTCPeerConnection
 * feat: add canvas drawImage SHIM for VideoElement
