@@ -221,7 +221,7 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 			arg.render.save(function (data) {
 			    var img = new window.Image();
 			    img.addEventListener("load", function () {
-			    	args.splice(0, 1, img.src);
+			    	args.splice(0, 1, img);
 			        drawImage.apply(context, args);
 			    });
 			    img.setAttribute("src", "data:image/jpg;base64," + data);
