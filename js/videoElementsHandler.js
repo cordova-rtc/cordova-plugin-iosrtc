@@ -6,32 +6,25 @@ module.exports = videoElementsHandler;
 module.exports.observeVideo = observeVideo;
 module.exports.refreshVideos = refreshVideos;
 
-
 /**
  * Dependencies.
  */
-var
-	debug = require('debug')('iosrtc:videoElementsHandler'),
+var debug = require('debug')('iosrtc:videoElementsHandler'),
 	MediaStreamRenderer = require('./MediaStreamRenderer'),
-
-
-/**
- * Local variables.
- */
+	/**
+	 * Local variables.
+	 */
 
 	// RegExp for Blob URI.
 	BLOB_INTERNAL_URI_REGEX = new RegExp(/^blob:/),
-
 	// Dictionary of MediaStreamRenderers (provided via module argument).
 	// - key: MediaStreamRenderer id.
 	// - value: MediaStreamRenderer.
 	mediaStreamRenderers,
-
 	// Dictionary of MediaStreams (provided via module argument).
 	// - key: MediaStream blobId.
 	// - value: MediaStream.
 	mediaStreams,
-
 	// Video element mutation observer.
 	videoObserver = new MutationObserver(function (mutations) {
 		var i, numMutations, mutation, video;
@@ -52,12 +45,9 @@ var
 			handleVideo(video);
 		}
 	}),
-
 	// DOM mutation observer.
 	domObserver = new MutationObserver(function (mutations) {
-		var
-			i, numMutations, mutation,
-			j, numNodes, node;
+		var i, numMutations, mutation, j, numNodes, node;
 
 		for (i = 0, numMutations = mutations.length; i < numMutations; i++) {
 			mutation = mutations[i];
@@ -137,9 +127,10 @@ function refreshVideos() {
 }
 
 function videoElementsHandler(_mediaStreams, _mediaStreamRenderers) {
-	var
-		existingVideos = document.querySelectorAll('video'),
-		i, len, video;
+	var existingVideos = document.querySelectorAll('video'),
+		i,
+		len,
+		video;
 
 	mediaStreams = _mediaStreams;
 	mediaStreamRenderers = _mediaStreamRenderers;
@@ -174,7 +165,6 @@ function videoElementsHandler(_mediaStreams, _mediaStreamRenderers) {
 		// attributeFilter:
 	});
 }
-
 
 function observeVideo(video) {
 	debug('observeVideo()');
@@ -214,7 +204,6 @@ function observeVideo(video) {
 	// video.srcObject = null will trigger onemptied events.
 
 	video.addEventListener('loadstart', function () {
-
 		var hasStream = video.srcObject || video.src;
 
 		if (hasStream && !video._iosrtcMediaStreamRendererId) {
@@ -242,7 +231,10 @@ function observeVideo(video) {
 
 	// Intercept video 'error' events if it's due to the attached MediaStream.
 	video.addEventListener('error', function (event) {
-		if (video.error.code === window.MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED && BLOB_INTERNAL_URI_REGEX.test(video.src)) {
+		if (
+			video.error.code === window.MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED &&
+			BLOB_INTERNAL_URI_REGEX.test(video.src)
+		) {
 			debug('stopping "error" event propagation for video element');
 
 			event.stopImmediatePropagation();
@@ -250,20 +242,17 @@ function observeVideo(video) {
 	});
 }
 
-
 /**
  * Private API.
  */
 
 function handleVideo(video) {
-	var
-		stream;
+	var stream;
 
 	// The app has set video.srcObject.
 	if (video.srcObject) {
 		stream = video.srcObject;
 		if (stream && typeof stream.getBlobId === 'function') {
-
 			if (!stream.getBlobId()) {
 				// If this video element was previously handling a MediaStreamRenderer, release it.
 				releaseMediaStreamRenderer(video);
@@ -274,7 +263,6 @@ function handleVideo(video) {
 			provideMediaStreamRenderer(video, stream.getBlobId());
 		}
 	} else if (video.src) {
-
 		var xhr = new XMLHttpRequest();
 		xhr.open('GET', video.src, true);
 		xhr.responseType = 'blob';
@@ -315,10 +303,8 @@ function handleVideo(video) {
 	}
 }
 
-
 function provideMediaStreamRenderer(video, mediaStreamBlobId) {
-	var
-		mediaStream = mediaStreams[mediaStreamBlobId],
+	var mediaStream = mediaStreams[mediaStreamBlobId],
 		mediaStreamRenderer = mediaStreamRenderers[video._iosrtcMediaStreamRendererId];
 
 	if (!mediaStream) {
@@ -364,7 +350,11 @@ function provideMediaStreamRenderer(video, mediaStreamBlobId) {
 		readyState: {
 			configurable: true,
 			get: function () {
-				if (mediaStreamRenderer && mediaStreamRenderer.stream && mediaStreamRenderer.stream.connected) {
+				if (
+					mediaStreamRenderer &&
+					mediaStreamRenderer.stream &&
+					mediaStreamRenderer.stream.connected
+				) {
 					return video.HAVE_ENOUGH_DATA;
 				} else {
 					return video.HAVE_NOTHING;

@@ -108,7 +108,8 @@ script:
   - export BRANCH=$(if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then echo $TRAVIS_BRANCH; else echo $TRAVIS_PULL_REQUEST_BRANCH; fi)
   - export REPO_SLUG=$(if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then echo $TRAVIS_REPO_SLUG; else echo $TRAVIS_PULL_REQUEST_SLUG; fi)
   # Lint and Build plugin
-  - "gulp"
+  - "npm run lint"
+  - "gulp browserify"
   # Test Plugin platform build with ionic
   - "ionic start myApp blank; cd myApp;"
   - "ionic cordova platform add $CORDOVA_PLATFORM@latest --verbose"

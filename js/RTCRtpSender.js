@@ -33,12 +33,12 @@ RTCRtpSender.prototype.replaceTrack = function (withTrack) {
 		var event = new Event('negotiationneeded');
 		pc.dispatchEvent('negotiationneeded', event);
 
-		pc.addEventListener("signalingstatechange", function listener() {
-			if (pc.signalingState === "closed") {
-				pc.removeEventListener("signalingstatechange", listener);
+		pc.addEventListener('signalingstatechange', function listener() {
+			if (pc.signalingState === 'closed') {
+				pc.removeEventListener('signalingstatechange', listener);
 				reject();
-			} else if (pc.signalingState === "stable") {
-				pc.removeEventListener("signalingstatechange", listener);
+			} else if (pc.signalingState === 'stable') {
+				pc.removeEventListener('signalingstatechange', listener);
 				resolve();
 			}
 		});
