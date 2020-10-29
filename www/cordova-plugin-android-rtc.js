@@ -24,6 +24,7 @@ function getEnumerateDevices(arg0, success, error) {
         deviceChangesListenerIsAdded = true;
     }
 
+    var isPromise, callback;
     if (typeof arguments[0] !== 'function') {
         isPromise = true;
     } else {
