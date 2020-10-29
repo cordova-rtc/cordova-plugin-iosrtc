@@ -1,5 +1,5 @@
 {
-	"bitwise": false,
+  "bitwise": false,
 	"curly": true,
 	"eqeqeq": true,
 	"forin": true,
@@ -26,8 +26,9 @@
 	"node": true,
 	"shelljs": false,
 	"worker": false,
+  "esversion": 6,
 
-	"globals": {
+  "globals": {
 		"Promise": false
 	}
 }

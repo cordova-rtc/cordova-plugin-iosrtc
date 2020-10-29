@@ -3,8 +3,6 @@
  */
 module.exports = RTCIceCandidate;
 
-
-
 /**
 * RFC-5245: http://tools.ietf.org/html/rfc5245#section-15.1
 *
@@ -62,102 +60,102 @@ module.exports = RTCIceCandidate;
 
 var candidateToJson = (function () {
 	var candidateFieldName = {
-	  FOUNDATION: 'foundation',
-	  COMPONENT_ID: 'componentId',
-	  TRANSPORT: 'transport',
-	  PRIORITY: 'priority',
-	  CONNECTION_ADDRESS: 'connectionAddress',
-	  PORT: 'port',
-	  CANDIDATE_TYPE: 'candidateType',
-	  REMOTE_CANDIDATE_ADDRESS: 'remoteConnectionAddress',
-	  REMOTE_CANDIDATE_PORT: 'remotePort'
+		FOUNDATION: 'foundation',
+		COMPONENT_ID: 'componentId',
+		TRANSPORT: 'transport',
+		PRIORITY: 'priority',
+		CONNECTION_ADDRESS: 'connectionAddress',
+		PORT: 'port',
+		CANDIDATE_TYPE: 'candidateType',
+		REMOTE_CANDIDATE_ADDRESS: 'remoteConnectionAddress',
+		REMOTE_CANDIDATE_PORT: 'remotePort'
 	};
 
 	var candidateType = {
-	  HOST: 'host',
-	  SRFLX: 'srflx',
-	  PRFLX: 'prflx',
-	  RELAY: 'relay'
+		HOST: 'host',
+		SRFLX: 'srflx',
+		PRFLX: 'prflx',
+		RELAY: 'relay'
 	};
 
 	var transport = {
-	  TCP: 'TCP',
-	  UDP: 'UDP'
+		TCP: 'TCP',
+		UDP: 'UDP'
 	};
 
 	var IPV4SEG = '(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])';
-	var IPV4ADDR = '(?:' + IPV4SEG + '\\.){3}' + IPV4SEG + '';
+	var IPV4ADDR = `(?:${IPV4SEG}\\.){3}${IPV4SEG}`;
 	var IPV6SEG = '[0-9a-fA-F]{1,4}';
 	var IPV6ADDR =
-	    '(?:' + IPV6SEG + ':){7,7}' + IPV6SEG + '|' +				// 1:2:3:4:5:6:7:8
-	    '(?:' + IPV6SEG + ':){1,7}:|' +								// 1::                              1:2:3:4:5:6:7::
-	    '(?:' + IPV6SEG + ':){1,6}:' + IPV6SEG + '|' +				// 1::8             1:2:3:4:5:6::8  1:2:3:4:5:6::8
-	    '(?:' + IPV6SEG + ':){1,5}(?::' + IPV6SEG + '){1,2}|' +		// 1::7:8           1:2:3:4:5::7:8  1:2:3:4:5::8
-	    '(?:' + IPV6SEG + ':){1,4}(?::' + IPV6SEG + '){1,3}|' +		// 1::6:7:8         1:2:3:4::6:7:8  1:2:3:4::8
-	    '(?:' + IPV6SEG + ':){1,3}(?::' + IPV6SEG + '){1,4}|' +		// 1::5:6:7:8       1:2:3::5:6:7:8  1:2:3::8
-	    '(?:' + IPV6SEG + ':){1,2}(?::' + IPV6SEG + '){1,5}|' +		// 1::4:5:6:7:8     1:2::4:5:6:7:8  1:2::8
-	    '' + IPV6SEG + ':(?:(?::' + IPV6SEG + '){1,6})|' +			// 1::3:4:5:6:7:8   1::3:4:5:6:7:8  1::8
-	    ':(?:(?::' + IPV6SEG + '){1,7}|:)|' +						// ::2:3:4:5:6:7:8  ::2:3:4:5:6:7:8 ::8       ::
-	    'fe80:(?::' + IPV6SEG + '){0,4}%[0-9a-zA-Z]{1,}|' +			// fe80::7:8%eth0   fe80::7:8%1     (link-local IPv6 addresses with zone index)
-	    '::(?:ffff(?::0{1,4}){0,1}:){0,1}' + IPV4ADDR + '|' +		// ::255.255.255.255   ::ffff:255.255.255.255  ::ffff:0:255.255.255.255 (IPv4-mapped IPv6 addresses and IPv4-translated addresses)
-	    '(?:' + IPV6SEG + ':){1,4}:' + IPV4ADDR + '';				// 2001:db8:3:4::192.0.2.33  64:ff9b::192.0.2.33 (IPv4-Embedded IPv6 Address)
+		`(?:${IPV6SEG}:){7,7}${IPV6SEG}|` + // 1:2:3:4:5:6:7:8
+		`(?:${IPV6SEG}:){1,7}:|` + // 1::                              1:2:3:4:5:6:7::
+		`(?:${IPV6SEG}:){1,6}:${IPV6SEG}|` + // 1::8             1:2:3:4:5:6::8  1:2:3:4:5:6::8
+		`(?:${IPV6SEG}:){1,5}(?::${IPV6SEG}){1,2}|` + // 1::7:8           1:2:3:4:5::7:8  1:2:3:4:5::8
+		`(?:${IPV6SEG}:){1,4}(?::${IPV6SEG}){1,3}|` + // 1::6:7:8         1:2:3:4::6:7:8  1:2:3:4::8
+		`(?:${IPV6SEG}:){1,3}(?::${IPV6SEG}){1,4}|` + // 1::5:6:7:8       1:2:3::5:6:7:8  1:2:3::8
+		`(?:${IPV6SEG}:){1,2}(?::${IPV6SEG}){1,5}|` + // 1::4:5:6:7:8     1:2::4:5:6:7:8  1:2::8
+		`${IPV6SEG}:(?:(?::${IPV6SEG}){1,6})|` + // 1::3:4:5:6:7:8   1::3:4:5:6:7:8  1::8
+		`:(?:(?::${IPV6SEG}){1,7}|:)|` + // ::2:3:4:5:6:7:8  ::2:3:4:5:6:7:8 ::8       ::
+		`fe80:(?::${IPV6SEG}){0,4}%[0-9a-zA-Z]{1,}|` + // fe80::7:8%eth0   fe80::7:8%1     (link-local IPv6 addresses with zone index)
+		`::(?:ffff(?::0{1,4}){0,1}:){0,1}${IPV4ADDR}|` + // ::255.255.255.255   ::ffff:255.255.255.255  ::ffff:0:255.255.255.255 (IPv4-mapped IPv6 addresses and IPv4-translated addresses)
+		`(?:${IPV6SEG}:){1,4}:${IPV4ADDR}`; // 2001:db8:3:4::192.0.2.33  64:ff9b::192.0.2.33 (IPv4-Embedded IPv6 Address)
 
-	var TOKEN = '[0-9a-zA-Z\\-\\.!\\%\\*_\\+\\`\\\'\\~]+';
+	var TOKEN = "[0-9a-zA-Z\\-\\.!\\%\\*_\\+\\`\\'\\~]+";
 
 	var CANDIDATE_TYPE = '';
 	Object.keys(candidateType).forEach(function (key) {
-	  CANDIDATE_TYPE += candidateType[key] + '|';
+		CANDIDATE_TYPE += candidateType[key] + '|';
 	});
 	CANDIDATE_TYPE += TOKEN;
 
 	var pattern = {
-	  COMPONENT_ID: '[0-9]{1,5}',
-	  FOUNDATION: '[a-zA-Z0-9\\+\\/\\-]+',
-	  PRIORITY: '[0-9]{1,10}',
-	  TRANSPORT: transport.UPD + '|' + TOKEN,
-	  CONNECTION_ADDRESS: IPV4ADDR + '|' + IPV6ADDR,
-	  PORT: '[0-9]{1,5}',
-	  CANDIDATE_TYPE: CANDIDATE_TYPE
+		COMPONENT_ID: '[0-9]{1,5}',
+		FOUNDATION: '[a-zA-Z0-9\\+\\/\\-]+',
+		PRIORITY: '[0-9]{1,10}',
+		TRANSPORT: transport.UPD + '|' + TOKEN,
+		CONNECTION_ADDRESS: IPV4ADDR + '|' + IPV6ADDR,
+		PORT: '[0-9]{1,5}',
+		CANDIDATE_TYPE: CANDIDATE_TYPE
 	};
 
 	return function candidateToJson(iceCandidate) {
-	    var iceCandidateJson = null;
+		var iceCandidateJson = null;
 
-	    if (iceCandidate && typeof iceCandidate === 'string') {
-	      var ICE_CANDIDATE_PATTERN = new RegExp(
-	        'candidate:(' + pattern.FOUNDATION + ')' +      // 10
-	        '\\s(' + pattern.COMPONENT_ID + ')' +           // 1
-	        '\\s(' + pattern.TRANSPORT + ')' +              // UDP
-	        '\\s(' + pattern.PRIORITY + ')' +               // 1845494271
-	        '\\s(' + pattern.CONNECTION_ADDRESS + ')' +     // 13.93.107.159
-	        '\\s(' + pattern.PORT + ')' +                   // 53705
-	        '\\s' +
-	        'typ' +
-	        '\\s(' + pattern.CANDIDATE_TYPE + ')' +         // typ prflx
-	        '(?:\\s' +
-	        'raddr' +
-	        '\\s(' + pattern.CONNECTION_ADDRESS + ')' +     // raddr 10.1.221.7
-	        '\\s' +
-	        'rport' +
-	        '\\s(' + pattern.PORT + '))?'                    // rport 54805
-	      );
+		if (iceCandidate && typeof iceCandidate === 'string') {
+			var ICE_CANDIDATE_PATTERN = new RegExp(
+				`candidate:(${pattern.FOUNDATION})` + // 10
+					`\\s(${pattern.COMPONENT_ID})` + // 1
+					`\\s(${pattern.TRANSPORT})` + // UDP
+					`\\s(${pattern.PRIORITY})` + // 1845494271
+					`\\s(${pattern.CONNECTION_ADDRESS})` + // 13.93.107.159
+					`\\s(${pattern.PORT})` + // 53705
+					'\\s' +
+					'typ' +
+					`\\s(${pattern.CANDIDATE_TYPE})` + // typ prflx
+					'(?:\\s' +
+					'raddr' +
+					`\\s(${pattern.CONNECTION_ADDRESS})` + // raddr 10.1.221.7
+					'\\s' +
+					'rport' +
+					`\\s(${pattern.PORT}))?` // rport 54805
+			);
 
-	      var iceCandidateFields = iceCandidate.match(ICE_CANDIDATE_PATTERN);
-	      if (iceCandidateFields) {
-	        iceCandidateJson = {};
-	        Object.keys(candidateFieldName).forEach(function (key, i) {
-	          // i+1 because match returns the entire match result
-	          // and the parentheses-captured matched results.
-	          if (iceCandidateFields.length > (i + 1) && iceCandidateFields[i + 1]) {
-	            iceCandidateJson[candidateFieldName[key]] = iceCandidateFields[i + 1];
-	          }
-	        });
-	      }
-	    }
+			var iceCandidateFields = iceCandidate.match(ICE_CANDIDATE_PATTERN);
+			if (iceCandidateFields) {
+				iceCandidateJson = {};
+				Object.keys(candidateFieldName).forEach(function (key, i) {
+					// i+1 because match returns the entire match result
+					// and the parentheses-captured matched results.
+					if (iceCandidateFields.length > i + 1 && iceCandidateFields[i + 1]) {
+						iceCandidateJson[candidateFieldName[key]] = iceCandidateFields[i + 1];
+					}
+				});
+			}
+		}
 
-	    return iceCandidateJson;
+		return iceCandidateJson;
 	};
-}());
+})();
 
 // See https://developer.mozilla.org/en-US/docs/Web/API/RTCIceCandidate/RTCIceCandidate
 function RTCIceCandidate(data) {
