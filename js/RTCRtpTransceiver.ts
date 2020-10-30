@@ -1,13 +1,17 @@
+import { RTCRtpReceiver } from './RTCRtpReceiver';
+import { RTCRtpSender } from './RTCRtpSender';
+
 /**
  * Expose the RTCRtpTransceiver class.
  */
-module.exports = RTCRtpTransceiver;
+export class RTCRtpTransceiver {
+	public receiver?: RTCRtpReceiver;
+	public sender?: RTCRtpSender;
 
-function RTCRtpTransceiver(data) {
-	data = data || {};
-
-	this.receiver = data.receiver;
-	this.sender = data.sender;
+	constructor(data: { receiver?: RTCRtpReceiver; sender?: RTCRtpSender } = {}) {
+		this.receiver = data.receiver;
+		this.sender = data.sender;
+	}
 }
 
 // TODO

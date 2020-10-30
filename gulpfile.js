@@ -3,6 +3,7 @@
  */
 var gulp = require('gulp'),
 	browserify = require('browserify'),
+	tsify = require('tsify'),
 	vinyl_source_stream = require('vinyl-source-stream'),
 	vinyl_buffer = require('vinyl-buffer'),
 	jshint = require('gulp-jshint'),
@@ -38,6 +39,7 @@ gulp.task('browserify', function () {
 		standalone: 'iosrtc'
 	})
 		.exclude('cordova/exec') // Exclude require('cordova/exec').
+		.plugin(tsify)
 		.bundle()
 		.pipe(vinyl_source_stream(PKG.name + '.js'))
 		.pipe(vinyl_buffer())

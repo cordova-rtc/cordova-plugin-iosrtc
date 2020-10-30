@@ -27,8 +27,8 @@
     "url": "https://github.com/cordova-rtc/cordova-plugin-iosrtc/issues"
   },
   "scripts": {
-    "lint": "gulp lint && eslint '**/*.js'",
-    "lint-fix": "eslint --fix '**/*.js'",
+    "lint": "gulp lint && eslint '**/*.{js,ts}'",
+    "lint-fix": "eslint --fix '**/*.{js,ts}'",
     "build": "gulp browserify"
   },
   "dependencies": {
@@ -40,6 +40,8 @@
     "yaeti": "^1.0.2"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "4.6.0",
+    "@typescript-eslint/parser": "4.6.0",
     "browserify": "^14.4.0",
     "eslint": "7.12.1",
     "eslint-config-prettier": "6.15.0",
@@ -51,6 +53,8 @@
     "jshint": "^2.9.4",
     "jshint-stylish": "~2.2.1",
     "prettier": "2.1.2",
+    "tsify": "5.0.2",
+    "typescript": "4.0.5",
     "vinyl-buffer": "^1.0.1",
     "vinyl-source-stream": "^2.0.0"
   },

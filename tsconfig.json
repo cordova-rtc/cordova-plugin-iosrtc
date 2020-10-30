@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "declaration": false,
+    "module": "commonjs",
+    "skipLibCheck": true,
+    "lib": [
+      "dom",
+      "es6",
+      "es2018"
+    ],
+    "outDir": "www",
+    "strict": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "inlineSourceMap": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "allowJs": true,
+    "noImplicitAny": true
+  },
+  "exclude": [
+    "node_modules"
+  ],
+  "include": [
+    "js/**/*.(js|ts)"
+  ]
+}

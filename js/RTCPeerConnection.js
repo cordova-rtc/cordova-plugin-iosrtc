@@ -6,6 +6,9 @@ module.exports = RTCPeerConnection;
 /**
  * Dependencies.
  */
+import { RTCRtpReceiver } from './RTCRtpReceiver.ts';
+import { RTCRtpSender } from './RTCRtpSender.ts';
+import { RTCRtpTransceiver } from './RTCRtpTransceiver.ts';
 var debug = require('debug')('iosrtc:RTCPeerConnection'),
 	debugerror = require('debug')('iosrtc:ERROR:RTCPeerConnection'),
 	exec = require('cordova/exec'),
@@ -15,9 +18,6 @@ var debug = require('debug')('iosrtc:RTCPeerConnection'),
 	RTCIceCandidate = require('./RTCIceCandidate'),
 	RTCDataChannel = require('./RTCDataChannel'),
 	RTCDTMFSender = require('./RTCDTMFSender'),
-	RTCRtpReceiver = require('./RTCRtpReceiver'),
-	RTCRtpSender = require('./RTCRtpSender'),
-	RTCRtpTransceiver = require('./RTCRtpTransceiver'),
 	RTCStatsResponse = require('./RTCStatsResponse'),
 	RTCStatsReport = require('./RTCStatsReport'),
 	MediaStream = require('./MediaStream'),

@@ -14,7 +14,7 @@ var EventTarget = require('./EventTarget'),
 	getUserMedia = require('./getUserMedia'),
 	enumerateDevices = require('./enumerateDevices');
 
-function MediaDevices(data) {
+function MediaDevices() {
 	//ondevicechange
 	//enumerateDevices
 	//getDisplayMedia
@@ -25,8 +25,6 @@ function MediaDevices(data) {
 
 	// Make this an EventTarget.
 	EventTarget.call(self);
-
-	data = data || {};
 }
 
 MediaDevices.prototype = Object.create(EventTarget.prototype);
