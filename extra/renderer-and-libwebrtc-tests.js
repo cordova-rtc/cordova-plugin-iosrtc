@@ -410,8 +410,8 @@ function TestRTCPeerConnection(localStream) {
 				return pc1.setRemoteDescription(desc);
 			})
 			.then(function () {
-				TestMediaRenderCatpure(peerVideoEl);
-				TestMediaRenderCatpure(localVideoEl);
+				TestMediaRenderCapture(peerVideoEl);
+				TestMediaRenderCapture(localVideoEl);
 				TestPeerDataChannel();
 			})
 			.catch(function (err) {
@@ -421,7 +421,7 @@ function TestRTCPeerConnection(localStream) {
 }
 
 var canvasEl;
-function TestMediaRenderCatpure() {
+function TestMediaRenderCapture() {
 	if (!canvasEl) {
 		canvasEl = document.createElement('canvas');
 	}
@@ -440,6 +440,13 @@ function TestMediaRenderCatpure() {
 	localVideoEl.render.save(function (data) {
 		image.src = 'data:image/jpg;base64,' + data;
 	});
+}
+
+var testMediaRenderCaptureAnimateFrame;
+function TestMediaRenderCaptureAnimate() {
+	TestMediaRenderCapture(peerVideoEl);
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	testMediaRenderCaptureAnimateFrame = requestAnimationFrame(TestMediaRenderCaptureAnimate);
 }
 
 // Disabled to avoid confusion with remoteStream
