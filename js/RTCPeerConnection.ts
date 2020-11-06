@@ -127,13 +127,12 @@ export class RTCPeerConnectionShim extends EventTargetShim implements RTCPeerCon
 	iceGatheringState: RTCIceGatheringState = 'new';
 	iceConnectionState: RTCIceConnectionState = 'new';
 
-	private pcConfig: RTCConfiguration;
 	private localStreams: { [id: string]: MediaStreamShim } = {};
 	private remoteStreams: { [id: string]: MediaStreamShim } = {};
 	private localTracks: { [id: string]: MediaStreamTrackShim } = {};
 	private remoteTracks: { [id: string]: MediaStreamTrackShim } = {};
 
-	constructor(pcConfig: RTCConfiguration, pcConstraints?: PeerConnectionConstraints) {
+	constructor(private pcConfig: RTCConfiguration, pcConstraints?: PeerConnectionConstraints) {
 		super();
 		debug('new() | [pcConfig:%o, pcConstraints:%o]', pcConfig, pcConstraints);
 
@@ -158,8 +157,6 @@ export class RTCPeerConnectionShim extends EventTargetShim implements RTCPeerCon
 			'getLocalStreams',
 			(RTCPeerConnectionShim as any).prototype_descriptor.getLocalStreams
 		);
-
-		this.pcConfig = fixPcConfig(pcConfig);
 
 		const onResultOK = (data: PeerConnectionEvent) => this.onEvent(data);
 		exec(onResultOK, null, 'iosrtcPlugin', 'new_RTCPeerConnection', [
@@ -821,7 +818,7 @@ export class RTCPeerConnectionShim extends EventTargetShim implements RTCPeerCon
 
 		this.dispatchEvent(event);
 	}
-	
+
 	/**
 	 * Additional events listeners
 	 */
@@ -880,31 +877,3 @@ export class RTCPeerConnectionShim extends EventTargetShim implements RTCPeerCon
 (RTCPeerConnectionShim as any).prototype_descriptor = Object.getOwnPropertyDescriptors(
 	RTCPeerConnectionShim.prototype
 );
-
-function fixPcConfig(pcConfig: RTCConfiguration) {
-	if (!pcConfig) {
-		return {
-			iceServers: []
-		};
-	}
-
-	const iceServers = pcConfig.iceServers;
-
-	if (!Array.isArray(iceServers)) {
-		pcConfig.iceServers = [];
-		return pcConfig;
-	}
-
-	iceServers.forEach((iceServer: RTCIceServer & { url?: string }) => {
-		// THe Objective-C wrapper of WebRTC is old and does not implement .urls.
-		if (iceServer.url) {
-			return;
-		} else if (Array.isArray(iceServer.urls)) {
-			iceServer.url = iceServer.urls[0];
-		} else if (typeof iceServer.urls === 'string') {
-			iceServer.url = iceServer.urls;
-		}
-	});
-
-	return pcConfig;
-}
