@@ -3,20 +3,16 @@
  */
 module.exports = RTCDataChannel;
 
-
 /**
  * Dependencies.
  */
-var
-	debug = require('debug')('iosrtc:RTCDataChannel'),
+var debug = require('debug')('iosrtc:RTCDataChannel'),
 	debugerror = require('debug')('iosrtc:ERROR:RTCDataChannel'),
 	exec = require('cordova/exec'),
-	randomNumber = require('random-number').generator({min: 10000, max: 99999, integer: true}),
+	randomNumber = require('random-number').generator({ min: 10000, max: 99999, integer: true }),
 	EventTarget = require('./EventTarget');
 
-
 debugerror.log = console.warn.bind(console);
-
 
 function RTCDataChannel(peerConnection, label, options, dataFromEvent) {
 	var self = this;
@@ -34,7 +30,10 @@ function RTCDataChannel(peerConnection, label, options, dataFromEvent) {
 
 		options = options || {};
 
-		if (options.hasOwnProperty('maxPacketLifeTime') && options.hasOwnProperty('maxRetransmits')) {
+		if (
+			options.hasOwnProperty('maxPacketLifeTime') &&
+			options.hasOwnProperty('maxRetransmits')
+		) {
 			throw new SyntaxError('both maxPacketLifeTime and maxRetransmits can not be present');
 		}
 
@@ -45,15 +44,21 @@ function RTCDataChannel(peerConnection, label, options, dataFromEvent) {
 			// TODO:
 			//   https://code.google.com/p/webrtc/issues/detail?id=4618
 			if (options.id > 1023) {
-				throw new SyntaxError('id cannot be greater than 1023 (https://code.google.com/p/webrtc/issues/detail?id=4614)');
+				throw new SyntaxError(
+					'id cannot be greater than 1023 (https://code.google.com/p/webrtc/issues/detail?id=4614)'
+				);
 			}
 		}
 
 		// Public atributes.
 		this.label = label;
 		this.ordered = options.hasOwnProperty('ordered') ? !!options.ordered : true;
-		this.maxPacketLifeTime = options.hasOwnProperty('maxPacketLifeTime') ? Number(options.maxPacketLifeTime) : null;
-		this.maxRetransmits = options.hasOwnProperty('maxRetransmits') ? Number(options.maxRetransmits) : null;
+		this.maxPacketLifeTime = options.hasOwnProperty('maxPacketLifeTime')
+			? Number(options.maxPacketLifeTime)
+			: null;
+		this.maxRetransmits = options.hasOwnProperty('maxRetransmits')
+			? Number(options.maxRetransmits)
+			: null;
 		this.protocol = options.hasOwnProperty('protocol') ? String(options.protocol) : '';
 		this.negotiated = options.hasOwnProperty('negotiated') ? !!options.negotiated : false;
 		this.id = options.hasOwnProperty('id') ? Number(options.id) : undefined;
@@ -65,9 +70,14 @@ function RTCDataChannel(peerConnection, label, options, dataFromEvent) {
 		this.peerConnection = peerConnection;
 		this.dcId = randomNumber();
 
-		exec(onResultOK, null, 'iosrtcPlugin', 'RTCPeerConnection_createDataChannel', [this.peerConnection.pcId, this.dcId, label, options]);
-	// Created via pc.ondatachannel.
+		exec(onResultOK, null, 'iosrtcPlugin', 'RTCPeerConnection_createDataChannel', [
+			this.peerConnection.pcId,
+			this.dcId,
+			label,
+			options
+		]);
 	} else {
+		// Created via pc.ondatachannel.
 		debug('new() | [dataFromEvent:%o]', dataFromEvent);
 
 		// Public atributes.
@@ -86,14 +96,17 @@ function RTCDataChannel(peerConnection, label, options, dataFromEvent) {
 		this.peerConnection = peerConnection;
 		this.dcId = dataFromEvent.dcId;
 
-		exec(onResultOK, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_setListener', [this.peerConnection.pcId, this.dcId]);
+		exec(onResultOK, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_setListener', [
+			this.peerConnection.pcId,
+			this.dcId
+		]);
 	}
 
 	function onResultOK(data) {
 		if (data.type) {
 			onEvent.call(self, data);
-		// Special handler for received binary mesage.
 		} else {
+			// Special handler for received binary message.
 			onEvent.call(self, {
 				type: 'message',
 				message: data
@@ -117,7 +130,6 @@ Object.defineProperty(RTCDataChannel.prototype, 'binaryType', {
 	}
 });
 
-
 RTCDataChannel.prototype.send = function (data) {
 	if (isClosed.call(this) || this.readyState !== 'open') {
 		return;
@@ -130,9 +142,17 @@ RTCDataChannel.prototype.send = function (data) {
 	}
 
 	if (typeof data === 'string' || data instanceof String) {
-		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendString', [this.peerConnection.pcId, this.dcId, data]);
+		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendString', [
+			this.peerConnection.pcId,
+			this.dcId,
+			data
+		]);
 	} else if (window.ArrayBuffer && data instanceof window.ArrayBuffer) {
-		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendBinary', [this.peerConnection.pcId, this.dcId, data]);
+		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendBinary', [
+			this.peerConnection.pcId,
+			this.dcId,
+			data
+		]);
 	} else if (
 		(window.Int8Array && data instanceof window.Int8Array) ||
 		(window.Uint8Array && data instanceof window.Uint8Array) ||
@@ -145,12 +165,15 @@ RTCDataChannel.prototype.send = function (data) {
 		(window.Float64Array && data instanceof window.Float64Array) ||
 		(window.DataView && data instanceof window.DataView)
 	) {
-		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendBinary', [this.peerConnection.pcId, this.dcId, data.buffer]);
+		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendBinary', [
+			this.peerConnection.pcId,
+			this.dcId,
+			data.buffer
+		]);
 	} else {
 		throw new Error('invalid data type');
 	}
 };
-
 
 RTCDataChannel.prototype.close = function () {
 	if (isClosed.call(this)) {
@@ -161,19 +184,23 @@ RTCDataChannel.prototype.close = function () {
 
 	this.readyState = 'closing';
 
-	exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_close', [this.peerConnection.pcId, this.dcId]);
+	exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_close', [
+		this.peerConnection.pcId,
+		this.dcId
+	]);
 };
-
 
 /**
  * Private API.
  */
 
-
 function isClosed() {
-	return this.readyState === 'closed' || this.readyState === 'closing' || this.peerConnection.signalingState === 'closed';
+	return (
+		this.readyState === 'closed' ||
+		this.readyState === 'closing' ||
+		this.peerConnection.signalingState === 'closed'
+	);
 }
-
 
 function onEvent(data) {
 	var type = data.type,
@@ -220,7 +247,10 @@ function onEvent(data) {
 		case 'bufferedamount':
 			this.bufferedAmount = data.bufferedAmount;
 
-			if (this.bufferedAmountLowThreshold > 0 && this.bufferedAmountLowThreshold > this.bufferedAmount) {
+			if (
+				this.bufferedAmountLowThreshold > 0 &&
+				this.bufferedAmountLowThreshold > this.bufferedAmount
+			) {
 				event = new Event('bufferedamountlow');
 				event.bufferedAmount = this.bufferedAmount;
 				this.dispatchEvent(event);

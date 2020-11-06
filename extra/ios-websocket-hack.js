@@ -15,7 +15,6 @@
  * deteriorates the WebSocket performance.
  */
 
-
 (function () {
 	// run on iOS Cordova only
 	if (!(window.cordova && window.cordova.platformId === 'ios')) {
@@ -29,15 +28,12 @@
 	window.WebSocket = FakeWebSocket;
 	window.NativeWebSocket = NativeWebSocket;
 
-
 	// Fake WebSocket class that ill override the native one.
 	function FakeWebSocket() {
-		var
-			self = this,
+		var self = this,
 			url = arguments[0],
 			protocols = arguments[1],
 			listeners = {};
-
 
 		// WebSocket is an EventTarget as per W3C spec.
 
@@ -87,13 +83,13 @@
 		};
 
 		this.dispatchEvent = function (event) {
-			var
-				self = this,
+			var self = this,
 				type,
 				listenersType,
 				dummyListener,
 				stopImmediatePropagation = false,
-				i, listener;
+				i,
+				listener;
 
 			if (!(event instanceof Event)) {
 				throw new Error('first argument must be an instance of Event');
@@ -101,7 +97,7 @@
 
 			type = event.type;
 
-			listenersType = (listeners[type] || []);
+			listenersType = listeners[type] || [];
 
 			dummyListener = this['on' + type];
 			if (typeof dummyListener === 'function') {
@@ -163,7 +159,6 @@
 			};
 		});
 	}
-
 
 	// Expose W3C WebSocket attributes and setters.
 
@@ -250,7 +245,6 @@
 			}
 		}
 	});
-
 
 	// Expose W3C WebSocket methods.
 
