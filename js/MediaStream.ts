@@ -3,7 +3,7 @@
  */
 
 import debugBase from 'debug';
-import { EventTargetShim } from './EventTarget';
+import { EventTargetShim, extendEventTarget } from './EventTarget';
 import {
 	MediaStreamTrackShim,
 	MediaStreamTrackAsJSON,
@@ -92,6 +92,9 @@ export const MediaStreamNativeShim = (function (
 	// Assign all members from the MediaStreamWrapper prototype to extend functionality of the Blob or MediaStream
 	Object.defineProperties(stream, Object.getOwnPropertyDescriptors(MediaStreamShim.prototype));
 
+	// Make it an EventTarget.
+	extendEventTarget(stream);
+
 	// Public attributes.
 	stream._id = id || newMediaStreamId();
 	stream._active = true;
@@ -136,6 +139,9 @@ export class MediaStreamShim extends EventTargetShim implements MediaStream {
 	_addedToConnection = false;
 	_audioTracks: { [id: string]: MediaStreamTrackShim } = {};
 	_videoTracks: { [id: string]: MediaStreamTrackShim } = {};
+	_id = '';
+	_label = '';
+	_blobId = '';
 
 	get id() {
 		return this._id;

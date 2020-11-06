@@ -28,3 +28,13 @@ export class EventTargetShim extends YaetiEventTarget implements EventTarget {
 		return super.removeEventListener(type, callback, options);
 	}
 }
+
+export function extendEventTarget(target: any) {
+	EventTargetShim.call(target);
+	const eventTargetPrototype = Object.getOwnPropertyDescriptors(EventTargetShim.prototype);
+
+	// this prevents the extend target from showing up as an `EventTargetShim` object, keeping it's original constructor
+	delete (eventTargetPrototype as any).constructor;
+
+	Object.defineProperties(target, eventTargetPrototype);
+}
