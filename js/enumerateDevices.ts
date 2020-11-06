@@ -1,23 +1,22 @@
-/**
- * Expose the enumerateDevices function.
- */
-module.exports = enumerateDevices;
+import debugBase from 'debug';
+import { MediaDeviceInfoShim } from './MediaDeviceInfo';
+import { detectDeprecatedCallbaksUsage } from './Errors';
 
-/**
- * Dependencies.
- */
-var debug = require('debug')('iosrtc:enumerateDevices'),
-	exec = require('cordova/exec'),
-	MediaDeviceInfo = require('./MediaDeviceInfo'),
-	Errors = require('./Errors');
+const exec = require('cordova/exec'),
+	debug = debugBase('iosrtc:enumerateDevices');
 
-function enumerateDevices() {
+interface EnumerateDevicesResponse {
+	devices: MediaDeviceInfo[];
+}
+
+export function enumerateDevices(): Promise<MediaDeviceInfoShim[]> {
 	// Detect callback usage to assist 5.0.1 to 5.0.2 migration
 	// TODO remove on 6.0.0
-	Errors.detectDeprecatedCallbaksUsage('cordova.plugins.iosrtc.enumerateDevices', arguments);
+	// eslint-disable-next-line prefer-rest-params
+	detectDeprecatedCallbaksUsage('cordova.plugins.iosrtc.enumerateDevices', arguments);
 
 	return new Promise(function (resolve) {
-		function onResultOK(data) {
+		function onResultOK(data: EnumerateDevicesResponse) {
 			debug('enumerateDevices() | success');
 			resolve(getMediaDeviceInfos(data.devices));
 		}
@@ -30,17 +29,10 @@ function enumerateDevices() {
  * Private API.
  */
 
-function getMediaDeviceInfos(devices) {
+function getMediaDeviceInfos(devices: MediaDeviceInfo[]) {
 	debug('getMediaDeviceInfos() | [devices:%o]', devices);
 
-	var id,
-		mediaDeviceInfos = [];
-
-	for (id in devices) {
-		if (devices.hasOwnProperty(id)) {
-			mediaDeviceInfos.push(new MediaDeviceInfo(devices[id]));
-		}
-	}
-
-	return mediaDeviceInfos;
+	return devices.map((deviceInfo) => {
+		return new MediaDeviceInfoShim(deviceInfo);
+	});
 }

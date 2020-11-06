@@ -1,30 +1,30 @@
-/**
- * Dependencies.
- */
-var YaetiEventTarget = require('yaeti').EventTarget;
+const YaetiEventTarget = require('yaeti').EventTarget;
 
-var EventTarget = function () {
-	YaetiEventTarget.call(this);
-};
+// Implement official EventTarget to ensure usages get proper types
+export class EventTargetShim extends YaetiEventTarget implements EventTarget {
+	readonly target = this;
 
-EventTarget.prototype = Object.create(YaetiEventTarget.prototype);
-EventTarget.prototype.constructor = EventTarget;
+	constructor() {
+		super();
+	}
 
-Object.defineProperties(
-	EventTarget.prototype,
-	Object.getOwnPropertyDescriptors(YaetiEventTarget.prototype)
-);
+	addEventListener(
+		type: string,
+		listener: EventListenerOrEventListenerObject | null,
+		options?: boolean | AddEventListenerOptions
+	): void {
+		super.addEventListener(type, listener, options);
+	}
 
-EventTarget.prototype.dispatchEvent = function (event) {
-	Object.defineProperty(event, 'target', {
-		value: this,
-		writable: false
-	});
+	dispatchEvent(event: Event): boolean {
+		return super.dispatchEvent(event);
+	}
 
-	YaetiEventTarget.prototype.dispatchEvent.call(this, event);
-};
-
-/**
- * Expose the EventTarget class.
- */
-module.exports = EventTarget;
+	removeEventListener(
+		type: string,
+		callback: EventListenerOrEventListenerObject | null,
+		options?: EventListenerOptions | boolean
+	): void {
+		return super.removeEventListener(type, callback, options);
+	}
+}

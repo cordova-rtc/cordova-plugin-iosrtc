@@ -1,19 +1,19 @@
-/**
- * Expose the RTCRtpSender class.
- */
-export class RTCRtpSender {
-	private _pc: RTCPeerConnection;
-	public track: MediaStreamTrack | null;
-	public params: Partial<RTCRtpSendParameters>;
+import { MediaStreamTrackShim } from './MediaStreamTrack';
+import { RTCPeerConnectionShim } from './RTCPeerConnection';
+
+export class RTCRtpSenderShim implements RTCRtpSender {
+	private _pc: RTCPeerConnectionShim;
+	public track: MediaStreamTrackShim | null;
+	public params: RTCRtpSendParameters;
 
 	constructor(data: {
-		pc: RTCPeerConnection;
-		track: MediaStreamTrack;
-		params?: RTCRtpSendParameters;
+		pc: RTCPeerConnectionShim;
+		track: MediaStreamTrackShim;
+		params: RTCRtpSendParameters;
 	}) {
 		this._pc = data.pc;
 		this.track = data.track;
-		this.params = data.params || {};
+		this.params = data.params;
 	}
 
 	getParameters() {
@@ -22,10 +22,10 @@ export class RTCRtpSender {
 
 	setParameters(params: RTCRtpSendParameters) {
 		Object.assign(this.params, params);
-		return Promise.resolve(this.params);
+		return Promise.resolve();
 	}
 
-	replaceTrack(withTrack: MediaStreamTrack | null) {
+	replaceTrack(withTrack: MediaStreamTrackShim | null): Promise<void> {
 		const pc = this._pc;
 
 		return new Promise((resolve, reject) => {
@@ -48,5 +48,21 @@ export class RTCRtpSender {
 				}
 			});
 		});
+	}
+
+	/**
+	 * Additional, unimplemented members
+	 */
+	readonly dtmf = null;
+	readonly rtcpTransport = null;
+	readonly transport = null;
+
+	getStats(): Promise<RTCStatsReport> {
+		throw new Error('RTCRtpSender.getStats not implemented');
+	}
+
+	setStreams(...streams: MediaStream[]) {
+		void streams;
+		throw new Error('RTCRtpSender.setStreams not implemented');
 	}
 }

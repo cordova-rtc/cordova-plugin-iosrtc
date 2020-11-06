@@ -17,7 +17,7 @@
     "cordova-ios",
     "cordova:plugin"
   ],
-  "main": "js/iosrtc.js",
+  "main": "js/iosrtc.ts",
   "homepage": "https://github.com/cordova-rtc/cordova-plugin-iosrtc",
   "repository": {
     "type": "git",
@@ -40,6 +40,9 @@
     "yaeti": "^1.0.2"
   },
   "devDependencies": {
+    "@types/debug": "4.1.5",
+    "@types/node": "14.14.6",
+    "@types/random-number": "0.0.0",
     "@typescript-eslint/eslint-plugin": "4.6.0",
     "@typescript-eslint/parser": "4.6.0",
     "browserify": "^14.4.0",

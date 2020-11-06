@@ -1,32 +1,116 @@
-/**
- * Expose the RTCPeerConnection class.
- */
-module.exports = RTCPeerConnection;
+import debugBase from 'debug';
+import { RTCRtpReceiverShim } from './RTCRtpReceiver';
+import { RTCRtpSenderShim } from './RTCRtpSender';
+import { RTCRtpTransceiverShim } from './RTCRtpTransceiver';
+import { EventTargetShim } from './EventTarget';
+import { RTCSessionDescriptionShim, RTCSessionDescriptionAsJSON } from './RTCSessionDescription';
+import { RTCIceCandidateShim } from './RTCIceCandidate';
+import { RTCDataChannelShim, RTCDataChannelAsJSON } from './RTCDataChannel';
+import { RTCDTMFSenderShim } from './RTCDTMFSender';
+import { RTCStatsReportShim } from './RTCStatsReport';
+import { RTCStatsShim, RTCStatsAsJSON } from './RTCStats';
+import {
+	createMediaStream,
+	MediaStreamShim,
+	MediaStreamAsJSON,
+	originalMediaStream
+} from './MediaStream';
+import { MediaStreamTrackShim, MediaStreamTrackAsJSON } from './MediaStreamTrack';
+import { detectDeprecatedCallbaksUsage, Errors } from './Errors';
+import { randomNumber } from './randomNumber';
 
-/**
- * Dependencies.
- */
-import { RTCRtpReceiver } from './RTCRtpReceiver.ts';
-import { RTCRtpSender } from './RTCRtpSender.ts';
-import { RTCRtpTransceiver } from './RTCRtpTransceiver.ts';
-var debug = require('debug')('iosrtc:RTCPeerConnection'),
-	debugerror = require('debug')('iosrtc:ERROR:RTCPeerConnection'),
-	exec = require('cordova/exec'),
-	randomNumber = require('random-number').generator({ min: 10000, max: 99999, integer: true }),
-	EventTarget = require('./EventTarget'),
-	RTCSessionDescription = require('./RTCSessionDescription'),
-	RTCIceCandidate = require('./RTCIceCandidate'),
-	RTCDataChannel = require('./RTCDataChannel'),
-	RTCDTMFSender = require('./RTCDTMFSender'),
-	RTCStatsResponse = require('./RTCStatsResponse'),
-	RTCStatsReport = require('./RTCStatsReport'),
-	MediaStream = require('./MediaStream'),
-	MediaStreamTrack = require('./MediaStreamTrack'),
-	Errors = require('./Errors');
-
+const exec = require('cordova/exec'),
+	debug = debugBase('iosrtc:RTCPeerConnection'),
+	debugerror = require('debug')('iosrtc:ERROR:RTCPeerConnection');
 debugerror.log = console.warn.bind(console);
 
-function deprecateWarning(method, newMethod) {
+interface AddStreamEvent {
+	type: 'addstream';
+	streamId: string;
+	stream: MediaStreamAsJSON;
+}
+
+interface RemoveStreamEvent {
+	type: 'removestream';
+	streamId: string;
+}
+
+interface TrackEvent {
+	type: 'track';
+	track: MediaStreamTrackAsJSON;
+}
+
+interface TrackWithStreamEvent {
+	type: 'track';
+	track: MediaStreamTrackAsJSON;
+	streamId: string;
+	stream: MediaStreamAsJSON;
+}
+
+interface SignalingStateChangeEvent {
+	type: 'signalingstatechange';
+	signalingState: RTCSignalingState;
+}
+
+interface NegotiationNeededEvent {
+	type: 'negotiationneeded';
+}
+
+interface IceConnectionStateChangeEvent {
+	type: 'iceconnectionstatechange';
+	iceConnectionState: RTCIceConnectionState;
+}
+
+interface IceGatheringStateChangeEvent {
+	type: 'icegatheringstatechange';
+	iceGatheringState: RTCIceGatheringState;
+}
+
+interface EmptyIceCandidateEvent {
+	type: 'icecandidate';
+	// NOTE: in swift, cannot set null as value.
+	candidate: false;
+	localDescription: RTCSessionDescriptionAsJSON;
+}
+interface IceCandidateEvent {
+	type: 'icecandidate';
+	candidate: RTCIceCandidateInit;
+	localDescription: RTCSessionDescriptionAsJSON;
+}
+
+interface DataChannelEvent {
+	type: 'datachannel';
+	channel: RTCDataChannelAsJSON;
+}
+
+type PeerConnectionEvent =
+	| AddStreamEvent
+	| RemoveStreamEvent
+	| TrackEvent
+	| TrackWithStreamEvent
+	| SignalingStateChangeEvent
+	| NegotiationNeededEvent
+	| IceConnectionStateChangeEvent
+	| IceGatheringStateChangeEvent
+	| EmptyIceCandidateEvent
+	| IceCandidateEvent
+	| DataChannelEvent;
+
+interface PeerConnectionConstraints {
+	mandatory?: unknown;
+	optional?: {
+		DtlsSrtpKeyAgreement?: boolean;
+		googIPv6?: boolean;
+		googImprovedWifiBwe?: boolean;
+		googDscp?: boolean;
+		googCpuOveruseDetection?: boolean;
+		googCpuUnderuseThreshold?: number;
+		googCpuOveruseThreshold?: number;
+		googSuspendBelowMinBitrate?: boolean;
+	};
+}
+
+function deprecateWarning(method: string, newMethod: string) {
 	if (!newMethod) {
 		console.warn(method + ' is deprecated.');
 	} else {
@@ -34,839 +118,789 @@ function deprecateWarning(method, newMethod) {
 	}
 }
 
-function RTCPeerConnection(pcConfig, pcConstraints) {
-	debug('new() | [pcConfig:%o, pcConstraints:%o]', pcConfig, pcConstraints);
-
-	var self = this;
-
-	// Make this an EventTarget.
-	EventTarget.call(this);
-
-	// Restore corrupted RTCPeerConnection.prototype
-	// TODO find why webrtc-adapter prevent events onnegotiationneeded to be trigger.
-	// Object.defineProperties(this, RTCPeerConnection.prototype_descriptor);
-
-	// Fix webrtc-adapter bad SHIM on addTrack causing error when original does support multiple streams.
-	// NotSupportedError: The adapter.js addTrack, addStream polyfill only supports a single stream which is associated with the specified track.
-	Object.defineProperty(this, 'addTrack', RTCPeerConnection.prototype_descriptor.addTrack);
-	Object.defineProperty(this, 'addStream', RTCPeerConnection.prototype_descriptor.addStream);
-	Object.defineProperty(
-		this,
-		'getLocalStreams',
-		RTCPeerConnection.prototype_descriptor.getLocalStreams
-	);
-
-	// Public atributes.
-	this._localDescription = null;
-	this.remoteDescription = null;
-	this.signalingState = 'stable';
-	this.iceGatheringState = 'new';
-	this.iceConnectionState = 'new';
-	this.pcConfig = fixPcConfig(pcConfig);
-
-	// Private attributes.
-	this.pcId = randomNumber();
-	this.localStreams = {};
-	this.remoteStreams = {};
-	this.localTracks = {};
-	this.remoteTracks = {};
-
-	function onResultOK(data) {
-		onEvent.call(self, data);
-	}
-
-	exec(onResultOK, null, 'iosrtcPlugin', 'new_RTCPeerConnection', [
-		this.pcId,
-		this.pcConfig,
-		pcConstraints
-	]);
-}
-
-RTCPeerConnection.prototype = Object.create(EventTarget.prototype);
-RTCPeerConnection.prototype.constructor = RTCPeerConnection;
-
-Object.defineProperties(RTCPeerConnection.prototype, {
-	localDescription: {
-		// Fix webrtc-adapter TypeError: Attempting to change the getter of an unconfigurable property.
-		configurable: true,
-		get: function () {
-			return this._localDescription;
-		}
-	},
-	connectionState: {
-		get: function () {
-			return this.iceConnectionState;
-		}
-	},
-	onicecandidate: {
-		// Fix webrtc-adapter TypeError: Attempting to change the getter of an unconfigurable property.
-		configurable: true,
-		set: function (callback) {
-			return this.addEventListener('icecandidate', callback);
-		}
-	},
-	onaddstream: {
-		// Fix webrtc-adapter TypeError: Attempting to change the getter of an unconfigurable property.
-		configurable: true,
-		set: function (callback) {
-			return this.addEventListener('addstream', callback);
-		}
-	},
-	ontrack: {
-		// Fix webrtc-adapter TypeError: Attempting to change the getter of an unconfigurable property.
-		configurable: true,
-		set: function (callback) {
-			return this.addEventListener('track', callback);
-		}
-	},
-	oniceconnectionstatechange: {
-		// Fix webrtc-adapter TypeError: Attempting to change the getter of an unconfigurable property.
-		configurable: true,
-		set: function (callback) {
-			return this.addEventListener('iceconnectionstatechange', callback);
-		}
-	},
-	onnegotiationneeded: {
-		// Fix webrtc-adapter TypeError: Attempting to change the getter of an unconfigurable property.
-		configurable: true,
-		set: function (callback) {
-			return this.addEventListener('negotiationneeded', callback);
-		}
-	}
-});
-
-RTCPeerConnection.prototype.createOffer = function (options) {
-	// Detect callback usage to assist 5.0.1 to 5.0.2 migration
-	// TODO remove on 6.0.0
-	Errors.detectDeprecatedCallbaksUsage('RTCPeerConnection.prototype.createOffer', arguments);
-
-	var self = this;
-
-	if (isClosed.call(this)) {
-		return;
-	}
-
-	debug('createOffer() [options:%o]', options);
-
-	return new Promise(function (resolve, reject) {
-		function onResultOK(data) {
-			if (isClosed.call(self)) {
-				return;
-			}
-
-			var desc = new RTCSessionDescription(data);
-
-			debug('createOffer() | success [desc:%o]', desc);
-			resolve(desc);
-		}
-
-		function onResultError(error) {
-			if (isClosed.call(self)) {
-				return;
-			}
-
-			debugerror('createOffer() | failure: %s', error);
-			reject(new global.DOMException(error));
-		}
-
-		exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_createOffer', [
-			self.pcId,
-			options
-		]);
-	});
-};
-
-RTCPeerConnection.prototype.createAnswer = function (options) {
-	// Detect callback usage to assist 5.0.1 to 5.0.2 migration
-	// TODO remove on 6.0.0
-	Errors.detectDeprecatedCallbaksUsage('RTCPeerConnection.prototype.createAnswer', arguments);
-
-	var self = this;
-
-	if (isClosed.call(this)) {
-		return;
-	}
-
-	debug('createAnswer() [options:%o]', options);
-
-	return new Promise(function (resolve, reject) {
-		function onResultOK(data) {
-			if (isClosed.call(self)) {
-				return;
-			}
-
-			var desc = new RTCSessionDescription(data);
-
-			debug('createAnswer() | success [desc:%o]', desc);
-			resolve(desc);
-		}
-
-		function onResultError(error) {
-			if (isClosed.call(self)) {
-				return;
-			}
-
-			debugerror('createAnswer() | failure: %s', error);
-			reject(new global.DOMException(error));
-		}
-
-		exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_createAnswer', [
-			self.pcId,
-			options
-		]);
-	});
-};
-
-RTCPeerConnection.prototype.setLocalDescription = function (desc) {
-	// Detect callback usage to assist 5.0.1 to 5.0.2 migration
-	// TODO remove on 6.0.0
-	Errors.detectDeprecatedCallbaksUsage(
-		'RTCPeerConnection.prototype.setLocalDescription',
-		arguments
-	);
-
-	var self = this;
-
-	if (isClosed.call(this)) {
-		return new Promise(function (resolve, reject) {
-			reject(new Errors.InvalidStateError('peerconnection is closed'));
-		});
-	}
-
-	// "This is no longer necessary, however; RTCPeerConnection.setLocalDescription() and other
-	// methods which take SDP as input now directly accept an object conforming to the RTCSessionDescriptionInit dictionary,
-	// so you don't have to instantiate an RTCSessionDescription yourself.""
-	// Source: https://developer.mozilla.org/en-US/docs/Web/API/RTCSessionDescription/RTCSessionDescription#Example
-	// Still we do instnanciate RTCSessionDescription, so internal object is used properly.
-
-	if (!(desc instanceof RTCSessionDescription)) {
-		desc = new RTCSessionDescription(desc);
-	}
-
-	return new Promise(function (resolve, reject) {
-		function onResultOK(data) {
-			if (isClosed.call(self)) {
-				return;
-			}
-
-			debug('setLocalDescription() | success');
-			// Update localDescription.
-			self._localDescription = new RTCSessionDescription(data);
-			resolve();
-		}
-
-		function onResultError(error) {
-			if (isClosed.call(self)) {
-				return;
-			}
-
-			debugerror('setLocalDescription() | failure: %s', error);
-			reject(
-				new Errors.InvalidSessionDescriptionError('setLocalDescription() failed: ' + error)
-			);
-		}
-
-		exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_setLocalDescription', [
-			self.pcId,
-			desc
-		]);
-	});
-};
-
-RTCPeerConnection.prototype.setRemoteDescription = function (desc) {
-	// Detect callback usage to assist 5.0.1 to 5.0.2 migration
-	// TODO remove on 6.0.0
-	Errors.detectDeprecatedCallbaksUsage(
-		'RTCPeerConnection.prototype.setRemoteDescription',
-		arguments
-	);
-
-	var self = this;
-
-	if (isClosed.call(this)) {
-		return new Promise(function (resolve, reject) {
-			reject(new Errors.InvalidStateError('peerconnection is closed'));
-		});
-	}
-
-	debug('setRemoteDescription() [desc:%o]', desc);
-
-	// "This is no longer necessary, however; RTCPeerConnection.setLocalDescription() and other
-	// methods which take SDP as input now directly accept an object conforming to the RTCSessionDescriptionInit dictionary,
-	// so you don't have to instantiate an RTCSessionDescription yourself.""
-	// Source: https://developer.mozilla.org/en-US/docs/Web/API/RTCSessionDescription/RTCSessionDescription#Example
-	// Still we do instnanciate RTCSessionDescription so internal object is used properly.
-
-	if (!(desc instanceof RTCSessionDescription)) {
-		desc = new RTCSessionDescription(desc);
-	}
-
-	return new Promise(function (resolve, reject) {
-		function onResultOK(data) {
-			if (isClosed.call(self)) {
-				return;
-			}
-
-			debug('setRemoteDescription() | success');
-			// Update remoteDescription.
-			self.remoteDescription = new RTCSessionDescription(data);
-			resolve();
-		}
-
-		function onResultError(error) {
-			if (isClosed.call(self)) {
-				return;
-			}
-
-			debugerror('setRemoteDescription() | failure: %s', error);
-			reject(
-				new Errors.InvalidSessionDescriptionError('setRemoteDescription() failed: ' + error)
-			);
-		}
-
-		exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_setRemoteDescription', [
-			self.pcId,
-			desc
-		]);
-	});
-};
-
-RTCPeerConnection.prototype.addIceCandidate = function (candidate) {
-	// Detect callback usage to assist 5.0.1 to 5.0.2 migration
-	// TODO remove on 6.0.0
-	Errors.detectDeprecatedCallbaksUsage('RTCPeerConnection.prototype.addIceCandidate', arguments);
-
-	var self = this;
-
-	if (isClosed.call(this)) {
-		return new Promise(function (resolve, reject) {
-			reject(new Errors.InvalidStateError('peerconnection is closed'));
-		});
-	}
-
-	debug('addIceCandidate() | [candidate:%o]', candidate);
-
-	if (typeof candidate !== 'object') {
-		return new Promise(function (resolve, reject) {
-			reject(
-				new global.DOMException(
-					'addIceCandidate() must be called with a RTCIceCandidate instance or RTCIceCandidateInit object as argument'
-				)
-			);
-		});
-	}
-
-	return new Promise(function (resolve, reject) {
-		function onResultOK(data) {
-			if (isClosed.call(self)) {
-				return;
-			}
-
-			debug('addIceCandidate() | success');
-			// Update remoteDescription.
-			if (self.remoteDescription && data.remoteDescription) {
-				self.remoteDescription.type = data.remoteDescription.type;
-				self.remoteDescription.sdp = data.remoteDescription.sdp;
-			} else if (data.remoteDescription) {
-				self.remoteDescription = new RTCSessionDescription(data.remoteDescription);
-			}
-			resolve();
-		}
-
-		function onResultError() {
-			if (isClosed.call(self)) {
-				return;
-			}
-
-			debugerror('addIceCandidate() | failure');
-			reject(new global.DOMException('addIceCandidate() failed'));
-		}
-
-		exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_addIceCandidate', [
-			self.pcId,
-			candidate
-		]);
-	});
-};
-
-RTCPeerConnection.prototype.getConfiguration = function () {
-	debug('getConfiguration()');
-
-	return this.pcConfig;
-};
-
-RTCPeerConnection.prototype.getLocalStreams = function () {
-	debug('getLocalStreams()');
-	deprecateWarning('getLocalStreams', 'getSenders');
-
-	var streams = [],
-		id;
-
-	for (id in this.localStreams) {
-		if (this.localStreams.hasOwnProperty(id)) {
-			streams.push(this.localStreams[id]);
-		}
-	}
-
-	return streams;
-};
-
-RTCPeerConnection.prototype.getRemoteStreams = function () {
-	debug('getRemoteStreams()');
-	deprecateWarning('getRemoteStreams', 'getReceivers');
-
-	var streams = [],
-		id;
-
-	for (id in this.remoteStreams) {
-		if (this.remoteStreams.hasOwnProperty(id)) {
-			streams.push(this.remoteStreams[id]);
-		}
-	}
-
-	return streams;
-};
-
-RTCPeerConnection.prototype.getReceivers = function () {
-	var self = this,
-		tracks = [],
-		id;
-
-	for (id in this.remoteTracks) {
-		if (this.remoteTracks.hasOwnProperty(id)) {
-			tracks.push(this.remoteTracks[id]);
-		}
-	}
-
-	return tracks.map(function (track) {
-		return new RTCRtpReceiver({
-			pc: self,
-			track: track
-		});
-	});
-};
-
-RTCPeerConnection.prototype.getSenders = function () {
-	var self = this,
-		tracks = [],
-		id;
-
-	for (id in this.localTracks) {
-		if (this.localTracks.hasOwnProperty(id)) {
-			tracks.push(this.localTracks[id]);
-		}
-	}
-
-	return tracks.map(function (track) {
-		return new RTCRtpSender({
-			pc: self,
-			track: track
-		});
-	});
-};
-
-RTCPeerConnection.prototype.getTransceivers = function () {
-	var transceivers = [];
-
-	this.getReceivers().map(function (receiver) {
-		transceivers.push(
-			new RTCRtpTransceiver({
-				receiver: receiver
-			})
+export class RTCPeerConnectionShim extends EventTargetShim implements RTCPeerConnection {
+	readonly pcId = randomNumber();
+
+	_localDescription: RTCSessionDescriptionShim | null = null;
+	remoteDescription: RTCSessionDescriptionShim | null = null;
+	signalingState: RTCSignalingState = 'stable';
+	iceGatheringState: RTCIceGatheringState = 'new';
+	iceConnectionState: RTCIceConnectionState = 'new';
+
+	private pcConfig: RTCConfiguration;
+	private localStreams: { [id: string]: MediaStreamShim } = {};
+	private remoteStreams: { [id: string]: MediaStreamShim } = {};
+	private localTracks: { [id: string]: MediaStreamTrackShim } = {};
+	private remoteTracks: { [id: string]: MediaStreamTrackShim } = {};
+
+	constructor(pcConfig: RTCConfiguration, pcConstraints?: PeerConnectionConstraints) {
+		super();
+		debug('new() | [pcConfig:%o, pcConstraints:%o]', pcConfig, pcConstraints);
+
+		// Restore corrupted RTCPeerConnection.prototype
+		// TODO find why webrtc-adapter prevent events onnegotiationneeded to be trigger.
+		// Object.defineProperties(this, RTCPeerConnection.prototype_descriptor);
+
+		// Fix webrtc-adapter bad SHIM on addTrack causing error when original does support multiple streams.
+		// NotSupportedError: The adapter.js addTrack, addStream polyfill only supports a single stream which is associated with the specified track.
+		Object.defineProperty(
+			this,
+			'addTrack',
+			(RTCPeerConnectionShim as any).prototype_descriptor.addTrack
 		);
-	});
-
-	this.getSenders().map(function (sender) {
-		transceivers.push(
-			new RTCRtpTransceiver({
-				sender: sender
-			})
+		Object.defineProperty(
+			this,
+			'addStream',
+			(RTCPeerConnectionShim as any).prototype_descriptor.addStream
 		);
-	});
+		Object.defineProperty(
+			this,
+			'getLocalStreams',
+			(RTCPeerConnectionShim as any).prototype_descriptor.getLocalStreams
+		);
 
-	return transceivers;
-};
+		this.pcConfig = fixPcConfig(pcConfig);
 
-RTCPeerConnection.prototype.addTrack = function (track, stream) {
-	var id;
-
-	if (isClosed.call(this)) {
-		throw new Errors.InvalidStateError('peerconnection is closed');
+		const onResultOK = (data: PeerConnectionEvent) => this.onEvent(data);
+		exec(onResultOK, null, 'iosrtcPlugin', 'new_RTCPeerConnection', [
+			this.pcId,
+			this.pcConfig,
+			pcConstraints
+		]);
 	}
 
-	// Add localStreams if missing
-	// Disable to match browser behavior
-	//stream = stream || Object.values(this.localStreams)[0] || new MediaStream();
-
-	// Fix webrtc-adapter bad SHIM on addStream
-	if (stream) {
-		this.addStream(stream);
+	get localDescription() {
+		return this._localDescription;
 	}
-
-	for (id in this.localStreams) {
-		if (this.localStreams.hasOwnProperty(id)) {
-			// Target provided stream argument or first added stream to group track
-			if (!stream || (stream && stream.id === id)) {
-				stream = this.localStreams[id];
-				stream.addTrack(track);
-				exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [
-					this.pcId,
-					track.id,
-					id
-				]);
-				break;
-			}
+	get connectionState(): RTCPeerConnectionState {
+		if (this.isClosed()) {
+			return 'closed';
 		}
-	}
 
-	// No Stream matched add track without stream
-	if (!stream) {
-		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [this.pcId, track.id, null]);
-	}
-
-	this.localTracks[track.id] = track;
-
-	return new RTCRtpSender({
-		track: track
-	});
-};
-
-RTCPeerConnection.prototype.removeTrack = function (sender) {
-	var id, track, stream, hasTrack;
-
-	if (!(sender instanceof RTCRtpSender)) {
-		throw new Error('removeTrack() must be called with a RTCRtpSender instance as argument');
-	}
-
-	track = sender.track;
-
-	function matchLocalTrack(localTrack) {
-		return localTrack.id === track.id;
-	}
-
-	for (id in this.localStreams) {
-		if (this.localStreams.hasOwnProperty(id)) {
-			// Check if track is belong to stream
-			hasTrack = this.localStreams[id].getTracks().filter(matchLocalTrack).length > 0;
-
-			if (hasTrack) {
-				stream = this.localStreams[id];
-				stream.removeTrack(track);
-				exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_removeTrack', [
-					this.pcId,
-					track.id,
-					stream.id
-				]);
-				delete this.localTracks[track.id];
-				break;
-			}
+		switch (this.iceConnectionState) {
+			case 'checking':
+				return 'connecting';
+			case 'completed':
+				return 'connected';
 		}
+
+		return this.iceConnectionState;
+	}
+	set onicecandidate(callback: (this: RTCPeerConnection, ev: RTCPeerConnectionIceEvent) => any) {
+		this.addEventListener('icecandidate', callback as EventListener);
+	}
+	set onaddstream(callback: (this: RTCPeerConnection, ev: RTCPeerConnectionIceEvent) => any) {
+		this.addEventListener('addstream', callback as EventListener);
+	}
+	set ontrack(callback: (this: RTCPeerConnection, ev: RTCTrackEvent) => any) {
+		this.addEventListener('track', callback as EventListener);
+	}
+	set oniceconnectionstatechange(callback: (this: RTCPeerConnection, ev: Event) => any) {
+		this.addEventListener('iceconnectionstatechange', callback);
+	}
+	set onnegotiationneeded(callback: (this: RTCPeerConnection, ev: Event) => any) {
+		this.addEventListener('negotiationneeded', callback);
 	}
 
-	// No Stream matched remove track without stream
-	if (!stream) {
-		for (id in this.localTracks) {
-			if (this.localTracks.hasOwnProperty(id)) {
-				if (track.id === id) {
-					exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_removeTrack', [
+	createOffer(options: RTCOfferOptions): Promise<RTCSessionDescriptionShim> {
+		// Detect callback usage to assist 5.0.1 to 5.0.2 migration
+		// TODO remove on 6.0.0
+		// eslint-disable-next-line prefer-rest-params
+		detectDeprecatedCallbaksUsage('RTCPeerConnection.prototype.createOffer', arguments);
+
+		if (this.isClosed()) {
+			return Promise.reject();
+		}
+
+		debug('createOffer() [options:%o]', options);
+
+		return new Promise((resolve, reject) => {
+			const onResultOK = (data: RTCSessionDescriptionAsJSON) => {
+					if (this.isClosed()) {
+						return;
+					}
+
+					const desc = new RTCSessionDescriptionShim(data);
+
+					debug('createOffer() | success [desc:%o]', desc);
+					resolve(desc);
+				},
+				onResultError = (error: string) => {
+					if (this.isClosed()) {
+						return;
+					}
+
+					debugerror('createOffer() | failure: %s', error);
+					reject(new global.DOMException(error));
+				};
+
+			exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_createOffer', [
+				this.pcId,
+				options
+			]);
+		});
+	}
+
+	createAnswer(options: RTCAnswerOptions): Promise<RTCSessionDescriptionShim> {
+		// Detect callback usage to assist 5.0.1 to 5.0.2 migration
+		// TODO remove on 6.0.0
+		// eslint-disable-next-line prefer-rest-params
+		detectDeprecatedCallbaksUsage('RTCPeerConnection.prototype.createAnswer', arguments);
+
+		if (this.isClosed()) {
+			return Promise.reject();
+		}
+
+		debug('createAnswer() [options:%o]', options);
+
+		return new Promise((resolve, reject) => {
+			const onResultOK = (data: RTCSessionDescriptionAsJSON) => {
+					if (this.isClosed()) {
+						return;
+					}
+
+					const desc = new RTCSessionDescriptionShim(data);
+
+					debug('createAnswer() | success [desc:%o]', desc);
+					resolve(desc);
+				},
+				onResultError = (error: string) => {
+					if (this.isClosed()) {
+						return;
+					}
+
+					debugerror('createAnswer() | failure: %s', error);
+					reject(new global.DOMException(error));
+				};
+
+			exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_createAnswer', [
+				this.pcId,
+				options
+			]);
+		});
+	}
+
+	setLocalDescription(desc: RTCSessionDescriptionShim): Promise<void> {
+		// Detect callback usage to assist 5.0.1 to 5.0.2 migration
+		// TODO remove on 6.0.0
+		// eslint-disable-next-line prefer-rest-params
+		detectDeprecatedCallbaksUsage('RTCPeerConnection.prototype.setLocalDescription', arguments);
+
+		if (this.isClosed()) {
+			return new Promise((resolve, reject) => {
+				reject(new Errors.InvalidStateError('peerconnection is closed'));
+			});
+		}
+
+		// "This is no longer necessary, however; RTCPeerConnection.setLocalDescription() and other
+		// methods which take SDP as input now directly accept an object conforming to the RTCSessionDescriptionInit dictionary,
+		// so you don't have to instantiate an RTCSessionDescription yourself.""
+		// Source: https://developer.mozilla.org/en-US/docs/Web/API/RTCSessionDescription/RTCSessionDescription#Example
+		// Still we do instnanciate RTCSessionDescription, so internal object is used properly.
+
+		if (!(desc instanceof RTCSessionDescriptionShim)) {
+			desc = new RTCSessionDescriptionShim(desc);
+		}
+
+		return new Promise((resolve, reject) => {
+			const onResultOK = (data: RTCSessionDescriptionAsJSON) => {
+					if (this.isClosed()) {
+						return;
+					}
+
+					debug('setLocalDescription() | success');
+					// Update localDescription.
+					this._localDescription = new RTCSessionDescriptionShim(data);
+					resolve();
+				},
+				onResultError = (error: string) => {
+					if (this.isClosed()) {
+						return;
+					}
+
+					debugerror('setLocalDescription() | failure: %s', error);
+					reject(
+						new Errors.InvalidSessionDescriptionError(
+							'setLocalDescription() failed: ' + error
+						)
+					);
+				};
+
+			exec(
+				onResultOK,
+				onResultError,
+				'iosrtcPlugin',
+				'RTCPeerConnection_setLocalDescription',
+				[this.pcId, desc]
+			);
+		});
+	}
+
+	setRemoteDescription(desc: RTCSessionDescriptionShim): Promise<void> {
+		// Detect callback usage to assist 5.0.1 to 5.0.2 migration
+		// TODO remove on 6.0.0
+		detectDeprecatedCallbaksUsage(
+			'RTCPeerConnection.prototype.setRemoteDescription',
+			// eslint-disable-next-line prefer-rest-params
+			arguments
+		);
+
+		if (this.isClosed()) {
+			return new Promise((resolve, reject) => {
+				reject(new Errors.InvalidStateError('peerconnection is closed'));
+			});
+		}
+
+		debug('setRemoteDescription() [desc:%o]', desc);
+
+		// "This is no longer necessary, however; RTCPeerConnection.setLocalDescription() and other
+		// methods which take SDP as input now directly accept an object conforming to the RTCSessionDescriptionInit dictionary,
+		// so you don't have to instantiate an RTCSessionDescription yourself.""
+		// Source: https://developer.mozilla.org/en-US/docs/Web/API/RTCSessionDescription/RTCSessionDescription#Example
+		// Still we do instnanciate RTCSessionDescription so internal object is used properly.
+
+		if (!(desc instanceof RTCSessionDescriptionShim)) {
+			desc = new RTCSessionDescriptionShim(desc);
+		}
+
+		return new Promise((resolve, reject) => {
+			const onResultOK = (data: RTCSessionDescriptionAsJSON) => {
+					if (this.isClosed()) {
+						return;
+					}
+
+					debug('setRemoteDescription() | success');
+					// Update remoteDescription.
+					this.remoteDescription = new RTCSessionDescriptionShim(data);
+					resolve();
+				},
+				onResultError = (error: string) => {
+					if (this.isClosed()) {
+						return;
+					}
+
+					debugerror('setRemoteDescription() | failure: %s', error);
+					reject(
+						new Errors.InvalidSessionDescriptionError(
+							'setRemoteDescription() failed: ' + error
+						)
+					);
+				};
+
+			exec(
+				onResultOK,
+				onResultError,
+				'iosrtcPlugin',
+				'RTCPeerConnection_setRemoteDescription',
+				[this.pcId, desc]
+			);
+		});
+	}
+
+	addIceCandidate(candidate: RTCIceCandidateShim): Promise<void> {
+		// Detect callback usage to assist 5.0.1 to 5.0.2 migration
+		// TODO remove on 6.0.0
+		// eslint-disable-next-line prefer-rest-params
+		detectDeprecatedCallbaksUsage('RTCPeerConnection.prototype.addIceCandidate', arguments);
+
+		if (this.isClosed()) {
+			return new Promise((resolve, reject) => {
+				reject(new Errors.InvalidStateError('peerconnection is closed'));
+			});
+		}
+
+		debug('addIceCandidate() | [candidate:%o]', candidate);
+
+		if (typeof candidate !== 'object') {
+			return new Promise((resolve, reject) => {
+				reject(
+					new global.DOMException(
+						'addIceCandidate() must be called with a RTCIceCandidate instance or RTCIceCandidateInit object as argument'
+					)
+				);
+			});
+		}
+
+		return new Promise((resolve, reject) => {
+			const onResultOK = (data: {
+					remoteDescription: RTCSessionDescriptionAsJSON | false;
+				}) => {
+					if (this.isClosed()) {
+						return;
+					}
+
+					debug('addIceCandidate() | success');
+					// Update remoteDescription.
+					if (this.remoteDescription && data.remoteDescription) {
+						this.remoteDescription.type = data.remoteDescription.type;
+						this.remoteDescription.sdp = data.remoteDescription.sdp;
+					} else if (data.remoteDescription) {
+						this.remoteDescription = new RTCSessionDescriptionShim(
+							data.remoteDescription
+						);
+					}
+					resolve();
+				},
+				onResultError = () => {
+					if (this.isClosed()) {
+						return;
+					}
+
+					debugerror('addIceCandidate() | failure');
+					reject(new global.DOMException('addIceCandidate() failed'));
+				};
+
+			exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_addIceCandidate', [
+				this.pcId,
+				candidate
+			]);
+		});
+	}
+
+	getLocalStreams() {
+		debug('getLocalStreams()');
+		deprecateWarning('getLocalStreams', 'getSenders');
+		return Object.values(this.localStreams);
+	}
+
+	getRemoteStreams() {
+		debug('getRemoteStreams()');
+		deprecateWarning('getRemoteStreams', 'getReceivers');
+		return Object.values(this.remoteStreams);
+	}
+
+	getReceivers() {
+		return Object.values(this.remoteTracks).map((track) => {
+			return new RTCRtpReceiverShim({
+				pc: this,
+				track: track
+			});
+		});
+	}
+
+	getSenders() {
+		return Object.values(this.localTracks).map((track) => {
+			return new RTCRtpSenderShim({
+				pc: this,
+				track: track,
+				params: {} as RTCRtpSendParameters
+			});
+		});
+	}
+
+	getTransceivers() {
+		return [
+			...this.getReceivers().map((receiver) => {
+				return new RTCRtpTransceiverShim({ receiver });
+			}),
+			...this.getSenders().map((sender) => {
+				return new RTCRtpTransceiverShim({ sender });
+			})
+		];
+	}
+
+	addTrack(track: MediaStreamTrackShim, ...streams: MediaStreamShim[]) {
+		let stream: MediaStreamShim | undefined = streams[0];
+
+		if (this.isClosed()) {
+			throw new Errors.InvalidStateError('peerconnection is closed');
+		}
+
+		// Add localStreams if missing
+		// Disable to match browser behavior
+		//stream = stream || Object.values(this.localStreams)[0] || new MediaStream();
+
+
+		// Fix webrtc-adapter bad SHIM on addStream
+		if (stream) {
+			this.addStream(stream);
+		}
+
+		for (const id in this.localStreams) {
+			if (this.localStreams.hasOwnProperty(id)) {
+				// Target provided stream argument or first added stream to group track
+				if (!stream || (stream && stream.id === id)) {
+					stream = this.localStreams[id];
+					stream.addTrack(track);
+					exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [
 						this.pcId,
 						track.id,
-						null
+						id
 					]);
-					delete this.localTracks[track.id];
+					break;
 				}
 			}
 		}
-	}
-};
 
-RTCPeerConnection.prototype.getStreamById = function (id) {
-	debug('getStreamById()');
+		// No Stream matched add track without stream
+		if (!stream) {
+			exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [
+				this.pcId,
+				track.id,
+				null
+			]);
+		}
 
-	return this.localStreams[id] || this.remoteStreams[id] || null;
-};
+		this.localTracks[track.id] = track;
 
-RTCPeerConnection.prototype.addStream = function (stream) {
-	var self = this;
-
-	if (isClosed.call(this)) {
-		throw new Errors.InvalidStateError('peerconnection is closed');
-	}
-
-	debug('addStream()');
-
-	if (!(stream instanceof MediaStream.originalMediaStream)) {
-		throw new Error('addStream() must be called with a MediaStream instance as argument');
-	}
-
-	if (this.localStreams[stream.id]) {
-		debugerror('addStream() | given stream already in present in local streams');
-		return;
-	}
-
-	this.localStreams[stream.id] = stream;
-
-	stream.addedToConnection = true;
-
-	stream.getTracks().forEach(function (track) {
-		self.localTracks[track.id] = track;
-		track.addEventListener('ended', function () {
-			delete self.localTracks[track.id];
+		return new RTCRtpSenderShim({
+			pc: this,
+			track: track,
+			params: {} as RTCRtpSendParameters
 		});
-	});
-
-	exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addStream', [this.pcId, stream.id]);
-};
-
-RTCPeerConnection.prototype.removeStream = function (stream) {
-	var self = this;
-
-	if (isClosed.call(this)) {
-		throw new Errors.InvalidStateError('peerconnection is closed');
 	}
 
-	debug('removeStream()');
-
-	if (!(stream instanceof MediaStream.originalMediaStream)) {
-		throw new Error('removeStream() must be called with a MediaStream instance as argument');
-	}
-
-	if (!this.localStreams[stream.id]) {
-		debugerror('removeStream() | given stream not present in local streams');
-		return;
-	}
-
-	delete this.localStreams[stream.id];
-
-	stream.getTracks().forEach(function (track) {
-		delete self.localTracks[track.id];
-	});
-
-	exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_removeStream', [this.pcId, stream.id]);
-};
-
-RTCPeerConnection.prototype.createDataChannel = function (label, options) {
-	if (isClosed.call(this)) {
-		throw new Errors.InvalidStateError('peerconnection is closed');
-	}
-
-	debug('createDataChannel() [label:%s, options:%o]', label, options);
-
-	return new RTCDataChannel(this, label, options);
-};
-
-RTCPeerConnection.prototype.createDTMFSender = function (track) {
-	if (isClosed.call(this)) {
-		throw new Errors.InvalidStateError('peerconnection is closed');
-	}
-
-	debug('createDTMFSender() [track:%o]', track);
-
-	return new RTCDTMFSender(this, track);
-};
-
-RTCPeerConnection.prototype.getStats = function (selector) {
-	// Detect callback usage to assist 5.0.1 to 5.0.2 migration
-	// TODO remove on 6.0.0
-	Errors.detectDeprecatedCallbaksUsage('RTCPeerConnection.prototype.getStats', arguments);
-
-	var self = this;
-
-	if (selector && !(selector instanceof MediaStreamTrack)) {
-		throw new Error(
-			'getStats() must be called with null or a valid MediaStreamTrack instance as argument'
-		);
-	}
-
-	if (isClosed.call(this)) {
-		throw new Errors.InvalidStateError('peerconnection is closed');
-	}
-
-	// debug('getStats() [selector:%o]', selector);
-
-	return new Promise(function (resolve, reject) {
-		function onResultOK(array) {
-			if (isClosed.call(self)) {
-				return;
-			}
-
-			var res = [];
-			array.forEach(function (stat) {
-				res.push(new RTCStatsReport(stat));
-			});
-			resolve(new RTCStatsResponse(res));
+	removeTrack(sender: RTCRtpSenderShim) {
+		if (!(sender instanceof RTCRtpSenderShim)) {
+			throw new Error(
+				'removeTrack() must be called with a RTCRtpSender instance as argument'
+			);
 		}
 
-		function onResultError(error) {
-			if (isClosed.call(self)) {
-				return;
-			}
+		const track = sender.track;
 
-			debugerror('getStats() | failure: %s', error);
-			reject(new global.DOMException(error));
+		if (!track) {
+			return;
 		}
 
-		exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_getStats', [
-			self.pcId,
-			selector ? selector.id : null
+		const stream = Object.values(this.localStreams).find((localStream) => {
+			localStream.getTracks().some((localTrack) => localTrack.id === track.id);
+		});
+
+		stream?.removeTrack(track);
+		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_removeTrack', [
+			this.pcId,
+			track.id,
+			stream?.id ?? null
 		]);
-	});
-};
 
-RTCPeerConnection.prototype.close = function () {
-	if (isClosed.call(this)) {
-		return;
+		delete this.localTracks[track.id];
 	}
 
-	debug('close()');
+	getStreamById(id: string) {
+		debug('getStreamById()');
 
-	exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_close', [this.pcId]);
-};
+		return this.localStreams[id] || this.remoteStreams[id] || null;
+	}
+
+	addStream(stream: MediaStreamShim) {
+		if (this.isClosed()) {
+			throw new Errors.InvalidStateError('peerconnection is closed');
+		}
+
+		debug('addStream()');
+
+		if (!(stream instanceof originalMediaStream)) {
+			throw new Error('addStream() must be called with a MediaStream instance as argument');
+		}
+
+		if (this.localStreams[stream.id]) {
+			debugerror('addStream() | given stream already in present in local streams');
+			return;
+		}
+
+		this.localStreams[stream.id] = stream;
+
+		stream.addedToConnection = true;
+
+		stream.getTracks().forEach((track) => {
+			this.localTracks[track.id] = track;
+			track.addEventListener('ended', () => {
+				delete this.localTracks[track.id];
+			});
+		});
+
+		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addStream', [this.pcId, stream.id]);
+	}
+
+	removeStream(stream: MediaStreamShim) {
+		if (this.isClosed()) {
+			throw new Errors.InvalidStateError('peerconnection is closed');
+		}
+
+		debug('removeStream()');
+
+		if (!(stream instanceof originalMediaStream)) {
+			throw new Error(
+				'removeStream() must be called with a MediaStream instance as argument'
+			);
+		}
+
+		if (!this.localStreams[stream.id]) {
+			debugerror('removeStream() | given stream not present in local streams');
+			return;
+		}
+
+		delete this.localStreams[stream.id];
+
+		stream.getTracks().forEach((track) => {
+			delete this.localTracks[track.id];
+		});
+
+		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_removeStream', [this.pcId, stream.id]);
+	}
+
+	createDataChannel(label: string, options: RTCDataChannelInit) {
+		if (this.isClosed()) {
+			throw new Errors.InvalidStateError('peerconnection is closed');
+		}
+
+		debug('createDataChannel() [label:%s, options:%o]', label, options);
+
+		return new RTCDataChannelShim(this, label, options);
+	}
+
+	createDTMFSender(track: MediaStreamTrackShim) {
+		if (this.isClosed()) {
+			throw new Errors.InvalidStateError('peerconnection is closed');
+		}
+
+		debug('createDTMFSender() [track:%o]', track);
+
+		return new RTCDTMFSenderShim(this, track);
+	}
+
+	getStats(selector?: MediaStreamTrackShim | null): Promise<RTCStatsReport> {
+		// Detect callback usage to assist 5.0.1 to 5.0.2 migration
+		// TODO remove on 6.0.0
+		// eslint-disable-next-line prefer-rest-params
+		detectDeprecatedCallbaksUsage('RTCPeerConnection.prototype.getStats', arguments);
+
+		if (selector && !(selector instanceof MediaStreamTrackShim)) {
+			throw new Error(
+				'getStats() must be called with null or a valid MediaStreamTrack instance as argument'
+			);
+		}
+
+		if (this.isClosed()) {
+			throw new Errors.InvalidStateError('peerconnection is closed');
+		}
+
+		// debug('getStats() [selector:%o]', selector);
+
+		return new Promise((resolve, reject) => {
+			const onResultOK = (array: RTCStatsAsJSON[]) => {
+					if (this.isClosed()) {
+						return;
+					}
+
+					const stats = array.map((reportData) => new RTCStatsShim(reportData));
+					// TODO: this should resolve with a single Report, rather than a multi report Response
+					resolve(new RTCStatsReportShim(stats));
+				},
+				onResultError = (error: string) => {
+					if (this.isClosed()) {
+						return;
+					}
+
+					debugerror('getStats() | failure: %s', error);
+					reject(new global.DOMException(error));
+				};
+
+			exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_getStats', [
+				this.pcId,
+				selector ? selector.id : null
+			]);
+		});
+	}
+
+	close() {
+		if (this.isClosed()) {
+			return;
+		}
+
+		debug('close()');
+
+		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_close', [this.pcId]);
+	}
+
+	getConfiguration() {
+		return this.pcConfig;
+	}
+
+	isClosed() {
+		return this.signalingState === 'closed';
+	}
+
+	onEvent(data: PeerConnectionEvent) {
+		const type = data.type,
+			event = new Event(type);
+
+		Object.defineProperty(event, 'target', { value: this, enumerable: true });
+
+		debug('onEvent() | [type:%s, data:%o]', type, data);
+
+		switch (data.type) {
+			case 'signalingstatechange':
+				this.signalingState = data.signalingState;
+				break;
+
+			case 'icegatheringstatechange':
+				this.iceGatheringState = data.iceGatheringState;
+				break;
+
+			case 'iceconnectionstatechange':
+				this.iceConnectionState = data.iceConnectionState;
+
+				// Emit "connected" on remote streams if ICE connected.
+				if (data.iceConnectionState === 'connected') {
+					Object.values(this.remoteStreams).forEach((stream) => stream.emitConnected());
+				}
+				break;
+
+			case 'icecandidate':
+				if (data.candidate) {
+					(event as any).candidate = new RTCIceCandidateShim(data.candidate);
+				} else {
+					(event as any).candidate = null;
+				}
+				// Update _localDescription.
+				if (this._localDescription && data.localDescription) {
+					this._localDescription.type = data.localDescription.type;
+					this._localDescription.sdp = data.localDescription.sdp;
+				} else if (data.localDescription) {
+					this._localDescription = new RTCSessionDescriptionShim(data.localDescription);
+				}
+				break;
+
+			case 'negotiationneeded':
+				break;
+
+			case 'track':
+				const track = new MediaStreamTrackShim(data.track),
+					receiver = new RTCRtpReceiverShim({ pc: this, track }),
+					streams: MediaStreamShim[] = [];
+				(event as any).track = track;
+				(event as any).receiver = receiver;
+				(event as any).transceiver = new RTCRtpTransceiverShim({ receiver });
+				(event as any).streams = streams;
+
+				// Add stream only if available in case of Unified-Plan of track event without stream
+				if ('stream' in data && 'streamId' in data) {
+					const stream =
+						this.remoteStreams[data.streamId] || createMediaStream(data.stream);
+					streams.push(stream);
+				}
+
+				// Store remote track
+				this.remoteTracks[track.id] = track;
+				track.addEventListener('ended', () => {
+					delete this.remoteTracks[track.id];
+				});
+
+				break;
+
+			case 'addstream':
+				// Append to the remote streams.
+				const stream = (this.remoteStreams[data.streamId] =
+					this.remoteStreams[data.streamId] || createMediaStream(data.stream));
+
+				(event as any).stream = stream;
+
+				// Emit "connected" on the stream if ICE connected.
+				if (
+					this.iceConnectionState === 'connected' ||
+					this.iceConnectionState === 'completed'
+				) {
+					stream.emitConnected();
+				}
+				break;
+
+			case 'removestream':
+				(event as any).stream = this.remoteStreams[data.streamId];
+
+				// Remove from the remote streams.
+				delete this.remoteStreams[data.streamId];
+				break;
+
+			case 'datachannel':
+				const dataChannel = new RTCDataChannelShim(this, null, null, data.channel);
+				(event as any).channel = dataChannel;
+				break;
+		}
+
+		this.dispatchEvent(event);
+	}
+
+	/**
+	 * Additional, unimplemented members
+	 */
+	readonly canTrickleIceCandidates = null;
+	readonly currentLocalDescription = null;
+	readonly currentRemoteDescription = null;
+	readonly idpErrorInfo = null;
+	readonly idpLoginUrl = null;
+	onconnectionstatechange = null;
+	ondatachannel = null;
+	onicecandidateerror = null;
+	onicegatheringstatechange = null;
+	onsignalingstatechange = null;
+	onstatsended = null;
+	readonly peerIdentity = new Promise<RTCIdentityAssertion>(() => {
+		// don't return an identity since we don't actually have it
+	});
+	readonly pendingLocalDescription = null;
+	readonly pendingRemoteDescription = null;
+	readonly sctp = null;
+
+	addTransceiver(
+		trackOrKind: MediaStreamTrackShim | string,
+		init?: RTCRtpTransceiverInit
+	): RTCRtpTransceiverShim {
+		void trackOrKind;
+		void init;
+		throw new Error('RTCPeerConnection.addTransceiver not implemented');
+	}
+	getIdentityAssertion(): Promise<string> {
+		return Promise.resolve('');
+	}
+	setConfiguration(configuration: RTCConfiguration): void {
+		void configuration;
+		throw new Error('RTCPeerConnection.setConfiguration not implemented');
+	}
+	setIdentityProvider(provider: string, options?: RTCIdentityProviderOptions): void {
+		void provider;
+		void options;
+		throw new Error('RTCPeerConnection.setIdentityProvider not implemented');
+	}
+	generateCertificate(keygenAlgorithm: AlgorithmIdentifier): Promise<RTCCertificate> {
+		void keygenAlgorithm;
+		throw new Error('RTCPeerConnection.generateCertificate not implemented');
+	}
+	getDefaultIceServers(): RTCIceServer[] {
+		throw new Error('RTCPeerConnection.getDefaultIceServers not implemented');
+	}
+}
 
 // Save current RTCPeerConnection.prototype
-RTCPeerConnection.prototype_descriptor = Object.getOwnPropertyDescriptors(
-	RTCPeerConnection.prototype
+(RTCPeerConnectionShim as any).prototype_descriptor = Object.getOwnPropertyDescriptors(
+	RTCPeerConnectionShim.prototype
 );
 
-/**
- * Private API.
- */
-function fixPcConfig(pcConfig) {
+function fixPcConfig(pcConfig: RTCConfiguration) {
 	if (!pcConfig) {
 		return {
 			iceServers: []
 		};
 	}
 
-	var iceServers = pcConfig.iceServers,
-		i,
-		len,
-		iceServer;
+	const iceServers = pcConfig.iceServers;
 
 	if (!Array.isArray(iceServers)) {
 		pcConfig.iceServers = [];
 		return pcConfig;
 	}
 
-	for (i = 0, len = iceServers.length; i < len; i++) {
-		iceServer = iceServers[i];
-
+	iceServers.forEach((iceServer: RTCIceServer & { url?: string }) => {
 		// THe Objective-C wrapper of WebRTC is old and does not implement .urls.
 		if (iceServer.url) {
-			continue;
+			return;
 		} else if (Array.isArray(iceServer.urls)) {
 			iceServer.url = iceServer.urls[0];
 		} else if (typeof iceServer.urls === 'string') {
 			iceServer.url = iceServer.urls;
 		}
-	}
+	});
 
 	return pcConfig;
-}
-
-function isClosed() {
-	return this.signalingState === 'closed';
-}
-
-function onEvent(data) {
-	var type = data.type,
-		self = this,
-		event = new Event(type),
-		dataChannel,
-		id;
-
-	Object.defineProperty(event, 'target', { value: self, enumerable: true });
-
-	debug('onEvent() | [type:%s, data:%o]', type, data);
-
-	switch (type) {
-		case 'signalingstatechange':
-			this.signalingState = data.signalingState;
-			break;
-
-		case 'icegatheringstatechange':
-			this.iceGatheringState = data.iceGatheringState;
-			break;
-
-		case 'iceconnectionstatechange':
-			this.iceConnectionState = data.iceConnectionState;
-
-			// Emit "connected" on remote streams if ICE connected.
-			if (data.iceConnectionState === 'connected') {
-				for (id in this.remoteStreams) {
-					if (this.remoteStreams.hasOwnProperty(id)) {
-						this.remoteStreams[id].emitConnected();
-					}
-				}
-			}
-			break;
-
-		case 'icecandidate':
-			if (data.candidate) {
-				event.candidate = new RTCIceCandidate(data.candidate);
-			} else {
-				event.candidate = null;
-			}
-			// Update _localDescription.
-			if (this._localDescription && data.localDescription) {
-				this._localDescription.type = data.localDescription.type;
-				this._localDescription.sdp = data.localDescription.sdp;
-			} else if (data.localDescription) {
-				this._localDescription = new RTCSessionDescription(data.localDescription);
-			}
-			break;
-
-		case 'negotiationneeded':
-			break;
-
-		case 'track':
-			var track = (event.track = new MediaStreamTrack(data.track));
-			event.receiver = new RTCRtpReceiver({ track: track });
-			event.transceiver = new RTCRtpTransceiver({ receiver: event.receiver });
-			event.streams = [];
-
-			// Add stream only if available in case of Unified-Plan of track event without stream
-			if (data.stream && data.streamId) {
-				var stream = this.remoteStreams[data.streamId] || MediaStream.create(data.stream);
-				event.streams.push(stream);
-			}
-
-			// Store remote track
-			this.remoteTracks[track.id] = track;
-			track.addEventListener('ended', function () {
-				delete self.remoteTracks[track.id];
-			});
-
-			break;
-
-		case 'addstream':
-			// Append to the remote streams.
-			this.remoteStreams[data.streamId] =
-				this.remoteStreams[data.streamId] || MediaStream.create(data.stream);
-
-			event.stream = this.remoteStreams[data.streamId];
-
-			// Emit "connected" on the stream if ICE connected.
-			if (
-				this.iceConnectionState === 'connected' ||
-				this.iceConnectionState === 'completed'
-			) {
-				event.stream.emitConnected();
-			}
-			break;
-
-		case 'removestream':
-			event.stream = this.remoteStreams[data.streamId];
-
-			// Remove from the remote streams.
-			delete this.remoteStreams[data.streamId];
-			break;
-
-		case 'datachannel':
-			dataChannel = new RTCDataChannel(this, null, null, data.channel);
-			event.channel = dataChannel;
-			break;
-	}
-
-	this.dispatchEvent(event);
 }

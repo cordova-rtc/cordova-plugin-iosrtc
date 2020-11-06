@@ -1,129 +1,105 @@
-/**
- * Expose the RTCDTMFSender class.
- */
-module.exports = RTCDTMFSender;
+import debugBase from 'debug';
+import { EventTargetShim } from './EventTarget';
+import { MediaStreamTrackShim } from './MediaStreamTrack';
+import { RTCPeerConnectionShim } from './RTCPeerConnection';
+import { randomNumber } from './randomNumber';
 
-/**
- * Dependencies.
- */
-var debug = require('debug')('iosrtc:RTCDTMFSender'),
-	debugerror = require('debug')('iosrtc:ERROR:RTCDTMFSender'),
+const debug = debugBase('iosrtc:RTCDTMFSender'),
 	exec = require('cordova/exec'),
-	randomNumber = require('random-number').generator({ min: 10000, max: 99999, integer: true }),
-	EventTarget = require('./EventTarget');
+	defaultDuration = 100,
+	defaultInterToneGap = 70;
 
-debugerror.log = console.warn.bind(console);
-
-function RTCDTMFSender(peerConnection, track) {
-	var self = this;
-
-	// Make this an EventTarget.
-	EventTarget.call(this);
-
-	debug('new() | [track:%o]', track);
-
-	// Public atributes (accessed as read-only properties)
-	this._track = track;
-	// TODO: read these from the properties exposed in Swift?
-	this._duration = 100;
-	this._interToneGap = 70;
-	this._toneBuffer = '';
-
-	// Private attributes.
-	this.peerConnection = peerConnection;
-	this.dsId = randomNumber();
-
-	function onResultOK(data) {
-		onEvent.call(self, data);
-	}
-
-	exec(onResultOK, null, 'iosrtcPlugin', 'RTCPeerConnection_createDTMFSender', [
-		this.peerConnection.pcId,
-		this.dsId,
-		this._track.id
-	]);
+interface ToneChangeEvent {
+	type: 'tonechange';
+	tone: string;
 }
 
-RTCDTMFSender.prototype = Object.create(EventTarget.prototype);
-RTCDTMFSender.prototype.constructor = RTCDTMFSender;
+export class RTCDTMFSenderShim extends EventTargetShim implements RTCDTMFSender {
+	// TODO: read these from the properties exposed in Swift?
+	private _duration = defaultDuration;
+	private _interToneGap = defaultInterToneGap;
+	private _toneBuffer = '';
+	private dsId = randomNumber();
 
-Object.defineProperty(RTCDTMFSender.prototype, 'canInsertDTMF', {
-	get: function () {
+	constructor(
+		private peerConnection: RTCPeerConnectionShim,
+		public readonly track: MediaStreamTrackShim
+	) {
+		super();
+		debug('new() | [track:%o]', track);
+
+		const onResultOK = (data: ToneChangeEvent) => this.onEvent(data);
+		exec(onResultOK, null, 'iosrtcPlugin', 'RTCPeerConnection_createDTMFSender', [
+			this.peerConnection.pcId,
+			this.dsId,
+			this._track.id
+		]);
+	}
+
+	get canInsertDTMF() {
 		// TODO: check if it's muted or stopped?
 		return this._track && this._track.kind === 'audio' && this._track.enabled;
 	}
-});
 
-Object.defineProperty(RTCDTMFSender.prototype, 'track', {
-	get: function () {
-		return this._track;
-	}
-});
-
-Object.defineProperty(RTCDTMFSender.prototype, 'duration', {
-	get: function () {
+	get duration() {
 		return this._duration;
 	}
-});
 
-Object.defineProperty(RTCDTMFSender.prototype, 'interToneGap', {
-	get: function () {
+	get interToneGap() {
 		return this._interToneGap;
 	}
-});
 
-Object.defineProperty(RTCDTMFSender.prototype, 'toneBuffer', {
-	get: function () {
+	get toneBuffer() {
 		return this._toneBuffer;
 	}
-});
 
-RTCDTMFSender.prototype.insertDTMF = function (tones, duration, interToneGap) {
-	if (isClosed.call(this)) {
-		return;
+	insertDTMF(tones: string, duration?: number, interToneGap?: number) {
+		if (this.isClosed()) {
+			return;
+		}
+
+		debug(
+			'insertDTMF() | [tones:%o, duration:%o, interToneGap:%o]',
+			tones,
+			duration,
+			interToneGap
+		);
+
+		if (!tones) {
+			return;
+		}
+
+		this._duration = duration || defaultDuration;
+		this._interToneGap = interToneGap || defaultInterToneGap;
+
+		const onResultOK = (data: any) => this.onEvent(data);
+		exec(onResultOK, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDTMFSender_insertDTMF', [
+			this.peerConnection.pcId,
+			this.dsId,
+			tones,
+			this._duration,
+			this._interToneGap
+		]);
 	}
 
-	debug('insertDTMF() | [tones:%o, duration:%o, interToneGap:%o]', tones, duration, interToneGap);
-
-	if (!tones) {
-		return;
+	isClosed() {
+		return this.peerConnection.signalingState === 'closed';
 	}
 
-	this._duration = duration || 100;
-	this._interToneGap = interToneGap || 70;
+	onEvent(data: ToneChangeEvent) {
+		const type = data.type;
 
-	var self = this;
+		debug('onEvent() | [type:%s, data:%o]', type, data);
 
-	function onResultOK(data) {
-		onEvent.call(self, data);
+		if (type === 'tonechange') {
+			const event = new Event('tonechange');
+			(event as any).tone = data.tone;
+			this.dispatchEvent(event);
+		}
 	}
 
-	exec(onResultOK, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDTMFSender_insertDTMF', [
-		this.peerConnection.pcId,
-		this.dsId,
-		tones,
-		this._duration,
-		this._interToneGap
-	]);
-};
-
-/**
- * Private API.
- */
-
-function isClosed() {
-	return this.peerConnection.signalingState === 'closed';
-}
-
-function onEvent(data) {
-	var type = data.type,
-		event;
-
-	debug('onEvent() | [type:%s, data:%o]', type, data);
-
-	if (type === 'tonechange') {
-		event = new Event('tonechange');
-		event.tone = data.tone;
-		this.dispatchEvent(event);
-	}
+	/**
+	 * Additional, unimplemented members
+	 */
+	ontonechange = null;
 }

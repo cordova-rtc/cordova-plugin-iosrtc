@@ -1,30 +1,22 @@
-/**
- * Variables.
- */
+import debugBase from 'debug';
+import { getUserMedia } from './getUserMedia';
+import { enumerateDevices } from './enumerateDevices';
+import { RTCPeerConnectionShim } from './RTCPeerConnection';
+import { RTCSessionDescriptionShim } from './RTCSessionDescription';
+import { RTCIceCandidateShim } from './RTCIceCandidate';
+import { MediaDevicesShim } from './MediaDevices';
+import { MediaStreamShim, mediaStreams, MediaStreamNativeShim } from './MediaStream';
+import { MediaStreamTrackShim } from './MediaStreamTrack';
+import {
+	initializeVideoElementsHandler,
+	observeVideo,
+	refreshVideos
+} from './videoElementsHandler';
+import { MediaStreamRenderer, mediaStreamRenderers } from './MediaStreamRenderer';
 
-var // Dictionary of MediaStreamRenderers.
-	// - key: MediaStreamRenderer id.
-	// - value: MediaStreamRenderer.
-	mediaStreamRenderers = {},
-	// Dictionary of MediaStreams.
-	// - key: MediaStream blobId.
-	// - value: MediaStream.
-	mediaStreams = {},
-	/**
-	 * Dependencies.
-	 */
-	debug = require('debug')('iosrtc'),
+const debug = debugBase('iosrtc'),
 	exec = require('cordova/exec'),
-	domready = require('domready'),
-	getUserMedia = require('./getUserMedia'),
-	enumerateDevices = require('./enumerateDevices'),
-	RTCPeerConnection = require('./RTCPeerConnection'),
-	RTCSessionDescription = require('./RTCSessionDescription'),
-	RTCIceCandidate = require('./RTCIceCandidate'),
-	MediaDevices = require('./MediaDevices'),
-	MediaStream = require('./MediaStream'),
-	MediaStreamTrack = require('./MediaStreamTrack'),
-	videoElementsHandler = require('./videoElementsHandler');
+	domready = require('domready');
 
 /**
  * Expose the iosrtc object.
@@ -34,18 +26,18 @@ module.exports = {
 	getUserMedia: getUserMedia,
 	enumerateDevices: enumerateDevices,
 	getMediaDevices: enumerateDevices, // TMP
-	RTCPeerConnection: RTCPeerConnection,
-	RTCSessionDescription: RTCSessionDescription,
-	RTCIceCandidate: RTCIceCandidate,
-	MediaDevices: MediaDevices,
-	MediaStream: MediaStream,
-	MediaStreamTrack: MediaStreamTrack,
+	RTCPeerConnection: RTCPeerConnectionShim,
+	RTCSessionDescription: RTCSessionDescriptionShim,
+	RTCIceCandidate: RTCIceCandidateShim,
+	MediaDevices: MediaDevicesShim,
+	MediaStream: MediaStreamShim,
+	MediaStreamTrack: MediaStreamTrackShim,
 
 	// Expose a function to refresh current videos rendering a MediaStream.
-	refreshVideos: videoElementsHandler.refreshVideos,
+	refreshVideos: refreshVideos,
 
 	// Expose a function to handle a video not yet inserted in the DOM.
-	observeVideo: videoElementsHandler.observeVideo,
+	observeVideo: observeVideo,
 
 	// Select audio output (earpiece or speaker).
 	selectAudioOutput: selectAudioOutput,
@@ -74,18 +66,14 @@ module.exports = {
 };
 
 domready(function () {
-	// Let the MediaStream class and the videoElementsHandler share same MediaStreams container.
-	MediaStream.setMediaStreams(mediaStreams);
-	videoElementsHandler(mediaStreams, mediaStreamRenderers);
+	initializeVideoElementsHandler();
 
 	// refreshVideos on device orientation change to resize peers video
 	// while local video will resize du orientation change
-	window.addEventListener('resize', function () {
-		videoElementsHandler.refreshVideos();
-	});
+	window.addEventListener('resize', () => refreshVideos());
 });
 
-function selectAudioOutput(output) {
+function selectAudioOutput(output: 'earpiece' | 'speaker') {
 	debug('selectAudioOutput() | [output:"%s"]', output);
 
 	switch (output) {
@@ -100,13 +88,17 @@ function selectAudioOutput(output) {
 	}
 }
 
-function turnOnSpeaker(isTurnOn) {
+function turnOnSpeaker(isTurnOn: boolean) {
 	debug('turnOnSpeaker() | [isTurnOn:"%s"]', isTurnOn);
 
 	exec(null, null, 'iosrtcPlugin', 'RTCTurnOnSpeaker', [isTurnOn]);
 }
 
-function requestPermission(needMic, needCamera, callback) {
+function requestPermission(
+	needMic: boolean,
+	needCamera: boolean,
+	callback: (permissionGranted: boolean) => any
+) {
 	debug('requestPermission() | [needMic:"%s", needCamera:"%s"]', needMic, needCamera);
 
 	function ok() {
@@ -125,14 +117,15 @@ function initAudioDevices() {
 	exec(null, null, 'iosrtcPlugin', 'initAudioDevices', []);
 }
 
-function callbackifyMethod(originalMethod) {
-	return function () {
-		var success,
-			failure,
-			originalArgs = Array.prototype.slice.call(arguments);
+function callbackifyMethod<T>(originalMethod: (...args: any[]) => Promise<T>) {
+	return function (this: any, ...args: any[]): Promise<T> {
+		// eslint-disable-next-line @typescript-eslint/ban-types
+		let success: Function | null = null,
+			// eslint-disable-next-line @typescript-eslint/ban-types
+			failure: Function | null = null;
 
-		var callbackArgs = [];
-		originalArgs.forEach(function (arg) {
+		const callbackArgs: any[] = [];
+		args.forEach(function (arg) {
 			if (typeof arg === 'function') {
 				if (!success) {
 					success = arg;
@@ -144,10 +137,10 @@ function callbackifyMethod(originalMethod) {
 			}
 		});
 
-		var promiseResult = originalMethod.apply(this, callbackArgs);
+		let promiseResult = originalMethod.apply(this, callbackArgs);
 
 		// Only apply then if callback success available
-		if (typeof success === 'function') {
+		if (success) {
 			promiseResult = promiseResult.then(success);
 		}
 
@@ -160,69 +153,77 @@ function callbackifyMethod(originalMethod) {
 	};
 }
 
-function callbackifyPrototype(proto, method) {
-	var originalMethod = proto[method];
+function callbackifyPrototype(proto: any, method: string) {
+	const originalMethod = proto[method];
 	proto[method] = callbackifyMethod(originalMethod);
 }
 
 function restoreCallbacksSupport() {
 	debug('restoreCallbacksSupport()');
-	getUserMedia = callbackifyMethod(getUserMedia);
-	enumerateDevices = callbackifyMethod(enumerateDevices);
-	callbackifyPrototype(RTCPeerConnection.prototype, 'createAnswer');
-	callbackifyPrototype(RTCPeerConnection.prototype, 'createOffer');
-	callbackifyPrototype(RTCPeerConnection.prototype, 'setRemoteDescription');
-	callbackifyPrototype(RTCPeerConnection.prototype, 'setLocalDescription');
-	callbackifyPrototype(RTCPeerConnection.prototype, 'addIceCandidate');
-	callbackifyPrototype(RTCPeerConnection.prototype, 'getStats');
+	callbackifyPrototype(RTCPeerConnectionShim.prototype, 'createAnswer');
+	callbackifyPrototype(RTCPeerConnectionShim.prototype, 'createOffer');
+	callbackifyPrototype(RTCPeerConnectionShim.prototype, 'setRemoteDescription');
+	callbackifyPrototype(RTCPeerConnectionShim.prototype, 'setLocalDescription');
+	callbackifyPrototype(RTCPeerConnectionShim.prototype, 'addIceCandidate');
+	callbackifyPrototype(RTCPeerConnectionShim.prototype, 'getStats');
 }
 
-function registerGlobals(doNotRestoreCallbacksSupport) {
+function registerGlobals(doNotRestoreCallbacksSupport = false) {
 	debug('registerGlobals()');
 
 	if (!global.navigator) {
-		global.navigator = {};
+		(global as any).navigator = {};
 	}
 
 	if (!navigator.mediaDevices) {
-		navigator.mediaDevices = new MediaDevices();
+		(navigator as any).mediaDevices = new MediaDevicesShim();
 	}
 
 	// Restore Callback support
+	let getUserMediaShim = getUserMedia,
+		enumerateDevicesShim = enumerateDevices;
 	if (!doNotRestoreCallbacksSupport) {
 		restoreCallbacksSupport();
+		getUserMediaShim = callbackifyMethod(getUserMedia);
+		enumerateDevicesShim = callbackifyMethod(enumerateDevices);
 	}
 
-	navigator.getUserMedia = getUserMedia;
-	navigator.webkitGetUserMedia = getUserMedia;
-	navigator.mediaDevices.getUserMedia = getUserMedia;
-	navigator.mediaDevices.enumerateDevices = enumerateDevices;
+	navigator.getUserMedia = getUserMediaShim;
+	(navigator as any).webkitGetUserMedia = getUserMediaShim;
+	navigator.mediaDevices.getUserMedia = getUserMediaShim;
+	navigator.mediaDevices.enumerateDevices = enumerateDevicesShim;
 
-	window.RTCPeerConnection = RTCPeerConnection;
-	window.webkitRTCPeerConnection = RTCPeerConnection;
-	window.RTCSessionDescription = RTCSessionDescription;
-	window.RTCIceCandidate = RTCIceCandidate;
-	window.MediaStream = MediaStream;
-	window.webkitMediaStream = MediaStream;
-	window.MediaStreamTrack = MediaStreamTrack;
+	(window as any).RTCPeerConnection = RTCPeerConnectionShim;
+	window.webkitRTCPeerConnection = RTCPeerConnectionShim;
+	(window as any).RTCSessionDescription = RTCSessionDescriptionShim;
+	window.RTCIceCandidate = RTCIceCandidateShim;
+	(window as any).MediaStream = MediaStreamNativeShim;
+	(window as any).webkitMediaStream = MediaStreamNativeShim;
+	(window.MediaStreamTrack as any) = MediaStreamTrackShim;
 
 	// Apply CanvasRenderingContext2D.drawImage monkey patch
-	var drawImage = CanvasRenderingContext2D.prototype.drawImage;
-	CanvasRenderingContext2D.prototype.drawImage = function (arg) {
-		var args = Array.prototype.slice.call(arguments);
-		var context = this;
+	const originalDrawImage = CanvasRenderingContext2D.prototype.drawImage;
+	CanvasRenderingContext2D.prototype.drawImage = function (
+		arg: CanvasImageSource & { render?: MediaStreamRenderer },
+		...additionalArgs: number[]
+	) {
 		if (arg instanceof HTMLVideoElement && arg.render) {
-			arg.render.save(function (data) {
-				var img = new window.Image();
-				img.addEventListener('load', function () {
-					args.splice(0, 1, img);
-					drawImage.apply(context, args);
+			arg.render.save((data) => {
+				const img = new window.Image();
+				img.addEventListener('load', () => {
+					originalDrawImage.apply(this, [
+						img,
+						...additionalArgs
+					] as CanvasDrawImage['drawImage']['arguments']);
 					img.src = null;
 				});
 				img.setAttribute('src', 'data:image/jpg;base64,' + data);
 			});
 		} else {
-			return drawImage.apply(context, args);
+			return originalDrawImage.apply(this, [
+				arg,
+				...additionalArgs
+			] as CanvasDrawImage['drawImage']['arguments']);
 		}
 	};
 }

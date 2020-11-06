@@ -1,32 +1,16 @@
-/**
- * Expose the MediaDeviceInfo class.
- */
-module.exports = MediaDeviceInfo;
+export class MediaDeviceInfoShim implements MediaDeviceInfo {
+	readonly deviceId = this.data.deviceId;
+	readonly kind = this.data.kind;
+	readonly label = this.data.label;
+	readonly groupId = this.data.groupId;
+	// SourceInfo old spec.
+	readonly id = this.data.deviceId;
+	// Deprecated, but useful until there is an alternative
+	readonly facing = '';
 
-function MediaDeviceInfo(data) {
-	data = data || {};
+	constructor(private data: MediaDeviceInfo) {}
 
-	Object.defineProperties(this, {
-		// MediaDeviceInfo spec.
-		deviceId: {
-			value: data.deviceId
-		},
-		kind: {
-			value: data.kind
-		},
-		label: {
-			value: data.label
-		},
-		groupId: {
-			value: data.groupId || ''
-		},
-		// SourceInfo old spec.
-		id: {
-			value: data.deviceId
-		},
-		// Deprecated, but useful until there is an alternative
-		facing: {
-			value: ''
-		}
-	});
+	toJSON(): any {
+		return this;
+	}
 }

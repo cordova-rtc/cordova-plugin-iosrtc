@@ -1,20 +1,32 @@
-/**
- * Expose the RTCStatsReport class.
- */
-module.exports = RTCStatsReport;
+import { RTCStatsShim } from './RTCStats';
 
-function RTCStatsReport(data) {
-	data = data || {};
+export class RTCStatsReportShim implements RTCStatsReport {
+	size = this.data.length;
 
-	this.id = data.reportId;
-	this.timestamp = data.timestamp;
-	this.type = data.type;
+	constructor(private data: RTCStatsShim[]) {}
 
-	this.names = function () {
-		return Object.keys(data.values);
-	};
+	result() {
+		return this.data;
+	}
 
-	this.stat = function (key) {
-		return data.values[key] || '';
-	};
+	keys() {
+		return this.data.map((rtcStats) => rtcStats.id);
+	}
+
+	get(id: string) {
+		return this.data.find((rtcStats) => rtcStats.id === id);
+	}
+
+	forEach(
+		callbackfn: (value: any, key: string, parent: RTCStatsReport) => void,
+		thisArg?: any
+	): void {
+		Object.values(this.data).forEach((rtcStats) => {
+			callbackfn.apply(thisArg, [rtcStats, rtcStats.id, this]);
+		});
+	}
+
+	namedItem() {
+		return null;
+	}
 }

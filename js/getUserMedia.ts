@@ -1,35 +1,30 @@
-/**
- * Expose the getUserMedia function.
- */
-module.exports = getUserMedia;
+import debugBase from 'debug';
+import { createMediaStream, MediaStreamShim, MediaStreamAsJSON } from './MediaStream';
+import { Errors, detectDeprecatedCallbaksUsage } from './Errors';
 
-/**
- * Dependencies.
- */
-var debug = require('debug')('iosrtc:getUserMedia'),
-	debugerror = require('debug')('iosrtc:ERROR:getUserMedia'),
-	exec = require('cordova/exec'),
-	MediaStream = require('./MediaStream'),
-	Errors = require('./Errors');
+const exec = require('cordova/exec'),
+	debug = debugBase('iosrtc:getUserMedia'),
+	debugerror = debugBase('iosrtc:ERROR:getUserMedia');
 
-function isPositiveInteger(number) {
+function isPositiveInteger(number: number) {
 	return typeof number === 'number' && number >= 0 && number % 1 === 0;
 }
 
-function isPositiveFloat(number) {
+function isPositiveFloat(number: number) {
 	return typeof number === 'number' && number >= 0;
 }
 
-function getUserMedia(constraints) {
+export function getUserMedia(constraints: any): Promise<MediaStreamShim> {
 	// Detect callback usage to assist 5.0.1 to 5.0.2 migration
 	// TODO remove on 6.0.0
-	Errors.detectDeprecatedCallbaksUsage('cordova.plugins.iosrtc.getUserMedia', arguments);
+	// eslint-disable-next-line prefer-rest-params
+	detectDeprecatedCallbaksUsage('cordova.plugins.iosrtc.getUserMedia', arguments);
 
 	debug('[original constraints:%o]', constraints);
 
-	var audioRequested = false,
-		videoRequested = false,
-		newConstraints = {};
+	let audioRequested = false,
+		videoRequested = false;
+	const newConstraints: any = {};
 
 	if (
 		typeof constraints !== 'object' ||
@@ -147,7 +142,7 @@ function getUserMedia(constraints) {
 			(typeof constraints.video.optional === 'object' ||
 				typeof constraints.video.mandatory === 'object')
 		) {
-			var videoConstraints = {};
+			let videoConstraints: MediaTrackConstraints & { [key: string]: any } = {};
 
 			if (Array.isArray(constraints.video.optional)) {
 				/*
@@ -174,8 +169,8 @@ function getUserMedia(constraints) {
 				*/
 
 				// Convert optional array to object
-				Object.values(constraints.video.optional).forEach(function (optional) {
-					var optionalConstraintName = Object.keys(optional)[0],
+				Object.values(constraints.video.optional as any[]).forEach((optional) => {
+					const optionalConstraintName = Object.keys(optional)[0],
 						optionalConstraintValue = optional[optionalConstraintName];
 					videoConstraints[optionalConstraintName] = Array.isArray(
 						optionalConstraintValue
@@ -217,13 +212,13 @@ function getUserMedia(constraints) {
 
 			if (isPositiveFloat(videoConstraints.minFrameRate)) {
 				newConstraints.video.frameRate = {
-					min: parseFloat(videoConstraints.minFrameRate, 10)
+					min: parseFloat(videoConstraints.minFrameRate)
 				};
 			}
 
 			if (isPositiveFloat(videoConstraints.maxFrameRate)) {
 				newConstraints.video.frameRate = newConstraints.video.frameRate || {};
-				newConstraints.video.frameRate.max = parseFloat(videoConstraints.maxFrameRate, 10);
+				newConstraints.video.frameRate.max = parseFloat(videoConstraints.maxFrameRate);
 			}
 		}
 
@@ -302,16 +297,10 @@ function getUserMedia(constraints) {
 		if (typeof constraints.video.frameRate === 'object') {
 			newConstraints.video.frameRate = {};
 			if (isPositiveFloat(constraints.video.frameRate.min)) {
-				newConstraints.video.frameRate.min = parseFloat(
-					constraints.video.frameRate.min,
-					10
-				);
+				newConstraints.video.frameRate.min = parseFloat(constraints.video.frameRate.min);
 			}
 			if (isPositiveFloat(constraints.video.frameRate.max)) {
-				newConstraints.video.frameRate.max = parseFloat(
-					constraints.video.frameRate.max,
-					10
-				);
+				newConstraints.video.frameRate.max = parseFloat(constraints.video.frameRate.max);
 			}
 			if (isPositiveInteger(constraints.video.frameRate.exact)) {
 				newConstraints.video.frameRate.exact = constraints.video.frameRate.exact;
@@ -322,7 +311,7 @@ function getUserMedia(constraints) {
 		} else if (isPositiveFloat(constraints.video.frameRate)) {
 			// Get requested frameRate double as exact
 			newConstraints.video.frameRate = {
-				exact: parseFloat(constraints.video.frameRate, 10)
+				exact: parseFloat(constraints.video.frameRate)
 			};
 		}
 
@@ -332,14 +321,12 @@ function getUserMedia(constraints) {
 			newConstraints.video.aspectRatio = {};
 			if (isPositiveFloat(constraints.video.aspectRatio.min)) {
 				newConstraints.video.aspectRatio.min = parseFloat(
-					constraints.video.aspectRatio.min,
-					10
+					constraints.video.aspectRatio.min
 				);
 			}
 			if (isPositiveFloat(constraints.video.aspectRatio.max)) {
 				newConstraints.video.aspectRatio.max = parseFloat(
-					constraints.video.aspectRatio.max,
-					10
+					constraints.video.aspectRatio.max
 				);
 			}
 			if (isPositiveInteger(constraints.video.aspectRatio.exact)) {
@@ -350,7 +337,7 @@ function getUserMedia(constraints) {
 			}
 		} else if (isPositiveFloat(constraints.video.aspectRatio)) {
 			newConstraints.video.aspectRatio = {
-				exact: parseFloat(constraints.video.aspectRatio, 10)
+				exact: parseFloat(constraints.video.aspectRatio)
 			};
 		}
 
@@ -441,15 +428,15 @@ function getUserMedia(constraints) {
 	debug('[computed constraints:%o]', newConstraints);
 
 	return new Promise(function (resolve, reject) {
-		function onResultOK(data) {
+		function onResultOK(data: { stream: MediaStreamAsJSON }) {
 			debug('getUserMedia() | success');
-			var stream = MediaStream.create(data.stream);
+			const stream = createMediaStream(data.stream);
 			resolve(stream);
 			// Emit "connected" on the stream.
 			stream.emitConnected();
 		}
 
-		function onResultError(error) {
+		function onResultError(error: string) {
 			debugerror('getUserMedia() | failure: %s', error);
 			reject(new Errors.MediaStreamError('getUserMedia() failed: ' + error));
 		}

@@ -1,261 +1,313 @@
-/**
- * Expose the RTCDataChannel class.
- */
-module.exports = RTCDataChannel;
+import debugBase from 'debug';
+import { EventTargetShim } from './EventTarget';
+import { RTCPeerConnectionShim } from './RTCPeerConnection';
+import { randomNumber } from './randomNumber';
 
-/**
- * Dependencies.
- */
-var debug = require('debug')('iosrtc:RTCDataChannel'),
-	debugerror = require('debug')('iosrtc:ERROR:RTCDataChannel'),
-	exec = require('cordova/exec'),
-	randomNumber = require('random-number').generator({ min: 10000, max: 99999, integer: true }),
-	EventTarget = require('./EventTarget');
-
+const exec = require('cordova/exec'),
+	debug = debugBase('iosrtc:RTCDataChannel'),
+	debugerror = debugBase('iosrtc:ERROR:RTCDataChannel');
 debugerror.log = console.warn.bind(console);
 
-function RTCDataChannel(peerConnection, label, options, dataFromEvent) {
-	var self = this;
+export type RTCDataChannelAsJSON = { dcId: number } & Pick<
+	RTCDataChannel,
+	| 'label'
+	| 'ordered'
+	| 'maxPacketLifeTime'
+	| 'maxRetransmits'
+	| 'protocol'
+	| 'negotiated'
+	| 'id'
+	| 'readyState'
+	| 'bufferedAmount'
+>;
 
-	// Make this an EventTarget.
-	EventTarget.call(this);
+interface StateChangeEvent {
+	type: 'statechange';
+	readyState: RTCDataChannelState;
+}
 
-	// Created via pc.createDataChannel().
-	if (!dataFromEvent) {
-		debug('new() | [label:%o, options:%o]', label, options);
+interface NewChannelEvent {
+	type: 'new';
+	channel: {
+		ordered: boolean;
+		maxPacketLifeTime: number | null;
+		maxRetransmits: number | null;
+		protocol: string;
+		negotiated: boolean;
+		id: number | null;
+		readyState: RTCDataChannelState;
+		bufferedAmount: number;
+	};
+}
 
-		if (typeof label !== 'string') {
-			label = '';
-		}
+interface BufferedAmountEvent {
+	type: 'bufferedamount';
+	bufferedAmount: number;
+}
 
-		options = options || {};
+interface MessageEvent {
+	type: 'message';
+	message: string;
+}
 
-		if (
-			options.hasOwnProperty('maxPacketLifeTime') &&
-			options.hasOwnProperty('maxRetransmits')
-		) {
-			throw new SyntaxError('both maxPacketLifeTime and maxRetransmits can not be present');
-		}
+type BinaryMessage = ArrayBuffer;
 
-		if (options.hasOwnProperty('id')) {
-			if (typeof options.id !== 'number' || isNaN(options.id) || options.id < 0) {
-				throw new SyntaxError('id must be a number');
+type RTCDataChannelUpdateEvent =
+	| StateChangeEvent
+	| NewChannelEvent
+	| BufferedAmountEvent
+	| MessageEvent;
+
+export class RTCDataChannelShim extends EventTargetShim implements RTCDataChannel {
+	label: string;
+	bufferedAmount: number;
+	bufferedAmountLowThreshold = 0;
+	id: number | null;
+	maxPacketLifeTime: number | null;
+	maxRetransmits: number | null;
+	negotiated: boolean;
+	ordered: boolean;
+	protocol: string;
+	readyState: RTCDataChannelState;
+	dcId: number;
+
+	constructor(
+		private peerConnection: RTCPeerConnectionShim,
+		label: string | null,
+		options: Partial<RTCDataChannel> | null,
+		dataFromEvent?: RTCDataChannelAsJSON
+	) {
+		super();
+
+		const onResultOK = (data: RTCDataChannelUpdateEvent | BinaryMessage) => {
+			if ('type' in data) {
+				this.onEvent(data);
+			} else {
+				// Special handler for received binary message.
+				this.onEvent({
+					type: 'message',
+					message: data
+				});
 			}
-			// TODO:
-			//   https://code.google.com/p/webrtc/issues/detail?id=4618
-			if (options.id > 1023) {
+		};
+
+		// Created via pc.createDataChannel().
+		if (!dataFromEvent) {
+			debug('new() | [label:%o, options:%o]', label, options);
+
+			if (typeof label !== 'string') {
+				label = '';
+			}
+
+			options = options || {};
+
+			if (
+				options.hasOwnProperty('maxPacketLifeTime') &&
+				options.hasOwnProperty('maxRetransmits')
+			) {
 				throw new SyntaxError(
-					'id cannot be greater than 1023 (https://code.google.com/p/webrtc/issues/detail?id=4614)'
+					'both maxPacketLifeTime and maxRetransmits can not be present'
 				);
 			}
+
+			if (options.hasOwnProperty('id')) {
+				if (typeof options.id !== 'number' || isNaN(options.id) || options.id < 0) {
+					throw new SyntaxError('id must be a number');
+				}
+				// TODO:
+				//   https://code.google.com/p/webrtc/issues/detail?id=4618
+				if (options.id > 1023) {
+					throw new SyntaxError(
+						'id cannot be greater than 1023 (https://code.google.com/p/webrtc/issues/detail?id=4614)'
+					);
+				}
+			}
+
+			this.label = label;
+			this.ordered = options.hasOwnProperty('ordered') ? !!options.ordered : true;
+			this.maxPacketLifeTime = options.hasOwnProperty('maxPacketLifeTime')
+				? Number(options.maxPacketLifeTime)
+				: null;
+			this.maxRetransmits = options.hasOwnProperty('maxRetransmits')
+				? Number(options.maxRetransmits)
+				: null;
+			this.protocol = options.hasOwnProperty('protocol') ? String(options.protocol) : '';
+			this.negotiated = options.hasOwnProperty('negotiated') ? !!options.negotiated : false;
+			this.id = options.hasOwnProperty('id') ? Number(options.id) : null;
+			this.readyState = 'connecting';
+			this.bufferedAmount = 0;
+			this.dcId = randomNumber();
+
+			exec(onResultOK, null, 'iosrtcPlugin', 'RTCPeerConnection_createDataChannel', [
+				this.peerConnection.pcId,
+				this.dcId,
+				label,
+				options
+			]);
+		} else {
+			// Created via pc.ondatachannel.
+			debug('new() | [dataFromEvent:%o]', dataFromEvent);
+
+			this.label = dataFromEvent.label;
+			this.ordered = dataFromEvent.ordered;
+			this.maxPacketLifeTime = dataFromEvent.maxPacketLifeTime;
+			this.maxRetransmits = dataFromEvent.maxRetransmits;
+			this.protocol = dataFromEvent.protocol;
+			this.negotiated = dataFromEvent.negotiated;
+			this.id = dataFromEvent.id;
+			this.readyState = dataFromEvent.readyState;
+			this.bufferedAmount = dataFromEvent.bufferedAmount;
+			this.dcId = dataFromEvent.dcId;
+
+			exec(onResultOK, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_setListener', [
+				this.peerConnection.pcId,
+				this.dcId
+			]);
+		}
+	}
+
+	// Just 'arraybuffer' binaryType is implemented in Chromium.
+	get binaryType() {
+		return 'arraybuffer';
+	}
+	set binaryType(type) {
+		if (type !== 'arraybuffer') {
+			throw new Error('just "arraybuffer" is implemented for binaryType');
+		}
+	}
+
+	send = (data: string | Blob | ArrayBuffer | ArrayBufferView) => {
+		if (this.isClosed() || this.readyState !== 'open') {
+			return;
 		}
 
-		// Public atributes.
-		this.label = label;
-		this.ordered = options.hasOwnProperty('ordered') ? !!options.ordered : true;
-		this.maxPacketLifeTime = options.hasOwnProperty('maxPacketLifeTime')
-			? Number(options.maxPacketLifeTime)
-			: null;
-		this.maxRetransmits = options.hasOwnProperty('maxRetransmits')
-			? Number(options.maxRetransmits)
-			: null;
-		this.protocol = options.hasOwnProperty('protocol') ? String(options.protocol) : '';
-		this.negotiated = options.hasOwnProperty('negotiated') ? !!options.negotiated : false;
-		this.id = options.hasOwnProperty('id') ? Number(options.id) : undefined;
-		this.readyState = 'connecting';
-		this.bufferedAmount = 0;
-		this.bufferedAmountLowThreshold = 0;
+		debug('send() | [data:%o]', data);
 
-		// Private attributes.
-		this.peerConnection = peerConnection;
-		this.dcId = randomNumber();
+		if (!data) {
+			return;
+		}
 
-		exec(onResultOK, null, 'iosrtcPlugin', 'RTCPeerConnection_createDataChannel', [
-			this.peerConnection.pcId,
-			this.dcId,
-			label,
-			options
-		]);
-	} else {
-		// Created via pc.ondatachannel.
-		debug('new() | [dataFromEvent:%o]', dataFromEvent);
+		if (typeof data === 'string' || data instanceof String) {
+			exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendString', [
+				this.peerConnection.pcId,
+				this.dcId,
+				data
+			]);
+		} else if (window.ArrayBuffer && data instanceof window.ArrayBuffer) {
+			exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendBinary', [
+				this.peerConnection.pcId,
+				this.dcId,
+				data
+			]);
+		} else if (
+			(window.Int8Array && data instanceof window.Int8Array) ||
+			(window.Uint8Array && data instanceof window.Uint8Array) ||
+			(window.Uint8ClampedArray && data instanceof window.Uint8ClampedArray) ||
+			(window.Int16Array && data instanceof window.Int16Array) ||
+			(window.Uint16Array && data instanceof window.Uint16Array) ||
+			(window.Int32Array && data instanceof window.Int32Array) ||
+			(window.Uint32Array && data instanceof window.Uint32Array) ||
+			(window.Float32Array && data instanceof window.Float32Array) ||
+			(window.Float64Array && data instanceof window.Float64Array) ||
+			(window.DataView && data instanceof window.DataView)
+		) {
+			exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendBinary', [
+				this.peerConnection.pcId,
+				this.dcId,
+				data.buffer
+			]);
+		} else {
+			throw new Error('invalid data type');
+		}
+	};
 
-		// Public atributes.
-		this.label = dataFromEvent.label;
-		this.ordered = dataFromEvent.ordered;
-		this.maxPacketLifeTime = dataFromEvent.maxPacketLifeTime;
-		this.maxRetransmits = dataFromEvent.maxRetransmits;
-		this.protocol = dataFromEvent.protocol;
-		this.negotiated = dataFromEvent.negotiated;
-		this.id = dataFromEvent.id;
-		this.readyState = dataFromEvent.readyState;
-		this.bufferedAmount = dataFromEvent.bufferedAmount;
-		this.bufferedAmountLowThreshold = dataFromEvent.bufferedAmountLowThreshold;
+	close() {
+		if (this.isClosed()) {
+			return;
+		}
 
-		// Private attributes.
-		this.peerConnection = peerConnection;
-		this.dcId = dataFromEvent.dcId;
+		debug('close()');
 
-		exec(onResultOK, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_setListener', [
+		this.readyState = 'closing';
+
+		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_close', [
 			this.peerConnection.pcId,
 			this.dcId
 		]);
 	}
 
-	function onResultOK(data) {
-		if (data.type) {
-			onEvent.call(self, data);
-		} else {
-			// Special handler for received binary message.
-			onEvent.call(self, {
-				type: 'message',
-				message: data
-			});
-		}
-	}
-}
-
-RTCDataChannel.prototype = Object.create(EventTarget.prototype);
-RTCDataChannel.prototype.constructor = RTCDataChannel;
-
-// Just 'arraybuffer' binaryType is implemented in Chromium.
-Object.defineProperty(RTCDataChannel.prototype, 'binaryType', {
-	get: function () {
-		return 'arraybuffer';
-	},
-	set: function (type) {
-		if (type !== 'arraybuffer') {
-			throw new Error('just "arraybuffer" is implemented for binaryType');
-		}
-	}
-});
-
-RTCDataChannel.prototype.send = function (data) {
-	if (isClosed.call(this) || this.readyState !== 'open') {
-		return;
+	private isClosed() {
+		return (
+			this.readyState === 'closed' ||
+			this.readyState === 'closing' ||
+			this.peerConnection.signalingState === 'closed'
+		);
 	}
 
-	debug('send() | [data:%o]', data);
+	private onEvent(data: RTCDataChannelUpdateEvent | { type: 'message'; message: ArrayBuffer }) {
+		const type = data.type;
 
-	if (!data) {
-		return;
-	}
+		debug('onEvent() | [type:%s, data:%o]', type, data);
 
-	if (typeof data === 'string' || data instanceof String) {
-		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendString', [
-			this.peerConnection.pcId,
-			this.dcId,
-			data
-		]);
-	} else if (window.ArrayBuffer && data instanceof window.ArrayBuffer) {
-		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendBinary', [
-			this.peerConnection.pcId,
-			this.dcId,
-			data
-		]);
-	} else if (
-		(window.Int8Array && data instanceof window.Int8Array) ||
-		(window.Uint8Array && data instanceof window.Uint8Array) ||
-		(window.Uint8ClampedArray && data instanceof window.Uint8ClampedArray) ||
-		(window.Int16Array && data instanceof window.Int16Array) ||
-		(window.Uint16Array && data instanceof window.Uint16Array) ||
-		(window.Int32Array && data instanceof window.Int32Array) ||
-		(window.Uint32Array && data instanceof window.Uint32Array) ||
-		(window.Float32Array && data instanceof window.Float32Array) ||
-		(window.Float64Array && data instanceof window.Float64Array) ||
-		(window.DataView && data instanceof window.DataView)
-	) {
-		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendBinary', [
-			this.peerConnection.pcId,
-			this.dcId,
-			data.buffer
-		]);
-	} else {
-		throw new Error('invalid data type');
-	}
-};
+		switch (data.type) {
+			case 'new':
+				// Update properties and exit without firing the event.
+				this.ordered = data.channel.ordered;
+				this.maxPacketLifeTime = data.channel.maxPacketLifeTime;
+				this.maxRetransmits = data.channel.maxRetransmits;
+				this.protocol = data.channel.protocol;
+				this.negotiated = data.channel.negotiated;
+				this.id = data.channel.id;
+				this.readyState = data.channel.readyState;
+				this.bufferedAmount = data.channel.bufferedAmount;
+				break;
 
-RTCDataChannel.prototype.close = function () {
-	if (isClosed.call(this)) {
-		return;
-	}
+			case 'statechange':
+				this.readyState = data.readyState;
 
-	debug('close()');
+				switch (data.readyState) {
+					case 'connecting':
+						break;
+					case 'open':
+						this.dispatchEvent(new Event('open'));
+						break;
+					case 'closing':
+						break;
+					case 'closed':
+						this.dispatchEvent(new Event('close'));
+						break;
+				}
+				break;
 
-	this.readyState = 'closing';
-
-	exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_close', [
-		this.peerConnection.pcId,
-		this.dcId
-	]);
-};
-
-/**
- * Private API.
- */
-
-function isClosed() {
-	return (
-		this.readyState === 'closed' ||
-		this.readyState === 'closing' ||
-		this.peerConnection.signalingState === 'closed'
-	);
-}
-
-function onEvent(data) {
-	var type = data.type,
-		event;
-
-	debug('onEvent() | [type:%s, data:%o]', type, data);
-
-	switch (type) {
-		case 'new':
-			// Update properties and exit without firing the event.
-			this.ordered = data.channel.ordered;
-			this.maxPacketLifeTime = data.channel.maxPacketLifeTime;
-			this.maxRetransmits = data.channel.maxRetransmits;
-			this.protocol = data.channel.protocol;
-			this.negotiated = data.channel.negotiated;
-			this.id = data.channel.id;
-			this.readyState = data.channel.readyState;
-			this.bufferedAmount = data.channel.bufferedAmount;
-			break;
-
-		case 'statechange':
-			this.readyState = data.readyState;
-
-			switch (data.readyState) {
-				case 'connecting':
-					break;
-				case 'open':
-					this.dispatchEvent(new Event('open'));
-					break;
-				case 'closing':
-					break;
-				case 'closed':
-					this.dispatchEvent(new Event('close'));
-					break;
-			}
-			break;
-
-		case 'message':
-			event = new Event('message');
-			event.data = data.message;
-			this.dispatchEvent(event);
-			break;
-
-		case 'bufferedamount':
-			this.bufferedAmount = data.bufferedAmount;
-
-			if (
-				this.bufferedAmountLowThreshold > 0 &&
-				this.bufferedAmountLowThreshold > this.bufferedAmount
-			) {
-				event = new Event('bufferedamountlow');
-				event.bufferedAmount = this.bufferedAmount;
+			case 'message':
+				const event = new Event('message');
+				(event as any).data = data.message;
 				this.dispatchEvent(event);
-			}
+				break;
 
-			break;
+			case 'bufferedamount':
+				this.bufferedAmount = data.bufferedAmount;
+
+				if (
+					this.bufferedAmountLowThreshold > 0 &&
+					this.bufferedAmountLowThreshold > this.bufferedAmount
+				) {
+					const event = new Event('bufferedamountlow');
+					(event as any).bufferedAmount = this.bufferedAmount;
+					this.dispatchEvent(event);
+				}
+
+				break;
+		}
 	}
+
+	/**
+	 * Additional, unimplemented members
+	 */
+	readonly priority = 'medium'; // priority not implemented on swift side
+	onbufferedamountlow = null;
+	onclose = null;
+	onerror = null;
+	onmessage = null;
+	onopen = null;
 }

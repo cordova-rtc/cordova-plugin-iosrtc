@@ -1,12 +1,18 @@
-/**
- * Expose the RTCSessionDescription class.
- */
-module.exports = RTCSessionDescription;
+export interface RTCSessionDescriptionAsJSON {
+	sdp: string;
+	type: RTCSdpType;
+}
 
-function RTCSessionDescription(data) {
-	data = data || {};
+export class RTCSessionDescriptionShim implements RTCSessionDescription {
+	sdp: string;
+	type: RTCSdpType;
 
-	// Public atributes.
-	this.type = data.type;
-	this.sdp = data.sdp;
+	constructor(descriptionInitDict: RTCSessionDescriptionAsJSON) {
+		this.sdp = descriptionInitDict.sdp;
+		this.type = descriptionInitDict.type;
+	}
+
+	toJSON() {
+		return this;
+	}
 }

@@ -1,148 +1,94 @@
-/**
- * Expose a function that must be called when the library is loaded.
- * And also a helper function.
- */
-module.exports = videoElementsHandler;
-module.exports.observeVideo = observeVideo;
-module.exports.refreshVideos = refreshVideos;
+import debugBase from 'debug';
+import { MediaStreamRenderer, mediaStreamRenderers } from './MediaStreamRenderer';
+import { MediaStreamShim, mediaStreams } from './MediaStream';
 
-/**
- * Dependencies.
- */
-var debug = require('debug')('iosrtc:videoElementsHandler'),
-	MediaStreamRenderer = require('./MediaStreamRenderer'),
+interface NodeWithVideoHandle extends Node {
+	_iosrtcVideoHandled?: true;
+}
+
+interface HTMLVideoHandle extends HTMLVideoElement {
+	_iosrtcMediaStreamRendererId?: number;
+}
+
+const debug = debugBase('iosrtc:videoElementsHandler'),
 	/**
 	 * Local variables.
 	 */
-
 	// RegExp for Blob URI.
 	BLOB_INTERNAL_URI_REGEX = new RegExp(/^blob:/),
-	// Dictionary of MediaStreamRenderers (provided via module argument).
-	// - key: MediaStreamRenderer id.
-	// - value: MediaStreamRenderer.
-	mediaStreamRenderers,
-	// Dictionary of MediaStreams (provided via module argument).
-	// - key: MediaStream blobId.
-	// - value: MediaStream.
-	mediaStreams,
 	// Video element mutation observer.
-	videoObserver = new MutationObserver(function (mutations) {
-		var i, numMutations, mutation, video;
-
-		for (i = 0, numMutations = mutations.length; i < numMutations; i++) {
-			mutation = mutations[i];
-
+	videoObserver = new MutationObserver((mutations) => {
+		mutations.forEach((mutation) => {
 			// HTML video element.
-			video = mutation.target;
+			const video = mutation.target as HTMLVideoElement;
 
 			// .srcObject removed.
 			if (!video.srcObject && !video.src) {
 				// If this video element was previously handling a MediaStreamRenderer, release it.
 				releaseMediaStreamRenderer(video);
-				continue;
+				return;
 			}
 
 			handleVideo(video);
-		}
+		});
 	}),
+	checkNewNode = (node: NodeWithVideoHandle) => {
+		if (node.nodeName === 'VIDEO') {
+			debug('new video element added');
+
+			// Avoid same node firing more than once (really, may happen in some cases).
+			if (node._iosrtcVideoHandled) {
+				return;
+			}
+			node._iosrtcVideoHandled = true;
+
+			// Observe changes in the video element.
+			observeVideo(node as HTMLVideoHandle);
+		} else {
+			node.childNodes.forEach(checkNewNode);
+		}
+	},
+	checkRemovedNode = (node: NodeWithVideoHandle) => {
+		if (node.nodeName === 'VIDEO') {
+			debug('video element removed');
+
+			// If this video element was previously handling a MediaStreamRenderer, release it.
+			releaseMediaStreamRenderer(node as HTMLVideoHandle);
+			delete node._iosrtcVideoHandled;
+		} else {
+			node.childNodes.forEach(checkRemovedNode);
+		}
+	},
 	// DOM mutation observer.
-	domObserver = new MutationObserver(function (mutations) {
-		var i, numMutations, mutation, j, numNodes, node;
-
-		for (i = 0, numMutations = mutations.length; i < numMutations; i++) {
-			mutation = mutations[i];
-
+	domObserver = new MutationObserver((mutations) => {
+		mutations.forEach((mutation) => {
 			// Check if there has been addition or deletion of nodes.
 			if (mutation.type !== 'childList') {
-				continue;
+				return;
 			}
 
 			// Check added nodes.
-			for (j = 0, numNodes = mutation.addedNodes.length; j < numNodes; j++) {
-				node = mutation.addedNodes[j];
-
-				checkNewNode(node);
-			}
+			mutation.addedNodes.forEach(checkNewNode);
 
 			// Check removed nodes.
-			for (j = 0, numNodes = mutation.removedNodes.length; j < numNodes; j++) {
-				node = mutation.removedNodes[j];
-
-				checkRemovedNode(node);
-			}
-		}
-
-		function checkNewNode(node) {
-			var j, childNode;
-
-			if (node.nodeName === 'VIDEO') {
-				debug('new video element added');
-
-				// Avoid same node firing more than once (really, may happen in some cases).
-				if (node._iosrtcVideoHandled) {
-					return;
-				}
-				node._iosrtcVideoHandled = true;
-
-				// Observe changes in the video element.
-				observeVideo(node);
-			} else {
-				for (j = 0; j < node.childNodes.length; j++) {
-					childNode = node.childNodes.item(j);
-
-					checkNewNode(childNode);
-				}
-			}
-		}
-
-		function checkRemovedNode(node) {
-			var j, childNode;
-
-			if (node.nodeName === 'VIDEO') {
-				debug('video element removed');
-
-				// If this video element was previously handling a MediaStreamRenderer, release it.
-				releaseMediaStreamRenderer(node);
-				delete node._iosrtcVideoHandled;
-			} else {
-				for (j = 0; j < node.childNodes.length; j++) {
-					childNode = node.childNodes.item(j);
-
-					checkRemovedNode(childNode);
-				}
-			}
-		}
+			mutation.removedNodes.forEach(checkRemovedNode);
+		});
 	});
 
-function refreshVideos() {
+export function refreshVideos() {
 	debug('refreshVideos()');
 
-	var id;
-
-	for (id in mediaStreamRenderers) {
-		if (mediaStreamRenderers.hasOwnProperty(id)) {
-			mediaStreamRenderers[id].refresh();
-		}
-	}
+	Object.values(mediaStreamRenderers).forEach((renderer) => renderer.refresh());
 }
 
-function videoElementsHandler(_mediaStreams, _mediaStreamRenderers) {
-	var existingVideos = document.querySelectorAll('video'),
-		i,
-		len,
-		video;
-
-	mediaStreams = _mediaStreams;
-	mediaStreamRenderers = _mediaStreamRenderers;
+export function initializeVideoElementsHandler() {
+	const existingVideos = document.querySelectorAll('video');
 
 	// Search the whole document for already existing HTML video elements and observe them.
-	for (i = 0, len = existingVideos.length; i < len; i++) {
-		video = existingVideos.item(i);
-
+	existingVideos.forEach((video) => {
 		debug('video element found');
-
 		observeVideo(video);
-	}
+	});
 
 	// Observe the whole document for additions of new HTML video elements and observe them.
 	domObserver.observe(document, {
@@ -166,12 +112,12 @@ function videoElementsHandler(_mediaStreams, _mediaStreamRenderers) {
 	});
 }
 
-function observeVideo(video) {
+export function observeVideo(video: HTMLVideoHandle) {
 	debug('observeVideo()');
 
 	// If the video already has a srcObject property but is not yet handled by the plugin
 	// then handle it now.
-	var hasStream = video.srcObject || video.src;
+	const hasStream = video.srcObject || video.src;
 	if (hasStream && !video._iosrtcMediaStreamRendererId) {
 		handleVideo(video);
 	}
@@ -204,15 +150,15 @@ function observeVideo(video) {
 	// video.srcObject = null will trigger onemptied events.
 
 	video.addEventListener('loadstart', function () {
-		var hasStream = video.srcObject || video.src;
+		const hasStream = video.srcObject || video.src;
 
 		if (hasStream && !video._iosrtcMediaStreamRendererId) {
 			// If this video element was NOT previously handling a MediaStreamRenderer, release it.
 			handleVideo(video);
 		} else if (hasStream && video._iosrtcMediaStreamRendererId) {
 			// The video element has received a new srcObject.
-			var stream = video.srcObject;
-			if (stream && typeof stream.getBlobId === 'function') {
+			const stream = video.srcObject as MediaStreamShim | MediaProvider;
+			if (stream && 'getBlobId' in stream) {
 				// Release previous renderer
 				releaseMediaStreamRenderer(video);
 				// Install new renderer
@@ -222,7 +168,7 @@ function observeVideo(video) {
 	});
 
 	video.addEventListener('emptied', function () {
-		var hasStream = video.srcObject || video.src;
+		const hasStream = video.srcObject || video.src;
 		if (!hasStream && video._iosrtcMediaStreamRendererId) {
 			// If this video element was previously handling a MediaStreamRenderer, release it.
 			releaseMediaStreamRenderer(video);
@@ -232,7 +178,7 @@ function observeVideo(video) {
 	// Intercept video 'error' events if it's due to the attached MediaStream.
 	video.addEventListener('error', function (event) {
 		if (
-			video.error.code === window.MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED &&
+			video.error?.code === window.MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED &&
 			BLOB_INTERNAL_URI_REGEX.test(video.src)
 		) {
 			debug('stopping "error" event propagation for video element');
@@ -246,13 +192,11 @@ function observeVideo(video) {
  * Private API.
  */
 
-function handleVideo(video) {
-	var stream;
-
+function handleVideo(video: HTMLVideoHandle) {
 	// The app has set video.srcObject.
 	if (video.srcObject) {
-		stream = video.srcObject;
-		if (stream && typeof stream.getBlobId === 'function') {
+		const stream = video.srcObject as MediaStreamShim | MediaProvider;
+		if (stream && 'getBlobId' in stream) {
 			if (!stream.getBlobId()) {
 				// If this video element was previously handling a MediaStreamRenderer, release it.
 				releaseMediaStreamRenderer(video);
@@ -263,7 +207,7 @@ function handleVideo(video) {
 			provideMediaStreamRenderer(video, stream.getBlobId());
 		}
 	} else if (video.src) {
-		var xhr = new XMLHttpRequest();
+		const xhr = new XMLHttpRequest();
 		xhr.open('GET', video.src, true);
 		xhr.responseType = 'blob';
 		xhr.onload = function () {
@@ -274,7 +218,7 @@ function handleVideo(video) {
 				return;
 			}
 
-			var reader = new FileReader();
+			const reader = new FileReader();
 
 			// Some versions of Safari fail to set onloadend property, some others do not react
 			// on 'loadend' event. Try everything here.
@@ -286,7 +230,7 @@ function handleVideo(video) {
 			reader.readAsText(xhr.response);
 
 			function onloadend() {
-				var mediaStreamBlobId = reader.result;
+				const mediaStreamBlobId = reader.result;
 
 				// The retrieved URL does not point to a MediaStream.
 				if (!mediaStreamBlobId || typeof mediaStreamBlobId !== 'string') {
@@ -303,9 +247,9 @@ function handleVideo(video) {
 	}
 }
 
-function provideMediaStreamRenderer(video, mediaStreamBlobId) {
-	var mediaStream = mediaStreams[mediaStreamBlobId],
-		mediaStreamRenderer = mediaStreamRenderers[video._iosrtcMediaStreamRendererId];
+function provideMediaStreamRenderer(video: HTMLVideoHandle, mediaStreamBlobId: string) {
+	const mediaStream = mediaStreams[mediaStreamBlobId];
+	let mediaStreamRenderer = mediaStreamRenderers[video._iosrtcMediaStreamRendererId || -1];
 
 	if (!mediaStream) {
 		releaseMediaStreamRenderer(video);
@@ -325,7 +269,10 @@ function provideMediaStreamRenderer(video, mediaStreamBlobId) {
 
 	// Close the MediaStreamRenderer of this video if it emits "close" event.
 	mediaStreamRenderer.addEventListener('close', function () {
-		if (mediaStreamRenderers[video._iosrtcMediaStreamRendererId] !== mediaStreamRenderer) {
+		if (
+			!video._iosrtcMediaStreamRendererId ||
+			mediaStreamRenderers[video._iosrtcMediaStreamRendererId] !== mediaStreamRenderer
+		) {
 			return;
 		}
 
@@ -364,12 +311,12 @@ function provideMediaStreamRenderer(video, mediaStreamBlobId) {
 	});
 }
 
-function releaseMediaStreamRenderer(video) {
+function releaseMediaStreamRenderer(video: HTMLVideoHandle) {
 	if (!video._iosrtcMediaStreamRendererId) {
 		return;
 	}
 
-	var mediaStreamRenderer = mediaStreamRenderers[video._iosrtcMediaStreamRendererId];
+	const mediaStreamRenderer = mediaStreamRenderers[video._iosrtcMediaStreamRendererId];
 
 	if (mediaStreamRenderer) {
 		delete mediaStreamRenderers[video._iosrtcMediaStreamRendererId];
@@ -378,8 +325,8 @@ function releaseMediaStreamRenderer(video) {
 
 	delete video._iosrtcMediaStreamRendererId;
 
-	// Remove overrided <video> properties.
-	delete video.videoWidth;
-	delete video.videoHeight;
-	delete video.readyState;
+	// Remove overridden <video> properties.
+	delete (video as any).videoWidth;
+	delete (video as any).videoHeight;
+	delete (video as any).readyState;
 }
