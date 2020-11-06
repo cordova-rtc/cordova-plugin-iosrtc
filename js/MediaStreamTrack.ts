@@ -135,7 +135,7 @@ export class MediaStreamTrackShim extends EventTargetShim implements MediaStream
 	 */
 	readonly isolated = false;
 	onisolationchange = null;
-	
+
 	/**
 	 * Additional events listeners
 	 */
