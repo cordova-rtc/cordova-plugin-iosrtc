@@ -114,7 +114,7 @@ var candidateToJson = (function () {
 	  COMPONENT_ID: '[0-9]{1,5}',
 	  FOUNDATION: '[a-zA-Z0-9\\+\\/\\-]+',
 	  PRIORITY: '[0-9]{1,10}',
-	  TRANSPORT: transport.UPD + '|' + TOKEN,
+	  TRANSPORT: transport.UDP + '|' + TOKEN,
 	  CONNECTION_ADDRESS: IPV4ADDR + '|' + IPV6ADDR,
 	  PORT: '[0-9]{1,5}',
 	  CANDIDATE_TYPE: CANDIDATE_TYPE
