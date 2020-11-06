@@ -134,8 +134,12 @@ export class MediaStreamTrackShim extends EventTargetShim implements MediaStream
 	 * Additional, unimplemented members
 	 */
 	readonly isolated = false;
-	onended = null;
 	onisolationchange = null;
+	
+	/**
+	 * Additional events listeners
+	 */
+	onended = null;
 	onmute = null;
 	onunmute = null;
 }

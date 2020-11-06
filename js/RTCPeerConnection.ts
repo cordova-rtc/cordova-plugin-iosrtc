@@ -821,6 +821,16 @@ export class RTCPeerConnectionShim extends EventTargetShim implements RTCPeerCon
 
 		this.dispatchEvent(event);
 	}
+	
+	/**
+	 * Additional events listeners
+	 */
+	onconnectionstatechange = null;
+	ondatachannel = null;
+	onicecandidateerror = null;
+	onicegatheringstatechange = null;
+	onsignalingstatechange = null;
+	onstatsended = null;
 
 	/**
 	 * Additional, unimplemented members
@@ -830,12 +840,6 @@ export class RTCPeerConnectionShim extends EventTargetShim implements RTCPeerCon
 	readonly currentRemoteDescription = null;
 	readonly idpErrorInfo = null;
 	readonly idpLoginUrl = null;
-	onconnectionstatechange = null;
-	ondatachannel = null;
-	onicecandidateerror = null;
-	onicegatheringstatechange = null;
-	onsignalingstatechange = null;
-	onstatsended = null;
 	readonly peerIdentity = new Promise<RTCIdentityAssertion>(() => {
 		// don't return an identity since we don't actually have it
 	});

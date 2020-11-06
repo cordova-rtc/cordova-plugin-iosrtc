@@ -398,7 +398,7 @@ export class MediaStreamShim extends EventTargetShim implements MediaStream {
 	}
 
 	/**
-	 * Additional, unimplemented members
+	 * Additional events listeners
 	 */
 	onaddtrack = null;
 	onremovetrack = null;
