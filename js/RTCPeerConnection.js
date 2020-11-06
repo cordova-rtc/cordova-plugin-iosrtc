@@ -814,11 +814,11 @@ function onEvent(data) {
 				event.candidate = null;
 			}
 			// Update _localDescription.
-			if (this._localDescription) {
+			if (this._localDescription && data.localDescription) {
 				this._localDescription.type = data.localDescription.type;
 				this._localDescription.sdp = data.localDescription.sdp;
-			} else {
-				this._localDescription = new RTCSessionDescription(data);
+			} else if (data.localDescription) {
+				this._localDescription = new RTCSessionDescription(data.localDescription);
 			}
 			break;
 
