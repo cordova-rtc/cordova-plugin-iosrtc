@@ -3,7 +3,6 @@
  */
 module.exports = RTCRtpReceiver;
 
-
 function RTCRtpReceiver(data) {
 	data = data || {};
 
