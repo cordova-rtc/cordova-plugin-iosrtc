@@ -240,14 +240,16 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 	}
 	
 	func save() -> String {
-        NSLog("PluginMediaStreamRenderer#save()")
-        UIGraphicsBeginImageContextWithOptions(videoView.bounds.size, videoView.isOpaque, 0.0)
-        videoView.drawHierarchy(in: videoView.bounds, afterScreenUpdates: false)
-		let snapshotImageFromMyView = UIGraphicsGetImageFromCurrentImageContext()
-		UIGraphicsEndImageContext()
-		let imageData = snapshotImageFromMyView?.jpegData(compressionQuality: 1.0)
-		let strBase64 = imageData?.base64EncodedString(options: .lineLength64Characters)
-		return strBase64!;
+		return autoreleasepool { () -> String in
+			NSLog("PluginMediaStreamRenderer#save()")
+			UIGraphicsBeginImageContextWithOptions(videoView.bounds.size, videoView.isOpaque, 0.0)
+			videoView.drawHierarchy(in: videoView.bounds, afterScreenUpdates: false)
+			let snapshotImageFromMyView = UIGraphicsGetImageFromCurrentImageContext()
+			UIGraphicsEndImageContext()
+			let imageData = snapshotImageFromMyView?.jpegData(compressionQuality: 1.0)
+			let strBase64 = imageData?.base64EncodedString(options: .lineLength64Characters)
+			return strBase64!;
+		}
 	}
 	
 	func stop() {
