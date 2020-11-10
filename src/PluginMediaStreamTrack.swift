@@ -120,11 +120,17 @@ class PluginMediaStreamTrack : NSObject {
 		// Let's try setEnabled(false), but it also fails.
 		self.rtcMediaStreamTrack.isEnabled = false
 		
-		self.eventListener!([
-			"type": "statechange",
-			"readyState": "ended",
-			"enabled": self.rtcMediaStreamTrack.isEnabled ? true : false
-		])
+		if (self.eventListener != nil) {
+			self.eventListener?([
+				"type": "statechange",
+				"readyState": "ended",
+				"enabled": self.rtcMediaStreamTrack.isEnabled ? true : false
+			])
+		}
+		
+		if (self.eventListenerForEnded != nil) {
+			self.eventListenerForEnded!()
+		}
 
 		for (_, render) in self.renders {
 			render.stop()
