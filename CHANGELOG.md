@@ -1,7 +1,11 @@
 #### Version 6.0.16
 * fix: correct canvas drawImage SHIM for VideoElement
 * fix: ensure proper camera orientation for first launch 
-* feat: use background-color from video element css
+* fix hook possible Cannot read property '1' of null at getProjectName #597
+* fix: possible error on icecandidate event on RTCPeerConnection
+* fix: fix RTCIceCandidate typo
+* feat: use background-color from video element css #586 via @calebboyd
+* feat: Prettier for JS styling #598 via @dgreif
 
 #### Version 6.0.15
 * fix: refactor pluginMediaTracks lifecyle in PluginRTCPeerConnection
