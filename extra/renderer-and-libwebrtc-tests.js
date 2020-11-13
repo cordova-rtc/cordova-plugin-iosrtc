@@ -422,16 +422,16 @@ function TestRTCPeerConnection(localStream) {
 
 var canvasEl;
 function TestMediaRenderCatpure(videoEl) {
-  if (!canvasEl) {
-    canvasEl = document.createElement('canvas');
-  }
+	if (!canvasEl) {
+		canvasEl = document.createElement('canvas');
+	}
 
-  var ctx = canvasEl.getContext("2d");
-  canvasEl.style.position = 'absolute';
-  canvasEl.style.left = 0;
-  canvasEl.style.bottom = 0;
-  appContainer.appendChild(canvasEl);
-  ctx.drawImage(localVideoEl, 0, 0);
+	var ctx = canvasEl.getContext('2d');
+	canvasEl.style.position = 'absolute';
+	canvasEl.style.left = 0;
+	canvasEl.style.bottom = 0;
+	appContainer.appendChild(canvasEl);
+	ctx.drawImage(localVideoEl, 0, 0);
 }
 
 var testMediaRenderCatpureAnimateFrame;
