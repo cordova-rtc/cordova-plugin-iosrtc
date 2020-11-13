@@ -127,10 +127,6 @@ class PluginMediaStreamTrack : NSObject {
 				"enabled": self.rtcMediaStreamTrack.isEnabled ? true : false
 			])
 		}
-		
-		if (self.eventListenerForEnded != nil) {
-			self.eventListenerForEnded!()
-		}
 
 		for (_, render) in self.renders {
 			render.stop()
