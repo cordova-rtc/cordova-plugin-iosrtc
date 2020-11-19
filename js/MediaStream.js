@@ -440,14 +440,22 @@ function onEvent(data) {
 
 	switch (type) {
 		case 'addtrack':
-			track = new MediaStreamTrack(data.track);
-
-			if (track.kind === 'audio') {
-				this._audioTracks[track.id] = track;
-			} else if (track.kind === 'video') {
-				this._videoTracks[track.id] = track;
+			// check if a track already exists before initializing a new 
+			// track and calling setListener again.
+			if(data.track.kind === 'audio'){
+				track = this._audioTracks[data.track.id];
+			 }else if(data.track.kind === 'video'){
+			   track = this._videoTracks[data.track.id]
 			}
-			addListenerForTrackEnded.call(this, track);
+		   if(!track){
+			   track = new MediaStreamTrack(data.track);
+			   if (track.kind === 'audio') {
+				   this._audioTracks[track.id] = track;
+			   } else if (track.kind === 'video') {
+				   this._videoTracks[track.id] = track;
+			   }
+			   addListenerForTrackEnded.call(this, track);
+		   }
 
 			event = new Event('addtrack');
 			event.track = track;
