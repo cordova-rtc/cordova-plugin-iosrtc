@@ -434,7 +434,7 @@ function checkActive() {
 	release();
 
 	function release() {
-		debug('all tracks are ended, releasing MediaStream %s' , self.id);
+		debug('all tracks are ended, releasing MediaStream %s', self.id);
 		self._active = false;
 		self.dispatchEvent(new Event('inactive'));
 
