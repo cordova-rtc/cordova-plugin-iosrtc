@@ -620,6 +620,11 @@ RTCPeerConnection.prototype.addStream = function (stream) {
 			delete self.localTracks[track.id];
 		});
 	});
+	// Fixes after stopping all tracks and trying to connect again
+	// getting pluginMediaStream not found
+	stream.addEventListener("inactive", function(){
+		delete self.localStreams[stream.id];
+	})
 
 	exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addStream', [this.pcId, stream.id]);
 };
@@ -688,7 +693,7 @@ RTCPeerConnection.prototype.getStats = function (selector) {
 		throw new Errors.InvalidStateError('peerconnection is closed');
 	}
 
-	debug('getStats() [selector:%o]', selector);
+	// debug('getStats() [selector:%o]', selector);
 
 	return new Promise(function (resolve, reject) {
 		function onResultOK(array) {
