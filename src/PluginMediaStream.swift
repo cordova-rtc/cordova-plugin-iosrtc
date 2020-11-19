@@ -21,7 +21,11 @@ class PluginMediaStream : NSObject {
 		if (streamId == nil) {
 			// Handle possible duplicate remote trackId with  janus or short duplicate name
 			// See: https://github.com/cordova-rtc/cordova-plugin-iosrtc/issues/432
-			self.id = rtcMediaStream.streamId + "_" + UUID().uuidString;
+			if (rtcMediaStream.streamId.count < 36) {
+				self.id = rtcMediaStream.streamId + "_" + UUID().uuidString;
+			} else {
+				self.id = rtcMediaStream.streamId;
+			}
 		} else {
 			self.id = streamId!;
 		}
