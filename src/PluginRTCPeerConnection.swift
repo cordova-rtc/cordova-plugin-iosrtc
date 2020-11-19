@@ -348,8 +348,6 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 	}
 
 	func addTrack(_ pluginMediaTrack: PluginMediaStreamTrack, _ streamIds: [String]) -> Bool {
-		NSLog("PluginRTCPeerConnection#addTrack() trackId=%@ rtcId=%@")
-
 		if self.rtcPeerConnection.signalingState == RTCSignalingState.closed {
 			return false
 		}
