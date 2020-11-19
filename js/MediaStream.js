@@ -90,6 +90,8 @@ function MediaStream(arg, id) {
 	// Public but internal attributes.
 	stream.connected = false;
 
+	stream._addedToConnection = false;
+
 	// Private attributes.
 	stream._audioTracks = {};
 	stream._videoTracks = {};
@@ -136,6 +138,14 @@ MediaStream.prototype = Object.create(originalMediaStream.prototype, {
 	label: {
 		get: function () {
 			return this._id;
+		}
+	},
+	addedToConnection: {
+		get: function () {
+			return this._addedToConnection;
+		},
+		set: function (value) {
+			this._addedToConnection = value;
 		}
 	}
 });
@@ -390,6 +400,10 @@ function checkActive() {
 	if (!this.active) {
 		return;
 	}
+	// Fixes Twilio fails to read a local video if the stream is released.
+	if (this._addedToConnection) {
+		return;
+	}
 
 	if (
 		Object.keys(this._audioTracks).length === 0 &&
@@ -417,10 +431,10 @@ function checkActive() {
 		}
 	}
 
-	debug('all tracks are ended, releasing MediaStream');
 	release();
 
 	function release() {
+		debug('all tracks are ended, releasing MediaStream %s' , self.id);
 		self._active = false;
 		self.dispatchEvent(new Event('inactive'));
 

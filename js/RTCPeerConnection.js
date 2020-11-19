@@ -500,15 +500,7 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 
 	// Fix webrtc-adapter bad SHIM on addStream
 	if (stream) {
-		if (!(stream instanceof MediaStream.originalMediaStream)) {
-			throw new Error('addTrack() must be called with a MediaStream instance as argument');
-		}
-
-		if (!this.localStreams[stream.id]) {
-			this.localStreams[stream.id] = stream;
-		}
-
-		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addStream', [this.pcId, stream.id]);
+		this.addStream(stream);
 	}
 
 	for (id in this.localStreams) {
@@ -614,16 +606,13 @@ RTCPeerConnection.prototype.addStream = function (stream) {
 
 	this.localStreams[stream.id] = stream;
 
+	stream.addedToConnection = true;
+
 	stream.getTracks().forEach(function (track) {
 		self.localTracks[track.id] = track;
 		track.addEventListener('ended', function () {
 			delete self.localTracks[track.id];
 		});
-	});
-	// Fixes after stopping all tracks and trying to connect again
-	// getting pluginMediaStream not found
-	stream.addEventListener('inactive', function () {
-		delete self.localStreams[stream.id];
 	});
 
 	exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addStream', [this.pcId, stream.id]);
