@@ -18,7 +18,11 @@ class PluginMediaStreamTrack : NSObject {
 		if (trackId == nil) {
 			// Handle possible duplicate remote trackId with  janus or short duplicate name
 			// See: https://github.com/cordova-rtc/cordova-plugin-iosrtc/issues/432
-			self.id = rtcMediaStreamTrack.trackId + "_" + UUID().uuidString;
+			if (rtcMediaStreamTrack.trackId.count<36) {
+				self.id = rtcMediaStreamTrack.trackId + "_" + UUID().uuidString;
+			} else {
+				self.id = rtcMediaStreamTrack.trackId;
+			}
 		} else {
 			self.id = trackId!;
 		}
@@ -61,8 +65,13 @@ class PluginMediaStreamTrack : NSObject {
 		_ eventListener: @escaping (_ data: NSDictionary) -> Void,
 		eventListenerForEnded: @escaping () -> Void
 	) {
-		NSLog("PluginMediaStreamTrack#setListener() [kind:%@, id:%@]", String(self.kind), String(self.id))
-
+        if(self.eventListener != nil){
+            NSLog("PluginMediaStreamTrack#setListener():Error Listener already Set [kind:%@, id:%@]", String(self.kind), String(self.id));
+            return;
+        }
+        
+        NSLog("PluginMediaStreamTrack#setListener() [kind:%@, id:%@]", String(self.kind), String(self.id))
+        
 		self.eventListener = eventListener
 		self.eventListenerForEnded = eventListenerForEnded
 
@@ -119,14 +128,14 @@ class PluginMediaStreamTrack : NSObject {
 
 		// Let's try setEnabled(false), but it also fails.
 		self.rtcMediaStreamTrack.isEnabled = false
-		
-		if (self.eventListener != nil) {
-			self.eventListener?([
-				"type": "statechange",
-				"readyState": "ended",
-				"enabled": self.rtcMediaStreamTrack.isEnabled ? true : false
-			])
-		}
+		// eventListener could be null if the track is never used
+        if(self.eventListener != nil){
+            self.eventListener!([
+                "type": "statechange",
+                "readyState": "ended",
+                "enabled": self.rtcMediaStreamTrack.isEnabled ? true : false
+            ])
+        }
 
 		for (_, render) in self.renders {
 			render.stop()

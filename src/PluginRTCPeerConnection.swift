@@ -182,7 +182,8 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		}
 
 		self.onSetDescriptionFailureCallback = { (error: Error) -> Void in
-			NSLog("PluginRTCPeerConnection#setLocalDescription() | failure callback: %@", String(describing: error))
+			NSLog("PluginRTCPeerConnection#setLocalDescription() | failure callback: %@ description %@", 
+						String(describing: error), desc)
 
 			errback(error)
 		}
@@ -347,7 +348,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 	}
 
 	func addTrack(_ pluginMediaTrack: PluginMediaStreamTrack, _ streamIds: [String]) -> Bool {
-		NSLog("PluginRTCPeerConnection#addTrack()")
+		NSLog("PluginRTCPeerConnection#addTrack() trackId=%@ rtcId=%@")
 
 		if self.rtcPeerConnection.signalingState == RTCSignalingState.closed {
 			return false
@@ -355,6 +356,8 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 
 		let rtcMediaStreamTrack = pluginMediaTrack.rtcMediaStreamTrack;
 		var rtcSender = trackIdsToSenders[rtcMediaStreamTrack.trackId];
+		NSLog("PluginRTCPeerConnection#addTrack() trackId=%@ rtcId=%@ streamIds %@" , 
+				pluginMediaTrack.id, rtcMediaStreamTrack.trackId, streamIds);
 		if (rtcSender == nil) {
 			rtcSender = self.rtcPeerConnection.add(rtcMediaStreamTrack, streamIds: streamIds)
 			trackIdsToSenders[rtcMediaStreamTrack.trackId] = rtcSender;
@@ -458,7 +461,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		callback: @escaping (_ data: [[String:Any]]) -> Void,
 		errback: (_ error: NSError) -> Void
 	) {
-		NSLog("PluginRTCPeerConnection#getStats()")
+//		NSLog("PluginRTCPeerConnection#getStats()")
 
 		if self.rtcPeerConnection.signalingState == RTCSignalingState.closed {
 			return
@@ -475,7 +478,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 					"values" : report.values
 				])
 			}
-			NSLog("Stats:\n %@", data)
+//			NSLog("Stats:\n %@", data)
 			callback(data)
 		})
 	}
