@@ -622,9 +622,9 @@ RTCPeerConnection.prototype.addStream = function (stream) {
 	});
 	// Fixes after stopping all tracks and trying to connect again
 	// getting pluginMediaStream not found
-	stream.addEventListener("inactive", function(){
+	stream.addEventListener('inactive', function () {
 		delete self.localStreams[stream.id];
-	})
+	});
 
 	exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addStream', [this.pcId, stream.id]);
 };
