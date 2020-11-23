@@ -32,7 +32,7 @@ class PluginGetUserMedia {
 		if (constraints.object(forKey: "video") != nil) {
 			videoRequested = true
 		}
-		
+
 		if constraints.object(forKey: "audio") != nil {
 			audioRequested = true
 		}
@@ -80,13 +80,13 @@ class PluginGetUserMedia {
 		rtcMediaStream = self.rtcPeerConnectionFactory.mediaStream(withStreamId: UUID().uuidString)
 
 		if videoRequested {
-			
+
 			NSLog("PluginGetUserMedia#call() | video requested")
 
 			rtcVideoSource = self.rtcPeerConnectionFactory.videoSource()
 
 			rtcVideoTrack = self.rtcPeerConnectionFactory.videoTrack(with: rtcVideoSource!, trackId: UUID().uuidString)
-			
+
 			// Handle legacy plugin instance or video: true
 			var videoConstraints : NSDictionary = [:];
 			if (!(constraints.object(forKey: "video") is Bool)) {
@@ -100,13 +100,13 @@ class PluginGetUserMedia {
 			let videoCapturer: RTCCameraVideoCapturer = RTCCameraVideoCapturer(delegate: rtcVideoSource!)
 			let videoCaptureController: PluginRTCVideoCaptureController = PluginRTCVideoCaptureController(capturer: videoCapturer)
 			rtcVideoTrack!.videoCaptureController = videoCaptureController
-			
+
 			let constraintsSatisfied = videoCaptureController.setConstraints(constraints: videoConstraints)
 			if (!constraintsSatisfied) {
 				errback("constraints not satisfied")
 				return
 			}
-			
+
 			let captureStarted = videoCaptureController.startCapture()
 			if (!captureStarted) {
 				errback("constraints failed")
@@ -125,20 +125,20 @@ class PluginGetUserMedia {
 
 			rtcMediaStream.addVideoTrack(rtcVideoTrack!)
 		}
-		
+
 		if audioRequested == true {
-			
+
 			NSLog("PluginGetUserMedia#call() | audio requested")
-			
+
 			// Handle legacy plugin instance or audio: true
 			var audioConstraints : NSDictionary = [:];
 			if (!(constraints.object(forKey: "audio") is Bool)) {
 			   audioConstraints = constraints.object(forKey: "audio") as! NSDictionary
 			}
-			
+
 			NSLog("PluginGetUserMedia#call() | chosen audio constraints: %@", audioConstraints)
-			
-			
+
+
 			var audioDeviceId = audioConstraints.object(forKey: "deviceId") as? String
 			if(audioDeviceId == nil && audioConstraints.object(forKey: "deviceId") != nil){
 				let audioId = audioConstraints.object(forKey: "deviceId") as! NSDictionary

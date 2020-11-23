@@ -2,15 +2,15 @@ import Foundation
 import AVFoundation
 
 class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
-	
+
 	var id: String
 	var eventListener: (_ data: NSDictionary) -> Void
 	var closed: Bool
-	
+
 	var webView: UIView
 	var elementView: UIView
 	var pluginMediaStream: PluginMediaStream?
-	
+
 	var videoView: RTCEAGLVideoView
 	var rtcAudioTrack: RTCAudioTrack?
 	var rtcVideoTrack: RTCVideoTrack?
@@ -20,15 +20,15 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		eventListener: @escaping (_ data: NSDictionary) -> Void
 	) {
 		NSLog("PluginMediaStreamRenderer#init()")
-		
+
 		// Open Renderer
 		self.id = UUID().uuidString;
 		self.closed = false
-		
+
 		// The browser HTML view.
 		self.webView = webView
 		self.eventListener = eventListener
-		
+
 		// The video element view.
 		self.elementView = UIView()
 
@@ -160,7 +160,7 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 	}
 
 	func refresh(_ data: NSDictionary) {
-		
+
 		let elementLeft = data.object(forKey: "elementLeft") as? Double ?? 0
 		let elementTop = data.object(forKey: "elementTop") as? Double ?? 0
 		let elementWidth = data.object(forKey: "elementWidth") as? Double ?? 0
@@ -238,21 +238,21 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		let color = UIColor(red: rgb[0], green: rgb[1], blue: rgb[2], alpha: 1)
 		self.elementView.backgroundColor = color
 	}
-	
+
 	func save() -> String {
-        NSLog("PluginMediaStreamRenderer#save()")
-        UIGraphicsBeginImageContextWithOptions(videoView.bounds.size, videoView.isOpaque, 0.0)
-        videoView.drawHierarchy(in: videoView.bounds, afterScreenUpdates: false)
+		NSLog("PluginMediaStreamRenderer#save()")
+		UIGraphicsBeginImageContextWithOptions(videoView.bounds.size, videoView.isOpaque, 0.0)
+		videoView.drawHierarchy(in: videoView.bounds, afterScreenUpdates: false)
 		let snapshotImageFromMyView = UIGraphicsGetImageFromCurrentImageContext()
 		UIGraphicsEndImageContext()
 		let imageData = snapshotImageFromMyView?.jpegData(compressionQuality: 1.0)
 		let strBase64 = imageData?.base64EncodedString(options: .lineLength64Characters)
 		return strBase64!;
 	}
-	
+
 	func stop() {
 		NSLog("PluginMediaStreamRenderer | video stop")
-		
+
 		self.eventListener([
 			"type": "videostop"
 		])
@@ -268,7 +268,7 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 	/**
 	 * Private API.
 	 */
-	
+
 	fileprivate func reset() {
 		NSLog("PluginMediaStreamRenderer#reset()")
 
@@ -284,9 +284,9 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 	/**
 	 * Methods inherited from RTCEAGLVideoViewDelegate.
 	 */
-	
+
 	func videoView(_ videoView: RTCVideoRenderer, didChangeVideoSize size: CGSize) {
-	
+
 		NSLog("PluginMediaStreamRenderer | video size changed [width:%@, height:%@]",
 			String(describing: size.width), String(describing: size.height))
 
@@ -298,9 +298,9 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 			]
 		])
 	}
-	
+
 	func videoView(_ videoView: RTCVideoRenderer, didChange frame: RTCVideoFrame?) {
-		
+
 		// TODO save from frame buffer instead of renderer
 		/*
 		let i420: RTCI420BufferProtocol = frame!.buffer.toI420()
@@ -315,14 +315,14 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		var height: Int16 = Int16(frame!.height)
 		var rotation: Int16 = Int16(frame!.rotation.rawValue)
 		var timestamp: Int32 = Int32(frame!.timeStamp)
-		
+
 		// head + body
 		// head: type(2B)+len(4B)+width(2B)+height(2B)+rotation(2B)+timestamp(4B)
 		// body: data(len)
 		let headSize:Int32 = 16
 		let dataSize:Int32 = headSize + frameSize
 		let pduData: NSMutableData? = NSMutableData(length: Int(dataSize))
-		
+
 		let headPtr = pduData!.mutableBytes
 		var pduType:UInt16 = 0x2401
 		memcpy(headPtr, &pduType, 2)
@@ -331,7 +331,7 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		memcpy(headPtr+2+4+2, &height, 2)
 		memcpy(headPtr+2+4+2+2, &rotation, 2)
 		//memcpy(headPtr+2+4+2+2+2, &timestamp, 4)
-		
+
 		let bodyPtr = pduData!.mutableBytes + Int(headSize)
 		memcpy(bodyPtr, YPtr, YSize)
 		memcpy(bodyPtr + YSize, UPtr, USize);

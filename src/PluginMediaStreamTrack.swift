@@ -26,7 +26,7 @@ class PluginMediaStreamTrack : NSObject {
 		} else {
 			self.id = trackId!;
 		}
-		
+
 		self.kind = rtcMediaStreamTrack.kind
 		self.renders = [:]
 	}
@@ -65,13 +65,13 @@ class PluginMediaStreamTrack : NSObject {
 		_ eventListener: @escaping (_ data: NSDictionary) -> Void,
 		eventListenerForEnded: @escaping () -> Void
 	) {
-        if(self.eventListener != nil){
-            NSLog("PluginMediaStreamTrack#setListener():Error Listener already Set [kind:%@, id:%@]", String(self.kind), String(self.id));
-            return;
-        }
-        
-        NSLog("PluginMediaStreamTrack#setListener() [kind:%@, id:%@]", String(self.kind), String(self.id))
-        
+		if(self.eventListener != nil){
+			NSLog("PluginMediaStreamTrack#setListener():Error Listener already Set [kind:%@, id:%@]", String(self.kind), String(self.id));
+			return;
+		}
+
+		NSLog("PluginMediaStreamTrack#setListener() [kind:%@, id:%@]", String(self.kind), String(self.id))
+
 		self.eventListener = eventListener
 		self.eventListenerForEnded = eventListenerForEnded
 
@@ -129,13 +129,13 @@ class PluginMediaStreamTrack : NSObject {
 		// Let's try setEnabled(false), but it also fails.
 		self.rtcMediaStreamTrack.isEnabled = false
 		// eventListener could be null if the track is never used
-        if(self.eventListener != nil){
-            self.eventListener!([
-                "type": "statechange",
-                "readyState": "ended",
-                "enabled": self.rtcMediaStreamTrack.isEnabled ? true : false
-            ])
-        }
+		if(self.eventListener != nil){
+			self.eventListener!([
+				"type": "statechange",
+				"readyState": "ended",
+				"enabled": self.rtcMediaStreamTrack.isEnabled ? true : false
+			])
+		}
 
 		for (_, render) in self.renders {
 			render.stop()
