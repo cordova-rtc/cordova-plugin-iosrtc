@@ -53,10 +53,10 @@ class PluginMediaStream : NSObject {
 	func run() {
 		NSLog("PluginMediaStream#run()")
 	}
-	
+
 	func stop() {
 		NSLog("PluginMediaStream#stop()")
-		
+
 		for (_, track) in audioTracks {
 			if(self.eventListenerForRemoveTrack != nil) {
 				self.eventListenerForRemoveTrack!(track)

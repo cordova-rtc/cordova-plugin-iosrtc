@@ -17,7 +17,7 @@ class PluginRTCDTMFSender : NSObject {
 		NSLog("PluginRTCDTMFSender#init()")
 
 		self.eventListener = eventListener
-		
+
 		// TODO check if new rtcRtpSender can be used one Unified-Plan merged
 		//let streamIds = [streamId]
 		//self.rtcRtpSender = rtcPeerConnection.add(track, streamIds: streamIds);

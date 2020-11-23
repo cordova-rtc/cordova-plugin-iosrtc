@@ -733,7 +733,7 @@ class iosrtcPlugin : CDVPlugin {
 		let trackId = command.argument(at: 1) as! String
 		let pluginMediaStream = self.pluginMediaStreams[id]
 		let pluginMediaStreamTrack = self.pluginMediaStreamTracks[trackId]
-        NSLog("iosrtcPlugin#MediaStream_addTrack() trackId=%@ " ,trackId)
+		NSLog("iosrtcPlugin#MediaStream_addTrack() trackId=%@ " ,trackId)
 		if pluginMediaStream == nil {
 			NSLog("iosrtcPlugin#MediaStream_addTrack() | ERROR: pluginMediaStream with id=%@ does not exist", String(id))
 			return
@@ -792,12 +792,12 @@ class iosrtcPlugin : CDVPlugin {
 	}
 
 	@objc(MediaStreamTrack_clone:) func MediaStreamTrack_clone(_ command: CDVInvokedUrlCommand) {
-		
+
 
 		let existingTrackId = command.argument(at: 0) as! String
 		let newTrackId = command.argument(at: 1) as! String
 		let pluginMediaStreamTrack = self.pluginMediaStreamTracks[existingTrackId]
-        NSLog("iosrtcPlugin#MediaStreamTrack_clone() existing=%@ new=%@", existingTrackId, newTrackId)
+		NSLog("iosrtcPlugin#MediaStreamTrack_clone() existing=%@ new=%@", existingTrackId, newTrackId)
 		if pluginMediaStreamTrack == nil {
 			NSLog("iosrtcPlugin#MediaStreamTrack_clone() | ERROR: pluginMediaStreamTrack with id=%@ does not exist", String(existingTrackId))
 			return;
@@ -805,22 +805,22 @@ class iosrtcPlugin : CDVPlugin {
 
 		if self.pluginMediaStreams[newTrackId] == nil {
 			var rtcMediaStreamTrack = self.pluginMediaStreamTracks[existingTrackId]!.rtcMediaStreamTrack;
-            // twilio uses the sdp local description to map the track ids to the media id.
-            // if the original rtcMediaStreamTrack is not cloned, the rtcPeerConnection 
+			// twilio uses the sdp local description to map the track ids to the media id.
+			// if the original rtcMediaStreamTrack is not cloned, the rtcPeerConnection 
 			// will not add the track and as such will not be found by Twilio. 
 			// it is unable to do the mapping and find track and thus
-            // will not publish the local track.
-            if pluginMediaStreamTrack?.kind == "video" {
-                if let rtcVideoTrack = rtcMediaStreamTrack as? RTCVideoTrack{
-                    NSLog("iosrtcPlugin#MediaStreamTrack_clone() cloning video source");
-                    rtcMediaStreamTrack = self.rtcPeerConnectionFactory.videoTrack(with: rtcVideoTrack.source, trackId: newTrackId);
-                }
-            } else if pluginMediaStreamTrack?.kind == "audio" {
-                if let rtcAudioTrack = rtcMediaStreamTrack as? RTCAudioTrack{
-                    NSLog("iosrtcPlugin#MediaStreamTrack_clone() cloning audio source");
-                    rtcMediaStreamTrack = self.rtcPeerConnectionFactory.audioTrack(with: rtcAudioTrack.source, trackId: newTrackId);
-                }
-            }
+			// will not publish the local track.
+			if pluginMediaStreamTrack?.kind == "video" {
+				if let rtcVideoTrack = rtcMediaStreamTrack as? RTCVideoTrack{
+					NSLog("iosrtcPlugin#MediaStreamTrack_clone() cloning video source");
+					rtcMediaStreamTrack = self.rtcPeerConnectionFactory.videoTrack(with: rtcVideoTrack.source, trackId: newTrackId);
+				}
+			} else if pluginMediaStreamTrack?.kind == "audio" {
+				if let rtcAudioTrack = rtcMediaStreamTrack as? RTCAudioTrack{
+					NSLog("iosrtcPlugin#MediaStreamTrack_clone() cloning audio source");
+					rtcMediaStreamTrack = self.rtcPeerConnectionFactory.audioTrack(with: rtcAudioTrack.source, trackId: newTrackId);
+				}
+			}
 			let newPluginMediaStreamTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: rtcMediaStreamTrack, trackId: newTrackId)
 
 			self.saveMediaStreamTrack(newPluginMediaStreamTrack)
@@ -1169,7 +1169,7 @@ class iosrtcPlugin : CDVPlugin {
 	fileprivate func deleteMediaStream(_ pluginMediaStream: PluginMediaStream) {
 		if (self.pluginMediaStreams[pluginMediaStream.id] != nil) {
 			self.pluginMediaStreams[pluginMediaStream.id] = nil
-			
+
 			// deinit should call stop by itself
 			//pluginMediaStream.stop();
 		}
@@ -1184,7 +1184,7 @@ class iosrtcPlugin : CDVPlugin {
 	fileprivate func deleteMediaStreamTrack(_ pluginMediaStreamTrack: PluginMediaStreamTrack) {
 		if (self.pluginMediaStreamTracks[pluginMediaStreamTrack.id] != nil) {
 			self.pluginMediaStreamTracks[pluginMediaStreamTrack.id] = nil
-			
+
 			// deinit should call stop by itself
 			//pluginMediaStreamTrack.stop();
 		}
