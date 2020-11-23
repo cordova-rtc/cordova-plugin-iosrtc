@@ -981,8 +981,8 @@ class iosrtcPlugin : CDVPlugin {
 			return;
 		}
 
-		//DispatchQueue.global(qos: .userInitiated).async {
-		self.commandDelegate.run(inBackground: {
+		// Perform the task on a background queue.
+		DispatchQueue.global().async {
 			pluginMediaStreamRenderer!.save(
 				callback: { (data: String) -> Void in
 					DispatchQueue.main.async {
@@ -1000,7 +1000,7 @@ class iosrtcPlugin : CDVPlugin {
 					)
 				}
 			)
-		})
+		}
 	}
 
 	@objc(MediaStreamRenderer_close:) func MediaStreamRenderer_close(_ command: CDVInvokedUrlCommand) {
