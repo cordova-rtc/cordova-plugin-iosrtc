@@ -4,6 +4,12 @@
 * fix hook possible Cannot read property '1' of null at getProjectName #597
 * fix: possible error on icecandidate event on RTCPeerConnection
 * fix: fix RTCIceCandidate typo
+* fix: fix: PluginMediaStreamTrack.eventListener possible Fatal error #602
+* fix fix MediaStreamTrack lifecycle, clone and make GetStats logs silent. #605 via @samgabriel
+* fix: remove calling checkActive for local streams connected to PeerConnection #607
+* fix lint codestyle fixed #608 via @RSATom
+* fix: Fix Hook error cannot read property '1' of null at getProjectName #597
+* fix: fatal error: Unexpectedly found nil while unwrapping an Optional value: file PluginMediaStreamTrack.swift, line 123
 * feat: use background-color from video element css #586 via @calebboyd
 * feat: Prettier for JS styling #598 via @dgreif
 
