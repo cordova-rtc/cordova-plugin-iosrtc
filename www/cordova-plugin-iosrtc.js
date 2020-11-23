@@ -295,6 +295,8 @@ function MediaStream(arg, id) {
 	// Public but internal attributes.
 	stream.connected = false;
 
+	stream._addedToConnection = false;
+
 	// Private attributes.
 	stream._audioTracks = {};
 	stream._videoTracks = {};
@@ -341,6 +343,14 @@ MediaStream.prototype = Object.create(originalMediaStream.prototype, {
 	label: {
 		get: function () {
 			return this._id;
+		}
+	},
+	addedToConnection: {
+		get: function () {
+			return this._addedToConnection;
+		},
+		set: function (value) {
+			this._addedToConnection = value;
 		}
 	}
 });
@@ -595,6 +605,10 @@ function checkActive() {
 	if (!this.active) {
 		return;
 	}
+	// Fixes Twilio fails to read a local video if the stream is released.
+	if (this._addedToConnection) {
+		return;
+	}
 
 	if (
 		Object.keys(this._audioTracks).length === 0 &&
@@ -622,10 +636,10 @@ function checkActive() {
 		}
 	}
 
-	debug('all tracks are ended, releasing MediaStream');
 	release();
 
 	function release() {
+		debug('all tracks are ended, releasing MediaStream %s', self.id);
 		self._active = false;
 		self.dispatchEvent(new Event('inactive'));
 
@@ -645,14 +659,22 @@ function onEvent(data) {
 
 	switch (type) {
 		case 'addtrack':
-			track = new MediaStreamTrack(data.track);
-
-			if (track.kind === 'audio') {
-				this._audioTracks[track.id] = track;
-			} else if (track.kind === 'video') {
-				this._videoTracks[track.id] = track;
+			// check if a track already exists before initializing a new
+			// track and calling setListener again.
+			if (data.track.kind === 'audio') {
+				track = this._audioTracks[data.track.id];
+			} else if (data.track.kind === 'video') {
+				track = this._videoTracks[data.track.id];
 			}
-			addListenerForTrackEnded.call(this, track);
+			if (!track) {
+				track = new MediaStreamTrack(data.track);
+				if (track.kind === 'audio') {
+					this._audioTracks[track.id] = track;
+				} else if (track.kind === 'video') {
+					this._videoTracks[track.id] = track;
+				}
+				addListenerForTrackEnded.call(this, track);
+			}
 
 			event = new Event('addtrack');
 			event.track = track;
@@ -2372,15 +2394,7 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 
 	// Fix webrtc-adapter bad SHIM on addStream
 	if (stream) {
-		if (!(stream instanceof MediaStream.originalMediaStream)) {
-			throw new Error('addTrack() must be called with a MediaStream instance as argument');
-		}
-
-		if (!this.localStreams[stream.id]) {
-			this.localStreams[stream.id] = stream;
-		}
-
-		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addStream', [this.pcId, stream.id]);
+		this.addStream(stream);
 	}
 
 	for (id in this.localStreams) {
@@ -2486,6 +2500,8 @@ RTCPeerConnection.prototype.addStream = function (stream) {
 
 	this.localStreams[stream.id] = stream;
 
+	stream.addedToConnection = true;
+
 	stream.getTracks().forEach(function (track) {
 		self.localTracks[track.id] = track;
 		track.addEventListener('ended', function () {
@@ -2560,7 +2576,7 @@ RTCPeerConnection.prototype.getStats = function (selector) {
 		throw new Errors.InvalidStateError('peerconnection is closed');
 	}
 
-	debug('getStats() [selector:%o]', selector);
+	// debug('getStats() [selector:%o]', selector);
 
 	return new Promise(function (resolve, reject) {
 		function onResultOK(array) {
@@ -2885,6 +2901,10 @@ function RTCStatsResponse(data) {
 
 	this.namedItem = function () {
 		return null;
+	};
+
+	this.values = function () {
+		return data;
 	};
 }
 
