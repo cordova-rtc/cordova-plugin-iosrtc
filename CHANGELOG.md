@@ -1,11 +1,11 @@
 #### Version 6.0.16
 * fix: correct canvas drawImage SHIM for VideoElement
 * fix: ensure proper camera orientation for first launch 
-* fix hook possible Cannot read property '1' of null at getProjectName #597
+* fix: fix hook possible Cannot read property '1' of null at getProjectName #597
 * fix: possible error on icecandidate event on RTCPeerConnection
 * fix: fix RTCIceCandidate typo
 * fix: fix PluginMediaStreamTrack.eventListener possible Fatal error #602
-* fix fix MediaStreamTrack lifecycle, clone and make GetStats logs silent. #605 via @samgabriel
+* fix: fix MediaStreamTrack lifecycle, clone and make GetStats logs silent. #605 via @samgabriel
 * fix: remove calling checkActive for local streams connected to PeerConnection #607
 * fix lint codestyle fixed #608 via @RSATom
 * fix: Fix Hook error cannot read property '1' of null at getProjectName #597
