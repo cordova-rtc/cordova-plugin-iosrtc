@@ -1,3 +1,7 @@
+#### Version 6.0.17
+* fix: fix possible duplicate pluginMediaStream and pluginMediaTrack causing no video
+* fix: fix plugin media stream renderer save leak #609
+
 #### Version 6.0.16
 * fix: correct canvas drawImage SHIM for VideoElement
 * fix: ensure proper camera orientation for first launch 
