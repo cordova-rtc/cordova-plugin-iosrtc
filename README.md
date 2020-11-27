@@ -46,6 +46,7 @@ In order to make this Cordova plugin run into a iOS application some requirement
 * Ionic => v8 
 * Jitsi ~ 3229 
 * Apizee => 2.6.11
+* Twillio => 2.4.0
 
 ## Installation
 
