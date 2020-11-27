@@ -182,7 +182,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		}
 
 		self.onSetDescriptionFailureCallback = { (error: Error) -> Void in
-			NSLog("PluginRTCPeerConnection#setLocalDescription() | failure callback: %@ description %@", 
+			NSLog("PluginRTCPeerConnection#setLocalDescription() | failure callback: %@ description %@",
 						String(describing: error), desc)
 
 			errback(error)
@@ -354,7 +354,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 
 		let rtcMediaStreamTrack = pluginMediaTrack.rtcMediaStreamTrack;
 		var rtcSender = trackIdsToSenders[rtcMediaStreamTrack.trackId];
-		NSLog("PluginRTCPeerConnection#addTrack() trackId=%@ rtcId=%@ streamIds %@" , 
+		NSLog("PluginRTCPeerConnection#addTrack() trackId=%@ rtcId=%@ streamIds %@",
 				pluginMediaTrack.id, rtcMediaStreamTrack.trackId, streamIds);
 		if (rtcSender == nil) {
 			rtcSender = self.rtcPeerConnection.add(rtcMediaStreamTrack, streamIds: streamIds)
@@ -597,7 +597,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		var currentMediaStream : PluginMediaStream? = nil;
 
 		for (_, pluginMediaStream) in self.pluginMediaStreams {
-			if (pluginMediaStream.rtcMediaStream == stream) {
+			if (pluginMediaStream.rtcMediaStream.streamId == stream!.streamId) {
 				currentMediaStream = pluginMediaStream;
 				break;
 			}
@@ -629,7 +629,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		var currentMediaStreamTrack : PluginMediaStreamTrack? = nil;
 
 		for (_, pluginMediaTrack) in self.pluginMediaTracks {
-			if (pluginMediaTrack.rtcMediaStreamTrack == rtpReceiver.track) {
+			if (pluginMediaTrack.rtcMediaStreamTrack.trackId == rtpReceiver.track!.trackId) {
 				currentMediaStreamTrack = pluginMediaTrack;
 				break;
 			}
