@@ -971,7 +971,7 @@ class iosrtcPlugin : CDVPlugin {
 	}
 
 	@objc(MediaStreamRenderer_save:) func MediaStreamRenderer_save(_ command: CDVInvokedUrlCommand) {
-		NSLog("iosrtcPlugin#MediaStreamRenderer_save()")
+		//NSLog("iosrtcPlugin#MediaStreamRenderer_save()")
 
 		let id = command.argument(at: 0) as! Int
 		let pluginMediaStreamRenderer = self.pluginMediaStreamRenderers[id]
@@ -981,13 +981,26 @@ class iosrtcPlugin : CDVPlugin {
 			return;
 		}
 
-		let based64 = pluginMediaStreamRenderer!.save()
-		self.emit(command.callbackId,
-			  result: CDVPluginResult(
-				status: CDVCommandStatus_OK,
-				messageAs: based64
+		// Perform the task on a background queue.
+		DispatchQueue.global().async {
+			pluginMediaStreamRenderer!.save(
+				callback: { (data: String) -> Void in
+					DispatchQueue.main.async {
+						self.emit(command.callbackId,
+							result: CDVPluginResult(
+								status: CDVCommandStatus_OK,
+								messageAs: data
+							)
+						)
+					}
+				},
+				errback: { (error: String) -> Void in
+					self.emit(command.callbackId,
+						result: CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: error)
+					)
+				}
 			)
-		)
+		}
 	}
 
 	@objc(MediaStreamRenderer_close:) func MediaStreamRenderer_close(_ command: CDVInvokedUrlCommand) {
