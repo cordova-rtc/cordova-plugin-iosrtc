@@ -3638,6 +3638,7 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 				img.addEventListener('load', function () {
 					args.splice(0, 1, img);
 					drawImage.apply(context, args);
+					img.src = null;
 				});
 				img.setAttribute('src', 'data:image/jpg;base64,' + data);
 			});

@@ -239,15 +239,17 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		self.elementView.backgroundColor = color
 	}
 
-	func save() -> String {
-		NSLog("PluginMediaStreamRenderer#save()")
+	func save(callback: (_ data: String) -> Void,
+			  errback: (_ error: String) -> Void) {
+		//NSLog("PluginMediaStreamRenderer#save()")
 		UIGraphicsBeginImageContextWithOptions(videoView.bounds.size, videoView.isOpaque, 0.0)
 		videoView.drawHierarchy(in: videoView.bounds, afterScreenUpdates: false)
 		let snapshotImageFromMyView = UIGraphicsGetImageFromCurrentImageContext()
 		UIGraphicsEndImageContext()
 		let imageData = snapshotImageFromMyView?.jpegData(compressionQuality: 1.0)
 		let strBase64 = imageData?.base64EncodedString(options: .lineLength64Characters)
-		return strBase64!;
+		
+		callback(strBase64!);
 	}
 
 	func stop() {
