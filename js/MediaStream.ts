@@ -136,7 +136,7 @@ export const MediaStreamNativeShim = (function (
 export class MediaStreamShim extends EventTargetShim implements MediaStream {
 	connected = false;
 	_active = false;
-	_addedToConnection = false;
+	addedToConnection = false;
 	_audioTracks: { [id: string]: MediaStreamTrackShim } = {};
 	_videoTracks: { [id: string]: MediaStreamTrackShim } = {};
 	_id = '';
@@ -153,13 +153,6 @@ export class MediaStreamShim extends EventTargetShim implements MediaStream {
 
 	get label() {
 		return this._label;
-	}
-
-	get addedToConnection() {
-		return this._addedToConnection;
-	}
-	set addedToConnection(value: boolean) {
-		this._addedToConnection = value
 	}
 
 	getBlobId() {
@@ -291,7 +284,7 @@ export class MediaStreamShim extends EventTargetShim implements MediaStream {
 		}
 
 		// Fixes Twilio fails to read a local video if the stream is released.
-		if (this._addedToConnection) {
+		if (this.addedToConnection) {
 			return;
 		}
 
@@ -344,8 +337,6 @@ export class MediaStreamShim extends EventTargetShim implements MediaStream {
 
 		switch (type) {
 			case 'addtrack':
-				let track: MediaStreamTrackShim;
-
 				// check if a track already exists before initializing a new
 				// track and calling setListener again.
 				if (data.track.kind === 'audio') {

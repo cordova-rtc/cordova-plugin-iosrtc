@@ -1,5 +1,5 @@
 /*
- * cordova-plugin-iosrtc v6.0.16
+ * cordova-plugin-iosrtc v6.0.17
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015-2017 eFace2Face, Inc. (https://eface2face.com)
  * Copyright 2015-2019 BasqueVoIPMafia (https://github.com/BasqueVoIPMafia)
@@ -66,7 +66,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.EventTargetShim = void 0;
+exports.extendEventTarget = exports.EventTargetShim = void 0;
 var YaetiEventTarget = _dereq_('yaeti').EventTarget;
 // Implement official EventTarget to ensure usages get proper types
 var EventTargetShim = /** @class */ (function (_super) {
@@ -88,6 +88,14 @@ var EventTargetShim = /** @class */ (function (_super) {
     return EventTargetShim;
 }(YaetiEventTarget));
 exports.EventTargetShim = EventTargetShim;
+function extendEventTarget(target) {
+    EventTargetShim.call(target);
+    var eventTargetPrototype = Object.getOwnPropertyDescriptors(EventTargetShim.prototype);
+    // this prevents the extend target from showing up as an `EventTargetShim` object, keeping it's original constructor
+    delete eventTargetPrototype.constructor;
+    Object.defineProperties(target, eventTargetPrototype);
+}
+exports.extendEventTarget = extendEventTarget;
 
 },{"yaeti":31}],3:[function(_dereq_,module,exports){
 "use strict";
@@ -268,6 +276,8 @@ exports.MediaStreamNativeShim = function (arg, id) {
     }
     // Assign all members from the MediaStreamWrapper prototype to extend functionality of the Blob or MediaStream
     Object.defineProperties(stream, Object.getOwnPropertyDescriptors(MediaStreamShim.prototype));
+    // Make it an EventTarget.
+    EventTarget_1.extendEventTarget(stream);
     // Public attributes.
     stream._id = id || newMediaStreamId();
     stream._active = true;
@@ -301,10 +311,14 @@ var MediaStreamShim = /** @class */ (function (_super) {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.connected = false;
         _this._active = false;
+        _this.addedToConnection = false;
         _this._audioTracks = {};
         _this._videoTracks = {};
+        _this._id = '';
+        _this._label = '';
+        _this._blobId = '';
         /**
-         * Additional, unimplemented members
+         * Additional events listeners
          */
         _this.onaddtrack = null;
         _this.onremovetrack = null;
@@ -434,6 +448,10 @@ var MediaStreamShim = /** @class */ (function (_super) {
         if (!this.active) {
             return;
         }
+        // Fixes Twilio fails to read a local video if the stream is released.
+        if (this.addedToConnection) {
+            return;
+        }
         if (Object.keys(this._audioTracks).length === 0 &&
             Object.keys(this._videoTracks).length === 0) {
             debug('no tracks, releasing MediaStream');
@@ -454,7 +472,7 @@ var MediaStreamShim = /** @class */ (function (_super) {
                 }
             }
         }
-        debug('all tracks are ended, releasing MediaStream');
+        debug('all tracks are ended, releasing MediaStream %s', this.id);
         this.release();
     };
     MediaStreamShim.prototype.release = function () {
@@ -470,34 +488,45 @@ var MediaStreamShim = /** @class */ (function (_super) {
         debug('onEvent() | [type:%s, data:%o]', type, data);
         switch (type) {
             case 'addtrack':
-                track = new MediaStreamTrack_1.MediaStreamTrackShim(data.track);
-                if (track.kind === 'audio') {
-                    this._audioTracks[track.id] = track;
+                var track_1 = undefined;
+                // check if a track already exists before initializing a new
+                // track and calling setListener again.
+                if (data.track.kind === 'audio') {
+                    track_1 = this._audioTracks[data.track.id];
                 }
-                else if (track.kind === 'video') {
-                    this._videoTracks[track.id] = track;
+                else if (data.track.kind === 'video') {
+                    track_1 = this._videoTracks[data.track.id];
                 }
-                this.addListenerForTrackEnded(track);
+                if (!track_1) {
+                    track_1 = new MediaStreamTrack_1.MediaStreamTrackShim(data.track);
+                    if (track_1.kind === 'audio') {
+                        this._audioTracks[track_1.id] = track_1;
+                    }
+                    else if (track_1.kind === 'video') {
+                        this._videoTracks[track_1.id] = track_1;
+                    }
+                    this.addListenerForTrackEnded(track_1);
+                }
                 event = new Event('addtrack');
-                event.track = track;
+                event.track = track_1;
                 this.dispatchEvent(event);
                 // Also emit 'update' for the MediaStreamRenderer.
                 this.dispatchEvent(new Event('update'));
                 break;
             case 'removetrack':
                 if (data.track.kind === 'audio') {
-                    track = this._audioTracks[data.track.id];
+                    track_1 = this._audioTracks[data.track.id];
                     delete this._audioTracks[data.track.id];
                 }
                 else if (data.track.kind === 'video') {
-                    track = this._videoTracks[data.track.id];
+                    track_1 = this._videoTracks[data.track.id];
                     delete this._videoTracks[data.track.id];
                 }
-                if (!track) {
+                if (!track_1) {
                     throw new Error('"removetrack" event fired on MediaStream for a non existing MediaStreamTrack');
                 }
                 event = new Event('removetrack');
-                event.track = track;
+                event.track = track_1;
                 this.dispatchEvent(event);
                 // Also emit 'update' for the MediaStreamRenderer.
                 this.dispatchEvent(new Event('update'));
@@ -898,8 +927,11 @@ var MediaStreamTrackShim = /** @class */ (function (_super) {
          * Additional, unimplemented members
          */
         _this.isolated = false;
-        _this.onended = null;
         _this.onisolationchange = null;
+        /**
+         * Additional events listeners
+         */
+        _this.onended = null;
         _this.onmute = null;
         _this.onunmute = null;
         if (!dataFromEvent) {
@@ -1580,6 +1612,7 @@ var RTCPeerConnectionShim = /** @class */ (function (_super) {
     __extends(RTCPeerConnectionShim, _super);
     function RTCPeerConnectionShim(pcConfig, pcConstraints) {
         var _this = _super.call(this) || this;
+        _this.pcConfig = pcConfig;
         _this.pcId = randomNumber_1.randomNumber();
         _this._localDescription = null;
         _this.remoteDescription = null;
@@ -1591,6 +1624,15 @@ var RTCPeerConnectionShim = /** @class */ (function (_super) {
         _this.localTracks = {};
         _this.remoteTracks = {};
         /**
+         * Additional events listeners
+         */
+        _this.onconnectionstatechange = null;
+        _this.ondatachannel = null;
+        _this.onicecandidateerror = null;
+        _this.onicegatheringstatechange = null;
+        _this.onsignalingstatechange = null;
+        _this.onstatsended = null;
+        /**
          * Additional, unimplemented members
          */
         _this.canTrickleIceCandidates = null;
@@ -1598,12 +1640,6 @@ var RTCPeerConnectionShim = /** @class */ (function (_super) {
         _this.currentRemoteDescription = null;
         _this.idpErrorInfo = null;
         _this.idpLoginUrl = null;
-        _this.onconnectionstatechange = null;
-        _this.ondatachannel = null;
-        _this.onicecandidateerror = null;
-        _this.onicegatheringstatechange = null;
-        _this.onsignalingstatechange = null;
-        _this.onstatsended = null;
         _this.peerIdentity = new Promise(function () {
             // don't return an identity since we don't actually have it
         });
@@ -1619,7 +1655,6 @@ var RTCPeerConnectionShim = /** @class */ (function (_super) {
         Object.defineProperty(_this, 'addTrack', RTCPeerConnectionShim.prototype_descriptor.addTrack);
         Object.defineProperty(_this, 'addStream', RTCPeerConnectionShim.prototype_descriptor.addStream);
         Object.defineProperty(_this, 'getLocalStreams', RTCPeerConnectionShim.prototype_descriptor.getLocalStreams);
-        _this.pcConfig = fixPcConfig(pcConfig);
         var onResultOK = function (data) { return _this.onEvent(data); };
         exec(onResultOK, null, 'iosrtcPlugin', 'new_RTCPeerConnection', [
             _this.pcId,
@@ -1921,13 +1956,7 @@ var RTCPeerConnectionShim = /** @class */ (function (_super) {
         //stream = stream || Object.values(this.localStreams)[0] || new MediaStream();
         // Fix webrtc-adapter bad SHIM on addStream
         if (stream) {
-            if (!(stream instanceof MediaStream_1.originalMediaStream)) {
-                throw new Error('addTrack() must be called with a MediaStream instance as argument');
-            }
-            if (!this.localStreams[stream.id]) {
-                this.localStreams[stream.id] = stream;
-            }
-            exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addStream', [this.pcId, stream.id]);
+            this.addStream(stream);
         }
         for (var id in this.localStreams) {
             if (this.localStreams.hasOwnProperty(id)) {
@@ -1997,6 +2026,7 @@ var RTCPeerConnectionShim = /** @class */ (function (_super) {
             return;
         }
         this.localStreams[stream.id] = stream;
+        stream.addedToConnection = true;
         stream.getTracks().forEach(function (track) {
             _this.localTracks[track.id] = track;
             track.addEventListener('ended', function () {
@@ -2050,7 +2080,7 @@ var RTCPeerConnectionShim = /** @class */ (function (_super) {
         if (this.isClosed()) {
             throw new Errors_1.Errors.InvalidStateError('peerconnection is closed');
         }
-        debug('getStats() [selector:%o]', selector);
+        // debug('getStats() [selector:%o]', selector);
         return new Promise(function (resolve, reject) {
             var onResultOK = function (array) {
                 if (_this.isClosed()) {
@@ -2112,11 +2142,11 @@ var RTCPeerConnectionShim = /** @class */ (function (_super) {
                     event.candidate = null;
                 }
                 // Update _localDescription.
-                if (this._localDescription) {
+                if (this._localDescription && data.localDescription) {
                     this._localDescription.type = data.localDescription.type;
                     this._localDescription.sdp = data.localDescription.sdp;
                 }
-                else {
+                else if (data.localDescription) {
                     this._localDescription = new RTCSessionDescription_1.RTCSessionDescriptionShim(data.localDescription);
                 }
                 break;
@@ -2191,31 +2221,6 @@ var RTCPeerConnectionShim = /** @class */ (function (_super) {
 exports.RTCPeerConnectionShim = RTCPeerConnectionShim;
 // Save current RTCPeerConnection.prototype
 RTCPeerConnectionShim.prototype_descriptor = Object.getOwnPropertyDescriptors(RTCPeerConnectionShim.prototype);
-function fixPcConfig(pcConfig) {
-    if (!pcConfig) {
-        return {
-            iceServers: []
-        };
-    }
-    var iceServers = pcConfig.iceServers;
-    if (!Array.isArray(iceServers)) {
-        pcConfig.iceServers = [];
-        return pcConfig;
-    }
-    iceServers.forEach(function (iceServer) {
-        // THe Objective-C wrapper of WebRTC is old and does not implement .urls.
-        if (iceServer.url) {
-            return;
-        }
-        else if (Array.isArray(iceServer.urls)) {
-            iceServer.url = iceServer.urls[0];
-        }
-        else if (typeof iceServer.urls === 'string') {
-            iceServer.url = iceServer.urls;
-        }
-    });
-    return pcConfig;
-}
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./Errors":1,"./EventTarget":2,"./MediaStream":5,"./MediaStreamTrack":7,"./RTCDTMFSender":10,"./RTCDataChannel":11,"./RTCIceCandidate":12,"./RTCRtpReceiver":14,"./RTCRtpSender":15,"./RTCRtpTransceiver":16,"./RTCSessionDescription":17,"./RTCStats":18,"./RTCStatsReport":19,"./randomNumber":23,"cordova/exec":undefined,"debug":25}],14:[function(_dereq_,module,exports){
@@ -3054,6 +3059,7 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
                     originalDrawImage.apply(_this, __spreadArrays([
                         img
                     ], additionalArgs));
+                    img.src = '';
                 });
                 img.setAttribute('src', 'data:image/jpg;base64,' + data);
             });

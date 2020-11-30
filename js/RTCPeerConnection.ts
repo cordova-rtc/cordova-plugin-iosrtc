@@ -507,7 +507,6 @@ export class RTCPeerConnectionShim extends EventTargetShim implements RTCPeerCon
 		// Disable to match browser behavior
 		//stream = stream || Object.values(this.localStreams)[0] || new MediaStream();
 
-
 		// Fix webrtc-adapter bad SHIM on addStream
 		if (stream) {
 			this.addStream(stream);

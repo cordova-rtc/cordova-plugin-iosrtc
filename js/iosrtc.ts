@@ -215,7 +215,7 @@ function registerGlobals(doNotRestoreCallbacksSupport = false) {
 						img,
 						...additionalArgs
 					] as CanvasDrawImage['drawImage']['arguments']);
-					img.src = null;
+					img.src = '';
 				});
 				img.setAttribute('src', 'data:image/jpg;base64,' + data);
 			});
