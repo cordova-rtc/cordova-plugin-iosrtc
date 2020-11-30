@@ -1131,7 +1131,7 @@ class iosrtcPlugin : CDVPlugin {
 		PluginRTCAudioController.selectAudioOutputSpeaker()
 	}
 
-	func dump(_ command: CDVInvokedUrlCommand) {
+	@objc(dump:) func dump(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#dump()")
 
 		for (id, _) in self.pluginRTCPeerConnections {
