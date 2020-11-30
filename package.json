@@ -41,10 +41,10 @@
   },
   "devDependencies": {
     "@types/debug": "4.1.5",
-    "@types/node": "14.14.6",
+    "@types/node": "14.14.10",
     "@types/random-number": "0.0.0",
-    "@typescript-eslint/eslint-plugin": "4.6.0",
-    "@typescript-eslint/parser": "4.6.0",
+    "@typescript-eslint/eslint-plugin": "4.9.0",
+    "@typescript-eslint/parser": "4.9.0",
     "browserify": "^14.4.0",
     "eslint": "7.12.1",
     "eslint-config-prettier": "6.15.0",
@@ -57,7 +57,7 @@
     "jshint-stylish": "~2.2.1",
     "prettier": "2.1.2",
     "tsify": "5.0.2",
-    "typescript": "4.0.5",
+    "typescript": "4.1.2",
     "vinyl-buffer": "^1.0.1",
     "vinyl-source-stream": "^2.0.0"
   },

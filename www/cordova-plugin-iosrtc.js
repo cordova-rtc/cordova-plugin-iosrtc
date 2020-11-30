@@ -25,6 +25,7 @@ var __extends = (this && this.__extends) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.detectDeprecatedCallbaksUsage = exports.Errors = void 0;
 function createErrorClass(name) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     return /** @class */ (function (_super) {
         __extends(NamedError, _super);
         function NamedError(message) {
@@ -488,45 +489,44 @@ var MediaStreamShim = /** @class */ (function (_super) {
         debug('onEvent() | [type:%s, data:%o]', type, data);
         switch (type) {
             case 'addtrack':
-                var track_1 = undefined;
                 // check if a track already exists before initializing a new
                 // track and calling setListener again.
                 if (data.track.kind === 'audio') {
-                    track_1 = this._audioTracks[data.track.id];
+                    track = this._audioTracks[data.track.id];
                 }
                 else if (data.track.kind === 'video') {
-                    track_1 = this._videoTracks[data.track.id];
+                    track = this._videoTracks[data.track.id];
                 }
-                if (!track_1) {
-                    track_1 = new MediaStreamTrack_1.MediaStreamTrackShim(data.track);
-                    if (track_1.kind === 'audio') {
-                        this._audioTracks[track_1.id] = track_1;
+                if (!track) {
+                    track = new MediaStreamTrack_1.MediaStreamTrackShim(data.track);
+                    if (track.kind === 'audio') {
+                        this._audioTracks[track.id] = track;
                     }
-                    else if (track_1.kind === 'video') {
-                        this._videoTracks[track_1.id] = track_1;
+                    else if (track.kind === 'video') {
+                        this._videoTracks[track.id] = track;
                     }
-                    this.addListenerForTrackEnded(track_1);
+                    this.addListenerForTrackEnded(track);
                 }
                 event = new Event('addtrack');
-                event.track = track_1;
+                event.track = track;
                 this.dispatchEvent(event);
                 // Also emit 'update' for the MediaStreamRenderer.
                 this.dispatchEvent(new Event('update'));
                 break;
             case 'removetrack':
                 if (data.track.kind === 'audio') {
-                    track_1 = this._audioTracks[data.track.id];
+                    track = this._audioTracks[data.track.id];
                     delete this._audioTracks[data.track.id];
                 }
                 else if (data.track.kind === 'video') {
-                    track_1 = this._videoTracks[data.track.id];
+                    track = this._videoTracks[data.track.id];
                     delete this._videoTracks[data.track.id];
                 }
-                if (!track_1) {
+                if (!track) {
                     throw new Error('"removetrack" event fired on MediaStream for a non existing MediaStreamTrack');
                 }
                 event = new Event('removetrack');
-                event.track = track_1;
+                event.track = track;
                 this.dispatchEvent(event);
                 // Also emit 'update' for the MediaStreamRenderer.
                 this.dispatchEvent(new Event('update'));
