@@ -24,6 +24,7 @@ extension RTCMediaStreamTrack {
 
 	class PropClass {
 		var videoCaptureController: PluginRTCVideoCaptureController?
+		let capabilities = NSMutableDictionary()
 	}
 
 	var _propClass : PropClass {
@@ -39,6 +40,12 @@ extension RTCMediaStreamTrack {
 		}
 		set {
 			_propClass.videoCaptureController = newValue
+		}
+	}
+
+	var capabilities: NSMutableDictionary {
+		get {
+			return _propClass.capabilities
 		}
 	}
 }
