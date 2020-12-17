@@ -123,6 +123,10 @@ class PluginGetUserMedia {
 				return
 			}
 
+			if let device = rtcVideoTrack!.videoCaptureController?.device {
+				rtcVideoTrack!.capabilities["deviceId"] = device.uniqueID
+			}
+
 			rtcMediaStream.addVideoTrack(rtcVideoTrack!)
 		}
 

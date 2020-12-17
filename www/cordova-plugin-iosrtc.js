@@ -1168,6 +1168,7 @@ function MediaStreamTrack(dataFromEvent) {
 	this.kind = dataFromEvent.kind;
 	this.label = dataFromEvent.label;
 	this.muted = false; // TODO: No "muted" property in ObjC API.
+	this.capabilities = dataFromEvent.capabilities;
 	this.readyState = dataFromEvent.readyState;
 
 	// Private attributes.
@@ -1223,9 +1224,7 @@ MediaStreamTrack.prototype.clone = function () {
 };
 
 MediaStreamTrack.prototype.getCapabilities = function () {
-	//throw new Error('Not implemented.');
-	// SHAM
-	return new MediaTrackCapabilities();
+	return new MediaTrackCapabilities(this.capabilities);
 };
 
 MediaStreamTrack.prototype.getSettings = function () {
@@ -1295,6 +1294,8 @@ module.exports = MediaTrackCapabilities;
 // Ref https://www.w3.org/TR/mediacapture-streams/#dom-mediatrackcapabilities
 function MediaTrackCapabilities(data) {
 	data = data || {};
+
+	this.deviceId = data.deviceId;
 }
 
 },{}],9:[function(_dereq_,module,exports){
