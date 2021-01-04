@@ -31,14 +31,14 @@ RTCRtpSender.prototype.replaceTrack = function (withTrack) {
 
 		// https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/negotiationneeded_event
 		var event = new Event('negotiationneeded');
-		pc.dispatchEvent('negotiationneeded', event);
+		pc.dispatchEvent(event);
 
-		pc.addEventListener("signalingstatechange", function listener() {
-			if (pc.signalingState === "closed") {
-				pc.removeEventListener("signalingstatechange", listener);
+		pc.addEventListener('signalingstatechange', function listener() {
+			if (pc.signalingState === 'closed') {
+				pc.removeEventListener('signalingstatechange', listener);
 				reject();
-			} else if (pc.signalingState === "stable") {
-				pc.removeEventListener("signalingstatechange", listener);
+			} else if (pc.signalingState === 'stable') {
+				pc.removeEventListener('signalingstatechange', listener);
 				resolve();
 			}
 		});

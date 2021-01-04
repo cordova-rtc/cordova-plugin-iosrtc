@@ -3,7 +3,6 @@
  */
 module.exports = RTCSessionDescription;
 
-
 function RTCSessionDescription(data) {
 	data = data || {};
 

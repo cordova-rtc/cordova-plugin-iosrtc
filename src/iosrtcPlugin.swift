@@ -446,7 +446,7 @@ class iosrtcPlugin : CDVPlugin {
 	}
 
 	@objc(RTCPeerConnection_getStats:) func RTCPeerConnection_getStats(_ command: CDVInvokedUrlCommand) {
-		NSLog("iosrtcPlugin#RTCPeerConnection_getStats()")
+//		NSLog("iosrtcPlugin#RTCPeerConnection_getStats()")
 
 		let pcId = command.argument(at: 0) as! Int
 		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
@@ -727,13 +727,13 @@ class iosrtcPlugin : CDVPlugin {
 	}
 
 	@objc(MediaStream_addTrack:) func MediaStream_addTrack(_ command: CDVInvokedUrlCommand) {
-		NSLog("iosrtcPlugin#MediaStream_addTrack()")
+
 
 		let id = command.argument(at: 0) as! String
 		let trackId = command.argument(at: 1) as! String
 		let pluginMediaStream = self.pluginMediaStreams[id]
 		let pluginMediaStreamTrack = self.pluginMediaStreamTracks[trackId]
-
+		NSLog("iosrtcPlugin#MediaStream_addTrack() trackId=%@ " ,trackId)
 		if pluginMediaStream == nil {
 			NSLog("iosrtcPlugin#MediaStream_addTrack() | ERROR: pluginMediaStream with id=%@ does not exist", String(id))
 			return
@@ -792,19 +792,35 @@ class iosrtcPlugin : CDVPlugin {
 	}
 
 	@objc(MediaStreamTrack_clone:) func MediaStreamTrack_clone(_ command: CDVInvokedUrlCommand) {
-		NSLog("iosrtcPlugin#MediaStreamTrack_clone()")
+
 
 		let existingTrackId = command.argument(at: 0) as! String
 		let newTrackId = command.argument(at: 1) as! String
 		let pluginMediaStreamTrack = self.pluginMediaStreamTracks[existingTrackId]
-
+		NSLog("iosrtcPlugin#MediaStreamTrack_clone() existing=%@ new=%@", existingTrackId, newTrackId)
 		if pluginMediaStreamTrack == nil {
 			NSLog("iosrtcPlugin#MediaStreamTrack_clone() | ERROR: pluginMediaStreamTrack with id=%@ does not exist", String(existingTrackId))
 			return;
 		}
 
 		if self.pluginMediaStreams[newTrackId] == nil {
-			let rtcMediaStreamTrack = self.pluginMediaStreamTracks[existingTrackId]!.rtcMediaStreamTrack;
+			var rtcMediaStreamTrack = self.pluginMediaStreamTracks[existingTrackId]!.rtcMediaStreamTrack;
+			// twilio uses the sdp local description to map the track ids to the media id.
+			// if the original rtcMediaStreamTrack is not cloned, the rtcPeerConnection 
+			// will not add the track and as such will not be found by Twilio. 
+			// it is unable to do the mapping and find track and thus
+			// will not publish the local track.
+			if pluginMediaStreamTrack?.kind == "video" {
+				if let rtcVideoTrack = rtcMediaStreamTrack as? RTCVideoTrack{
+					NSLog("iosrtcPlugin#MediaStreamTrack_clone() cloning video source");
+					rtcMediaStreamTrack = self.rtcPeerConnectionFactory.videoTrack(with: rtcVideoTrack.source, trackId: newTrackId);
+				}
+			} else if pluginMediaStreamTrack?.kind == "audio" {
+				if let rtcAudioTrack = rtcMediaStreamTrack as? RTCAudioTrack{
+					NSLog("iosrtcPlugin#MediaStreamTrack_clone() cloning audio source");
+					rtcMediaStreamTrack = self.rtcPeerConnectionFactory.audioTrack(with: rtcAudioTrack.source, trackId: newTrackId);
+				}
+			}
 			let newPluginMediaStreamTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: rtcMediaStreamTrack, trackId: newTrackId)
 
 			self.saveMediaStreamTrack(newPluginMediaStreamTrack)
@@ -955,7 +971,7 @@ class iosrtcPlugin : CDVPlugin {
 	}
 
 	@objc(MediaStreamRenderer_save:) func MediaStreamRenderer_save(_ command: CDVInvokedUrlCommand) {
-		NSLog("iosrtcPlugin#MediaStreamRenderer_save()")
+		//NSLog("iosrtcPlugin#MediaStreamRenderer_save()")
 
 		let id = command.argument(at: 0) as! Int
 		let pluginMediaStreamRenderer = self.pluginMediaStreamRenderers[id]
@@ -965,13 +981,26 @@ class iosrtcPlugin : CDVPlugin {
 			return;
 		}
 
-		let based64 = pluginMediaStreamRenderer!.save()
-		self.emit(command.callbackId,
-			  result: CDVPluginResult(
-				status: CDVCommandStatus_OK,
-				messageAs: based64
+		// Perform the task on a background queue.
+		DispatchQueue.global().async {
+			pluginMediaStreamRenderer!.save(
+				callback: { (data: String) -> Void in
+					DispatchQueue.main.async {
+						self.emit(command.callbackId,
+							result: CDVPluginResult(
+								status: CDVCommandStatus_OK,
+								messageAs: data
+							)
+						)
+					}
+				},
+				errback: { (error: String) -> Void in
+					self.emit(command.callbackId,
+						result: CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: error)
+					)
+				}
 			)
-		)
+		}
 	}
 
 	@objc(MediaStreamRenderer_close:) func MediaStreamRenderer_close(_ command: CDVInvokedUrlCommand) {
@@ -1102,7 +1131,7 @@ class iosrtcPlugin : CDVPlugin {
 		PluginRTCAudioController.selectAudioOutputSpeaker()
 	}
 
-	func dump(_ command: CDVInvokedUrlCommand) {
+	@objc(dump:) func dump(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#dump()")
 
 		for (id, _) in self.pluginRTCPeerConnections {
@@ -1153,7 +1182,7 @@ class iosrtcPlugin : CDVPlugin {
 	fileprivate func deleteMediaStream(_ pluginMediaStream: PluginMediaStream) {
 		if (self.pluginMediaStreams[pluginMediaStream.id] != nil) {
 			self.pluginMediaStreams[pluginMediaStream.id] = nil
-			
+
 			// deinit should call stop by itself
 			//pluginMediaStream.stop();
 		}
@@ -1168,7 +1197,7 @@ class iosrtcPlugin : CDVPlugin {
 	fileprivate func deleteMediaStreamTrack(_ pluginMediaStreamTrack: PluginMediaStreamTrack) {
 		if (self.pluginMediaStreamTracks[pluginMediaStreamTrack.id] != nil) {
 			self.pluginMediaStreamTracks[pluginMediaStreamTrack.id] = nil
-			
+
 			// deinit should call stop by itself
 			//pluginMediaStreamTrack.stop();
 		}

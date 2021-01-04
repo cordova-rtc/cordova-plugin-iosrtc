@@ -3,12 +3,10 @@
  */
 module.exports = getUserMedia;
 
-
 /**
  * Dependencies.
  */
-var
-	debug = require('debug')('iosrtc:getUserMedia'),
+var debug = require('debug')('iosrtc:getUserMedia'),
 	debugerror = require('debug')('iosrtc:ERROR:getUserMedia'),
 	exec = require('cordova/exec'),
 	MediaStream = require('./MediaStream'),
@@ -22,26 +20,27 @@ function isPositiveFloat(number) {
 	return typeof number === 'number' && number >= 0;
 }
 
-
 function getUserMedia(constraints) {
-
 	// Detect callback usage to assist 5.0.1 to 5.0.2 migration
 	// TODO remove on 6.0.0
 	Errors.detectDeprecatedCallbaksUsage('cordova.plugins.iosrtc.getUserMedia', arguments);
 
 	debug('[original constraints:%o]', constraints);
 
-	var
-		audioRequested = false,
+	var audioRequested = false,
 		videoRequested = false,
 		newConstraints = {};
 
 	if (
 		typeof constraints !== 'object' ||
-			(!constraints.hasOwnProperty('audio') && !constraints.hasOwnProperty('video'))
+		(!constraints.hasOwnProperty('audio') && !constraints.hasOwnProperty('video'))
 	) {
 		return new Promise(function (resolve, reject) {
-			reject(new Errors.MediaStreamError('constraints must be an object with at least "audio" or "video" keys'));
+			reject(
+				new Errors.MediaStreamError(
+					'constraints must be an object with at least "audio" or "video" keys'
+				)
+			);
 		});
 	}
 
@@ -137,7 +136,6 @@ function getUserMedia(constraints) {
 
 	// Get video constraints
 	if (videoRequested) {
-
 		// Handle object video constraints
 		newConstraints.video = {};
 
@@ -146,13 +144,12 @@ function getUserMedia(constraints) {
 		// The mandatory / optional syntax was deprecated a in 2014, and minWidth and minHeight the year before that.
 		if (
 			typeof constraints.video === 'object' &&
-				(typeof constraints.video.optional === 'object' || typeof constraints.video.mandatory === 'object')
+			(typeof constraints.video.optional === 'object' ||
+				typeof constraints.video.mandatory === 'object')
 		) {
-
 			var videoConstraints = {};
 
 			if (Array.isArray(constraints.video.optional)) {
-
 				/*
 				Example of constraints.video.optional:
 					{
@@ -180,10 +177,12 @@ function getUserMedia(constraints) {
 				Object.values(constraints.video.optional).forEach(function (optional) {
 					var optionalConstraintName = Object.keys(optional)[0],
 						optionalConstraintValue = optional[optionalConstraintName];
-					videoConstraints[optionalConstraintName] = Array.isArray(optionalConstraintValue) ?
-																optionalConstraintValue[0] : optionalConstraintValue;
+					videoConstraints[optionalConstraintName] = Array.isArray(
+						optionalConstraintValue
+					)
+						? optionalConstraintValue[0]
+						: optionalConstraintValue;
 				});
-
 			} else if (typeof constraints.video.mandatory === 'object') {
 				videoConstraints = constraints.video.mandatory;
 			}
@@ -233,24 +232,24 @@ function getUserMedia(constraints) {
 			newConstraints.video.deviceId = {
 				exact: constraints.video.deviceId
 			};
-
-		// Also check video sourceId (mangled by adapter.js).
 		} else if (typeof constraints.video.sourceId === 'string') {
+			// Also check video sourceId (mangled by adapter.js).
 			newConstraints.video.deviceId = {
 				exact: constraints.video.sourceId
 			};
-
-		// Also check deviceId.(exact|ideal)
 		} else if (typeof constraints.video.deviceId === 'object') {
+			// Also check deviceId.(exact|ideal)
 			if (!!constraints.video.deviceId.exact) {
 				newConstraints.video.deviceId = {
-					exact: Array.isArray(constraints.video.deviceId.exact) ?
-						constraints.video.deviceId.exact[0] : constraints.video.deviceId.exact
+					exact: Array.isArray(constraints.video.deviceId.exact)
+						? constraints.video.deviceId.exact[0]
+						: constraints.video.deviceId.exact
 				};
 			} else if (!!constraints.video.deviceId.ideal) {
 				newConstraints.video.deviceId = {
-					ideal: Array.isArray(constraints.video.deviceId.ideal) ?
-							constraints.video.deviceId.ideal[0] : constraints.video.deviceId.ideal
+					ideal: Array.isArray(constraints.video.deviceId.ideal)
+						? constraints.video.deviceId.ideal[0]
+						: constraints.video.deviceId.ideal
 				};
 			}
 		}
@@ -270,9 +269,8 @@ function getUserMedia(constraints) {
 			if (isPositiveInteger(constraints.video.width.ideal)) {
 				newConstraints.video.width.ideal = constraints.video.width.ideal;
 			}
-
-		// Get requested width long as exact
 		} else if (isPositiveInteger(constraints.video.width)) {
+			// Get requested width long as exact
 			newConstraints.video.width = {
 				exact: constraints.video.width
 			};
@@ -293,9 +291,8 @@ function getUserMedia(constraints) {
 			if (isPositiveInteger(constraints.video.height.ideal)) {
 				newConstraints.video.height.ideal = constraints.video.height.ideal;
 			}
-
-		// Get requested height long as exact
 		} else if (isPositiveInteger(constraints.video.height)) {
+			// Get requested height long as exact
 			newConstraints.video.height = {
 				exact: constraints.video.height
 			};
@@ -305,10 +302,16 @@ function getUserMedia(constraints) {
 		if (typeof constraints.video.frameRate === 'object') {
 			newConstraints.video.frameRate = {};
 			if (isPositiveFloat(constraints.video.frameRate.min)) {
-				newConstraints.video.frameRate.min = parseFloat(constraints.video.frameRate.min, 10);
+				newConstraints.video.frameRate.min = parseFloat(
+					constraints.video.frameRate.min,
+					10
+				);
 			}
 			if (isPositiveFloat(constraints.video.frameRate.max)) {
-				newConstraints.video.frameRate.max = parseFloat(constraints.video.frameRate.max, 10);
+				newConstraints.video.frameRate.max = parseFloat(
+					constraints.video.frameRate.max,
+					10
+				);
 			}
 			if (isPositiveInteger(constraints.video.frameRate.exact)) {
 				newConstraints.video.frameRate.exact = constraints.video.frameRate.exact;
@@ -316,9 +319,8 @@ function getUserMedia(constraints) {
 			if (isPositiveInteger(constraints.video.frameRate.ideal)) {
 				newConstraints.video.frameRate.ideal = constraints.video.frameRate.ideal;
 			}
-
-		// Get requested frameRate double as exact
 		} else if (isPositiveFloat(constraints.video.frameRate)) {
+			// Get requested frameRate double as exact
 			newConstraints.video.frameRate = {
 				exact: parseFloat(constraints.video.frameRate, 10)
 			};
@@ -329,10 +331,16 @@ function getUserMedia(constraints) {
 		if (typeof constraints.video.aspectRatio === 'object') {
 			newConstraints.video.aspectRatio = {};
 			if (isPositiveFloat(constraints.video.aspectRatio.min)) {
-				newConstraints.video.aspectRatio.min = parseFloat(constraints.video.aspectRatio.min, 10);
+				newConstraints.video.aspectRatio.min = parseFloat(
+					constraints.video.aspectRatio.min,
+					10
+				);
 			}
 			if (isPositiveFloat(constraints.video.aspectRatio.max)) {
-				newConstraints.video.aspectRatio.max = parseFloat(constraints.video.aspectRatio.max, 10);
+				newConstraints.video.aspectRatio.max = parseFloat(
+					constraints.video.aspectRatio.max,
+					10
+				);
 			}
 			if (isPositiveInteger(constraints.video.aspectRatio.exact)) {
 				newConstraints.video.aspectRatio.exact = constraints.video.aspectRatio.exact;
@@ -367,7 +375,6 @@ function getUserMedia(constraints) {
 
 	// Get audio constraints
 	if (audioRequested) {
-
 		// Handle object audio constraints
 		newConstraints.audio = {};
 
@@ -376,19 +383,18 @@ function getUserMedia(constraints) {
 		// The mandatory / optional syntax was deprecated a in 2014, and minWidth and minHeight the year before that.
 		if (
 			typeof constraints.audio === 'object' &&
-				(typeof constraints.audio.optional === 'object' || typeof constraints.audio.mandatory === 'object')
+			(typeof constraints.audio.optional === 'object' ||
+				typeof constraints.audio.mandatory === 'object')
 		) {
-			if (
-				typeof constraints.audio.optional === 'object'
-			) {
+			if (typeof constraints.audio.optional === 'object') {
 				if (typeof constraints.audio.optional.sourceId === 'string') {
 					newConstraints.audio.deviceId = {
 						ideal: constraints.audio.optional.sourceId
 					};
 				} else if (
 					Array.isArray(constraints.audio.optional) &&
-						typeof constraints.audio.optional[0] === 'object' &&
-							typeof constraints.audio.optional[0].sourceId === 'string'
+					typeof constraints.audio.optional[0] === 'object' &&
+					typeof constraints.audio.optional[0].sourceId === 'string'
 				) {
 					newConstraints.audio.deviceId = {
 						ideal: constraints.audio.optional[0].sourceId
@@ -396,7 +402,7 @@ function getUserMedia(constraints) {
 				}
 			} else if (
 				constraints.audio.mandatory &&
-					typeof constraints.audio.mandatory.sourceId === 'string'
+				typeof constraints.audio.mandatory.sourceId === 'string'
 			) {
 				newConstraints.audio.deviceId = {
 					exact: constraints.audio.mandatory.sourceId
@@ -409,24 +415,24 @@ function getUserMedia(constraints) {
 			newConstraints.audio.deviceId = {
 				exact: constraints.audio.deviceId
 			};
-
-		// Also check audio sourceId (mangled by adapter.js).
 		} else if (typeof constraints.audio.sourceId === 'string') {
+			// Also check audio sourceId (mangled by adapter.js).
 			newConstraints.audio.deviceId = {
 				exact: constraints.audio.sourceId
 			};
-
-		// Also check deviceId.(exact|ideal)
 		} else if (typeof constraints.audio.deviceId === 'object') {
+			// Also check deviceId.(exact|ideal)
 			if (!!constraints.audio.deviceId.exact) {
 				newConstraints.audio.deviceId = {
-					exact: Array.isArray(constraints.audio.deviceId.exact) ?
-						constraints.audio.deviceId.exact[0] : constraints.audio.deviceId.exact
+					exact: Array.isArray(constraints.audio.deviceId.exact)
+						? constraints.audio.deviceId.exact[0]
+						: constraints.audio.deviceId.exact
 				};
 			} else if (!!constraints.audio.deviceId.ideal) {
 				newConstraints.audio.deviceId = {
-					ideal: Array.isArray(constraints.audio.deviceId.ideal) ?
-							constraints.audio.deviceId.ideal[0] : constraints.audio.deviceId.ideal
+					ideal: Array.isArray(constraints.audio.deviceId.ideal)
+						? constraints.audio.deviceId.ideal[0]
+						: constraints.audio.deviceId.ideal
 				};
 			}
 		}
