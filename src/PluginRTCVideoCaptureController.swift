@@ -21,18 +21,19 @@ public func objc_getx<TargetObject: AnyObject, AssociatedObject: AnyObject>
 
 /* Expose videoCaptureController on RTCMediaStreamTrack */
 extension RTCMediaStreamTrack {
-	
+
 	class PropClass {
 		var videoCaptureController: PluginRTCVideoCaptureController?
+		let capabilities = NSMutableDictionary()
 	}
-	
+
 	var _propClass : PropClass {
 		get {
 			let key: UnsafeRawPointer! = UnsafeRawPointer.init(bitPattern:self.hashValue)
 			return objc_getx(object: PropClass(), associatedTo: self, withConstPtrKey: key)
 		}
 	}
-	
+
 	var videoCaptureController: PluginRTCVideoCaptureController? {
 		get {
 			return _propClass.videoCaptureController
@@ -41,17 +42,23 @@ extension RTCMediaStreamTrack {
 			_propClass.videoCaptureController = newValue
 		}
 	}
+
+	var capabilities: NSMutableDictionary {
+		get {
+			return _propClass.capabilities
+		}
+	}
 }
 
 class PluginRTCVideoCaptureController : NSObject {
-	
+
 	private let DEFAULT_HEIGHT : Int32 = 480
 	private let DEFAULT_WIDTH : Int32 = 640
 	private let DEFAULT_FPS : Int = 15
 	private let DEFAULT_ASPECT_RATIO : Float32 = 4/3
 	private let FACING_MODE_USER : String = "user";
 	private let FACING_MODE_ENV : String = "environment";
-	
+
 	var capturer: RTCCameraVideoCapturer
 	var isCapturing: Bool = false;
 	

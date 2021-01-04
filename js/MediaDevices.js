@@ -10,13 +10,11 @@ module.exports = MediaDevices;
 /**
  * Dependencies.
  */
-var
-	EventTarget = require('./EventTarget'),
+var EventTarget = require('./EventTarget'),
 	getUserMedia = require('./getUserMedia'),
 	enumerateDevices = require('./enumerateDevices');
 
 function MediaDevices(data) {
-
 	//ondevicechange
 	//enumerateDevices
 	//getDisplayMedia
@@ -45,37 +43,36 @@ MediaDevices.prototype.enumerateDevices = function () {
 MediaDevices.prototype.getSupportedConstraints = function () {
 	return {
 		// Supported
-		"height": true,
-		"width": true,
-		"deviceId": true,
-		"frameRate": true,
-		"sampleRate": true,
-		"aspectRatio": true,
+		height: true,
+		width: true,
+		deviceId: true,
+		frameRate: true,
+		sampleRate: true,
+		aspectRatio: true,
 		// Not Supported
-		"autoGainControl": false,
-		"brightness": false,
-		"channelCount": false,
-		"colorTemperature": false,
-		"contrast": false,
-		"echoCancellation": false,
-		"exposureCompensation": false,
-		"exposureMode": false,
-		"exposureTime": false,
-		"facingMode": true,
-		"focusDistance": false,
-		"focusMode": false,
-		"groupId": false,
-		"iso": false,
-		"latency": false,
-		"noiseSuppression": false,
-		"pointsOfInterest": false,
-		"resizeMode": false,
-		"sampleSize": false,
-		"saturation": false,
-		"sharpness": false,
-		"torch": false,
-		"whiteBalanceMode": false,
-		"zoom": false
+		autoGainControl: false,
+		brightness: false,
+		channelCount: false,
+		colorTemperature: false,
+		contrast: false,
+		echoCancellation: false,
+		exposureCompensation: false,
+		exposureMode: false,
+		exposureTime: false,
+		facingMode: true,
+		focusDistance: false,
+		focusMode: false,
+		groupId: false,
+		iso: false,
+		latency: false,
+		noiseSuppression: false,
+		pointsOfInterest: false,
+		resizeMode: false,
+		sampleSize: false,
+		saturation: false,
+		sharpness: false,
+		torch: false,
+		whiteBalanceMode: false,
+		zoom: false
 	};
 };
-

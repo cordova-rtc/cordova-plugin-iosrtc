@@ -3,17 +3,14 @@
  */
 module.exports = MediaStreamTrack;
 
-
 /**
  * Spec: http://w3c.github.io/mediacapture-main/#mediastreamtrack
  */
 
-
 /**
  * Dependencies.
  */
-var
-	debug = require('debug')('iosrtc:MediaStreamTrack'),
+var debug = require('debug')('iosrtc:MediaStreamTrack'),
 	exec = require('cordova/exec'),
 	enumerateDevices = require('./enumerateDevices'),
 	MediaTrackCapabilities = require('./MediaTrackCapabilities'),
@@ -24,7 +21,7 @@ var
 var originalMediaStreamTrack = window.MediaStreamTrack || function dummyMediaStreamTrack() {};
 
 function newMediaStreamTrackId() {
-   return window.crypto.getRandomValues(new Uint32Array(4)).join('-');
+	return window.crypto.getRandomValues(new Uint32Array(4)).join('-');
 }
 
 function MediaStreamTrack(dataFromEvent) {
@@ -40,10 +37,11 @@ function MediaStreamTrack(dataFromEvent) {
 	EventTarget.call(this);
 
 	// Public atributes.
-	this.id = dataFromEvent.id;  // NOTE: It's a string.
+	this.id = dataFromEvent.id; // NOTE: It's a string.
 	this.kind = dataFromEvent.kind;
 	this.label = dataFromEvent.label;
-	this.muted = false;  // TODO: No "muted" property in ObjC API.
+	this.muted = false; // TODO: No "muted" property in ObjC API.
+	this.capabilities = dataFromEvent.capabilities;
 	this.readyState = dataFromEvent.readyState;
 
 	// Private attributes.
@@ -85,24 +83,21 @@ MediaStreamTrack.prototype.applyConstraints = function () {
 };
 
 MediaStreamTrack.prototype.clone = function () {
-
 	var newTrackId = newMediaStreamTrackId();
 
 	exec(null, null, 'iosrtcPlugin', 'MediaStreamTrack_clone', [this.id, newTrackId]);
 
 	return new MediaStreamTrack({
- 		id: newTrackId,
- 		kind: this.kind,
- 		label: this.label,
- 		readyState: this.readyState,
- 		enabled: this.enabled
- 	});
+		id: newTrackId,
+		kind: this.kind,
+		label: this.label,
+		readyState: this.readyState,
+		enabled: this.enabled
+	});
 };
 
 MediaStreamTrack.prototype.getCapabilities = function () {
-	//throw new Error('Not implemented.');
-	// SHAM
-	return new MediaTrackCapabilities();
+	return new MediaTrackCapabilities(this.capabilities);
 };
 
 MediaStreamTrack.prototype.getSettings = function () {
@@ -121,14 +116,11 @@ MediaStreamTrack.prototype.stop = function () {
 	exec(null, null, 'iosrtcPlugin', 'MediaStreamTrack_stop', [this.id]);
 };
 
-
 // TODO: API methods and events.
-
 
 /**
  * Class methods.
  */
-
 
 MediaStreamTrack.getSources = function () {
 	debug('getSources()');
@@ -136,11 +128,9 @@ MediaStreamTrack.getSources = function () {
 	return enumerateDevices.apply(this, arguments);
 };
 
-
 /**
  * Private API.
  */
-
 
 function onEvent(data) {
 	var type = data.type;
