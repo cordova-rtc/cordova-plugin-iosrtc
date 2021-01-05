@@ -409,23 +409,23 @@ MediaStreamRenderer.prototype.openWebSocket = function (host, port, uuid) {
 	}
 
 	var self = this;
-	this.webSocketUrl = 'ws://'+host+':'+port+'?uuid='+uuid;
-	debug('websocket url='+this.webSocketUrl);
+	this.webSocketUrl = 'ws://' + host + ':' + port + '?uuid=' + uuid;
+	debug('websocket url=' + this.webSocketUrl);
 
 	this.webSocketClient = new window.WebSocket(this.webSocketUrl);
 	this.webSocketClient.binaryType = 'arraybuffer';
-	this.webSocketClient.onopen = function() {
-		debug('websocket open for uuid:'+uuid);
+	this.webSocketClient.onopen = function () {
+		debug('websocket open for uuid:' + uuid);
 	};
-	this.webSocketClient.onerror = function(event) {
+	this.webSocketClient.onerror = function (event) {
 		var errorStr = JSON.stringify(event, null, 4);
-		debug('websocket error for uuid:' + uuid + ', error:'+errorStr);
+		debug('websocket error for uuid:' + uuid + ', error:' + errorStr);
 	};
-	this.webSocketClient.onclose = function(event) {
+	this.webSocketClient.onclose = function (event) {
 		var errorStr = JSON.stringify(event, null, 4);
-		debug('websocket close for uuid:' + uuid + ', error:'+errorStr);
+		debug('websocket close for uuid:' + uuid + ', error:' + errorStr);
 	};
-	this.webSocketClient.onmessage = function(event) {
+	this.webSocketClient.onmessage = function (event) {
 		//debug('websocket message uuid:' + uuid + ', length:' + event.data.length);
 		if (!self.stream) {
 			return;
@@ -452,26 +452,24 @@ MediaStreamRenderer.prototype.openWebSocket = function (host, port, uuid) {
 		//var rotation = pdu.getUint16(10, true);
 		//var timestamp = pdu.getUint32(12, true);
 		//debug('websocket message: body='+bodyLen+',resloution='+width+'x'+height+",size="+pduLen);
-		if (pduLen !== (headLen + bodyLen)) {
+		if (pduLen !== headLen + bodyLen) {
 			debug('websocket message, wrong data length');
-		}else {
+		} else {
 			var typedArray = new Uint8Array(event.data);
-			var frame = typedArray.subarray(headLen, headLen+bodyLen);
+			var frame = typedArray.subarray(headLen, headLen + bodyLen);
 			self.drawFrame(frame, width, height);
 		}
 	};
 };
 
-MediaStreamRenderer.prototype.drawFrame = function(frame, width, height) {
+MediaStreamRenderer.prototype.drawFrame = function (frame, width, height) {
 	//debug('drawFrame canvas, length=' + frame.length);
 	if (this.canvasCtx) {
 		var uOffset = parseInt(width * height);
-		var vOffset = parseInt(uOffset + (uOffset / 4));
+		var vOffset = parseInt(uOffset + uOffset / 4);
 		this.canvasCtx.render(frame, width, height, uOffset, vOffset);
 	}
 };
-
-
 
 /**
  * WebGLTexture API.
@@ -489,14 +487,14 @@ function WebGLTexture(gl) {
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 }
 
-WebGLTexture.prototype.bind = function(n, program, name) {
+WebGLTexture.prototype.bind = function (n, program, name) {
 	var gl = this.gl;
 	gl.activeTexture([gl.TEXTURE0, gl.TEXTURE1, gl.TEXTURE2][n]);
 	gl.bindTexture(gl.TEXTURE_2D, this.texture);
 	gl.uniform1i(gl.getUniformLocation(program, name), n);
 };
 
-WebGLTexture.prototype.fill = function(width, height, data) {
+WebGLTexture.prototype.fill = function (width, height, data) {
 	var gl = this.gl;
 	var level = 0;
 	var internalFormat = gl.LUMINANCE; //gl.RGBA;
@@ -504,54 +502,62 @@ WebGLTexture.prototype.fill = function(width, height, data) {
 	var srcFormat = gl.LUMINANCE; //gl.RGBA;
 	var srcType = gl.UNSIGNED_BYTE;
 	gl.bindTexture(gl.TEXTURE_2D, this.texture);
-	gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, width, height, border, srcFormat, srcType, data);
+	gl.texImage2D(
+		gl.TEXTURE_2D,
+		level,
+		internalFormat,
+		width,
+		height,
+		border,
+		srcFormat,
+		srcType,
+		data
+	);
 };
-
 
 /**
  * Canvas API.
  */
 
 function setupCanvasWebGL(canvas, options) {
-	var gl = canvas.getContext(
-		"webgl",
-		{ preserveDrawingBuffer: Boolean(options.preserveDrawingBuffer) }
-	);
+	var gl = canvas.getContext('webgl', {
+		preserveDrawingBuffer: Boolean(options.preserveDrawingBuffer)
+	});
 	if (!gl) {
 		return null;
 	}
 	var program = gl.createProgram();
 	var vertexShaderSource = [
-		"attribute highp vec4 aVertexPosition;",
-		"attribute vec2 aTextureCoord;",
-		"varying highp vec2 vTextureCoord;",
-		"void main(void) {",
-		" gl_Position = aVertexPosition;",
-		" vTextureCoord = aTextureCoord;",
-		"}"
-	].join("\n");
+		'attribute highp vec4 aVertexPosition;',
+		'attribute vec2 aTextureCoord;',
+		'varying highp vec2 vTextureCoord;',
+		'void main(void) {',
+		' gl_Position = aVertexPosition;',
+		' vTextureCoord = aTextureCoord;',
+		'}'
+	].join('\n');
 
 	var vertexShader = gl.createShader(gl.VERTEX_SHADER);
 	gl.shaderSource(vertexShader, vertexShaderSource);
 	gl.compileShader(vertexShader);
 
 	var fragmentShaderSource = [
-		"precision highp float;",
-		"varying lowp vec2 vTextureCoord;",
-		"uniform sampler2D YTexture;",
-		"uniform sampler2D UTexture;",
-		"uniform sampler2D VTexture;",
-		"const mat4 YUV2RGB = mat4",
-		"(",
-		" 1.1643828125, 0, 1.59602734375, -.87078515625,",
-		" 1.1643828125, -.39176171875, -.81296875, .52959375,",
-		" 1.1643828125, 2.017234375, 0, -1.081390625,",
-		" 0, 0, 0, 1",
-		");",
-		"void main(void) {",
-		" gl_FragColor = vec4( texture2D(YTexture, vTextureCoord).x, texture2D(UTexture, vTextureCoord).x, texture2D(VTexture, vTextureCoord).x, 1) * YUV2RGB;",
-		"}"
-	].join("\n");
+		'precision highp float;',
+		'varying lowp vec2 vTextureCoord;',
+		'uniform sampler2D YTexture;',
+		'uniform sampler2D UTexture;',
+		'uniform sampler2D VTexture;',
+		'const mat4 YUV2RGB = mat4',
+		'(',
+		' 1.1643828125, 0, 1.59602734375, -.87078515625,',
+		' 1.1643828125, -.39176171875, -.81296875, .52959375,',
+		' 1.1643828125, 2.017234375, 0, -1.081390625,',
+		' 0, 0, 0, 1',
+		');',
+		'void main(void) {',
+		' gl_FragColor = vec4( texture2D(YTexture, vTextureCoord).x, texture2D(UTexture, vTextureCoord).x, texture2D(VTexture, vTextureCoord).x, 1) * YUV2RGB;',
+		'}'
+	].join('\n');
 
 	var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
 	gl.shaderSource(fragmentShader, fragmentShaderSource);
@@ -561,32 +567,36 @@ function setupCanvasWebGL(canvas, options) {
 	gl.linkProgram(program);
 	gl.useProgram(program);
 	if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-		debug("gl Shader link failed.");
+		debug('gl Shader link failed.');
 	}
-	var vertexPositionAttribute = gl.getAttribLocation(program, "aVertexPosition");
+	var vertexPositionAttribute = gl.getAttribLocation(program, 'aVertexPosition');
 	gl.enableVertexAttribArray(vertexPositionAttribute);
-	var textureCoordAttribute = gl.getAttribLocation(program, "aTextureCoord");
+	var textureCoordAttribute = gl.getAttribLocation(program, 'aTextureCoord');
 	gl.enableVertexAttribArray(textureCoordAttribute);
 
 	var verticesBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, verticesBuffer);
-	gl.bufferData(gl.ARRAY_BUFFER,
+	gl.bufferData(
+		gl.ARRAY_BUFFER,
 		new Float32Array([1.0, 1.0, 0.0, -1.0, 1.0, 0.0, 1.0, -1.0, 0.0, -1.0, -1.0, 0.0]),
-		gl.STATIC_DRAW);
+		gl.STATIC_DRAW
+	);
 	gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
 	var texCoordBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-	gl.bufferData(gl.ARRAY_BUFFER,
+	gl.bufferData(
+		gl.ARRAY_BUFFER,
 		new Float32Array([1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0]),
-		gl.STATIC_DRAW);
+		gl.STATIC_DRAW
+	);
 	gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
 
 	gl.y = new WebGLTexture(gl);
 	gl.u = new WebGLTexture(gl);
 	gl.v = new WebGLTexture(gl);
-	gl.y.bind(0, program, "YTexture");
-	gl.u.bind(1, program, "UTexture");
-	gl.v.bind(2, program, "VTexture");
+	gl.y.bind(0, program, 'YTexture');
+	gl.u.bind(1, program, 'UTexture');
+	gl.v.bind(2, program, 'VTexture');
 	return gl;
 }
 
@@ -597,7 +607,7 @@ function CanvasI420Context(canvas, gl) {
 	this.height = 0;
 }
 
-CanvasI420Context.prototype.render = function(frame, width, height, uOffset, vOffset) {
+CanvasI420Context.prototype.render = function (frame, width, height, uOffset, vOffset) {
 	if (width === 0 || height === 0) {
 		return;
 	}
@@ -606,7 +616,7 @@ CanvasI420Context.prototype.render = function(frame, width, height, uOffset, vOf
 	if (width !== this.width || height !== this.height) {
 		var glWidth = canvas.clientWidth;
 		//var glHeight = canvas.clientHeight;
-		var glHeight = glWidth*(height/width);
+		var glHeight = glWidth * (height / width);
 
 		var glX = 0;
 		var glY = 0;
@@ -614,10 +624,32 @@ CanvasI420Context.prototype.render = function(frame, width, height, uOffset, vOf
 			glY = parseInt((canvas.clientHeight - glHeight) / 2);
 		}
 
-		debug('canvas render change from='+this.width+'x'+this.height+' to '+width+'x'+height+
-			', clientSize='+canvas.clientWidth+'x'+canvas.clientHeight+
-			', offsetSize='+canvas.offsetWidth+'x'+canvas.offsetHeight+
-			', glSize='+glWidth+'x'+glHeight+'-'+glX+'x'+glY);
+		debug(
+			'canvas render change from=' +
+				this.width +
+				'x' +
+				this.height +
+				' to ' +
+				width +
+				'x' +
+				height +
+				', clientSize=' +
+				canvas.clientWidth +
+				'x' +
+				canvas.clientHeight +
+				', offsetSize=' +
+				canvas.offsetWidth +
+				'x' +
+				canvas.offsetHeight +
+				', glSize=' +
+				glWidth +
+				'x' +
+				glHeight +
+				'-' +
+				glX +
+				'x' +
+				glY
+		);
 
 		this.frameSetup(glX, glY, glWidth, glHeight);
 		this.width = width;
@@ -626,7 +658,7 @@ CanvasI420Context.prototype.render = function(frame, width, height, uOffset, vOf
 	this.renderFrame(frame, uOffset, vOffset);
 };
 
-CanvasI420Context.prototype.frameSetup = function(glx, gly, width, height) {
+CanvasI420Context.prototype.frameSetup = function (glx, gly, width, height) {
 	var canvas = this.canvas;
 	var gl = this.gl;
 	if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
@@ -636,7 +668,7 @@ CanvasI420Context.prototype.frameSetup = function(glx, gly, width, height) {
 	gl.viewport(glx, gly, width, height);
 };
 
-CanvasI420Context.prototype.renderFrame = function(frame, uOffset, vOffset) {
+CanvasI420Context.prototype.renderFrame = function (frame, uOffset, vOffset) {
 	var gl = this.gl;
 	var width = this.width;
 	var height = this.height;
@@ -646,7 +678,7 @@ CanvasI420Context.prototype.renderFrame = function(frame, uOffset, vOffset) {
 	gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 };
 
-CanvasI420Context.prototype.fillBlack = function() {
+CanvasI420Context.prototype.fillBlack = function () {
 	var gl = this.gl;
 	var arr1 = new Uint8Array(1),
 		arr2 = new Uint8Array(1);
@@ -670,7 +702,7 @@ function createCanvasContext(element, options) {
 	}
 
 	if (!canvas) {
-		debug('find no canvas element='+element);
+		debug('find no canvas element=' + element);
 		return null;
 	}
 
@@ -690,7 +722,6 @@ function createCanvasContext(element, options) {
 	i420Ctx.fillBlack();
 	return i420Ctx;
 }
-
 
 /**
  * Private API.
@@ -715,11 +746,11 @@ function onEvent(data) {
 
 			break;
 		case 'videowebsocket':
-			switch(data.action) {
+			switch (data.action) {
 				case 'run':
 					if (data.ws) {
 						this.videoStopped = false;
-						this.openWebSocket("localhost", data.ws.port, data.ws.uuid);
+						this.openWebSocket('localhost', data.ws.port, data.ws.uuid);
 					}
 					break;
 				case 'stop':
