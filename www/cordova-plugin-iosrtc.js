@@ -1950,6 +1950,7 @@ function RTCPeerConnection(pcConfig, pcConstraints) {
 		'getLocalStreams',
 		RTCPeerConnection.prototype_descriptor.getLocalStreams
 	);
+	Object.defineProperty(this, 'addTransceiver', RTCPeerConnection.prototype_descriptor.addTransceiver);
 
 	// Public atributes.
 	this._localDescription = null;
@@ -2363,9 +2364,10 @@ RTCPeerConnection.prototype.getSenders = function () {
 RTCPeerConnection.prototype.getTransceivers = function () {
 	var transceivers = [];
 
+	// TODO: Retrieve actual transceivers (passing data like before for compiling to work temporarily)
 	this.getReceivers().map(function (receiver) {
 		transceivers.push(
-			new RTCRtpTransceiver({
+			new RTCRtpTransceiver(this, null, null, {
 				receiver: receiver
 			})
 		);
@@ -2373,7 +2375,7 @@ RTCPeerConnection.prototype.getTransceivers = function () {
 
 	this.getSenders().map(function (sender) {
 		transceivers.push(
-			new RTCRtpTransceiver({
+			new RTCRtpTransceiver(this, null, null, {
 				sender: sender
 			})
 		);
@@ -2473,6 +2475,22 @@ RTCPeerConnection.prototype.removeTrack = function (sender) {
 			}
 		}
 	}
+};
+
+RTCPeerConnection.prototype.addTransceiver = function (trackOrKind, init) {
+	if (isClosed.call(this)) {
+		throw new Errors.InvalidStateError('peerconnection is closed');
+	}
+
+	if (trackOrKind instanceof String) {
+		if (!(trackOrKind === "audio" || trackOrKind === "video")) {
+			throw new TypeError("A string was specified as trackOrKind which is not valid. The string must be either \"audio\" or \"video\".");
+		}
+	}
+	
+	debug('addTransceiver() [trackOrKind:%o, init:%o]', trackOrKind, init);
+
+	return new RTCRtpTransceiver(this, trackOrKind, init);
 };
 
 RTCPeerConnection.prototype.getStreamById = function (id) {
@@ -2717,7 +2735,9 @@ function onEvent(data) {
 		case 'track':
 			var track = (event.track = new MediaStreamTrack(data.track));
 			event.receiver = new RTCRtpReceiver({ track: track });
-			event.transceiver = new RTCRtpTransceiver({ receiver: event.receiver });
+			
+			// TODO: Ensure this transceiver instance is associated with native API as well.
+			event.transceiver = new RTCRtpTransceiver(this, null, null, { receiver: event.receiver });
 			event.streams = [];
 
 			// Add stream only if available in case of Unified-Plan of track event without stream
@@ -2834,11 +2854,116 @@ RTCRtpSender.prototype.replaceTrack = function (withTrack) {
  */
 module.exports = RTCRtpTransceiver;
 
-function RTCRtpTransceiver(data) {
-	data = data || {};
+/**
+ * Dependencies.
+ */
+var
+	debug = _dereq_('debug')('iosrtc:RTCRtpTransceiver'),
+	debugerror = _dereq_('debug')('iosrtc:ERROR:RTCRtpTransceiver'),
+	exec = _dereq_('cordova/exec'),
+	randomNumber = _dereq_('random-number').generator({min: 10000, max: 99999, integer: true}),
+	EventTarget = _dereq_('./EventTarget');
 
-	this.receiver = data.receiver;
-	this.sender = data.sender;
+debugerror.log = console.warn.bind(console);
+
+function RTCRtpTransceiver(peerConnection, trackOrKind, init, data) {
+	var self = this;
+
+	// Created using RTCPeerConnection.addTransceiver
+	if (!data) {
+		// Make this an EventTarget.
+		EventTarget.call(this);
+
+		// Private attributes.
+		this.peerConnection = peerConnection;
+		this._currentDirection = "sendrecv";
+		this._direction = "sendrecv";
+		this._mid = null;
+		this._receiver = null;
+		this._sender = null;
+		this.tcId = randomNumber();
+
+		exec(onResultOK, null, 'iosrtcPlugin', 'RTCPeerConnection_addTransceiver', [this.peerConnection.pcId, this.tcId, trackOrKind.id, init]);
+
+	// Created using RTCPeerConnection.getTransceivers
+	} else {
+		this._receiver = data.receiver;
+		this._sender = data.sender;
+	}
+
+	function onResultOK(data) {
+		onEvent.call(self, data);
+	}
+}
+
+RTCRtpTransceiver.prototype = Object.create(EventTarget.prototype);
+RTCRtpTransceiver.prototype.constructor = RTCRtpTransceiver;
+
+Object.defineProperties(RTCRtpTransceiver.prototype, {
+	currentDirection: {
+		get: function () {
+			return this._currentDirection;
+		}
+	},
+	direction: {
+		get: function () {
+			return this._direction;
+		},
+		set: function (direction) {
+			this._direction = direction;
+			// TODO: Invoke native api
+		}
+	},
+	mid: {
+		get: function () {
+			return this._mid;
+		}
+	},
+	receiver: {
+		get: function() {
+			return this._receiver;
+		}
+	},
+	sender: {
+		get: function() {
+			return this._sender;
+		}
+	},
+});
+
+RTCRtpTransceiver.prototype.stop = function () {
+	// TODO: Implement stop function
+
+	exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCRtpTransceiver_close', [this.peerConnection.pcId, this.tcId]);
+};
+
+function onEvent(data) {
+	var type = data.type;
+
+	debug('onEvent() | [type:%s, data:%o]', type, data);
+
+	switch (type) {
+		case 'direction':
+			this._direction = data.direction;
+			this._currentDirection = data.direction;
+
+			break;
+
+		case 'mid':
+			this._mid = data.mid;
+
+			break;
+
+		case 'receiver':
+			this._receiver = data.receiver;
+
+			break;
+
+		case 'sender':
+			this._sender = data.sender;
+
+			break;
+	}
 }
 
 // TODO
@@ -2847,7 +2972,7 @@ function RTCRtpTransceiver(data) {
 // https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpTransceiver/mid
 // https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpTransceiver/stop
 
-},{}],17:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"cordova/exec":undefined,"debug":24,"random-number":29}],17:[function(_dereq_,module,exports){
 /**
  * Expose the RTCSessionDescription class.
  */
@@ -3446,7 +3571,8 @@ var // Dictionary of MediaStreamRenderers.
 	MediaDevices = _dereq_('./MediaDevices'),
 	MediaStream = _dereq_('./MediaStream'),
 	MediaStreamTrack = _dereq_('./MediaStreamTrack'),
-	videoElementsHandler = _dereq_('./videoElementsHandler');
+	videoElementsHandler = _dereq_('./videoElementsHandler'),
+	RTCRtpTransceiver	   = _dereq_('./RTCRtpTransceiver');
 
 /**
  * Expose the iosrtc object.
@@ -3627,6 +3753,7 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 	window.MediaStream = MediaStream;
 	window.webkitMediaStream = MediaStream;
 	window.MediaStreamTrack = MediaStreamTrack;
+	window.RTCRtpTransceiver = RTCRtpTransceiver;
 
 	// Apply CanvasRenderingContext2D.drawImage monkey patch
 	var drawImage = CanvasRenderingContext2D.prototype.drawImage;
@@ -3654,7 +3781,7 @@ function dump() {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./MediaDevices":4,"./MediaStream":5,"./MediaStreamTrack":7,"./RTCIceCandidate":12,"./RTCPeerConnection":13,"./RTCSessionDescription":17,"./enumerateDevices":20,"./getUserMedia":21,"./videoElementsHandler":23,"cordova/exec":undefined,"debug":24,"domready":26}],23:[function(_dereq_,module,exports){
+},{"./MediaDevices":4,"./MediaStream":5,"./MediaStreamTrack":7,"./RTCIceCandidate":12,"./RTCPeerConnection":13,"./RTCRtpTransceiver":16,"./RTCSessionDescription":17,"./enumerateDevices":20,"./getUserMedia":21,"./videoElementsHandler":23,"cordova/exec":undefined,"debug":24,"domready":26}],23:[function(_dereq_,module,exports){
 /**
  * Expose a function that must be called when the library is loaded.
  * And also a helper function.

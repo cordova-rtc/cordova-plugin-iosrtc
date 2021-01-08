@@ -24,7 +24,8 @@ var // Dictionary of MediaStreamRenderers.
 	MediaDevices = require('./MediaDevices'),
 	MediaStream = require('./MediaStream'),
 	MediaStreamTrack = require('./MediaStreamTrack'),
-	videoElementsHandler = require('./videoElementsHandler');
+	videoElementsHandler = require('./videoElementsHandler'),
+	RTCRtpTransceiver	   = require('./RTCRtpTransceiver');
 
 /**
  * Expose the iosrtc object.
@@ -205,6 +206,7 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 	window.MediaStream = MediaStream;
 	window.webkitMediaStream = MediaStream;
 	window.MediaStreamTrack = MediaStreamTrack;
+	window.RTCRtpTransceiver = RTCRtpTransceiver;
 
 	// Apply CanvasRenderingContext2D.drawImage monkey patch
 	var drawImage = CanvasRenderingContext2D.prototype.drawImage;

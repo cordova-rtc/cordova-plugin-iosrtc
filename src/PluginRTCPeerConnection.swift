@@ -9,9 +9,9 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 	// PluginRTCDataChannel dictionary.
 	var pluginRTCDataChannels: [Int : PluginRTCDataChannel] = [:]
 	// PluginRTCDTMFSender dictionary.
-
 	var pluginRTCDTMFSenders: [Int : PluginRTCDTMFSender] = [:]
-
+	// PluginRTCRtpTransceiver dictionary.
+	var pluginRTCRtpTransceivers: [Int : PluginRTCRtpTransceiver] = [:]
 	var eventListener: (_ data: NSDictionary) -> Void
 	var eventListenerForAddStream: (_ pluginMediaStream: PluginMediaStream) -> Void
 	var eventListenerForRemoveStream: (_ pluginMediaStream: PluginMediaStream) -> Void
@@ -379,6 +379,28 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 			self.rtcPeerConnection.removeTrack(rtcSender!)
 			trackIdsToSenders[rtcMediaStreamTrack.trackId] = nil
 		}
+	}
+
+	func addTransceiver(
+		_ tcId: Int, 
+		pluginMediaTrack: PluginMediaStreamTrack, 
+		options: NSDictionary?, 
+		eventListener: @escaping (_ data: NSDictionary) -> Void
+	) {
+		NSLog("PluginRTCPeerConnection#addTransceiver()")
+
+		if self.rtcPeerConnection.signalingState == RTCSignalingState.closed {
+			return
+		}
+
+		let pluginRtcRtpTransceiver = PluginRTCRtpTransceiver(
+            rtcPeerConnection: self.rtcPeerConnection,
+            mediaStreamTrack: pluginMediaTrack.rtcMediaStreamTrack,
+            options: options,
+            eventListener: eventListener
+		)
+
+		self.pluginRTCRtpTransceivers[tcId] = pluginRtcRtpTransceiver
 	}
 
 	func createDataChannel(

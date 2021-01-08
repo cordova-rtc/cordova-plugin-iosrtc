@@ -55,6 +55,7 @@ function RTCPeerConnection(pcConfig, pcConstraints) {
 		'getLocalStreams',
 		RTCPeerConnection.prototype_descriptor.getLocalStreams
 	);
+	Object.defineProperty(this, 'addTransceiver', RTCPeerConnection.prototype_descriptor.addTransceiver);
 
 	// Public atributes.
 	this._localDescription = null;
@@ -468,9 +469,10 @@ RTCPeerConnection.prototype.getSenders = function () {
 RTCPeerConnection.prototype.getTransceivers = function () {
 	var transceivers = [];
 
+	// TODO: Retrieve actual transceivers (passing data like before for compiling to work temporarily)
 	this.getReceivers().map(function (receiver) {
 		transceivers.push(
-			new RTCRtpTransceiver({
+			new RTCRtpTransceiver(this, null, null, {
 				receiver: receiver
 			})
 		);
@@ -478,7 +480,7 @@ RTCPeerConnection.prototype.getTransceivers = function () {
 
 	this.getSenders().map(function (sender) {
 		transceivers.push(
-			new RTCRtpTransceiver({
+			new RTCRtpTransceiver(this, null, null, {
 				sender: sender
 			})
 		);
@@ -578,6 +580,22 @@ RTCPeerConnection.prototype.removeTrack = function (sender) {
 			}
 		}
 	}
+};
+
+RTCPeerConnection.prototype.addTransceiver = function (trackOrKind, init) {
+	if (isClosed.call(this)) {
+		throw new Errors.InvalidStateError('peerconnection is closed');
+	}
+
+	if (trackOrKind instanceof String) {
+		if (!(trackOrKind === "audio" || trackOrKind === "video")) {
+			throw new TypeError("A string was specified as trackOrKind which is not valid. The string must be either \"audio\" or \"video\".");
+		}
+	}
+	
+	debug('addTransceiver() [trackOrKind:%o, init:%o]', trackOrKind, init);
+
+	return new RTCRtpTransceiver(this, trackOrKind, init);
 };
 
 RTCPeerConnection.prototype.getStreamById = function (id) {
@@ -822,7 +840,9 @@ function onEvent(data) {
 		case 'track':
 			var track = (event.track = new MediaStreamTrack(data.track));
 			event.receiver = new RTCRtpReceiver({ track: track });
-			event.transceiver = new RTCRtpTransceiver({ receiver: event.receiver });
+			
+			// TODO: Ensure this transceiver instance is associated with native API as well.
+			event.transceiver = new RTCRtpTransceiver(this, null, null, { receiver: event.receiver });
 			event.streams = [];
 
 			// Add stream only if available in case of Unified-Plan of track event without stream

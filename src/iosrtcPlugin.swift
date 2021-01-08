@@ -401,6 +401,54 @@ class iosrtcPlugin : CDVPlugin {
 		}
 	}
 
+	@objc(RTCPeerConnection_addTransceiver:) func RTCPeerConnection_addTransceiver(_ command: CDVInvokedUrlCommand) {
+		NSLog("iosrtcPlugin#RTCPeerConnection_addTransceiver()")
+
+		let pcId = command.argument(at: 0) as! Int
+		let tcId = command.argument(at: 1) as! Int
+		let trackId = command.argument(at: 2) as! String
+
+		// TODO: Handle cases of trackId representing a track type.
+
+		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
+		let pluginMediaStreamTrack = self.pluginMediaStreamTracks[trackId]
+		var options: NSDictionary? = nil
+        
+        var rtcRtpTransceiverInit: RTCRtpTransceiverInit? = nil
+
+		if command.argument(at: 3) != nil {
+			options = command.argument(at: 3) as? NSDictionary
+		}
+
+		if pluginRTCPeerConnection == nil {
+			NSLog("iosrtcPlugin#RTCPeerConnection_addTransceiver() | ERROR: pluginRTCPeerConnection with pcId=%@ does not exist", String(pcId))
+			return;
+		}
+
+		if pluginMediaStreamTrack == nil {
+			NSLog("iosrtcPlugin#RTCPeerConnection_addTransceiver() | ERROR: pluginMediaStreamTrack with id=\(trackId) does not exist")
+			return;
+		}
+
+		self.queue.async { [weak pluginRTCPeerConnection, weak pluginMediaStreamTrack] in
+            pluginRTCPeerConnection?.addTransceiver(
+                tcId,
+                pluginMediaTrack: pluginMediaStreamTrack!,
+                options: options,
+                eventListener: { (data: NSDictionary) -> Void in
+                    let result = CDVPluginResult(
+                        status: CDVCommandStatus_OK,
+                        messageAs: data as? [AnyHashable: Any]
+                    )
+                    
+                    result!.setKeepCallbackAs(true);
+                    self.emit(command.callbackId, result: result!)
+                }
+            )
+			// TODO: Return the resulting transceiver object.
+		}
+	}
+
 	@objc(RTCPeerConnection_createDataChannel:) func RTCPeerConnection_createDataChannel(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_createDataChannel()")
 

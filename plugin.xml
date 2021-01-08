@@ -72,6 +72,7 @@
 		<source-file src="src/PluginMediaStreamRenderer.swift" />
 		<source-file src="src/PluginRTCAudioController.swift" />
 		<source-file src="src/PluginRTCVideoCaptureController.swift" />
+		<source-file src="src/PluginRTCRtpTransceiver.swift" />
 
 		<!-- iOS shared dependencies -->
 		<framework src="AVFoundation.framework" />
