@@ -146,7 +146,7 @@ module.exports = function (context) {
 		return;
 	}
 
-	if (!fs.existsSync(webRTCXCFramework)) {
+	if (fs.existsSync(webRTCXCFramework)) {
 		debug("xcframework already exists");
 		return;
 	}
