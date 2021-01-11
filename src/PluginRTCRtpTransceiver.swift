@@ -34,7 +34,7 @@ class PluginRTCRtpTransceiver : NSObject {
 
         if options?.object(forKey: "streams") != nil {
             let streams = options!.object(forKey: "streams") as! [NSDictionary]
-            let streamIds = streams.compactMap({$0["_id"] as! String})
+            let streamIds = streams.compactMap({$0["_id"] as? String})
 
             rtcRtpTransceiverInit.streamIds = streamIds
         }
@@ -55,11 +55,22 @@ class PluginRTCRtpTransceiver : NSObject {
 			NSLog("PluginRTCRtpTransceiver#init() | rtcPeerConnection.addTransceiver() failed")
 			return
 		}
+        
+        // TODO: Add support for senders and receivers.
+        //self.rtcRtpTransceiver?.sender
+        //self.rtcRtpTransceiver?.receiver
+        
+        var currentDirection = RTCRtpTransceiverDirection.inactive
+        self.rtcRtpTransceiver!.currentDirection(&currentDirection)
 
-        // TODO: Notify self.eventListener
         self.eventListener!([
-			"type": "new",
-			"transceiver": []
+			"type": "state",
+			"transceiver": [
+                "mid": self.rtcRtpTransceiver!.mid,
+                "currentDirection": PluginRTCRtpTransceiver.directionToString(direction: currentDirection),
+                "direction": PluginRTCRtpTransceiver.directionToString(direction: self.rtcRtpTransceiver!.direction),
+                "stopped": self.rtcRtpTransceiver!.isStopped
+            ]
 		])
     }
 
@@ -69,5 +80,50 @@ class PluginRTCRtpTransceiver : NSObject {
 
     func stop() {
         self.rtcRtpTransceiver!.stop()
+        
+        self.eventListener!([
+            "type": "state",
+            "transceiver": [
+                "direction": PluginRTCRtpTransceiver.directionToString(direction: self.rtcRtpTransceiver!.direction),
+                "stopped": self.rtcRtpTransceiver!.isStopped
+            ]
+        ])
+    }
+    
+    func setDirection(direction: String) {
+        if direction == "inactive" {
+            self.rtcRtpTransceiver!.direction = RTCRtpTransceiverDirection.inactive
+        } else if direction == "recvonly" {
+            self.rtcRtpTransceiver!.direction = RTCRtpTransceiverDirection.recvOnly
+        } else if direction == "rendonly" {
+            self.rtcRtpTransceiver!.direction = RTCRtpTransceiverDirection.sendOnly
+        } else if direction == "sendrecv" {
+            self.rtcRtpTransceiver!.direction = RTCRtpTransceiverDirection.sendRecv
+        } else if direction == "stopped" {
+            self.rtcRtpTransceiver!.direction = RTCRtpTransceiverDirection.stopped
+        }
+        
+        self.eventListener!([
+            "type": "state",
+            "transceiver": [
+                "direction": PluginRTCRtpTransceiver.directionToString(direction: self.rtcRtpTransceiver!.direction),
+                "stopped": self.rtcRtpTransceiver!.isStopped
+            ]
+        ])
+    }
+    
+    static func directionToString(direction: RTCRtpTransceiverDirection) -> String {
+        switch direction {
+        case RTCRtpTransceiverDirection.inactive:
+            return "inactive"
+        case RTCRtpTransceiverDirection.recvOnly:
+            return "recvonly"
+        case RTCRtpTransceiverDirection.sendOnly:
+            return "sendonly"
+        case RTCRtpTransceiverDirection.sendRecv:
+            return "sendrecv"
+        case RTCRtpTransceiverDirection.stopped:
+            return "stopped"
+        }
     }
 }

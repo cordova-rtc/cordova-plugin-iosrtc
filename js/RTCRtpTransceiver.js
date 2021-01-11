@@ -60,7 +60,8 @@ Object.defineProperties(RTCRtpTransceiver.prototype, {
 		},
 		set: function (direction) {
 			this._direction = direction;
-			// TODO: Invoke native api
+
+			exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCRtpTransceiver_setDirection', [this.peerConnection.pcId, this.tcId, direction]);
 		}
 	},
 	mid: {
@@ -81,9 +82,7 @@ Object.defineProperties(RTCRtpTransceiver.prototype, {
 });
 
 RTCRtpTransceiver.prototype.stop = function () {
-	// TODO: Implement stop function
-
-	exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCRtpTransceiver_close', [this.peerConnection.pcId, this.tcId]);
+	exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCRtpTransceiver_stop', [this.peerConnection.pcId, this.tcId]);
 };
 
 function onEvent(data) {
@@ -91,27 +90,22 @@ function onEvent(data) {
 
 	debug('onEvent() | [type:%s, data:%o]', type, data);
 
-	switch (type) {
-		case 'direction':
-			this._direction = data.direction;
-			this._currentDirection = data.direction;
+	if (type !== 'state') {
+		return;
+	}
 
-			break;
+	var transceiver = data.transceiver;
 
-		case 'mid':
-			this._mid = data.mid;
-
-			break;
-
-		case 'receiver':
-			this._receiver = data.receiver;
-
-			break;
-
-		case 'sender':
-			this._sender = data.sender;
-
-			break;
+	if (transceiver) {
+		if (transceiver.direction) {
+			this._direction = transceiver.direction;
+		}
+		if (transceiver.currentDirection) {
+			this._currentDirection = transceiver.currentDirection;
+		}
+		if (transceiver.mid) {
+			this._mid = transceiver.mid;
+		}
 	}
 }
 

@@ -413,8 +413,6 @@ class iosrtcPlugin : CDVPlugin {
 		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
 		let pluginMediaStreamTrack = self.pluginMediaStreamTracks[trackId]
 		var options: NSDictionary? = nil
-        
-        var rtcRtpTransceiverInit: RTCRtpTransceiverInit? = nil
 
 		if command.argument(at: 3) != nil {
 			options = command.argument(at: 3) as? NSDictionary
@@ -445,8 +443,54 @@ class iosrtcPlugin : CDVPlugin {
                     self.emit(command.callbackId, result: result!)
                 }
             )
-			// TODO: Return the resulting transceiver object.
 		}
+	}
+
+	@objc(RTCPeerConnection_RTCRtpTransceiver_setDirection:) func RTCPeerConnection_RTCRtpTransceiver_setDirection(_ command: CDVInvokedUrlCommand) {
+		NSLog("iosrtcPlugin#RTCPeerConnection_RTCRtpTransceiver_setDirection()")
+
+		let pcId = command.argument(at: 0) as! Int
+		let tcId = command.argument(at: 1) as! Int
+		let direction = command.argument(at: 2) as! String
+        
+        let pluginRTCPeerConnection = pluginRTCPeerConnections[pcId]
+        
+        if pluginRTCPeerConnection == nil {
+            NSLog("iosrtcPlugin#RTCPeerConnection_RTCRtpTransceiver_setDirection() | ERROR: pluginRTCPeerConnection with pcId=%@ does not exist", String(pcId))
+            return;
+        }
+
+        let pluginRTCRtpTransceiver = pluginRTCPeerConnection!.pluginRTCRtpTransceivers[tcId]
+        
+        if pluginRTCRtpTransceiver == nil {
+            NSLog("iosrtcPlugin#RTCPeerConnection_RTCRtpTransceiver_setDirection() | ERROR: pluginRTCRtpTransceiver with id=\(tcId) does not exist")
+            return;
+        }
+        
+        pluginRTCRtpTransceiver!.setDirection(direction: direction)
+	}
+
+	@objc(RTCPeerConnection_RTCRtpTransceiver_stop:) func RTCPeerConnection_RTCRtpTransceiver_stop(_ command: CDVInvokedUrlCommand) {
+		NSLog("iosrtcPlugin#RTCPeerConnection_RTCRtpTransceiver_stop()")
+
+        let pcId = command.argument(at: 0) as! Int
+        let tcId = command.argument(at: 1) as! Int
+        
+        let pluginRTCPeerConnection = pluginRTCPeerConnections[pcId]
+        
+        if pluginRTCPeerConnection == nil {
+            NSLog("iosrtcPlugin#RTCPeerConnection_RTCRtpTransceiver_stop() | ERROR: pluginRTCPeerConnection with pcId=%@ does not exist", String(pcId))
+            return;
+        }
+
+        let pluginRTCRtpTransceiver = pluginRTCPeerConnection!.pluginRTCRtpTransceivers[tcId]
+        
+        if pluginRTCRtpTransceiver == nil {
+            NSLog("iosrtcPlugin#RTCPeerConnection_RTCRtpTransceiver_stop() | ERROR: pluginRTCRtpTransceiver with id=\(tcId) does not exist")
+            return;
+        }
+        
+        pluginRTCRtpTransceiver!.stop()
 	}
 
 	@objc(RTCPeerConnection_createDataChannel:) func RTCPeerConnection_createDataChannel(_ command: CDVInvokedUrlCommand) {

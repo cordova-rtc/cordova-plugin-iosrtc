@@ -61,6 +61,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 	deinit {
 		NSLog("PluginRTCPeerConnection#deinit()")
 		self.pluginRTCDTMFSenders = [:]
+        self.pluginRTCRtpTransceivers = [:]
 	}
 
 	func run() {
