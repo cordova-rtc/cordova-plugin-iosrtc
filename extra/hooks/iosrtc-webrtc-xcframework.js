@@ -137,7 +137,7 @@ module.exports = function (context) {
 		webRTCFramework = path.join(iosRTCProjectPath, 'WebRTC.framework'),
 		webRTCFrameworkIOS = path.join(iosRTCProjectPath, 'tmp/ios/WebRTC.framework'),
 		webRTCFrameworkSIM = path.join(iosRTCProjectPath, 'tmp/sim/WebRTC.framework'),
-		webRTCXCFramework = path.join(iosRTCProjectPath, "WebRTC.xcframework");
+		webRTCXCFramework = path.join(iosRTCProjectPath, 'WebRTC.xcframework');
 
 	// Showing info about the tasks to do
 
@@ -147,33 +147,39 @@ module.exports = function (context) {
 	}
 
 	if (fs.existsSync(webRTCXCFramework)) {
-		debug("xcframework already exists");
+		debug('xcframework already exists');
 		return;
 	}
-	
+
 	const exec = require('child_process').execSync;
-	fs.mkdirSync(webRTCFrameworkIOS);
-	fs.mkdirSync(webRTCFrameworkSIM);
-	fs.copyFileSync(webRTCFramework, webRTCFrameworkIOS);
-	fs.copyFileSync(webRTCFramework, webRTCFrameworkSIM);
-	
+	fs.mkdirSync(webRTCFrameworkIOS, { recursive: true });
+	fs.mkdirSync(webRTCFrameworkSIM, { recursive: true });
+	exec(`cp -r ${webRTCFramework} ${webRTCFrameworkIOS}`, {
+		cwd: iosRTCProjectPath
+	});
+	exec(`cp -r ${webRTCFramework} ${webRTCFrameworkSIM}`, {
+		cwd: iosRTCProjectPath
+	});
+
 	const ARCH_TYPES_REMOVE_FOR_SIM = ['armv7, arm64'];
 	const ARCH_TYPES_REMOVE_FOR_IOS = ['x86_64', 'i386'];
 	prepareFramework(ARCH_TYPES_REMOVE_FOR_SIM, webRTCFrameworkSIM);
 	prepareFramework(ARCH_TYPES_REMOVE_FOR_IOS, webRTCFrameworkIOS);
 
-	exec(`xcodebuild -create-xcframework -framework ${webRTCFrameworkIOS} -framework ${webRTCFrameworkSIM} -output ${iosRTCProjectPath}/WebRTC.xcframework`, {
-		cwd: iosRTCProjectPath
-	});
-	fs.rmdirSync(webRTCFramework);
-	fs.rmdirSync(`iosRTCProjectPath/tmp`);
-
+	exec(
+		`xcodebuild -create-xcframework -framework ${webRTCFrameworkIOS} -framework ${webRTCFrameworkSIM} -output ${iosRTCProjectPath}/WebRTC.xcframework`,
+		{
+			cwd: iosRTCProjectPath
+		}
+	);
+	fs.rmSync(webRTCFramework, { recursive: true, force: true });
+	fs.rmSync(`iosRTCProjectPath/tmp`, { recursive: true, force: true });
 };
-function prepareFramework(archTypes, folder){
-	archTypes.forEach(elm => {
-        exec(`lipo -remove ${elm} WebRTC -o WebRTC`, {
-            cwd: folder
-        });
-        // re-package device related archs only. ( armv7, arm64 )
-    });
+function prepareFramework(archTypes, folder) {
+	archTypes.forEach((elm) => {
+		exec(`lipo -remove ${elm} WebRTC -o WebRTC`, {
+			cwd: folder
+		});
+		// re-package device related archs only. ( armv7, arm64 )
+	});
 }
