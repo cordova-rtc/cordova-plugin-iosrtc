@@ -19,17 +19,7 @@ class PluginRTCRtpTransceiver : NSObject {
         if options?.object(forKey: "direction") != nil {
             let direction = options!.object(forKey: "direction") as! String
 
-            if direction == "inactive" {
-                rtcRtpTransceiverInit.direction = RTCRtpTransceiverDirection.inactive
-            } else if direction == "recvonly" {
-                rtcRtpTransceiverInit.direction = RTCRtpTransceiverDirection.recvOnly
-            } else if direction == "rendonly" {
-                rtcRtpTransceiverInit.direction = RTCRtpTransceiverDirection.sendOnly
-            } else if direction == "sendrecv" {
-                rtcRtpTransceiverInit.direction = RTCRtpTransceiverDirection.sendRecv
-            } else if direction == "stopped" {
-                rtcRtpTransceiverInit.direction = RTCRtpTransceiverDirection.stopped
-            }
+            rtcRtpTransceiverInit.direction = PluginRTCRtpTransceiver.stringToDirection(direction: direction)
         }
 
         if options?.object(forKey: "streams") != nil {
@@ -91,17 +81,7 @@ class PluginRTCRtpTransceiver : NSObject {
     }
     
     func setDirection(direction: String) {
-        if direction == "inactive" {
-            self.rtcRtpTransceiver!.direction = RTCRtpTransceiverDirection.inactive
-        } else if direction == "recvonly" {
-            self.rtcRtpTransceiver!.direction = RTCRtpTransceiverDirection.recvOnly
-        } else if direction == "rendonly" {
-            self.rtcRtpTransceiver!.direction = RTCRtpTransceiverDirection.sendOnly
-        } else if direction == "sendrecv" {
-            self.rtcRtpTransceiver!.direction = RTCRtpTransceiverDirection.sendRecv
-        } else if direction == "stopped" {
-            self.rtcRtpTransceiver!.direction = RTCRtpTransceiverDirection.stopped
-        }
+        self.rtcRtpTransceiver!.direction = PluginRTCRtpTransceiver.stringToDirection(direction: direction)
         
         self.eventListener!([
             "type": "state",
@@ -110,6 +90,24 @@ class PluginRTCRtpTransceiver : NSObject {
                 "stopped": self.rtcRtpTransceiver!.isStopped
             ]
         ])
+    }
+    
+    static func stringToDirection(direction: String) -> RTCRtpTransceiverDirection {
+        switch direction {
+        case "inactive":
+            return RTCRtpTransceiverDirection.inactive
+        case "recvonly":
+            return RTCRtpTransceiverDirection.recvOnly
+        case "sendonly":
+            return RTCRtpTransceiverDirection.sendOnly
+        case "sendrecv":
+            return RTCRtpTransceiverDirection.sendRecv
+        case "stopped":
+            return RTCRtpTransceiverDirection.stopped
+        default:
+            NSLog("PluginRTCRtpTransceiver#stringToDirection() | Unrecognized direction value: @%", direction)
+            return RTCRtpTransceiverDirection.inactive
+        }
     }
     
     static func directionToString(direction: RTCRtpTransceiverDirection) -> String {
