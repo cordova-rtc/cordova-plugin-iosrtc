@@ -20,8 +20,10 @@
 
 	<platform name="ios">
 
+	
 		<hook type="before_add" src="extra/hooks/iosrtc-webrtc-xcframework.js" />
 		<hook type="before_plugin_install" src="extra/hooks/iosrtc-webrtc-xcframework.js"/>
+		
 		
 		<hook type="after_prepare" src="extra/hooks/iosrtc-swift-support.js" />
 
