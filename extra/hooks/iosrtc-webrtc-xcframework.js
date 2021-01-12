@@ -23,7 +23,9 @@ function debugError(msg) {
 // Starting here
 
 module.exports = function (context) {
-	if (process.platform != 'darwin') return;
+	if (process.platform !== 'darwin') {
+		return;
+	}
 	var projectRoot = context.opts.projectRoot,
 		iosRTCProjectPath = path.join(projectRoot, 'plugins/cordova-plugin-iosrtc/lib'),
 		webRTCFramework = path.join(iosRTCProjectPath, 'WebRTC.framework'),
@@ -43,8 +45,12 @@ module.exports = function (context) {
 		return;
 	}
 
-	fs.mkdirSync(webRTCFrameworkIOS, { recursive: true });
-	fs.mkdirSync(webRTCFrameworkSIM, { recursive: true });
+	fs.mkdirSync(webRTCFrameworkIOS, {
+		recursive: true
+	});
+	fs.mkdirSync(webRTCFrameworkSIM, {
+		recursive: true
+	});
 	exec(`cp -r '${webRTCFramework}/'* '${webRTCFrameworkIOS}'`, {
 		cwd: iosRTCProjectPath
 	});
@@ -61,9 +67,11 @@ module.exports = function (context) {
 	exec(generateXCCmd, {
 		cwd: iosRTCProjectPath
 	});
-	fs.rmdirSync(webRTCFramework, { recursive: true });
-	fs.rmdirSync(`${iosRTCProjectPath}/tmp`, { recursive: true });
+	exec(`rm -rf '${webRTCFramework}' '${iosRTCProjectPath}/tmp' `, {
+		cwd: iosRTCProjectPath
+	});
 };
+
 function prepareFramework(webRTCFramework, archTypes, folder) {
 	var removeCmd = 'lipo ';
 	archTypes.forEach((elm) => {
