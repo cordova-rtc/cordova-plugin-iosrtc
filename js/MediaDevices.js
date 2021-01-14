@@ -32,7 +32,9 @@ function MediaDevices(data) {
 
 	Object.defineProperty(this, 'ondevicechange', {
 		get: () => ondevicechange || null,
-		set: (handler) => { ondevicechange = handler; }
+		set: (handler) => {
+			ondevicechange = handler;
+		}
 	});
 	function onResultOK(data) {
 		self.dispatchEvent(new Event(data.type));
