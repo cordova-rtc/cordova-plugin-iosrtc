@@ -6,6 +6,7 @@
 * fix: fix event dispatch in replace track in rtcrtpsender #619
 * fix: fix MediaStreamTrack: added getCapabilities().deviceId support for cam device media streams #612
 * fix: fix iosrtcPlugin#dump()
+* fix: Implement MediaStreamTrack.getConstraints|applyConstraints SHAM
 
 #### Version 6.0.16
 * fix: correct canvas drawImage SHIM for VideoElement
