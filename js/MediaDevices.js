@@ -11,6 +11,7 @@ module.exports = MediaDevices;
  * Dependencies.
  */
 var EventTarget = require('./EventTarget'),
+	exec = require('cordova/exec'),
 	getUserMedia = require('./getUserMedia'),
 	enumerateDevices = require('./enumerateDevices');
 
@@ -22,11 +23,24 @@ function MediaDevices(data) {
 	//getUserMedia
 
 	var self = this;
+	var ondevicechange;
 
 	// Make this an EventTarget.
 	EventTarget.call(self);
 
 	data = data || {};
+
+	Object.defineProperty(this, 'ondevicechange', {
+		get: () => ondevicechange || null,
+		set: (handler) => { ondevicechange = handler; }
+	});
+	function onResultOK(data) {
+		self.dispatchEvent(new Event(data.type));
+		if (data.type === 'devicechange' && typeof ondevicechange === 'function') {
+			ondevicechange();
+		}
+	}
+	exec(onResultOK, null, 'iosrtcPlugin', 'MediaDevices_setListener', []);
 }
 
 MediaDevices.prototype = Object.create(EventTarget.prototype);

@@ -1131,6 +1131,26 @@ class iosrtcPlugin : CDVPlugin {
 		PluginRTCAudioController.selectAudioOutputSpeaker()
 	}
 
+	@objc(MediaDevices_setListener:) func MediaDevices_setListener(_ command: CDVInvokedUrlCommand) {
+		NSLog("iosrtcPlugin#MediaDevices_setListener()")
+
+		DispatchQueue.main.async {
+			// Set the eventListener.
+			PluginRTCAudioController.setListener(
+				{ (data: NSDictionary) -> Void in
+					let result = CDVPluginResult(
+						status: CDVCommandStatus_OK,
+						messageAs: data as? [AnyHashable: Any]
+					)
+
+					// Allow more callbacks.
+					result!.setKeepCallbackAs(true);
+					self.emit(command.callbackId, result: result!)
+				}
+			)
+		}
+	}
+
 	@objc(dump:) func dump(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#dump()")
 

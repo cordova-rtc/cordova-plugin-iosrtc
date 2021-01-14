@@ -3,7 +3,7 @@
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015-2017 eFace2Face, Inc. (https://eface2face.com)
  * Copyright 2015-2019 BasqueVoIPMafia (https://github.com/BasqueVoIPMafia)
- * Copyright 2017-2020 Cordova-RTC (https://github.com/cordova-rtc)
+ * Copyright 2017-2021 Cordova-RTC (https://github.com/cordova-rtc)
  * License MIT
  */
 
@@ -136,6 +136,7 @@ module.exports = MediaDevices;
  * Dependencies.
  */
 var EventTarget = _dereq_('./EventTarget'),
+	exec = _dereq_('cordova/exec'),
 	getUserMedia = _dereq_('./getUserMedia'),
 	enumerateDevices = _dereq_('./enumerateDevices');
 
@@ -147,11 +148,24 @@ function MediaDevices(data) {
 	//getUserMedia
 
 	var self = this;
+	var ondevicechange;
 
 	// Make this an EventTarget.
 	EventTarget.call(self);
 
 	data = data || {};
+
+	Object.defineProperty(this, 'ondevicechange', {
+		get: () => ondevicechange || null,
+		set: (handler) => { ondevicechange = handler; }
+	});
+	function onResultOK(data) {
+		self.dispatchEvent(new Event(data.type));
+		if (data.type === 'devicechange' && typeof ondevicechange === 'function') {
+			ondevicechange();
+		}
+	}
+	exec(onResultOK, null, 'iosrtcPlugin', 'MediaDevices_setListener', []);
 }
 
 MediaDevices.prototype = Object.create(EventTarget.prototype);
@@ -202,7 +216,7 @@ MediaDevices.prototype.getSupportedConstraints = function () {
 	};
 };
 
-},{"./EventTarget":2,"./enumerateDevices":20,"./getUserMedia":21}],5:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"./enumerateDevices":20,"./getUserMedia":21,"cordova/exec":undefined}],5:[function(_dereq_,module,exports){
 /**
  * Expose the MediaStream class.
  */
@@ -1202,11 +1216,13 @@ Object.defineProperty(MediaStreamTrack.prototype, 'enabled', {
 });
 
 MediaStreamTrack.prototype.getConstraints = function () {
-	throw new Error('Not implemented.');
+	debug('MediaStreamTrack.prototype.getConstraints  is not implemented.');
+	return {};
 };
 
-MediaStreamTrack.prototype.applyConstraints = function () {
-	throw new Error('Not implemented.');
+MediaStreamTrack.prototype.applyConstraints = function (constraints) {
+	debug('MediaStreamTrack.prototype.applyConstraints  is not implemented.', constraints);
+	return Promise.reject(new Error('applyConstraints is not implemented.'));
 };
 
 MediaStreamTrack.prototype.clone = function () {
