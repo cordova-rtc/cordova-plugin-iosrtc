@@ -189,6 +189,15 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 			errback(error)
 		}
 
+		// TODO: Would transceivers with mid=null get their mid's assigned after
+		 // setLocalDescription call? Investigate...
+		 //
+		 // Reference:
+		 // Something I overlooked last year is that transceiver.mid is null before setLocalDescription. We avoided 
+		 // that problem above by establishing the connection ahead of sending anything, but this makes mid useless 
+		 // for correlating in the initial negotiation.
+		 // https://blog.mozilla.org/webrtc/rtcrtptransceiver-explored/
+
 		self.rtcPeerConnection.setLocalDescription(rtcSessionDescription, completionHandler: {
 			(error: Error?) in
 			if (error == nil) {
@@ -402,6 +411,22 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		)
 
 		self.pluginRTCRtpTransceivers[tcId] = pluginRtcRtpTransceiver
+	}
+
+	func RTCRtpTransceiver_setListener(
+		_ tcId: Int,
+		eventListener: @escaping (_ data: NSDictionary) -> Void
+	) {
+		NSLog("PluginRTCPeerConnection#RTCRtpTransceiver_setListener()")
+
+		let pluginRTCRtpTransceiver = self.pluginRTCRtpTransceivers[tcId]
+
+		if pluginRTCRtpTransceiver == nil {
+			return;
+		}
+
+		// Set the eventListener.
+		pluginRTCRtpTransceiver!.setListener(eventListener)
 	}
 
 	func createDataChannel(
@@ -870,4 +895,48 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 			]
 		])
 	}
+    
+    /* Called when transceier will start receiving data. */
+    func peerConnection(_ peerConnection: RTCPeerConnection, didStartReceivingOn transceiver: RTCRtpTransceiver) {
+        NSLog("PluginRTCPeerConnection | didStartReceivingOn")
+        
+        // TODO: Is this a new transceiver or was it created already?
+        var existingTransceiver: PluginRTCRtpTransceiver? = nil
+        
+		// TODO: Is it correct reusing transceiver instance with same mid?
+        for (_, pluginTransceiver) in pluginRTCRtpTransceivers {
+            if (transceiver.mid == pluginTransceiver.rtcRtpTransceiver!.mid) {
+                existingTransceiver = pluginTransceiver
+                break
+            }
+        }
+        
+        if (existingTransceiver == nil) {
+            NSLog("PluginRTCPeerConnection | Info: No existing transceiver matching mid: %@", transceiver.mid)
+
+			let tcId = PluginUtils.randomInt(10000, max: 99999)
+			let pluginRTCRtpTransceiver = PluginRTCRtpTransceiver(transceiver)
+
+			self.pluginRTCRtpTransceivers[tcId] = pluginRTCRtpTransceiver
+
+			var currentDirection = RTCRtpTransceiverDirection.inactive
+            transceiver.currentDirection(&currentDirection)
+
+			self.eventListener([
+				"type": "transceiver",
+				"transceiver": [
+                    "tcId": tcId,
+                    "mid": transceiver.mid,
+					"currentDirection": PluginRTCRtpTransceiver.directionToString(direction: currentDirection),
+                	"direction": PluginRTCRtpTransceiver.directionToString(direction: transceiver.direction),
+                	"stopped": transceiver.isStopped
+				]
+			])
+        } else {
+			// TODO: Can this situation happen?
+            NSLog("PluginRTCPeerConnection | Info: Found existing transceiver matching mid: %@", transceiver.mid)
+
+			existingTransceiver!.sendStateUpdate()
+        }
+    }
 }

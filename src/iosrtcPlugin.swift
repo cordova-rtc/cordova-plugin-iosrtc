@@ -446,6 +446,34 @@ class iosrtcPlugin : CDVPlugin {
 		}
 	}
 
+	@objc(RTCPeerConnection_RTCRtpTransceiver_setListener:) func RTCPeerConnection_RTCRtpTransceiver_setListener(_ command: CDVInvokedUrlCommand) {
+		NSLog("iosrtcPlugin#RTCPeerConnection_RTCRtpTransceiver_setListener()")
+
+		let pcId = command.argument(at: 0) as! Int
+		let tcId = command.argument(at: 1) as! Int
+		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
+
+		if pluginRTCPeerConnection == nil {
+			NSLog("iosrtcPlugin#RTCPeerConnection_RTCRtpTransceiver_setListener() | ERROR: pluginRTCPeerConnection with pcId=%@ does not exist", String(pcId))
+			return;
+		}
+
+		self.queue.async { [weak pluginRTCPeerConnection] in
+			pluginRTCPeerConnection?.RTCRtpTransceiver_setListener(tcId,
+				eventListener: { (data: NSDictionary) -> Void in
+					let result = CDVPluginResult(
+						status: CDVCommandStatus_OK,
+						messageAs: data as? [AnyHashable: Any]
+					)
+
+					// Allow more callbacks.
+					result!.setKeepCallbackAs(true);
+					self.emit(command.callbackId, result: result!)
+				}
+			)
+		}
+	}
+
 	@objc(RTCPeerConnection_RTCRtpTransceiver_setDirection:) func RTCPeerConnection_RTCRtpTransceiver_setDirection(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_RTCRtpTransceiver_setDirection()")
 

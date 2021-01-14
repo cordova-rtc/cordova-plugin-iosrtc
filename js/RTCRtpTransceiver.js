@@ -18,15 +18,15 @@ debugerror.log = console.warn.bind(console);
 function RTCRtpTransceiver(peerConnection, trackOrKind, init, data) {
 	var self = this;
 
+	// Make this an EventTarget.
+	EventTarget.call(this);
+
+	this.peerConnection = peerConnection;
+
 	// Created using RTCPeerConnection.addTransceiver
 	if (!data) {
-		// Make this an EventTarget.
-		EventTarget.call(this);
-
-		// Private attributes.
-		this.peerConnection = peerConnection;
-		this._currentDirection = "sendrecv";
-		this._direction = "sendrecv";
+		this._currentDirection = "inactive";
+		this._direction = "inactive";
 		this._mid = null;
 		this._receiver = null;
 		this._sender = null;
@@ -34,7 +34,19 @@ function RTCRtpTransceiver(peerConnection, trackOrKind, init, data) {
 
 		exec(onResultOK, null, 'iosrtcPlugin', 'RTCPeerConnection_addTransceiver', [this.peerConnection.pcId, this.tcId, trackOrKind.id, init]);
 
-	// Created using RTCPeerConnection.getTransceivers
+	// Created by event coming from native.
+	} else if(data.tcId) {
+		this.tcId = data.tcId;
+		this._mid = data.mid;
+		this._currentDirection = data.currentDirection;
+		this._direction = data.direction;
+
+		this._receiver = data.receiver;
+		this._sender = data.sender;
+
+		exec(onResultOK, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCRtpTransceiver_setListener', [this.peerConnection.pcId, this.tcId]);
+
+		// Created using RTCPeerConnection.getTransceivers
 	} else {
 		this._receiver = data.receiver;
 		this._sender = data.sender;

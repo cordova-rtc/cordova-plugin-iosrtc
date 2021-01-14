@@ -11,6 +11,7 @@ class PluginRTCRtpTransceiver : NSObject {
         eventListener: @escaping (_ data: NSDictionary) -> Void
     ) {
         NSLog("PluginRTCRtpTransceiver#init()")
+        super.init()
 
 		self.eventListener = eventListener
 
@@ -50,6 +51,55 @@ class PluginRTCRtpTransceiver : NSObject {
         //self.rtcRtpTransceiver?.sender
         //self.rtcRtpTransceiver?.receiver
         
+        self.sendStateUpdate()
+    }
+
+    /**
+	 * Constructor for pc.didStartReceivingOn event.
+	 */
+    init(_ rtcRtpTransceiver: RTCRtpTransceiver) {
+		NSLog("RTCRtpTransceiver#init()")
+
+		self.rtcRtpTransceiver = rtcRtpTransceiver
+	}
+
+    deinit {
+		NSLog("PluginRTCRtpTransceiver#deinit()")
+	}
+
+    func setListener(_ eventListener: @escaping (_ data: NSDictionary) -> Void) {
+        NSLog("PluginRTCRtpTransceiver#setListener()")
+
+        self.eventListener = eventListener
+
+        // TODO: Emit any queued up state updates
+    }
+
+    func stop() {
+        self.rtcRtpTransceiver!.stopInternal()
+        
+        self.eventListener!([
+            "type": "state",
+            "transceiver": [
+                "direction": PluginRTCRtpTransceiver.directionToString(direction: self.rtcRtpTransceiver!.direction),
+                "stopped": self.rtcRtpTransceiver!.isStopped
+            ]
+        ])
+    }
+    
+    func setDirection(direction: String) {
+        self.rtcRtpTransceiver?.setDirection(PluginRTCRtpTransceiver.stringToDirection(direction: direction), error: nil)
+        
+        self.eventListener!([
+            "type": "state",
+            "transceiver": [
+                "direction": PluginRTCRtpTransceiver.directionToString(direction: self.rtcRtpTransceiver!.direction),
+                "stopped": self.rtcRtpTransceiver!.isStopped
+            ]
+        ])
+    }
+
+    func sendStateUpdate() {
         var currentDirection = RTCRtpTransceiverDirection.inactive
         self.rtcRtpTransceiver!.currentDirection(&currentDirection)
 
@@ -62,34 +112,6 @@ class PluginRTCRtpTransceiver : NSObject {
                 "stopped": self.rtcRtpTransceiver!.isStopped
             ]
 		])
-    }
-
-    deinit {
-		NSLog("PluginRTCRtpTransceiver#deinit()")
-	}
-
-    func stop() {
-        self.rtcRtpTransceiver!.stop()
-        
-        self.eventListener!([
-            "type": "state",
-            "transceiver": [
-                "direction": PluginRTCRtpTransceiver.directionToString(direction: self.rtcRtpTransceiver!.direction),
-                "stopped": self.rtcRtpTransceiver!.isStopped
-            ]
-        ])
-    }
-    
-    func setDirection(direction: String) {
-        self.rtcRtpTransceiver!.direction = PluginRTCRtpTransceiver.stringToDirection(direction: direction)
-        
-        self.eventListener!([
-            "type": "state",
-            "transceiver": [
-                "direction": PluginRTCRtpTransceiver.directionToString(direction: self.rtcRtpTransceiver!.direction),
-                "stopped": self.rtcRtpTransceiver!.isStopped
-            ]
-        ])
     }
     
     static func stringToDirection(direction: String) -> RTCRtpTransceiverDirection {

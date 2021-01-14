@@ -791,6 +791,7 @@ function onEvent(data) {
 		self = this,
 		event = new Event(type),
 		dataChannel,
+		transceiver,
 		id;
 
 	Object.defineProperty(event, 'target', { value: self, enumerable: true });
@@ -885,6 +886,11 @@ function onEvent(data) {
 		case 'datachannel':
 			dataChannel = new RTCDataChannel(this, null, null, data.channel);
 			event.channel = dataChannel;
+			break;
+
+		case 'transceiver':
+			transceiver = new RTCRtpTransceiver(this, null, null, data.transceiver);
+			event.transceiver = transceiver;
 			break;
 	}
 
