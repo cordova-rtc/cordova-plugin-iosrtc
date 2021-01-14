@@ -2882,6 +2882,14 @@ function RTCRtpTransceiver(peerConnection, trackOrKind, init, data) {
 
 	// Created using RTCPeerConnection.addTransceiver
 	if (!data) {
+
+		var mediaStreamTrackIdOrKind;
+		if (trackOrKind.id) {
+			mediaStreamTrackIdOrKind = trackOrKind.id;
+		} else {
+			mediaStreamTrackIdOrKind = trackOrKind;
+		}
+
 		this._currentDirection = "inactive";
 		this._direction = "inactive";
 		this._mid = null;
@@ -2889,7 +2897,7 @@ function RTCRtpTransceiver(peerConnection, trackOrKind, init, data) {
 		this._sender = null;
 		this.tcId = randomNumber();
 
-		exec(onResultOK, null, 'iosrtcPlugin', 'RTCPeerConnection_addTransceiver', [this.peerConnection.pcId, this.tcId, trackOrKind.id, init]);
+		exec(onResultOK, null, 'iosrtcPlugin', 'RTCPeerConnection_addTransceiver', [this.peerConnection.pcId, this.tcId, mediaStreamTrackIdOrKind, init]);
 
 	// Created by event coming from native.
 	} else if(data.tcId) {

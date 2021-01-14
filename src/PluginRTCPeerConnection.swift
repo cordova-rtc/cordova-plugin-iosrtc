@@ -393,7 +393,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 
 	func addTransceiver(
 		_ tcId: Int, 
-		pluginMediaTrack: PluginMediaStreamTrack, 
+		with: PluginMediaStreamTrack,
 		options: NSDictionary?, 
 		eventListener: @escaping (_ data: NSDictionary) -> Void
 	) {
@@ -403,15 +403,37 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 			return
 		}
 
-		let pluginRtcRtpTransceiver = PluginRTCRtpTransceiver(
+		let pluginRTCRtpTransceiver = PluginRTCRtpTransceiver(
             rtcPeerConnection: self.rtcPeerConnection,
-            mediaStreamTrack: pluginMediaTrack.rtcMediaStreamTrack,
+            mediaStreamTrack: with.rtcMediaStreamTrack,
             options: options,
             eventListener: eventListener
-		)
+        )
 
-		self.pluginRTCRtpTransceivers[tcId] = pluginRtcRtpTransceiver
+		self.pluginRTCRtpTransceivers[tcId] = pluginRTCRtpTransceiver
 	}
+    
+    func addTransceiver(
+        _ tcId: Int,
+        of: RTCRtpMediaType,
+        options: NSDictionary?,
+        eventListener: @escaping (_ data: NSDictionary) -> Void
+    ) {
+        NSLog("PluginRTCPeerConnection#addTransceiver()")
+
+        if self.rtcPeerConnection.signalingState == RTCSignalingState.closed {
+            return
+        }
+
+        let pluginRTCRtpTransceiver = PluginRTCRtpTransceiver(
+            rtcPeerConnection: self.rtcPeerConnection,
+            mediaType: of,
+            options: options,
+            eventListener: eventListener
+        )
+
+        self.pluginRTCRtpTransceivers[tcId] = pluginRTCRtpTransceiver
+    }
 
 	func RTCRtpTransceiver_setListener(
 		_ tcId: Int,
