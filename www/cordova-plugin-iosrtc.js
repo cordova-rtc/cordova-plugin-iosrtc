@@ -3,7 +3,7 @@
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015-2017 eFace2Face, Inc. (https://eface2face.com)
  * Copyright 2015-2019 BasqueVoIPMafia (https://github.com/BasqueVoIPMafia)
- * Copyright 2017-2020 Cordova-RTC (https://github.com/cordova-rtc)
+ * Copyright 2017-2021 Cordova-RTC (https://github.com/cordova-rtc)
  * License MIT
  */
 
@@ -1202,11 +1202,13 @@ Object.defineProperty(MediaStreamTrack.prototype, 'enabled', {
 });
 
 MediaStreamTrack.prototype.getConstraints = function () {
-	throw new Error('Not implemented.');
+	debug('MediaStreamTrack.prototype.getConstraints  is not implemented.');
+	return {};
 };
 
-MediaStreamTrack.prototype.applyConstraints = function () {
-	throw new Error('Not implemented.');
+MediaStreamTrack.prototype.applyConstraints = function (constraints) {
+	debug('MediaStreamTrack.prototype.applyConstraints  is not implemented.', constraints);
+	return Promise.reject(new Error('applyConstraints is not implemented.'));
 };
 
 MediaStreamTrack.prototype.clone = function () {
@@ -3606,10 +3608,6 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 		global.navigator = {};
 	}
 
-	if (!navigator.mediaDevices) {
-		navigator.mediaDevices = new MediaDevices();
-	}
-
 	// Restore Callback support
 	if (!doNotRestoreCallbacksSupport) {
 		restoreCallbacksSupport();
@@ -3617,11 +3615,22 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 
 	navigator.getUserMedia = getUserMedia;
 	navigator.webkitGetUserMedia = getUserMedia;
-	navigator.mediaDevices.getUserMedia = getUserMedia;
-	navigator.mediaDevices.enumerateDevices = enumerateDevices;
 
 	// Prevent WebRTC-adapter to overide navigator.mediaDevices after shim is applied since ios 14.3
-	Object.freeze(navigator.mediaDevices);
+	Object.defineProperty(
+		navigator,
+		'mediaDevices',
+		{
+			value: new MediaDevices(),
+			writable: false
+		},
+		{
+			enumerable: false,
+			configurable: false,
+			writable: false,
+			value: 'static'
+		}
+	);
 
 	window.RTCPeerConnection = RTCPeerConnection;
 	window.webkitRTCPeerConnection = RTCPeerConnection;
