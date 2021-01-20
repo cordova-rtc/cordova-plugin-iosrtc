@@ -407,6 +407,7 @@ class iosrtcPlugin : CDVPlugin {
 		let pcId = command.argument(at: 0) as! Int
 		let tcId = command.argument(at: 1) as! Int
 		let trackIdOrMediaType = command.argument(at: 2) as? String
+		let receiverTrackId = command.argument(at: 4) as? String
 
 		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
 
@@ -437,7 +438,7 @@ class iosrtcPlugin : CDVPlugin {
 		}
 
 		self.queue.async { [weak pluginRTCPeerConnection, weak pluginMediaStreamTrack] in
-            let eventListener = { (data: NSDictionary) -> Void in
+            let callback = { (data: NSDictionary) -> Void in
                 let result = CDVPluginResult(
                     status: CDVCommandStatus_OK,
                     messageAs: data as? [AnyHashable: Any]
@@ -446,50 +447,15 @@ class iosrtcPlugin : CDVPlugin {
                 result!.setKeepCallbackAs(true);
                 self.emit(command.callbackId, result: result!)
             }
-            
-            if (pluginMediaStreamTrack != nil) {
-                pluginRTCPeerConnection!.addTransceiver(
-                    tcId,
-                    with: pluginMediaStreamTrack!,
-                    options: options,
-                    eventListener: eventListener
-                )
-            } else {
-                pluginRTCPeerConnection!.addTransceiver(
-                    tcId,
-                    of: mediaType!,
-                    options: options,
-                    eventListener: eventListener
-                )
-            }
-		}
-	}
 
-	@objc(RTCPeerConnection_RTCRtpTransceiver_setListener:) func RTCPeerConnection_RTCRtpTransceiver_setListener(_ command: CDVInvokedUrlCommand) {
-		NSLog("iosrtcPlugin#RTCPeerConnection_RTCRtpTransceiver_setListener()")
-
-		let pcId = command.argument(at: 0) as! Int
-		let tcId = command.argument(at: 1) as! Int
-		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
-
-		if pluginRTCPeerConnection == nil {
-			NSLog("iosrtcPlugin#RTCPeerConnection_RTCRtpTransceiver_setListener() | ERROR: pluginRTCPeerConnection with pcId=%@ does not exist", String(pcId))
-			return;
-		}
-
-		self.queue.async { [weak pluginRTCPeerConnection] in
-			pluginRTCPeerConnection?.RTCRtpTransceiver_setListener(tcId,
-				eventListener: { (data: NSDictionary) -> Void in
-					let result = CDVPluginResult(
-						status: CDVCommandStatus_OK,
-						messageAs: data as? [AnyHashable: Any]
-					)
-
-					// Allow more callbacks.
-					result!.setKeepCallbackAs(true);
-					self.emit(command.callbackId, result: result!)
-				}
-			)
+			pluginRTCPeerConnection!.addTransceiver(
+				tcId,
+				with: pluginMediaStreamTrack,
+				of: mediaType,
+				options: options,
+				receiverTrackId: receiverTrackId!,
+				callback: callback
+            )
 		}
 	}
 

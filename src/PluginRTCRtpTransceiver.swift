@@ -2,18 +2,21 @@ import Foundation
 
 class PluginRTCRtpTransceiver : NSObject {
     var rtcRtpTransceiver: RTCRtpTransceiver?
-    var eventListener: ((_ data: NSDictionary) -> Void)?
+    
+    init(rtcRtpTransceiver: RTCRtpTransceiver) {
+        NSLog("PluginRTCRtpTransceiver#init(rtcRtpTransceiver)")
+        super.init()
+        
+        self.rtcRtpTransceiver = rtcRtpTransceiver
+    }
 
     init(
         rtcPeerConnection: RTCPeerConnection,
         mediaType: RTCRtpMediaType,
-        options: NSDictionary?, 
-        eventListener: @escaping (_ data: NSDictionary) -> Void
+        options: NSDictionary?
     ) {
         NSLog("PluginRTCRtpTransceiver#init(mediaType)")
         super.init()
-
-        self.eventListener = eventListener
 
         let rtcRtpTransceiverInit = PluginRTCRtpTransceiver.initFromOptionsDictionary(options)
 
@@ -21,26 +24,16 @@ class PluginRTCRtpTransceiver : NSObject {
 
         if self.rtcRtpTransceiver == nil {
 			NSLog("PluginRTCRtpTransceiver#init(mediaType) | rtcPeerConnection.addTransceiver() failed")
-			return
 		}
-
-        // TODO: Add support for senders and receivers.
-        //self.rtcRtpTransceiver?.sender
-        //self.rtcRtpTransceiver?.receiver
-
-        self.sendStateUpdate()
     }
 
     init(
         rtcPeerConnection: RTCPeerConnection, 
         mediaStreamTrack: RTCMediaStreamTrack, 
-        options: NSDictionary?, 
-        eventListener: @escaping (_ data: NSDictionary) -> Void
+        options: NSDictionary?
     ) {
         NSLog("PluginRTCRtpTransceiver#init(mediaStreamTrack)")
         super.init()
-
-		self.eventListener = eventListener
 
         let rtcRtpTransceiverInit = PluginRTCRtpTransceiver.initFromOptionsDictionary(options)
 
@@ -48,14 +41,7 @@ class PluginRTCRtpTransceiver : NSObject {
 
         if self.rtcRtpTransceiver == nil {
 			NSLog("PluginRTCRtpTransceiver#init(mediaStream) | rtcPeerConnection.addTransceiver() failed")
-			return
 		}
-        
-        // TODO: Add support for senders and receivers.
-        //self.rtcRtpTransceiver?.sender
-        //self.rtcRtpTransceiver?.receiver
-        
-        self.sendStateUpdate()
     }
 
     /**
@@ -71,54 +57,15 @@ class PluginRTCRtpTransceiver : NSObject {
 		NSLog("PluginRTCRtpTransceiver#deinit()")
 	}
 
-    func setListener(_ eventListener: @escaping (_ data: NSDictionary) -> Void) {
-        NSLog("PluginRTCRtpTransceiver#setListener()")
-
-        self.eventListener = eventListener
-
-        // TODO: Emit any queued up state updates
-    }
-
     func stop() {
         self.rtcRtpTransceiver!.stopInternal()
-        
-        self.eventListener!([
-            "type": "state",
-            "transceiver": [
-                "direction": PluginRTCRtpTransceiver.directionToString(direction: self.rtcRtpTransceiver!.direction),
-                "stopped": self.rtcRtpTransceiver!.isStopped
-            ]
-        ])
     }
     
     func setDirection(direction: String) {
-        self.rtcRtpTransceiver?.setDirection(PluginRTCRtpTransceiver.stringToDirection(direction: direction), error: nil)
-        
-        self.eventListener!([
-            "type": "state",
-            "transceiver": [
-                "direction": PluginRTCRtpTransceiver.directionToString(direction: self.rtcRtpTransceiver!.direction),
-                "stopped": self.rtcRtpTransceiver!.isStopped
-            ]
-        ])
-    }
-
-    func sendStateUpdate() {
-        var currentDirection = RTCRtpTransceiverDirection.inactive
-        self.rtcRtpTransceiver!.currentDirection(&currentDirection)
-
-        self.eventListener!([
-			"type": "state",
-			"transceiver": [
-                "mid": self.rtcRtpTransceiver!.mid,
-                "currentDirection": PluginRTCRtpTransceiver.directionToString(direction: currentDirection),
-                "direction": PluginRTCRtpTransceiver.directionToString(direction: self.rtcRtpTransceiver!.direction),
-                "stopped": self.rtcRtpTransceiver!.isStopped
-            ]
-		])
+        self.rtcRtpTransceiver?.setDirection(PluginRTCRtpTransceiver.stringToDirection(direction), error: nil)
     }
     
-    static func stringToDirection(direction: String) -> RTCRtpTransceiverDirection {
+    static func stringToDirection(_ direction: String) -> RTCRtpTransceiverDirection {
         switch direction {
         case "inactive":
             return RTCRtpTransceiverDirection.inactive
@@ -136,7 +83,7 @@ class PluginRTCRtpTransceiver : NSObject {
         }
     }
     
-    static func directionToString(direction: RTCRtpTransceiverDirection) -> String {
+    static func directionToString(_ direction: RTCRtpTransceiverDirection) -> String {
         switch direction {
         case RTCRtpTransceiverDirection.inactive:
             return "inactive"
@@ -157,7 +104,7 @@ class PluginRTCRtpTransceiver : NSObject {
         if options?.object(forKey: "direction") != nil {
             let direction = options!.object(forKey: "direction") as! String
 
-            rtcRtpTransceiverInit.direction = PluginRTCRtpTransceiver.stringToDirection(direction: direction)
+            rtcRtpTransceiverInit.direction = PluginRTCRtpTransceiver.stringToDirection(direction)
         }
 
         if options?.object(forKey: "streams") != nil {

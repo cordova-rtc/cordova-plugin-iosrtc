@@ -23,7 +23,7 @@ var // Dictionary of MediaStreamRenderers.
 	RTCIceCandidate = require('./RTCIceCandidate'),
 	MediaDevices = require('./MediaDevices'),
 	MediaStream = require('./MediaStream'),
-	MediaStreamTrack = require('./MediaStreamTrack'),
+	{ MediaStreamTrack } = require('./MediaStreamTrack'),
 	videoElementsHandler = require('./videoElementsHandler'),
 	RTCRtpTransceiver	   = require('./RTCRtpTransceiver');
 

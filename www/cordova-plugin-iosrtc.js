@@ -218,7 +218,7 @@ module.exports = MediaStream;
 var debug = _dereq_('debug')('iosrtc:MediaStream'),
 	exec = _dereq_('cordova/exec'),
 	EventTarget = _dereq_('./EventTarget'),
-	MediaStreamTrack = _dereq_('./MediaStreamTrack'),
+	{ MediaStreamTrack } = _dereq_('./MediaStreamTrack'),
 	/**
 	 * Local variables.
 	 */
@@ -1128,7 +1128,8 @@ function getElementPositionAndSize() {
 /**
  * Expose the MediaStreamTrack class.
  */
-module.exports = MediaStreamTrack;
+module.exports.MediaStreamTrack = MediaStreamTrack;
+module.exports.newMediaStreamTrackId = newMediaStreamTrackId;
 
 /**
  * Spec: http://w3c.github.io/mediacapture-main/#mediastreamtrack
@@ -1175,6 +1176,8 @@ function MediaStreamTrack(dataFromEvent) {
 	this._enabled = dataFromEvent.enabled;
 	this._ended = false;
 
+	this.dataFromEvent = dataFromEvent;
+
 	function onResultOK(data) {
 		onEvent.call(self, data);
 	}
@@ -1219,7 +1222,8 @@ MediaStreamTrack.prototype.clone = function () {
 		kind: this.kind,
 		label: this.label,
 		readyState: this.readyState,
-		enabled: this.enabled
+		enabled: this.enabled,
+		trackId: this.dataFromEvent.trackId
 	});
 };
 
@@ -1916,7 +1920,7 @@ var debug = _dereq_('debug')('iosrtc:RTCPeerConnection'),
 	RTCStatsResponse = _dereq_('./RTCStatsResponse'),
 	RTCStatsReport = _dereq_('./RTCStatsReport'),
 	MediaStream = _dereq_('./MediaStream'),
-	MediaStreamTrack = _dereq_('./MediaStreamTrack'),
+	{ MediaStreamTrack, newMediaStreamTrackId } = _dereq_('./MediaStreamTrack'),
 	Errors = _dereq_('./Errors');
 
 debugerror.log = console.warn.bind(console);
@@ -1951,6 +1955,7 @@ function RTCPeerConnection(pcConfig, pcConstraints) {
 		RTCPeerConnection.prototype_descriptor.getLocalStreams
 	);
 	Object.defineProperty(this, 'addTransceiver', RTCPeerConnection.prototype_descriptor.addTransceiver);
+	Object.defineProperty(this, 'getOrCreateTrack', RTCPeerConnection.prototype_descriptor.getOrCreateTrack);
 
 	// Public atributes.
 	this._localDescription = null;
@@ -1964,8 +1969,9 @@ function RTCPeerConnection(pcConfig, pcConstraints) {
 	this.pcId = randomNumber();
 	this.localStreams = {};
 	this.remoteStreams = {};
-	this.localTracks = {};
-	this.remoteTracks = {};
+
+	this.tracks = {};
+	this.transceivers = [];
 
 	function onResultOK(data) {
 		onEvent.call(self, data);
@@ -2050,6 +2056,10 @@ RTCPeerConnection.prototype.createOffer = function (options) {
 				return;
 			}
 
+			if (data.transceivers) {
+				self.updateTransceiversState(data.transceivers);
+			}
+
 			var desc = new RTCSessionDescription(data);
 
 			debug('createOffer() | success [desc:%o]', desc);
@@ -2089,6 +2099,10 @@ RTCPeerConnection.prototype.createAnswer = function (options) {
 		function onResultOK(data) {
 			if (isClosed.call(self)) {
 				return;
+			}
+
+			if (data.transceivers) {
+				self.updateTransceiversState(data.transceivers);
 			}
 
 			var desc = new RTCSessionDescription(data);
@@ -2143,6 +2157,10 @@ RTCPeerConnection.prototype.setLocalDescription = function (desc) {
 		function onResultOK(data) {
 			if (isClosed.call(self)) {
 				return;
+			}
+
+			if (data.transceivers) {
+				self.updateTransceiversState(data.transceivers);
 			}
 
 			debug('setLocalDescription() | success');
@@ -2201,6 +2219,10 @@ RTCPeerConnection.prototype.setRemoteDescription = function (desc) {
 		function onResultOK(data) {
 			if (isClosed.call(self)) {
 				return;
+			}
+
+			if (data.transceivers) {
+				self.updateTransceiversState(data.transceivers);
 			}
 
 			debug('setRemoteDescription() | success');
@@ -2324,68 +2346,23 @@ RTCPeerConnection.prototype.getRemoteStreams = function () {
 };
 
 RTCPeerConnection.prototype.getReceivers = function () {
-	var self = this,
-		tracks = [],
-		id;
-
-	for (id in this.remoteTracks) {
-		if (this.remoteTracks.hasOwnProperty(id)) {
-			tracks.push(this.remoteTracks[id]);
-		}
-	}
-
-	return tracks.map(function (track) {
-		return new RTCRtpReceiver({
-			pc: self,
-			track: track
-		});
-	});
+	return this.getTransceivers()
+		.filter((transceiver) => !transceiver.stopped)
+		.map((transceiver) => transceiver.receiver);
 };
 
 RTCPeerConnection.prototype.getSenders = function () {
-	var self = this,
-		tracks = [],
-		id;
-
-	for (id in this.localTracks) {
-		if (this.localTracks.hasOwnProperty(id)) {
-			tracks.push(this.localTracks[id]);
-		}
-	}
-
-	return tracks.map(function (track) {
-		return new RTCRtpSender({
-			pc: self,
-			track: track
-		});
-	});
+	return this.getTransceivers()
+		.filter((transceiver) => !transceiver.stopped)
+		.map((transceiver) => transceiver.sender);
 };
 
 RTCPeerConnection.prototype.getTransceivers = function () {
-	var transceivers = [];
-
-	// TODO: Retrieve actual transceivers (passing data like before for compiling to work temporarily)
-	this.getReceivers().map(function (receiver) {
-		transceivers.push(
-			new RTCRtpTransceiver(this, null, null, {
-				receiver: receiver
-			})
-		);
-	});
-
-	this.getSenders().map(function (sender) {
-		transceivers.push(
-			new RTCRtpTransceiver(this, null, null, {
-				sender: sender
-			})
-		);
-	});
-
-	return transceivers;
+	return this.transceivers;
 };
 
-RTCPeerConnection.prototype.addTrack = function (track, stream) {
-	var id;
+RTCPeerConnection.prototype.addTrack = function (track, ...streams) {
+	var stream = streams[0];
 
 	if (isClosed.call(this)) {
 		throw new Errors.InvalidStateError('peerconnection is closed');
@@ -2400,16 +2377,16 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 		this.addStream(stream);
 	}
 
-	for (id in this.localStreams) {
-		if (this.localStreams.hasOwnProperty(id)) {
+	for (var streamId in this.localStreams) {
+		if (this.localStreams.hasOwnProperty(streamId)) {
 			// Target provided stream argument or first added stream to group track
-			if (!stream || (stream && stream.id === id)) {
-				stream = this.localStreams[id];
+			if (!stream || (stream && stream.id === streamId)) {
+				stream = this.localStreams[streamId];
 				stream.addTrack(track);
 				exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [
 					this.pcId,
 					track.id,
-					id
+					streamId
 				]);
 				break;
 			}
@@ -2421,11 +2398,9 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [this.pcId, track.id, null]);
 	}
 
-	this.localTracks[track.id] = track;
+	this.getOrCreateTrack(track);
 
-	return new RTCRtpSender({
-		track: track
-	});
+	return new RTCRtpSender(this, { track });
 };
 
 RTCPeerConnection.prototype.removeTrack = function (sender) {
@@ -2454,7 +2429,7 @@ RTCPeerConnection.prototype.removeTrack = function (sender) {
 					track.id,
 					stream.id
 				]);
-				delete this.localTracks[track.id];
+				delete this.tracks[track.id];
 				break;
 			}
 		}
@@ -2462,19 +2437,41 @@ RTCPeerConnection.prototype.removeTrack = function (sender) {
 
 	// No Stream matched remove track without stream
 	if (!stream) {
-		for (id in this.localTracks) {
-			if (this.localTracks.hasOwnProperty(id)) {
+		for (id in this.tracks) {
+			if (this.tracks.hasOwnProperty(id)) {
 				if (track.id === id) {
 					exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_removeTrack', [
 						this.pcId,
 						track.id,
 						null
 					]);
-					delete this.localTracks[track.id];
+					delete this.tracks[track.id];
 				}
 			}
 		}
 	}
+};
+
+RTCPeerConnection.prototype.getOrCreateTrack = function (trackInput) {
+	var { id } = trackInput, existingTrack = this.tracks[id];
+
+	if (existingTrack) {
+		return existingTrack;
+	}
+
+	var track;
+	if (trackInput instanceof MediaStreamTrack) {
+		track = trackInput;
+	} else {
+		track = new MediaStreamTrack(trackInput);
+	}
+
+	this.tracks[id] = track;
+	track.addEventListener('ended', () => {
+		delete this.tracks[id];
+	});
+
+	return track;
 };
 
 RTCPeerConnection.prototype.addTransceiver = function (trackOrKind, init) {
@@ -2482,15 +2479,55 @@ RTCPeerConnection.prototype.addTransceiver = function (trackOrKind, init) {
 		throw new Errors.InvalidStateError('peerconnection is closed');
 	}
 
-	if (trackOrKind instanceof String) {
+	var kind, track = null;
+	if (trackOrKind instanceof MediaStreamTrack) {
+		kind = trackOrKind.kind;
+		track = trackOrKind;
+	} else {
 		if (!(trackOrKind === "audio" || trackOrKind === "video")) {
-			throw new TypeError("A string was specified as trackOrKind which is not valid. The string must be either \"audio\" or \"video\".");
+			throw new TypeError("An invalid string was specified as trackOrKind. The string must be either \"audio\" or \"video\".");
 		}
+		kind = trackOrKind;
 	}
+
+	var receiverTrackID = newMediaStreamTrackId();
+	var receiver = new RTCRtpReceiver(this, {
+		track: new MediaStreamTrack({
+			id: receiverTrackID,
+			kind,
+			enabled: true,
+			readyState: 'live',
+			trackId: 'unknown'
+		})
+	});
+
+	var sender = new RTCRtpSender(this, {
+		track
+	});
 	
 	debug('addTransceiver() [trackOrKind:%o, init:%o]', trackOrKind, init);
 
-	return new RTCRtpTransceiver(this, trackOrKind, init);
+	var transceiver = new RTCRtpTransceiver(this, trackOrKind, init, { receiver, sender }, receiverTrackID);
+
+	this.transceivers.push(transceiver);
+
+	return transceiver;
+};
+
+RTCPeerConnection.prototype.updateTransceiversState = function(transceivers) {
+	debug('updateTransceiversState()', transceivers, this.transceivers);
+	this.transceivers = transceivers.map((transceiver) => {
+		const existingTransceiver = this.transceivers.find(
+			(localTransceiver) => transceiver.tcId === localTransceiver.tcId
+		);
+
+		if (existingTransceiver) {
+			existingTransceiver.update(transceiver);
+			return existingTransceiver;
+		}
+
+		return new RTCRtpTransceiver(this, null, null, transceiver);
+	});
 };
 
 RTCPeerConnection.prototype.getStreamById = function (id) {
@@ -2522,10 +2559,7 @@ RTCPeerConnection.prototype.addStream = function (stream) {
 	stream.addedToConnection = true;
 
 	stream.getTracks().forEach(function (track) {
-		self.localTracks[track.id] = track;
-		track.addEventListener('ended', function () {
-			delete self.localTracks[track.id];
-		});
+		self.getOrCreateTrack(track);
 	});
 
 	exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addStream', [this.pcId, stream.id]);
@@ -2552,7 +2586,7 @@ RTCPeerConnection.prototype.removeStream = function (stream) {
 	delete this.localStreams[stream.id];
 
 	stream.getTracks().forEach(function (track) {
-		delete self.localTracks[track.id];
+		delete self.tracks[track.id];
 	});
 
 	exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_removeStream', [this.pcId, stream.id]);
@@ -2693,6 +2727,10 @@ function onEvent(data) {
 
 	debug('onEvent() | [type:%s, data:%o]', type, data);
 
+	if (data.transceivers) {
+		this.updateTransceiversState(data.transceivers);
+	}
+
 	switch (type) {
 		case 'signalingstatechange':
 			this.signalingState = data.signalingState;
@@ -2735,10 +2773,10 @@ function onEvent(data) {
 
 		case 'track':
 			var track = (event.track = new MediaStreamTrack(data.track));
-			event.receiver = new RTCRtpReceiver({ track: track });
+			event.receiver = new RTCRtpReceiver(self, { track: track });
 			
-			// TODO: Ensure this transceiver instance is associated with native API as well.
-			event.transceiver = new RTCRtpTransceiver(this, null, null, { receiver: event.receiver });
+			transceiver = this.transceivers.find(t => t.receiver.track.id === track.id);
+			event.transceiver = transceiver;
 			event.streams = [];
 
 			// Add stream only if available in case of Unified-Plan of track event without stream
@@ -2748,10 +2786,7 @@ function onEvent(data) {
 			}
 
 			// Store remote track
-			this.remoteTracks[track.id] = track;
-			track.addEventListener('ended', function () {
-				delete self.remoteTracks[track.id];
-			});
+			this.getOrCreateTrack(track);
 
 			break;
 
@@ -2782,11 +2817,6 @@ function onEvent(data) {
 			dataChannel = new RTCDataChannel(this, null, null, data.channel);
 			event.channel = dataChannel;
 			break;
-
-		case 'transceiver':
-			transceiver = new RTCRtpTransceiver(this, null, null, data.transceiver);
-			event.transceiver = transceiver;
-			break;
 	}
 
 	this.dispatchEvent(event);
@@ -2799,12 +2829,20 @@ function onEvent(data) {
  */
 module.exports = RTCRtpReceiver;
 
-function RTCRtpReceiver(data) {
+function RTCRtpReceiver(pc, data) {
 	data = data || {};
 
-	this._pc = data.pc;
-	this.track = data.track;
+	this._pc = pc;
+	this.track = pc.getOrCreateTrack(data.track);
 }
+
+RTCRtpReceiver.prototype.update = function ({ track }) {
+	if (track) {
+		this.track = this._pc.getOrCreateTrack(track);
+	} else {
+		this.track = null;
+	}
+};
 
 },{}],15:[function(_dereq_,module,exports){
 /**
@@ -2812,11 +2850,11 @@ function RTCRtpReceiver(data) {
  */
 module.exports = RTCRtpSender;
 
-function RTCRtpSender(data) {
+function RTCRtpSender(pc ,data) {
 	data = data || {};
 
-	this._pc = data.pc;
-	this.track = data.track;
+	this._pc = pc;
+	this.track = data.track ? pc.getOrCreateTrack(data.track) : null;
 	this.params = data.params || {};
 }
 
@@ -2835,8 +2873,10 @@ RTCRtpSender.prototype.replaceTrack = function (withTrack) {
 
 	return new Promise(function (resolve, reject) {
 		pc.removeTrack(self);
-		pc.addTrack(withTrack);
-		self.track = withTrack;
+
+		if (withTrack) {
+			pc.addTrack(withTrack);
+		}
 
 		// https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/negotiationneeded_event
 		var event = new Event('negotiationneeded');
@@ -2854,7 +2894,18 @@ RTCRtpSender.prototype.replaceTrack = function (withTrack) {
 	});
 };
 
+RTCRtpSender.prototype.update = function ({ track }) {
+	if (track) {
+		this.track = this._pc.getOrCreateTrack(track);
+	} else {
+		this.track = null;
+	}
+};
+
 },{}],16:[function(_dereq_,module,exports){
+const RTCRtpSender = _dereq_('./RTCRtpSender');
+const RTCRtpReceiver = _dereq_('./RTCRtpReceiver');
+
 /**
  * Expose the RTCRtpTransceiver class.
  */
@@ -2864,7 +2915,6 @@ module.exports = RTCRtpTransceiver;
  * Dependencies.
  */
 var
-	debug = _dereq_('debug')('iosrtc:RTCRtpTransceiver'),
 	debugerror = _dereq_('debug')('iosrtc:ERROR:RTCRtpTransceiver'),
 	exec = _dereq_('cordova/exec'),
 	randomNumber = _dereq_('random-number').generator({min: 10000, max: 99999, integer: true}),
@@ -2872,17 +2922,20 @@ var
 
 debugerror.log = console.warn.bind(console);
 
-function RTCRtpTransceiver(peerConnection, trackOrKind, init, data) {
-	var self = this;
-
-	// Make this an EventTarget.
-	EventTarget.call(this);
+function RTCRtpTransceiver(peerConnection, trackOrKind, init, initialState, receiverTrackId) {
+	initialState = initialState || {};
 
 	this.peerConnection = peerConnection;
+	this._receiver = initialState.receiver instanceof RTCRtpReceiver ? initialState.receiver : new RTCRtpReceiver(peerConnection, initialState.receiver);
+	this._sender = initialState.sender instanceof RTCRtpSender ? initialState.sender : new RTCRtpSender(peerConnection, initialState.sender);
+	this._mid = initialState.mid;
+	this._stopped = false;
 
-	// Created using RTCPeerConnection.addTransceiver
-	if (!data) {
-
+	if (initialState.tcId) {
+		this.tcId = initialState.tcId;
+		this._currentDirection = initialState.currentDirection;
+		this._direction = initialState.direction;
+	} else {
 		var mediaStreamTrackIdOrKind;
 		if (trackOrKind.id) {
 			mediaStreamTrackIdOrKind = trackOrKind.id;
@@ -2891,34 +2944,21 @@ function RTCRtpTransceiver(peerConnection, trackOrKind, init, data) {
 		}
 
 		this._currentDirection = "inactive";
-		this._direction = "inactive";
-		this._mid = null;
-		this._receiver = null;
-		this._sender = null;
+
+		if (init && init.direction) {
+			this._direction = init.direction;
+		} else {
+			this._direction = "sendrecv";
+		}
+
 		this.tcId = randomNumber();
 
-		exec(onResultOK, null, 'iosrtcPlugin', 'RTCPeerConnection_addTransceiver', [this.peerConnection.pcId, this.tcId, mediaStreamTrackIdOrKind, init]);
-
-	// Created by event coming from native.
-	} else if(data.tcId) {
-		this.tcId = data.tcId;
-		this._mid = data.mid;
-		this._currentDirection = data.currentDirection;
-		this._direction = data.direction;
-
-		this._receiver = data.receiver;
-		this._sender = data.sender;
-
-		exec(onResultOK, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCRtpTransceiver_setListener', [this.peerConnection.pcId, this.tcId]);
-
-		// Created using RTCPeerConnection.getTransceivers
-	} else {
-		this._receiver = data.receiver;
-		this._sender = data.sender;
+		exec(onResultOK, null, 'iosrtcPlugin', 'RTCPeerConnection_addTransceiver', 
+			[this.peerConnection.pcId, this.tcId, mediaStreamTrackIdOrKind, init, receiverTrackId]);
 	}
 
 	function onResultOK(data) {
-		onEvent.call(self, data);
+		peerConnection.updateTransceiversState(data);
 	}
 }
 
@@ -2956,43 +2996,35 @@ Object.defineProperties(RTCRtpTransceiver.prototype, {
 			return this._sender;
 		}
 	},
+	stopped: {
+		get: function() {
+			return this._stopped;
+		}
+	}
 });
 
 RTCRtpTransceiver.prototype.stop = function () {
 	exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCRtpTransceiver_stop', [this.peerConnection.pcId, this.tcId]);
 };
 
-function onEvent(data) {
-	var type = data.type;
-
-	debug('onEvent() | [type:%s, data:%o]', type, data);
-
-	if (type !== 'state') {
-		return;
+RTCRtpTransceiver.prototype.update = function (data) {
+	if (data.direction) {
+		this._direction = data.direction;
+	}
+	if (data.currentDirection) {
+		this._currentDirection = data.currentDirection;
+	}
+	if (data.mid) {
+		this._mid = data.mid;
 	}
 
-	var transceiver = data.transceiver;
+	this._stopped = data.stopped;
 
-	if (transceiver) {
-		if (transceiver.direction) {
-			this._direction = transceiver.direction;
-		}
-		if (transceiver.currentDirection) {
-			this._currentDirection = transceiver.currentDirection;
-		}
-		if (transceiver.mid) {
-			this._mid = transceiver.mid;
-		}
-	}
-}
+	this.receiver.update(data.receiver);
+	this.sender.update(data.sender);
+};
 
-// TODO
-// https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpTransceiver/currentDirection
-// https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpTransceiverDirection
-// https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpTransceiver/mid
-// https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpTransceiver/stop
-
-},{"./EventTarget":2,"cordova/exec":undefined,"debug":24,"random-number":29}],17:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"./RTCRtpReceiver":14,"./RTCRtpSender":15,"cordova/exec":undefined,"debug":24,"random-number":29}],17:[function(_dereq_,module,exports){
 /**
  * Expose the RTCSessionDescription class.
  */
@@ -3590,7 +3622,7 @@ var // Dictionary of MediaStreamRenderers.
 	RTCIceCandidate = _dereq_('./RTCIceCandidate'),
 	MediaDevices = _dereq_('./MediaDevices'),
 	MediaStream = _dereq_('./MediaStream'),
-	MediaStreamTrack = _dereq_('./MediaStreamTrack'),
+	{ MediaStreamTrack } = _dereq_('./MediaStreamTrack'),
 	videoElementsHandler = _dereq_('./videoElementsHandler'),
 	RTCRtpTransceiver	   = _dereq_('./RTCRtpTransceiver');
 
