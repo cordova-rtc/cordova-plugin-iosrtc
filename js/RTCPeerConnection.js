@@ -609,7 +609,7 @@ RTCPeerConnection.prototype.addTransceiver = function (trackOrKind, init) {
 		track
 	});
 
-	var data = init;
+	var data = init || {};
 	data.sender = sender;
 	data.receiver = receiver;
 
