@@ -1,5 +1,5 @@
 # Please read first!
-Please use [Public Google Group (mailing list)](https://groups.google.com/forum/#!forum/cordova-plugin-iosrtc) for general technical discussions and questions.
+Please use [Community Forum](https://github.com/cordova-rtc/cordova-plugin-iosrtc/discussions) for general technical discussions and questions.
 
 - [ ] I have used Google with the error message or bug in association with the library and Cordova words to make sure the issue I'm reporting is only related to iOSRTC.
 - [ ] I have provided steps to reproduce (e.g. sample code or updated `extra/renderer-and-libwebrtc-tests.js` file).
