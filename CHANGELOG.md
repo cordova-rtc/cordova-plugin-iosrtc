@@ -7,6 +7,7 @@
 * fix: fix MediaStreamTrack: added getCapabilities().deviceId support for cam device media streams #612
 * fix: fix iosrtcPlugin#dump()
 * fix: Implement MediaStreamTrack.getConstraints|applyConstraints SHAM
+* fix: fix iOS 14.3 getUserMedia fails #618
 
 #### Version 6.0.16
 * fix: correct canvas drawImage SHIM for VideoElement
