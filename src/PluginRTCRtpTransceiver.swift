@@ -1,13 +1,18 @@
 import Foundation
 
 class PluginRTCRtpTransceiver : NSObject {
+    // NOTE: ID used to reference this native transceiver from JS.
+    var id: Int
     var rtcRtpTransceiver: RTCRtpTransceiver?
     
-    init(rtcRtpTransceiver: RTCRtpTransceiver) {
+    init(_ rtcRtpTransceiver: RTCRtpTransceiver) {
         NSLog("PluginRTCRtpTransceiver#init(rtcRtpTransceiver)")
-        super.init()
         
+        // TODO: Using random ID could cause conflicts.
+        self.id = Int.random(in: 0...10000)
         self.rtcRtpTransceiver = rtcRtpTransceiver
+        
+        super.init()
     }
 
     init(
@@ -16,15 +21,17 @@ class PluginRTCRtpTransceiver : NSObject {
         options: NSDictionary?
     ) {
         NSLog("PluginRTCRtpTransceiver#init(mediaType)")
-        super.init()
-
+        
         let rtcRtpTransceiverInit = PluginRTCRtpTransceiver.initFromOptionsDictionary(options)
 
+        self.id = Int.random(in: 0...10000)
         self.rtcRtpTransceiver = rtcPeerConnection.addTransceiver(of: mediaType, init: rtcRtpTransceiverInit)
 
         if self.rtcRtpTransceiver == nil {
 			NSLog("PluginRTCRtpTransceiver#init(mediaType) | rtcPeerConnection.addTransceiver() failed")
 		}
+        
+        super.init()
     }
 
     init(
@@ -33,25 +40,18 @@ class PluginRTCRtpTransceiver : NSObject {
         options: NSDictionary?
     ) {
         NSLog("PluginRTCRtpTransceiver#init(mediaStreamTrack)")
-        super.init()
-
+        
         let rtcRtpTransceiverInit = PluginRTCRtpTransceiver.initFromOptionsDictionary(options)
 
+        self.id = Int.random(in: 0...10000)
         self.rtcRtpTransceiver = rtcPeerConnection.addTransceiver(with: mediaStreamTrack, init: rtcRtpTransceiverInit)
 
         if self.rtcRtpTransceiver == nil {
 			NSLog("PluginRTCRtpTransceiver#init(mediaStream) | rtcPeerConnection.addTransceiver() failed")
 		}
+        
+        super.init()
     }
-
-    /**
-	 * Constructor for pc.didStartReceivingOn event.
-	 */
-    init(_ rtcRtpTransceiver: RTCRtpTransceiver) {
-		NSLog("RTCRtpTransceiver#init()")
-
-		self.rtcRtpTransceiver = rtcRtpTransceiver
-	}
 
     deinit {
 		NSLog("PluginRTCRtpTransceiver#deinit()")
@@ -108,8 +108,7 @@ class PluginRTCRtpTransceiver : NSObject {
         }
 
         if options?.object(forKey: "streams") != nil {
-            let streams = options!.object(forKey: "streams") as! [NSDictionary]
-            let streamIds = streams.compactMap({$0["_id"] as? String})
+            let streamIds = options!.object(forKey: "streams") as! [String]
 
             rtcRtpTransceiverInit.streamIds = streamIds
         }

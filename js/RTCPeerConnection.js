@@ -17,7 +17,7 @@ var debug = require('debug')('iosrtc:RTCPeerConnection'),
 	RTCDTMFSender = require('./RTCDTMFSender'),
 	RTCRtpReceiver = require('./RTCRtpReceiver'),
 	RTCRtpSender = require('./RTCRtpSender'),
-	RTCRtpTransceiver = require('./RTCRtpTransceiver'),
+	{ RTCRtpTransceiver, addTransceiverToPeerConnection } = require('./RTCRtpTransceiver'),
 	RTCStatsResponse = require('./RTCStatsResponse'),
 	RTCStatsReport = require('./RTCStatsReport'),
 	MediaStream = require('./MediaStream'),
@@ -580,18 +580,21 @@ RTCPeerConnection.prototype.addTransceiver = function (trackOrKind, init) {
 		throw new Errors.InvalidStateError('peerconnection is closed');
 	}
 
-	var kind, track = null;
+	var kind, track = null, self = this, trackIdOrKind;
 	if (trackOrKind instanceof MediaStreamTrack) {
 		kind = trackOrKind.kind;
 		track = trackOrKind;
+		trackIdOrKind = trackOrKind.id;
 	} else {
 		if (!(trackOrKind === "audio" || trackOrKind === "video")) {
 			throw new TypeError("An invalid string was specified as trackOrKind. The string must be either \"audio\" or \"video\".");
 		}
 		kind = trackOrKind;
+		trackIdOrKind = trackOrKind;
 	}
 
 	var receiverTrackID = newMediaStreamTrackId();
+
 	var receiver = new RTCRtpReceiver(this, {
 		track: new MediaStreamTrack({
 			id: receiverTrackID,
@@ -605,21 +608,46 @@ RTCPeerConnection.prototype.addTransceiver = function (trackOrKind, init) {
 	var sender = new RTCRtpSender(this, {
 		track
 	});
-	
-	debug('addTransceiver() [trackOrKind:%o, init:%o]', trackOrKind, init);
 
-	var transceiver = new RTCRtpTransceiver(this, trackOrKind, init, { receiver, sender }, receiverTrackID);
+	var data = init;
+	data.sender = sender;
+	data.receiver = receiver;
+
+	var transceiver = new RTCRtpTransceiver(this, data);
 
 	this.transceivers.push(transceiver);
+
+	var initJson = {};
+	if (init && init.direction) {
+		initJson.direction = init.direction;
+	} else {
+		initJson.direction = 'sendrecv';
+	}
+
+	if (init && init.sendEncodings) {
+		initJson.sendEncodings = init.sendEncodings;
+	}
+
+	if (init && init.streams) {
+		initJson.streams = init.streams.map(stream => stream.id);
+	} else {
+		initJson.streams = [];
+	}
+
+	debug('addTransceiver() [trackIdOrKind:%s, init:%o, initJson: %o]', trackIdOrKind, init, initJson);
+
+	addTransceiverToPeerConnection(this, trackIdOrKind, initJson, receiverTrackID)
+		.then(update => {	self.updateTransceiversState(update); })
+		.catch(error => { debugerror("addTransceiver() | failure: %s", error); });
 
 	return transceiver;
 };
 
 RTCPeerConnection.prototype.updateTransceiversState = function(transceivers) {
-	debug('updateTransceiversState()', transceivers, this.transceivers);
+	debug('updateTransceiversState()');
 	this.transceivers = transceivers.map((transceiver) => {
 		const existingTransceiver = this.transceivers.find(
-			(localTransceiver) => transceiver.tcId === localTransceiver.tcId
+			(localTransceiver) => localTransceiver.receiverId === transceiver.receiver.track.id
 		);
 
 		if (existingTransceiver) {
@@ -627,7 +655,7 @@ RTCPeerConnection.prototype.updateTransceiversState = function(transceivers) {
 			return existingTransceiver;
 		}
 
-		return new RTCRtpTransceiver(this, null, null, transceiver);
+		return new RTCRtpTransceiver(this, transceiver);
 	});
 };
 

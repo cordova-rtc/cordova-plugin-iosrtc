@@ -396,7 +396,6 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 	}
 
 	func addTransceiver(
-		_ tcId: Int, 
 		with: PluginMediaStreamTrack?,
 		of: RTCRtpMediaType?,
 		options: NSDictionary?,
@@ -431,7 +430,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		// NOTE: Creates native track in case it's not already existing.
         self.getPluginMediaStreamTrack(pluginRTCRtpTransceiver.rtcRtpTransceiver!.receiver.track, trackId: receiverTrackId)
 
-		self.pluginRTCRtpTransceivers[tcId] = pluginRTCRtpTransceiver
+        self.pluginRTCRtpTransceivers[pluginRTCRtpTransceiver.id] = pluginRTCRtpTransceiver
 
 		let response: NSDictionary = [
 			"transceivers": self.getTransceiversJSON()
@@ -714,31 +713,24 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 			let receiverTrack = self.getPluginMediaStreamTrack(transceiver.receiver.track, trackId: nil);
 			let senderTrack = self.getPluginMediaStreamTrack(transceiver.sender.track, trackId: nil);
             
-            var tcId: Int = -1
-            for pluginTransceiver in pluginRTCRtpTransceivers {
-                if pluginTransceiver.value.rtcRtpTransceiver == transceiver {
-                    tcId = pluginTransceiver.key
-                    break
-                }
-            }
-            
-            if (tcId == -1) {
-                tcId = Int.random(in: 0...Int.max)
-                
-                pluginRTCRtpTransceivers[tcId] = PluginRTCRtpTransceiver(transceiver)
-            }
+            // TODO: Possible to prevent having to create native instances
+			// holding the transceivers each time? The native instances
+			// is created so that JS can set data or call methods associated
+			// with the transceivers.
+			let transceiverHolder = PluginRTCRtpTransceiver(transceiver)
+            self.pluginRTCRtpTransceivers[transceiverHolder.id] = transceiverHolder
 
 			var currentDirection = RTCRtpTransceiverDirection.inactive
         	transceiver.currentDirection(&currentDirection)
 
 			return [
-                "tcId": tcId,
+                "id": transceiverHolder.id,
 				"mid": transceiver.mid,
 				"currentDirection": PluginRTCRtpTransceiver.directionToString(currentDirection),
                 "direction": PluginRTCRtpTransceiver.directionToString(transceiver.direction),
 				"stopped": transceiver.isStopped,
 				"receiver": [ "track": receiverTrack!.getJSON() ],
-				"sender": [ "track": senderTrack!.getJSON() ]
+				"sender": [ "track": senderTrack?.getJSON() ]
 			]
 		})
 	}
@@ -943,6 +935,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		])
 	}
     
+    // TODO: Is this event required at all?
     /* Called when transceier will start receiving data. */
     /* func peerConnection(_ peerConnection: RTCPeerConnection, didStartReceivingOn transceiver: RTCRtpTransceiver) {
         NSLog("PluginRTCPeerConnection | didStartReceivingOn")

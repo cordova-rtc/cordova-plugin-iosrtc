@@ -4,7 +4,7 @@ const RTCRtpReceiver = require('./RTCRtpReceiver');
 /**
  * Expose the RTCRtpTransceiver class.
  */
-module.exports = RTCRtpTransceiver;
+module.exports = { RTCRtpTransceiver, addTransceiverToPeerConnection };
 
 /**
  * Dependencies.
@@ -12,48 +12,43 @@ module.exports = RTCRtpTransceiver;
 var
 	debugerror = require('debug')('iosrtc:ERROR:RTCRtpTransceiver'),
 	exec = require('cordova/exec'),
-	randomNumber = require('random-number').generator({min: 10000, max: 99999, integer: true}),
 	EventTarget = require('./EventTarget');
 
 debugerror.log = console.warn.bind(console);
 
-function RTCRtpTransceiver(peerConnection, trackOrKind, init, initialState, receiverTrackId) {
-	initialState = initialState || {};
+function addTransceiverToPeerConnection(peerConnection, trackIdOrKind, init, receiverTrackId) {
+	return new Promise((resolve, reject) => {
+		exec(onResultOK, reject, 'iosrtcPlugin', 'RTCPeerConnection_addTransceiver', 
+			[peerConnection.pcId, trackIdOrKind, init, receiverTrackId]);
+
+		function onResultOK(data) {
+			resolve(data);
+		}
+	});
+}
+
+function RTCRtpTransceiver(peerConnection, data) {
+	data = data || {};
 
 	this.peerConnection = peerConnection;
-	this._receiver = initialState.receiver instanceof RTCRtpReceiver ? initialState.receiver : new RTCRtpReceiver(peerConnection, initialState.receiver);
-	this._sender = initialState.sender instanceof RTCRtpSender ? initialState.sender : new RTCRtpSender(peerConnection, initialState.sender);
-	this._mid = initialState.mid;
+
+	this._id = data.id;
+	this._receiver = data.receiver instanceof RTCRtpReceiver ? data.receiver : new RTCRtpReceiver(peerConnection, data.receiver);
+	this._sender = data.sender instanceof RTCRtpSender ? data.sender : new RTCRtpSender(peerConnection, data.sender);
 	this._stopped = false;
 
-	if (initialState.tcId) {
-		this.tcId = initialState.tcId;
-		this._currentDirection = initialState.currentDirection;
-		this._direction = initialState.direction;
+	if (data.mid) {
+		this._mid = data.mid;
 	} else {
-		var mediaStreamTrackIdOrKind;
-		if (trackOrKind.id) {
-			mediaStreamTrackIdOrKind = trackOrKind.id;
-		} else {
-			mediaStreamTrackIdOrKind = trackOrKind;
-		}
-
-		this._currentDirection = "inactive";
-
-		if (init && init.direction) {
-			this._direction = init.direction;
-		} else {
-			this._direction = "sendrecv";
-		}
-
-		this.tcId = randomNumber();
-
-		exec(onResultOK, null, 'iosrtcPlugin', 'RTCPeerConnection_addTransceiver', 
-			[this.peerConnection.pcId, this.tcId, mediaStreamTrackIdOrKind, init, receiverTrackId]);
+		this._mid = null;
 	}
 
-	function onResultOK(data) {
-		peerConnection.updateTransceiversState(data);
+	if (data.direction) {
+		this._direction = data.direction;
+		this._currentDirection = data.direction;
+	} else {
+		this._direction = "sendrecv";
+		this._currentDirection = "sendrecv";
 	}
 }
 
@@ -71,9 +66,14 @@ Object.defineProperties(RTCRtpTransceiver.prototype, {
 			return this._direction;
 		},
 		set: function (direction) {
+			var self = this;
 			this._direction = direction;
 
-			exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCRtpTransceiver_setDirection', [this.peerConnection.pcId, this.tcId, direction]);
+			exec(onResultOK, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCRtpTransceiver_setDirection', [this.peerConnection.pcId, this._id, direction]);
+
+			function onResultOK(data) {
+				self.peerConnection.updateTransceiversState(data.transceivers);
+			}
 		}
 	},
 	mid: {
@@ -95,14 +95,27 @@ Object.defineProperties(RTCRtpTransceiver.prototype, {
 		get: function() {
 			return this._stopped;
 		}
+	},
+	receiverId: {
+		get: function() {
+			return this._receiver.track.id;
+		}
 	}
 });
 
 RTCRtpTransceiver.prototype.stop = function () {
-	exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCRtpTransceiver_stop', [this.peerConnection.pcId, this.tcId]);
+	var self = this;
+
+	exec(onResultOK, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCRtpTransceiver_stop', [this.peerConnection.pcId, this._id]);
+
+	function onResultOK(data) {
+		self.peerConnection.updateTransceiversState(data.transceivers);
+	}
 };
 
 RTCRtpTransceiver.prototype.update = function (data) {
+	this._id = data.id;
+
 	if (data.direction) {
 		this._direction = data.direction;
 	}
