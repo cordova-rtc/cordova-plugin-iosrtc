@@ -44,6 +44,9 @@ RTC_OBJC_EXPORT
 - (NSArray<RTC_OBJC_TYPE(RTCVideoCodecInfo) *> *)implementations;
 - (nullable id<RTC_OBJC_TYPE(RTCVideoEncoderSelector)>)encoderSelector;
 
+@optional
+- (NSArray<RTCVideoCodecInfo *> *)implementations;
+
 @end
 
 NS_ASSUME_NONNULL_END

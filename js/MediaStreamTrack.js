@@ -75,11 +75,13 @@ Object.defineProperty(MediaStreamTrack.prototype, 'enabled', {
 });
 
 MediaStreamTrack.prototype.getConstraints = function () {
-	throw new Error('Not implemented.');
+	debug('MediaStreamTrack.prototype.getConstraints  is not implemented.');
+	return {};
 };
 
-MediaStreamTrack.prototype.applyConstraints = function () {
-	throw new Error('Not implemented.');
+MediaStreamTrack.prototype.applyConstraints = function (constraints) {
+	debug('MediaStreamTrack.prototype.applyConstraints  is not implemented.', constraints);
+	return Promise.reject(new Error('applyConstraints is not implemented.'));
 };
 
 MediaStreamTrack.prototype.clone = function () {
