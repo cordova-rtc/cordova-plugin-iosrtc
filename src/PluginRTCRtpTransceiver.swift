@@ -113,9 +113,17 @@ class PluginRTCRtpTransceiver : NSObject {
             rtcRtpTransceiverInit.streamIds = streamIds
         }
 
-        // TODO: Implement sendEncodings configuration
         if options?.object(forKey: "sendEncodings") != nil {
-            NSLog("iosrtcPlugin#RTCPeerConnection_addTransceiver() | ERROR: init.sendEncodings not supported yet")
+            let encodings = options!.object(forKey: "sendEncodings") as! [NSDictionary]
+            rtcRtpTransceiverInit.sendEncodings = encodings.map({ (encoding: NSDictionary) -> RTCRtpEncodingParameters in
+                let encodingParameters = RTCRtpEncodingParameters()
+                encodingParameters.isActive = encoding["active"] as? Bool ?? true
+                encodingParameters.maxBitrateBps = encoding["maxBitrate"] as? NSNumber
+                encodingParameters.maxFramerate = encoding["maxFramerate"] as? NSNumber
+                encodingParameters.rid = encoding["rid"] as? String
+                encodingParameters.scaleResolutionDownBy = encoding["scaleResolutionDownBy"] as? NSNumber
+                return encodingParameters
+            })
         }
 
         return rtcRtpTransceiverInit

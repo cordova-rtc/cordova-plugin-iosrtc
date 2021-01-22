@@ -47,10 +47,12 @@ RTCRtpSender.prototype.replaceTrack = function (withTrack) {
 	});
 };
 
-RTCRtpSender.prototype.update = function ({ track }) {
+RTCRtpSender.prototype.update = function ({ track, params }) {
 	if (track) {
 		this.track = this._pc.getOrCreateTrack(track);
 	} else {
 		this.track = null;
 	}
+
+	this.params = params;
 };

@@ -709,6 +709,11 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 	}
 
 	func getTransceiversJSON() -> [NSDictionary] {
+        if (!IsUnifiedPlan()) {
+          NSLog("PluginRTCPeerConnection#getTransceiversJSON() | transceiers is not available when using plan-b")
+          return [];
+        }
+        
 		return self.rtcPeerConnection.transceivers.map({ (transceiver: RTCRtpTransceiver) -> NSDictionary in
 			let receiverTrack = self.getPluginMediaStreamTrack(transceiver.receiver.track, trackId: nil);
 			let senderTrack = self.getPluginMediaStreamTrack(transceiver.sender.track, trackId: nil);
@@ -722,6 +727,38 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 
 			var currentDirection = RTCRtpTransceiverDirection.inactive
         	transceiver.currentDirection(&currentDirection)
+            
+            
+            let senderParameters = transceiver.sender.parameters;
+            let senderParamsJSON = [
+                "rtcp": [
+                    "cname": senderParameters.rtcp.cname,
+                    "reducedSize": senderParameters.rtcp.isReducedSize
+                ],
+                "headerExtensions": senderParameters.headerExtensions.map({ (headerExtension: RTCRtpHeaderExtension) -> Int32 in
+                    return headerExtension.id
+                }),
+                "codecs": senderParameters.codecs.map({ (codec: RTCRtpCodecParameters) -> NSDictionary in
+                    return [
+                        "payloadType": codec.payloadType,
+                        "mimeType": NSString(format: "%@/%@", codec.name, codec.kind),
+                        "clockRate": (codec.clockRate ?? nil) as Any,
+                        "channels": (codec.numChannels ?? nil) as Any,
+                        "sdpFmtpLine": codec.parameters
+                    ]
+                }),
+                "encodings": senderParameters.encodings.map({ (encoding: RTCRtpEncodingParameters) -> NSDictionary in
+                    return [
+                        "rid": encoding.rid as Any,
+                        "active": encoding.isActive,
+                        "maxBitrate": encoding.maxBitrateBps as Any,
+                        "maxFramerate": encoding.maxFramerate as Any,
+                        "scaleResolutionDownBy": encoding.scaleResolutionDownBy as Any
+                        
+                    ]
+                })
+                
+            ] as NSDictionary
 
 			return [
                 "id": transceiverHolder.id,
@@ -730,7 +767,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
                 "direction": PluginRTCRtpTransceiver.directionToString(transceiver.direction),
 				"stopped": transceiver.isStopped,
 				"receiver": [ "track": receiverTrack!.getJSON() ],
-				"sender": [ "track": senderTrack?.getJSON() ]
+                "sender": [ "track": senderTrack?.getJSON(), "params": senderParamsJSON ]
 			]
 		})
 	}

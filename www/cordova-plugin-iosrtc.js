@@ -88,7 +88,7 @@ EventTarget.prototype.dispatchEvent = function (event) {
  */
 module.exports = EventTarget;
 
-},{"yaeti":30}],3:[function(_dereq_,module,exports){
+},{"yaeti":31}],3:[function(_dereq_,module,exports){
 /**
  * Expose the MediaDeviceInfo class.
  */
@@ -1445,6 +1445,7 @@ function onEvent(data) {
 }
 
 },{"./EventTarget":2,"cordova/exec":undefined,"debug":24,"random-number":29}],11:[function(_dereq_,module,exports){
+(function (setImmediate){
 /**
  * Expose the RTCDataChannel class.
  */
@@ -1588,38 +1589,40 @@ RTCDataChannel.prototype.send = function (data) {
 		return;
 	}
 
-	if (typeof data === 'string' || data instanceof String) {
-		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendString', [
-			this.peerConnection.pcId,
-			this.dcId,
-			data
-		]);
-	} else if (window.ArrayBuffer && data instanceof window.ArrayBuffer) {
-		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendBinary', [
-			this.peerConnection.pcId,
-			this.dcId,
-			data
-		]);
-	} else if (
-		(window.Int8Array && data instanceof window.Int8Array) ||
-		(window.Uint8Array && data instanceof window.Uint8Array) ||
-		(window.Uint8ClampedArray && data instanceof window.Uint8ClampedArray) ||
-		(window.Int16Array && data instanceof window.Int16Array) ||
-		(window.Uint16Array && data instanceof window.Uint16Array) ||
-		(window.Int32Array && data instanceof window.Int32Array) ||
-		(window.Uint32Array && data instanceof window.Uint32Array) ||
-		(window.Float32Array && data instanceof window.Float32Array) ||
-		(window.Float64Array && data instanceof window.Float64Array) ||
-		(window.DataView && data instanceof window.DataView)
-	) {
-		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendBinary', [
-			this.peerConnection.pcId,
-			this.dcId,
-			data.buffer
-		]);
-	} else {
-		throw new Error('invalid data type');
-	}
+	setImmediate(() => {
+		if (typeof data === 'string' || data instanceof String) {
+			exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendString', [
+				this.peerConnection.pcId,
+				this.dcId,
+				data
+			]);
+		} else if (window.ArrayBuffer && data instanceof window.ArrayBuffer) {
+			exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendBinary', [
+				this.peerConnection.pcId,
+				this.dcId,
+				data
+			]);
+		} else if (
+			(window.Int8Array && data instanceof window.Int8Array) ||
+			(window.Uint8Array && data instanceof window.Uint8Array) ||
+			(window.Uint8ClampedArray && data instanceof window.Uint8ClampedArray) ||
+			(window.Int16Array && data instanceof window.Int16Array) ||
+			(window.Uint16Array && data instanceof window.Uint16Array) ||
+			(window.Int32Array && data instanceof window.Int32Array) ||
+			(window.Uint32Array && data instanceof window.Uint32Array) ||
+			(window.Float32Array && data instanceof window.Float32Array) ||
+			(window.Float64Array && data instanceof window.Float64Array) ||
+			(window.DataView && data instanceof window.DataView)
+		) {
+			exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendBinary', [
+				this.peerConnection.pcId,
+				this.dcId,
+				data.buffer
+			]);
+		} else {
+			throw new Error('invalid data type');
+		}
+	});
 };
 
 RTCDataChannel.prototype.close = function () {
@@ -1707,7 +1710,8 @@ function onEvent(data) {
 	}
 }
 
-},{"./EventTarget":2,"cordova/exec":undefined,"debug":24,"random-number":29}],12:[function(_dereq_,module,exports){
+}).call(this,_dereq_("timers").setImmediate)
+},{"./EventTarget":2,"cordova/exec":undefined,"debug":24,"random-number":29,"timers":30}],12:[function(_dereq_,module,exports){
 /**
  * Expose the RTCIceCandidate class.
  */
@@ -2508,7 +2512,7 @@ RTCPeerConnection.prototype.addTransceiver = function (trackOrKind, init) {
 		track
 	});
 
-	var data = init;
+	var data = init || {};
 	data.sender = sender;
 	data.receiver = receiver;
 
@@ -2922,12 +2926,14 @@ RTCRtpSender.prototype.replaceTrack = function (withTrack) {
 	});
 };
 
-RTCRtpSender.prototype.update = function ({ track }) {
+RTCRtpSender.prototype.update = function ({ track, params }) {
 	if (track) {
 		this.track = this._pc.getOrCreateTrack(track);
 	} else {
 		this.track = null;
 	}
+
+	this.params = params;
 };
 
 },{}],16:[function(_dereq_,module,exports){
@@ -5226,13 +5232,92 @@ void function(root){
 }(this)
 
 },{}],30:[function(_dereq_,module,exports){
+(function (setImmediate,clearImmediate){
+var nextTick = _dereq_('process/browser.js').nextTick;
+var apply = Function.prototype.apply;
+var slice = Array.prototype.slice;
+var immediateIds = {};
+var nextImmediateId = 0;
+
+// DOM APIs, for completeness
+
+exports.setTimeout = function() {
+  return new Timeout(apply.call(setTimeout, window, arguments), clearTimeout);
+};
+exports.setInterval = function() {
+  return new Timeout(apply.call(setInterval, window, arguments), clearInterval);
+};
+exports.clearTimeout =
+exports.clearInterval = function(timeout) { timeout.close(); };
+
+function Timeout(id, clearFn) {
+  this._id = id;
+  this._clearFn = clearFn;
+}
+Timeout.prototype.unref = Timeout.prototype.ref = function() {};
+Timeout.prototype.close = function() {
+  this._clearFn.call(window, this._id);
+};
+
+// Does not start the time, just sets up the members needed.
+exports.enroll = function(item, msecs) {
+  clearTimeout(item._idleTimeoutId);
+  item._idleTimeout = msecs;
+};
+
+exports.unenroll = function(item) {
+  clearTimeout(item._idleTimeoutId);
+  item._idleTimeout = -1;
+};
+
+exports._unrefActive = exports.active = function(item) {
+  clearTimeout(item._idleTimeoutId);
+
+  var msecs = item._idleTimeout;
+  if (msecs >= 0) {
+    item._idleTimeoutId = setTimeout(function onTimeout() {
+      if (item._onTimeout)
+        item._onTimeout();
+    }, msecs);
+  }
+};
+
+// That's not how node.js implements it but the exposed api is the same.
+exports.setImmediate = typeof setImmediate === "function" ? setImmediate : function(fn) {
+  var id = nextImmediateId++;
+  var args = arguments.length < 2 ? false : slice.call(arguments, 1);
+
+  immediateIds[id] = true;
+
+  nextTick(function onNextTick() {
+    if (immediateIds[id]) {
+      // fn.call() is faster so we optimize for the common use-case
+      // @see http://jsperf.com/call-apply-segu
+      if (args) {
+        fn.apply(null, args);
+      } else {
+        fn.call(null);
+      }
+      // Prevent ids from leaking
+      exports.clearImmediate(id);
+    }
+  });
+
+  return id;
+};
+
+exports.clearImmediate = typeof clearImmediate === "function" ? clearImmediate : function(id) {
+  delete immediateIds[id];
+};
+}).call(this,_dereq_("timers").setImmediate,_dereq_("timers").clearImmediate)
+},{"process/browser.js":28,"timers":30}],31:[function(_dereq_,module,exports){
 module.exports =
 {
 	EventTarget : _dereq_('./lib/EventTarget'),
 	Event       : _dereq_('./lib/Event')
 };
 
-},{"./lib/Event":31,"./lib/EventTarget":32}],31:[function(_dereq_,module,exports){
+},{"./lib/Event":32,"./lib/EventTarget":33}],32:[function(_dereq_,module,exports){
 (function (global){
 /**
  * In browsers export the native Event interface.
@@ -5241,7 +5326,7 @@ module.exports =
 module.exports = global.Event;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],32:[function(_dereq_,module,exports){
+},{}],33:[function(_dereq_,module,exports){
 function yaetiEventTarget()
 {
 	this._listeners = {};
