@@ -108,4 +108,21 @@ The script and example are here: https://github.com/cordova-rtc/cordova-plugin-i
 5. you can check current arch use this command  `node ios_arch.js --list` or manualy `file plugins/cordova-plugin-iosrtc/lib/WebRTC.framework/WebRTC`
 6. Remove ios cordova platform if already added and add ios platform again (e.g. with a command `cordova platform remove ios && cordova platform add ios`) or remove and add only the plugin at your own risk.
 
-  > Note for Capacitor users: The plugins will be in the node_modules folder so ios_arch will be run in `node_modules/cordova-plugin-iosrtc/extra`
+###### Capacitor
+Using Capacitor; The plugins will be in the node_modules folder so ios_arch will be run in `node_modules/cordova-plugin-iosrtc/extra`
+
+
+> node node_modules/cordova-plugin-iosrtc/extraios_arch.js --list   
+> node node_modules/cordova-plugin-iosrtc/extraios_arch.js --simulator
+
+You will need to remove and add ios platform again.
+
+###### Meteor
+
+Using Meteor; The plugins will be in the node_modules folder so ios_arch.js will be run in `.meteor/local/cordova-build/node_modules/cordova-plugin-iosrtc/extra/`
+
+> node .meteor/local/cordova-build/node_modules/cordova-plugin-iosrtc/extra/ios_arch.js --list   
+> node .meteor/local/cordova-build/node_modules/cordova-plugin-iosrtc/extra/ios_arch.js --simulator
+
+You will need to copy manually the updated WebRTC file, since remove/add platform does not work like cordova:
+> cp .meteor/local/cordova-build/node_modules/cordova-plugin-iosrtc/lib/WebRTC.framework/WebRTC .meteor/local/cordova-build/platforms/ios/*/Plugins/cordova-plugin-iosrtc/WebRTC.framework/WebRTC
