@@ -43,9 +43,14 @@ function extractArchitecture(archs, cwd) {
 }
 
 function exportArchitecture(archs, cwd) {
-	exec(`lipo -o WebRTC -create ${archs.map(function (arch) {
-		return `WebRTC-${arch}`;
-	}).join(' ')}`, { cwd: cwd });
+	exec(
+		`lipo -o WebRTC -create ${archs
+			.map(function (arch) {
+				return `WebRTC-${arch}`;
+			})
+			.join(' ')}`,
+		{ cwd: cwd }
+	);
 }
 
 if (process.argv[2] === '--extract' || process.argv[2] === '-e') {
@@ -53,19 +58,15 @@ if (process.argv[2] === '--extract' || process.argv[2] === '-e') {
 	// extract all archs, you might want to delete it later.
 	extractArchitecture(ARCH_TYPES, WEBRTC_LIB_PATH);
 	exec('cp WebRTC WebRTC-all', { cwd: WEBRTC_LIB_PATH }); // make a backup
-
 } else if (process.argv[2] === '--simulator' || process.argv[2] === '-s') {
 	// re-package simulator related archs only. ( i386, x86_64 )
 	console.log('Compiling simulator...');
 	exportArchitecture(ARCH_SIM_TYPES, WEBRTC_LIB_PATH);
-
 } else if (process.argv[2] === '--device' || process.argv[2] === '-d') {
 	// re-package device related archs only. ( armv7, arm64 )
 	console.log('Compiling device...');
 	exportArchitecture(ARCH_DEVICE_TYPES, WEBRTC_LIB_PATH);
-
 } else if (process.argv[2] === '--xcframework' || process.argv[2] === '-x') {
-
 	// extract all archs, you might want to delete it later.
 	extractArchitecture(ARCH_TYPES, WEBRTC_LIB_PATH);
 
@@ -93,17 +94,14 @@ if (process.argv[2] === '--extract' || process.argv[2] === '-e') {
 	exec(`rm -f WebRTC-*`, { cwd: WEBRTC_LIB_PATH });
 	exec(`rm -fr ${WEBRTC_DEVICE_LIB_PATH}`, { cwd: TMP_PATH });
 	exec(`rm -fr ${WEBRTC_SIM_LIB_PATH}`, { cwd: TMP_PATH });
-
 } else if (process.argv[2] === '--list' || process.argv[2] === '-l') {
 	// List WebRTC architectures
 	console.log('List WebRTC architectures...');
 	console.log(exec(`file WebRTC`, { cwd: WEBRTC_LIB_PATH }).toString().trim());
-
 } else if (process.argv[2] === '--clean' || process.argv[2] === '-l') {
 	// Delete WebRTC-* architectures
 	console.log('Clean WebRTC architectures...');
 	exec(`rm -f WebRTC-*`, { cwd: WEBRTC_LIB_PATH });
-
 } else {
 	console.log('Unknow options');
 }
