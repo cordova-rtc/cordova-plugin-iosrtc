@@ -35,7 +35,7 @@ function MediaStreamRenderer(element) {
 	this.webSocketUrl = undefined;
 	this.webSocketClient = undefined;
 	this.canvasCtx = undefined;
-	this.canvasId = element.id + '__canvas';
+	this.canvasId = (element.id || Date.now()) + '__canvas';
 
 	var hasCanvas = false;
 	var canvasElement = document.getElementById(this.canvasId);
