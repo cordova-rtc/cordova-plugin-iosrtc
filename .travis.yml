@@ -97,10 +97,6 @@ matrix:
       after_script:
         # Test ios_arch
         - "cordova platform remove $CORDOVA_PLATFORM --verbose"
-        - "node plugins/cordova-plugin-iosrtc/extra/ios_arch.js --extract"
-        - "node plugins/cordova-plugin-iosrtc/extra/ios_arch.js --device"
-        - "node plugins/cordova-plugin-iosrtc/extra/ios_arch.js --list"
-        - "node plugins/cordova-plugin-iosrtc/extra/ios_arch.js --clean"
         - "cordova platform add $CORDOVA_PLATFORM@latest --verbose"
         #- "cordova build $CORDOVA_PLATFORM --verbose --device"
 script:

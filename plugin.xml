@@ -106,7 +106,7 @@
 		<source-file framework="true" src="lib/psocket/libPocketSocket.a" />
 
 		<!-- WebRTC library -->
-		<framework src="lib/WebRTC.framework" custom="true" embed="true" />
+		<framework src="lib/WebRTC.xcframework" custom="true" embed="true" />
 	</platform>
 
 </plugin>
