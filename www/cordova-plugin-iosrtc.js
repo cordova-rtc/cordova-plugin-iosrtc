@@ -1567,11 +1567,13 @@ Object.defineProperty(MediaStreamTrack.prototype, 'enabled', {
 });
 
 MediaStreamTrack.prototype.getConstraints = function () {
-	throw new Error('Not implemented.');
+	debug('MediaStreamTrack.prototype.getConstraints  is not implemented.');
+	return {};
 };
 
-MediaStreamTrack.prototype.applyConstraints = function () {
-	throw new Error('Not implemented.');
+MediaStreamTrack.prototype.applyConstraints = function (constraints) {
+	debug('MediaStreamTrack.prototype.applyConstraints  is not implemented.', constraints);
+	return Promise.reject(new Error('applyConstraints is not implemented.'));
 };
 
 MediaStreamTrack.prototype.clone = function () {
@@ -3971,10 +3973,6 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 		global.navigator = {};
 	}
 
-	if (!navigator.mediaDevices) {
-		navigator.mediaDevices = new MediaDevices();
-	}
-
 	// Restore Callback support
 	if (!doNotRestoreCallbacksSupport) {
 		restoreCallbacksSupport();
@@ -3982,8 +3980,22 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 
 	navigator.getUserMedia = getUserMedia;
 	navigator.webkitGetUserMedia = getUserMedia;
-	navigator.mediaDevices.getUserMedia = getUserMedia;
-	navigator.mediaDevices.enumerateDevices = enumerateDevices;
+
+	// Prevent WebRTC-adapter to overide navigator.mediaDevices after shim is applied since ios 14.3
+	Object.defineProperty(
+		navigator,
+		'mediaDevices',
+		{
+			value: new MediaDevices(),
+			writable: false
+		},
+		{
+			enumerable: false,
+			configurable: false,
+			writable: false,
+			value: 'static'
+		}
+	);
 
 	// Prevent WebRTC-adapter to overide navigator.mediaDevices after shim is applied since ios 14.3
 	Object.freeze(navigator.mediaDevices);
