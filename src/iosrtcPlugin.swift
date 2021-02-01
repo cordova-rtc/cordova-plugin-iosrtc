@@ -263,17 +263,17 @@ class iosrtcPlugin : CDVPlugin {
 	@objc(RTCPeerConnection_addIceCandidate:) func RTCPeerConnection_addIceCandidate(_ command: CDVInvokedUrlCommand) {
 		NSLog("iosrtcPlugin#RTCPeerConnection_addIceCandidate()")
 
+		if command.argument(at: 1) == nil {
+			NSLog("iosrtcPlugin#RTCPeerConnection_addIceCandidate() | ERROR: pluginRTCPeerConnection argument is NIL")
+			return;
+		}
+
 		let pcId = command.argument(at: 0) as! Int
 		let candidate = command.argument(at: 1) as! NSDictionary
 		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
 
 		if pluginRTCPeerConnection == nil {
 			NSLog("iosrtcPlugin#RTCPeerConnection_addIceCandidate() | ERROR: pluginRTCPeerConnection with pcId=%@ does not exist", String(pcId))
-			return;
-		}
-
-		if command.argument(at: 1) == nil {
-			NSLog("iosrtcPlugin#RTCPeerConnection_addIceCandidate() | ERROR: pluginRTCPeerConnection argument is NIL")
 			return;
 		}
 
