@@ -272,6 +272,11 @@ class iosrtcPlugin : CDVPlugin {
 			return;
 		}
 
+		if command.argument(at: 1) == nil {
+			NSLog("iosrtcPlugin#RTCPeerConnection_addIceCandidate() | ERROR: pluginRTCPeerConnection argument is NIL")
+			return;
+		}
+
 		self.queue.async { [weak pluginRTCPeerConnection] in
 			pluginRTCPeerConnection?.addIceCandidate(candidate,
 				callback: { (data: NSDictionary) -> Void in
@@ -806,8 +811,8 @@ class iosrtcPlugin : CDVPlugin {
 		if self.pluginMediaStreams[newTrackId] == nil {
 			var rtcMediaStreamTrack = self.pluginMediaStreamTracks[existingTrackId]!.rtcMediaStreamTrack;
 			// twilio uses the sdp local description to map the track ids to the media id.
-			// if the original rtcMediaStreamTrack is not cloned, the rtcPeerConnection 
-			// will not add the track and as such will not be found by Twilio. 
+			// if the original rtcMediaStreamTrack is not cloned, the rtcPeerConnection
+			// will not add the track and as such will not be found by Twilio.
 			// it is unable to do the mapping and find track and thus
 			// will not publish the local track.
 			if pluginMediaStreamTrack?.kind == "video" {
