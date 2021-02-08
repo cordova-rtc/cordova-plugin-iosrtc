@@ -1,3 +1,8 @@
+#### Version 6.0.18
+* fix: update ios_arch.js to generate WebRTC.xcframework, Include WebRTC.xcframework instead of WebRTC.framework
+* fix: ignore empty IceCandidate, fix RTCPeerConnection_addIceCandidate pluginRTCPeerConnection argument is NIL
+* fix: allow registerGlobals to be called multiple time without error: Attempting to change value of a readonly property.
+
 #### Version 6.0.17
 * fix: fix possible duplicate pluginMediaStream and pluginMediaTrack causing no video
 * fix: fix plugin media stream renderer save leak #609
