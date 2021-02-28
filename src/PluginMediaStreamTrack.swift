@@ -57,6 +57,7 @@ class PluginMediaStreamTrack : NSObject {
 			"kind": self.kind,
 			"trackId": self.rtcMediaStreamTrack.trackId,
 			"enabled": self.rtcMediaStreamTrack.isEnabled ? true : false,
+			"capabilities": self.rtcMediaStreamTrack.capabilities,
 			"readyState": self.getReadyState()
 		]
 	}

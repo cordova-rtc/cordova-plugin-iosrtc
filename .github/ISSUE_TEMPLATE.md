@@ -1,9 +1,9 @@
-# Please read first!
-Please use [Public Google Group (mailing list)](https://groups.google.com/forum/#!forum/cordova-plugin-iosrtc) for general technical discussions and questions.
+# YOU MUST read first!
+Please use [Community Forum](https://github.com/cordova-rtc/cordova-plugin-iosrtc/discussions) for general technical discussions and questions.
 
-- [ ] I have used Google with the error message or bug in association with the library and Cordova words to make sure the issue I'm reporting is only related to iOSRTC.
-- [ ] I have provided steps to reproduce (e.g. sample code or updated `extra/renderer-and-libwebrtc-tests.js` file).
-- [ ] I have provided third party library name and version, ios, Xcode and plugin version and adapter.js version if used.
+- [ ] **I have used Google with the error message** or bug in association with the library and Cordova words to make sure the issue I'm reporting is only related to iOSRTC.
+- [ ] **I have provided steps to reproduce** (e.g. using sample app code https://github.com/cordova-rtc/cordova-plugin-iosrtc-sample or updated `extra/renderer-and-libwebrtc-tests.js` file).
+- [ ] **I have provided versions** of third party library name, ios, Xcode and plugin version and adapter.js version if used.
 
 **Note: If the checkboxes above are not checked (which you do after the issue is posted), the issue will be closed, removing this checkbox will result in automatic closed issue.**
 

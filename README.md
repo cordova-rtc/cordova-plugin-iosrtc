@@ -9,7 +9,7 @@
 
 [Cordova](http://cordova.apache.org/) iOS plugin exposing the  ̶f̶u̶l̶l̶ [WebRTC W3C JavaScript APIs](http://www.w3.org/TR/webrtc/).
 
-* [Public Google Group (mailing list)](https://groups.google.com/forum/#!forum/cordova-plugin-iosrtc) for questions and discussions about *cordova-plugin-iosrtc*.
+* [Community Forum](https://github.com/cordova-rtc/cordova-plugin-iosrtc/discussions) for questions and discussions about *cordova-plugin-iosrtc*.
 * [Bug Tracker](https://github.com/cordova-rtc/cordova-plugin-iosrtc/issues) for reporting issues and requesting new features (**please** don't use the bug tracker for questions or problems, use the mailing list instead).
 * [NPM package](https://www.npmjs.com/package/cordova-plugin-iosrtc).
 

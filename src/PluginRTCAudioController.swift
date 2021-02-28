@@ -65,12 +65,12 @@ class PluginRTCAudioController {
 	// Setter function inserted by save specific audio device
 	static func saveInputAudioDevice(inputDeviceUID: String) -> Void {
 		let audioSession: AVAudioSession = AVAudioSession.sharedInstance()
-		let audioInput: AVAudioSessionPortDescription = audioSession.availableInputs!.filter({
-			(value:AVAudioSessionPortDescription) -> Bool in
-			return value.uid == inputDeviceUID
-		})[0]
-
-		PluginRTCAudioController.audioInputSelected = audioInput
+		if let audioInput: AVAudioSessionPortDescription = audioSession.availableInputs!.first(where: { $0.uid == inputDeviceUID }) {
+			PluginRTCAudioController.audioInputSelected = audioInput
+		} else {
+			NSLog("PluginRTCAudioController#saveInputAudioDevice() | ERROR invalid deviceId \(inputDeviceUID)")
+			PluginRTCAudioController.audioInputSelected = audioSession.availableInputs!.first
+		}
 	}
 
 	// Setter function inserted by set specific audio device
