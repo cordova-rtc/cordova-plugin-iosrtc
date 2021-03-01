@@ -1,4 +1,5 @@
 #### Version 8.0.0
+* Implement RTCPeerConnection.addTransceiver #589 via @agelito
 * Update to WebRTC.framework M87
 * Update to WebRTC.framework M84
 
