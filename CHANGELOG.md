@@ -1,3 +1,7 @@
+#### Version 6.0.19
+* fix MediaStreamRenderer doesn't call PluginMediaStreamTrack.unregisterRender = stuck reference. #649
+* fix ios not build after cordova-plugin-iosrtc #642
+
 #### Version 6.0.18
 * fix: update ios_arch.js to generate WebRTC.xcframework, Include WebRTC.xcframework instead of WebRTC.framework
 * fix: ignore empty IceCandidate, fix RTCPeerConnection_addIceCandidate pluginRTCPeerConnection argument is NIL
