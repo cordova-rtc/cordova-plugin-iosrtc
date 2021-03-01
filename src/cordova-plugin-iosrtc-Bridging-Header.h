@@ -28,3 +28,7 @@
 #import "PSWebSocketServer.h"
 #include <ifaddrs.h>
 
+// Expose RTCEAGLVideoViewDelegate to Swift
+RTC_OBJC_EXPORT
+@protocol RTCEAGLVideoViewDelegate <RTCVideoViewDelegate>
+@end

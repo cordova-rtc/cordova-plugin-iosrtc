@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
 		id="cordova-plugin-iosrtc"
-		version="6.0.17">
+		version="8.0.0">
 
 	<name>iosrtc</name>
 	<description>Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs</description>
@@ -72,6 +72,7 @@
 		<source-file src="src/PluginMediaStreamRenderer.swift" />
 		<source-file src="src/PluginRTCAudioController.swift" />
 		<source-file src="src/PluginRTCVideoCaptureController.swift" />
+		<source-file src="src/PluginRTCRtpTransceiver.swift" />
 
 		<!-- Import from cordova-plugin-websocket-server -->
 		<source-file src="src/PluginInterface.swift" />

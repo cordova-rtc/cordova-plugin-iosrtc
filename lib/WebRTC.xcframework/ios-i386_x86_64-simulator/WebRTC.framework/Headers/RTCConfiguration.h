@@ -10,10 +10,11 @@
 
 #import <Foundation/Foundation.h>
 
-#import <WebRTC/RTCMacros.h>
+#import "RTCCertificate.h"
+#import "RTCCryptoOptions.h"
+#import "RTCMacros.h"
 
-@class RTCIceServer;
-@class RTCIntervalRange;
+@class RTC_OBJC_TYPE(RTCIceServer);
 
 /**
  * Represents the ice transport policy. This exposes the same states in C++,
@@ -68,11 +69,19 @@ typedef NS_ENUM(NSInteger, RTCSdpSemantics) {
 
 NS_ASSUME_NONNULL_BEGIN
 
-RTC_EXPORT
-@interface RTCConfiguration : NSObject
+RTC_OBJC_EXPORT
+@interface RTC_OBJC_TYPE (RTCConfiguration) : NSObject
+
+/** If true, allows DSCP codes to be set on outgoing packets, configured using
+ *  networkPriority field of RTCRtpEncodingParameters. Defaults to false.
+ */
+@property(nonatomic, assign) BOOL enableDscp;
 
 /** An array of Ice Servers available to be used by ICE. */
-@property(nonatomic, copy) NSArray<RTCIceServer *> *iceServers;
+@property(nonatomic, copy) NSArray<RTC_OBJC_TYPE(RTCIceServer) *> *iceServers;
+
+/** An RTCCertificate for 're' use. */
+@property(nonatomic, nullable) RTC_OBJC_TYPE(RTCCertificate) * certificate;
 
 /** Which candidates the ICE agent is allowed to use. The W3C calls it
  * |iceTransportPolicy|, while in C++ it is called |type|. */
@@ -86,6 +95,19 @@ RTC_EXPORT
 @property(nonatomic, assign) RTCTcpCandidatePolicy tcpCandidatePolicy;
 @property(nonatomic, assign) RTCCandidateNetworkPolicy candidateNetworkPolicy;
 @property(nonatomic, assign) RTCContinualGatheringPolicy continualGatheringPolicy;
+
+/** If set to YES, don't gather IPv6 ICE candidates.
+ *  Default is NO.
+ */
+@property(nonatomic, assign) BOOL disableIPV6;
+
+/** If set to YES, don't gather IPv6 ICE candidates on Wi-Fi.
+ *  Only intended to be used on specific devices. Certain phones disable IPv6
+ *  when the screen is turned off and it would be better to just disable the
+ *  IPv6 ICE candidates on Wi-Fi in those cases.
+ *  Default is NO.
+ */
+@property(nonatomic, assign) BOOL disableIPV6OnWiFi;
 
 /** By default, the PeerConnection will use a limited number of IPv6 network
  *  interfaces, in order to avoid too many ICE candidate pairs being created
@@ -122,17 +144,22 @@ RTC_EXPORT
  */
 @property(nonatomic, assign) BOOL shouldPresumeWritableWhenFullyRelayed;
 
+/* This flag is only effective when |continualGatheringPolicy| is
+ * RTCContinualGatheringPolicyGatherContinually.
+ *
+ * If YES, after the ICE transport type is changed such that new types of
+ * ICE candidates are allowed by the new transport type, e.g. from
+ * RTCIceTransportPolicyRelay to RTCIceTransportPolicyAll, candidates that
+ * have been gathered by the ICE transport but not matching the previous
+ * transport type and as a result not observed by PeerConnectionDelegateAdapter,
+ * will be surfaced to the delegate.
+ */
+@property(nonatomic, assign) BOOL shouldSurfaceIceCandidatesOnIceTransportTypeChanged;
+
 /** If set to non-nil, controls the minimal interval between consecutive ICE
  *  check packets.
  */
 @property(nonatomic, copy, nullable) NSNumber *iceCheckMinInterval;
-
-/** ICE Periodic Regathering
- *  If set, WebRTC will periodically create and propose candidates without
- *  starting a new ICE generation. The regathering happens continuously with
- *  interval specified in milliseconds by the uniform distribution [a, b].
- */
-@property(nonatomic, strong, nullable) RTCIntervalRange *iceRegatherIntervalRange;
 
 /** Configure the SDP semantics used by this PeerConnection. Note that the
  *  WebRTC 1.0 specification requires UnifiedPlan semantics. The
@@ -146,9 +173,9 @@ RTC_EXPORT
  *
  *  UnifiedPlan will cause RTCPeerConnection to create offers and answers with
  *  multiple m= sections where each m= section maps to one RTCRtpSender and one
- *  RTCRtpReceiver (an RTCRtpTransceiver), either both audio or both video. This
- *  will also cause RTCPeerConnection to ignore all but the first a=ssrc lines
- *  that form a Plan B stream.
+ *  RTCRtpReceiver (an RTCRtpTransceiver), either both audio or both
+ *  video. This will also cause RTCPeerConnection) to ignore all but the first a=ssrc
+ *  lines that form a Plan B stream.
  *
  *  For users who wish to send multiple audio/video streams and need to stay
  *  interoperable with legacy WebRTC implementations or use legacy APIs,
@@ -163,6 +190,29 @@ RTC_EXPORT
  *  workaround for crbug.com/835958
  */
 @property(nonatomic, assign) BOOL activeResetSrtpParams;
+
+/** If the remote side support mid-stream codec switches then allow encoder
+ *  switching to be performed.
+ */
+
+@property(nonatomic, assign) BOOL allowCodecSwitching;
+
+/**
+ * Defines advanced optional cryptographic settings related to SRTP and
+ * frame encryption for native WebRTC. Setting this will overwrite any
+ * options set through the PeerConnectionFactory (which is deprecated).
+ */
+@property(nonatomic, nullable) RTC_OBJC_TYPE(RTCCryptoOptions) * cryptoOptions;
+
+/**
+ * Time interval between audio RTCP reports.
+ */
+@property(nonatomic, assign) int rtcpAudioReportIntervalMs;
+
+/**
+ * Time interval between video RTCP reports.
+ */
+@property(nonatomic, assign) int rtcpVideoReportIntervalMs;
 
 - (instancetype)init;
 

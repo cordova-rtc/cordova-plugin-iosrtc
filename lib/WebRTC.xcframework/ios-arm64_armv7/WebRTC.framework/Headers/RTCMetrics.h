@@ -10,8 +10,8 @@
 
 #import <Foundation/Foundation.h>
 
-#import <WebRTC/RTCMacros.h>
-#import <WebRTC/RTCMetricsSampleInfo.h>
+#import "RTCMacros.h"
+#import "RTCMetricsSampleInfo.h"
 
 /**
  * Enables gathering of metrics (which can be fetched with
@@ -20,4 +20,4 @@
 RTC_EXTERN void RTCEnableMetrics(void);
 
 /** Gets and clears native histograms. */
-RTC_EXTERN NSArray<RTCMetricsSampleInfo*>* RTCGetAndResetMetrics(void);
+RTC_EXTERN NSArray<RTC_OBJC_TYPE(RTCMetricsSampleInfo) *>* RTCGetAndResetMetrics(void);

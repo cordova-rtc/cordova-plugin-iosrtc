@@ -63,7 +63,7 @@ function hasBuildSettingsValue(value, expectedValue) {
 }
 
 function convertToFloat(value) {
-	return parseFloat(value.replace(/[^\d.-]/g, ''), 10);
+	return parseFloat(String(value).replace(/[^\d.-]/g, ''), 10);
 }
 
 function matchMinValue(value, minValue) {
