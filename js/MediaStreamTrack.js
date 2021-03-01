@@ -1,7 +1,8 @@
 /**
  * Expose the MediaStreamTrack class.
  */
-module.exports = MediaStreamTrack;
+module.exports.MediaStreamTrack = MediaStreamTrack;
+module.exports.newMediaStreamTrackId = newMediaStreamTrackId;
 
 /**
  * Spec: http://w3c.github.io/mediacapture-main/#mediastreamtrack
@@ -47,6 +48,8 @@ function MediaStreamTrack(dataFromEvent) {
 	// Private attributes.
 	this._enabled = dataFromEvent.enabled;
 	this._ended = false;
+
+	this.dataFromEvent = dataFromEvent;
 
 	function onResultOK(data) {
 		onEvent.call(self, data);
@@ -94,7 +97,8 @@ MediaStreamTrack.prototype.clone = function () {
 		kind: this.kind,
 		label: this.label,
 		readyState: this.readyState,
-		enabled: this.enabled
+		enabled: this.enabled,
+		trackId: this.dataFromEvent.trackId
 	});
 };
 
