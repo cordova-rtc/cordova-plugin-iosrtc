@@ -141,38 +141,40 @@ RTCDataChannel.prototype.send = function (data) {
 		return;
 	}
 
-	if (typeof data === 'string' || data instanceof String) {
-		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendString', [
-			this.peerConnection.pcId,
-			this.dcId,
-			data
-		]);
-	} else if (window.ArrayBuffer && data instanceof window.ArrayBuffer) {
-		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendBinary', [
-			this.peerConnection.pcId,
-			this.dcId,
-			data
-		]);
-	} else if (
-		(window.Int8Array && data instanceof window.Int8Array) ||
-		(window.Uint8Array && data instanceof window.Uint8Array) ||
-		(window.Uint8ClampedArray && data instanceof window.Uint8ClampedArray) ||
-		(window.Int16Array && data instanceof window.Int16Array) ||
-		(window.Uint16Array && data instanceof window.Uint16Array) ||
-		(window.Int32Array && data instanceof window.Int32Array) ||
-		(window.Uint32Array && data instanceof window.Uint32Array) ||
-		(window.Float32Array && data instanceof window.Float32Array) ||
-		(window.Float64Array && data instanceof window.Float64Array) ||
-		(window.DataView && data instanceof window.DataView)
-	) {
-		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendBinary', [
-			this.peerConnection.pcId,
-			this.dcId,
-			data.buffer
-		]);
-	} else {
-		throw new Error('invalid data type');
-	}
+	setImmediate(() => {
+		if (typeof data === 'string' || data instanceof String) {
+			exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendString', [
+				this.peerConnection.pcId,
+				this.dcId,
+				data
+			]);
+		} else if (window.ArrayBuffer && data instanceof window.ArrayBuffer) {
+			exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendBinary', [
+				this.peerConnection.pcId,
+				this.dcId,
+				data
+			]);
+		} else if (
+			(window.Int8Array && data instanceof window.Int8Array) ||
+			(window.Uint8Array && data instanceof window.Uint8Array) ||
+			(window.Uint8ClampedArray && data instanceof window.Uint8ClampedArray) ||
+			(window.Int16Array && data instanceof window.Int16Array) ||
+			(window.Uint16Array && data instanceof window.Uint16Array) ||
+			(window.Int32Array && data instanceof window.Int32Array) ||
+			(window.Uint32Array && data instanceof window.Uint32Array) ||
+			(window.Float32Array && data instanceof window.Float32Array) ||
+			(window.Float64Array && data instanceof window.Float64Array) ||
+			(window.DataView && data instanceof window.DataView)
+		) {
+			exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendBinary', [
+				this.peerConnection.pcId,
+				this.dcId,
+				data.buffer
+			]);
+		} else {
+			throw new Error('invalid data type');
+		}
+	});
 };
 
 RTCDataChannel.prototype.close = function () {
