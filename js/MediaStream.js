@@ -13,7 +13,7 @@ module.exports = MediaStream;
 var debug = require('debug')('iosrtc:MediaStream'),
 	exec = require('cordova/exec'),
 	EventTarget = require('./EventTarget'),
-	MediaStreamTrack = require('./MediaStreamTrack'),
+	{ MediaStreamTrack } = require('./MediaStreamTrack'),
 	/**
 	 * Local variables.
 	 */

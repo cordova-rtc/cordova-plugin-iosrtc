@@ -1,3 +1,21 @@
+#### Version 8.0.0
+* Implement RTCPeerConnection.addTransceiver #589 via @agelito
+* Update to WebRTC.framework M87
+* Update to WebRTC.framework M84
+
+#### Version 7.0.0
+* Update to WebRTC.framework M79
+* Update to WebRTC.framework M75
+
+#### Version 6.0.19
+* fix MediaStreamRenderer doesn't call PluginMediaStreamTrack.unregisterRender = stuck reference. #649
+* fix ios not build after cordova-plugin-iosrtc #642
+
+#### Version 6.0.18
+* fix: update ios_arch.js to generate WebRTC.xcframework, Include WebRTC.xcframework instead of WebRTC.framework
+* fix: ignore empty IceCandidate, fix RTCPeerConnection_addIceCandidate pluginRTCPeerConnection argument is NIL
+* fix: allow registerGlobals to be called multiple time without error: Attempting to change value of a readonly property.
+
 #### Version 6.0.17
 * fix: fix possible duplicate pluginMediaStream and pluginMediaTrack causing no video
 * fix: fix plugin media stream renderer save leak #609
@@ -27,6 +45,7 @@
 * fix: refactor pluginMediaTracks lifecyle in PluginRTCPeerConnection
 * feat: add canvas drawImage SHIM for VideoElement
 * feat: add (MediaStream|MediaStreamTrack).prototype.clone
+>>>>>>> master
 
 #### Version 6.0.14
 * Move dist/cordova-plugin-iosrtc.js to www/cordova-plugin-iosrtc.js to match other cordova plugins practice.

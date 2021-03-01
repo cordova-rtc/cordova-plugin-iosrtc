@@ -17,6 +17,7 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate, RTCVideoRe
 	var videoView: RTCEAGLVideoView?
 	var rtcAudioTrack: RTCAudioTrack?
 	var rtcVideoTrack: RTCVideoTrack?
+    var pluginVideoTrack: PluginMediaStreamTrack?
 
 	init(
 		servicePort: Int,
@@ -35,7 +36,7 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate, RTCVideoRe
 		self.cbData = cbData
 		self.webView = webView
 		self.eventListener = eventListener
-		
+
 		if (self.servicePort > 0) {
 			// will render in canvas over websocket
 			return;
@@ -114,16 +115,16 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate, RTCVideoRe
 		}
 
 		// Take the first video track.
-		var pluginVideoTrack: PluginMediaStreamTrack?
 		for (_, track) in pluginMediaStream.videoTracks {
-			pluginVideoTrack = track
+            self.pluginVideoTrack = track
 			self.rtcVideoTrack = track.rtcMediaStreamTrack as? RTCVideoTrack
 			break
 		}
 
+
 		if self.rtcVideoTrack != nil {
-			self.rtcVideoTrack!.add(getVideoView())
-			pluginVideoTrack?.registerRender(render: self)
+			self.rtcVideoTrack!.add(self.videoView)
+            self.pluginVideoTrack?.registerRender(render: self)
 		}
 	}
 
@@ -134,10 +135,12 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate, RTCVideoRe
 			return
 		}
 
+        let oldPluginVideoTrack: PluginMediaStreamTrack? = self.pluginVideoTrack
 		let oldRtcVideoTrack: RTCVideoTrack? = self.rtcVideoTrack
 
 		self.rtcAudioTrack = nil
 		self.rtcVideoTrack = nil
+        self.pluginVideoTrack = nil
 
 		// Take the first audio track.
 		for (_, track) in self.pluginMediaStream!.audioTracks {
@@ -147,6 +150,7 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate, RTCVideoRe
 
 		// Take the first video track.
 		for (_, track) in pluginMediaStream!.videoTracks {
+            self.pluginVideoTrack = track
 			self.rtcVideoTrack = track.rtcMediaStreamTrack as? RTCVideoTrack
 			break
 		}
@@ -163,23 +167,27 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate, RTCVideoRe
 		else if oldRtcVideoTrack != nil && self.rtcVideoTrack != nil &&
 			oldRtcVideoTrack!.trackId != self.rtcVideoTrack!.trackId {
 			NSLog("PluginMediaStreamRenderer#mediaStreamChanged() | has a new video track")
-
-			oldRtcVideoTrack!.remove(view)
-			self.rtcVideoTrack!.add(view)
+            oldPluginVideoTrack?.unregisterRender(render: self)
+			oldRtcVideoTrack!.remove(self.videoView)
+            self.pluginVideoTrack?.registerRender(render: self)
+			self.rtcVideoTrack!.add(self.videoView)
 		}
 
 		// Did not have video but now it has.
 		else if oldRtcVideoTrack == nil && self.rtcVideoTrack != nil {
 			NSLog("PluginMediaStreamRenderer#mediaStreamChanged() | video track added")
-
-			self.rtcVideoTrack!.add(view)
+            if oldPluginVideoTrack != nil{
+                oldPluginVideoTrack?.unregisterRender(render: self)
+            }
+            self.pluginVideoTrack?.registerRender(render: self)
+			self.rtcVideoTrack!.add(self.videoView)
 		}
 
 		// Had video but now it has not.
 		else if oldRtcVideoTrack != nil && self.rtcVideoTrack == nil {
 			NSLog("PluginMediaStreamRenderer#mediaStreamChanged() | video track removed")
-
-			oldRtcVideoTrack!.remove(view)
+            oldPluginVideoTrack?.unregisterRender(render: self)
+			oldRtcVideoTrack!.remove(self.videoView)
 		}
 	}
 
@@ -188,7 +196,7 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate, RTCVideoRe
 			return;
 		}
 		let view = self.elementView!
-		
+
 		let elementLeft = data.object(forKey: "elementLeft") as? Double ?? 0
 		let elementTop = data.object(forKey: "elementTop") as? Double ?? 0
 		let elementWidth = data.object(forKey: "elementWidth") as? Double ?? 0
@@ -278,7 +286,7 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate, RTCVideoRe
 			UIGraphicsEndImageContext()
 			let imageData = snapshotImageFromMyView?.jpegData(compressionQuality: 1.0)
 			let strBase64 = imageData?.base64EncodedString(options: .lineLength64Characters)
-			
+
 			callback(strBase64!);
 		}
 	}
@@ -312,12 +320,15 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate, RTCVideoRe
 		if self.rtcVideoTrack != nil {
 			self.rtcVideoTrack!.remove(getVideoView())
 		}
-
+        if self.pluginVideoTrack != nil {
+            self.pluginVideoTrack?.unregisterRender(render: self)
+        }
+        self.pluginVideoTrack = nil
 		self.pluginMediaStream = nil
 		self.rtcAudioTrack = nil
 		self.rtcVideoTrack = nil
 	}
-	
+
 	fileprivate func getVideoView() -> RTCVideoRenderer {
 		/**
 		 * when current is canvas render, will use self(RTCVideoRenderer) as video view
@@ -328,11 +339,11 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate, RTCVideoRe
 			return self
 		}
 	}
-	
+
 	fileprivate func onVideoChanged(size: CGSize) {
 		NSLog("PluginMediaStreamRenderer | video size changed [width:%@, height:%@]",
 			  String(describing: size.width), String(describing: size.height))
-		
+
 		self.eventListener([
 			"type": "videoresize",
 			"size": [
@@ -350,11 +361,11 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate, RTCVideoRe
 	func videoView(_ videoView: RTCVideoRenderer, didChangeVideoSize size: CGSize) {
 		onVideoChanged(size: size);
 	}
-	
+
 	/**
 	 * Methods inherited from RTCVideoRenderer
 	 */
-	
+
 	func setSize(_ size: CGSize) {
 		onVideoChanged(size: size);
 	}
@@ -421,5 +432,5 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate, RTCVideoRe
 
 		self.cbData(self.id, pduData)
 	}
-	
+
 }

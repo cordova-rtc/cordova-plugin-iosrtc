@@ -3,11 +3,11 @@
  */
 module.exports = RTCRtpSender;
 
-function RTCRtpSender(data) {
+function RTCRtpSender(pc, data) {
 	data = data || {};
 
-	this._pc = data.pc;
-	this.track = data.track;
+	this._pc = pc;
+	this.track = data.track ? pc.getOrCreateTrack(data.track) : null;
 	this.params = data.params || {};
 }
 
@@ -26,8 +26,10 @@ RTCRtpSender.prototype.replaceTrack = function (withTrack) {
 
 	return new Promise(function (resolve, reject) {
 		pc.removeTrack(self);
-		pc.addTrack(withTrack);
-		self.track = withTrack;
+
+		if (withTrack) {
+			pc.addTrack(withTrack);
+		}
 
 		// https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/negotiationneeded_event
 		var event = new Event('negotiationneeded');
@@ -43,4 +45,14 @@ RTCRtpSender.prototype.replaceTrack = function (withTrack) {
 			}
 		});
 	});
+};
+
+RTCRtpSender.prototype.update = function ({ track, params }) {
+	if (track) {
+		this.track = this._pc.getOrCreateTrack(track);
+	} else {
+		this.track = null;
+	}
+
+	this.params = params;
 };

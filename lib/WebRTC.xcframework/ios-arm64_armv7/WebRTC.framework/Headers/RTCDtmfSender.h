@@ -10,19 +10,20 @@
 
 #import <Foundation/Foundation.h>
 
-#import <WebRTC/RTCMacros.h>
+#import "RTCMacros.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-RTC_EXPORT
-@protocol RTCDtmfSender <NSObject>
+RTC_OBJC_EXPORT
+@protocol RTC_OBJC_TYPE
+(RTCDtmfSender)<NSObject>
 
-/**
- * Returns true if this RTCDtmfSender is capable of sending DTMF. Otherwise
- * returns false. To be able to send DTMF, the associated RTCRtpSender must be
- * able to send packets, and a "telephone-event" codec must be negotiated.
- */
-@property(nonatomic, readonly) BOOL canInsertDtmf;
+    /**
+     * Returns true if this RTCDtmfSender is capable of sending DTMF. Otherwise
+     * returns false. To be able to send DTMF, the associated RTCRtpSender must be
+     * able to send packets, and a "telephone-event" codec must be negotiated.
+     */
+    @property(nonatomic, readonly) BOOL canInsertDtmf;
 
 /**
  * Queues a task that sends the DTMF tones. The tones parameter is treated
