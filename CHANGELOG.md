@@ -1,3 +1,7 @@
+#### Version 7.0.0
+* Update to WebRTC.framework M79
+* Update to WebRTC.framework M75
+
 #### Version 6.0.19
 * fix MediaStreamRenderer doesn't call PluginMediaStreamTrack.unregisterRender = stuck reference. #649
 * fix ios not build after cordova-plugin-iosrtc #642
@@ -36,6 +40,7 @@
 * fix: refactor pluginMediaTracks lifecyle in PluginRTCPeerConnection
 * feat: add canvas drawImage SHIM for VideoElement
 * feat: add (MediaStream|MediaStreamTrack).prototype.clone
+>>>>>>> master
 
 #### Version 6.0.14
 * Move dist/cordova-plugin-iosrtc.js to www/cordova-plugin-iosrtc.js to match other cordova plugins practice.
