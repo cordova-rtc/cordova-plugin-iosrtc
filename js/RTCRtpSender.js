@@ -3,7 +3,7 @@
  */
 module.exports = RTCRtpSender;
 
-function RTCRtpSender(pc ,data) {
+function RTCRtpSender(pc, data) {
 	data = data || {};
 
 	this._pc = pc;
