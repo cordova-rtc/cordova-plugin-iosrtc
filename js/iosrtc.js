@@ -25,7 +25,7 @@ var // Dictionary of MediaStreamRenderers.
 	MediaStream = require('./MediaStream'),
 	{ MediaStreamTrack } = require('./MediaStreamTrack'),
 	videoElementsHandler = require('./videoElementsHandler'),
-	{ RTCRtpTransceiver }	   = require('./RTCRtpTransceiver');
+	{ RTCRtpTransceiver } = require('./RTCRtpTransceiver');
 
 /**
  * Expose the iosrtc object.
