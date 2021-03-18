@@ -1,3 +1,6 @@
+#### Version 6.0.20
+* fix Remove extmap-allow-mixed sdp header on RTCPeerConnection.prototype.setRemoteDescription to handle chrome 89
+
 #### Version 6.0.19
 * fix MediaStreamRenderer doesn't call PluginMediaStreamTrack.unregisterRender = stuck reference. #649
 * fix ios not build after cordova-plugin-iosrtc #642
