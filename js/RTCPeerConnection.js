@@ -657,7 +657,7 @@ RTCPeerConnection.prototype.addTransceiver = function (trackOrKind, init) {
 
 	addTransceiverToPeerConnection(this, trackIdOrKind, initJson, receiverTrackID)
 		.then((update) => {
-			self.updateTransceiversState(update);
+			self.updateTransceiversState(update.transceivers);
 		})
 		.catch((error) => {
 			debugerror('addTransceiver() | failure: %s', error);
