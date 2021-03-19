@@ -23,6 +23,7 @@
 #import <WebRTC/RTCVideoRenderer.h>
 #import <WebRTC/RTCVideoSource.h>
 #import <WebRTC/RTCVideoTrack.h>
+#import <WebRTC/RTCRtpReceiver.h>
 
 // Expose RTCEAGLVideoViewDelegate to Swift
 RTC_OBJC_EXPORT
