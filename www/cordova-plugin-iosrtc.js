@@ -136,6 +136,7 @@ module.exports = MediaDevices;
  * Dependencies.
  */
 var EventTarget = _dereq_('./EventTarget'),
+	exec = _dereq_('cordova/exec'),
 	getUserMedia = _dereq_('./getUserMedia'),
 	enumerateDevices = _dereq_('./enumerateDevices');
 
@@ -147,11 +148,24 @@ function MediaDevices(data) {
 	//getUserMedia
 
 	var self = this;
+	var ondevicechange;
 
 	// Make this an EventTarget.
 	EventTarget.call(self);
 
 	data = data || {};
+
+	Object.defineProperty(this, 'ondevicechange', {
+		get: () => ondevicechange || null,
+		set: (handler) => { ondevicechange = handler; }
+	});
+	function onResultOK(data) {
+		self.dispatchEvent(new Event(data.type));
+		if (data.type === 'devicechange' && typeof ondevicechange === 'function') {
+			ondevicechange();
+		}
+	}
+	exec(onResultOK, null, 'iosrtcPlugin', 'MediaDevices_setListener', []);
 }
 
 MediaDevices.prototype = Object.create(EventTarget.prototype);
@@ -202,7 +216,7 @@ MediaDevices.prototype.getSupportedConstraints = function () {
 	};
 };
 
-},{"./EventTarget":2,"./enumerateDevices":20,"./getUserMedia":21}],5:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"./enumerateDevices":20,"./getUserMedia":21,"cordova/exec":undefined}],5:[function(_dereq_,module,exports){
 /**
  * Expose the MediaStream class.
  */

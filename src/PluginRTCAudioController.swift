@@ -153,6 +153,29 @@ class PluginRTCAudioController {
 	}
 
 	//
+	// Event
+	//
+
+	static private var eventListener: ((_ data: NSDictionary) -> Void)? = nil
+
+	static fileprivate func deviceChanged() {
+		NSLog("PluginRTCAudioController#deviceChanged()")
+		DispatchQueue.main.async {
+			PluginRTCAudioController.eventListener?([
+				"type": "devicechange"
+			])
+		}
+	}
+
+	static func setListener(
+		_ eventListener: @escaping (_ data: NSDictionary) -> Void
+	) {
+		NSLog("PluginRTCAudioController#setListener()")
+
+		PluginRTCAudioController.eventListener = eventListener
+	}
+
+	//
 	// Audio Output
 	//
 
@@ -178,9 +201,11 @@ class PluginRTCAudioController {
 		switch audioRouteChangeReason {
 		case AVAudioSession.RouteChangeReason.newDeviceAvailable.rawValue:
 			NSLog("PluginRTCAudioController#audioRouteChangeListener() | headphone plugged in")
+			PluginRTCAudioController.deviceChanged()
 		case AVAudioSession.RouteChangeReason.oldDeviceUnavailable.rawValue:
 			NSLog("PluginRTCAudioController#audioRouteChangeListener() | headphone pulled out -> restore state speakerEnabled: %@", PluginRTCAudioController.speakerEnabled ? "true" : "false")
 			PluginRTCAudioController.setOutputSpeakerIfNeed(enabled: PluginRTCAudioController.speakerEnabled)
+			PluginRTCAudioController.deviceChanged()
 		default:
 			break
 		}
