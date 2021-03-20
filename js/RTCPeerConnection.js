@@ -516,7 +516,14 @@ RTCPeerConnection.prototype.addTrack = function (track, ...streams) {
 
 	// No Stream matched add track without stream
 	if (!stream) {
-		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [this.pcId, track.id, transceiver._id, transceiver.receiver._id, transceiver.sender._id, null]);
+		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [
+			this.pcId,
+			track.id,
+			transceiver._id,
+			transceiver.receiver._id,
+			transceiver.sender._id,
+			null
+		]);
 	}
 
 	this.getOrCreateTrack(track);

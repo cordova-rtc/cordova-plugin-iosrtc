@@ -38,7 +38,13 @@ RTCRtpSender.prototype.setParameters = function (params) {
 			reject(error);
 		}
 
-		exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_RTCRtpSender_setParameters', [this._pc.pcId, this._id, params]);
+		exec(
+			onResultOK,
+			onResultError,
+			'iosrtcPlugin',
+			'RTCPeerConnection_RTCRtpSender_setParameters',
+			[this._pc.pcId, this._id, params]
+		);
 	});
 };
 
@@ -58,7 +64,13 @@ RTCRtpSender.prototype.replaceTrack = function (withTrack) {
 
 		var trackId = withTrack ? withTrack.id : null;
 
-		exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_RTCRtpSender_replaceTrack', [this._pc.pcId, this._id, trackId]);
+		exec(
+			onResultOK,
+			onResultError,
+			'iosrtcPlugin',
+			'RTCPeerConnection_RTCRtpSender_replaceTrack',
+			[this._pc.pcId, this._id, trackId]
+		);
 
 		// https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/negotiationneeded_event
 		var event = new Event('negotiationneeded');

@@ -2421,7 +2421,14 @@ RTCPeerConnection.prototype.addTrack = function (track, ...streams) {
 
 	// No Stream matched add track without stream
 	if (!stream) {
-		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [this.pcId, track.id, transceiver._id, transceiver.receiver._id, transceiver.sender._id, null]);
+		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [
+			this.pcId,
+			track.id,
+			transceiver._id,
+			transceiver.receiver._id,
+			transceiver.sender._id,
+			null
+		]);
 	}
 
 	this.getOrCreateTrack(track);
@@ -2964,7 +2971,13 @@ RTCRtpSender.prototype.setParameters = function (params) {
 			reject(error);
 		}
 
-		exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_RTCRtpSender_setParameters', [this._pc.pcId, this._id, params]);
+		exec(
+			onResultOK,
+			onResultError,
+			'iosrtcPlugin',
+			'RTCPeerConnection_RTCRtpSender_setParameters',
+			[this._pc.pcId, this._id, params]
+		);
 	});
 };
 
@@ -2984,7 +2997,13 @@ RTCRtpSender.prototype.replaceTrack = function (withTrack) {
 
 		var trackId = withTrack ? withTrack.id : null;
 
-		exec(onResultOK, onResultError, 'iosrtcPlugin', 'RTCPeerConnection_RTCRtpSender_replaceTrack', [this._pc.pcId, this._id, trackId]);
+		exec(
+			onResultOK,
+			onResultError,
+			'iosrtcPlugin',
+			'RTCPeerConnection_RTCRtpSender_replaceTrack',
+			[this._pc.pcId, this._id, trackId]
+		);
 
 		// https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/negotiationneeded_event
 		var event = new Event('negotiationneeded');
@@ -3040,7 +3059,9 @@ function addTransceiverToPeerConnection(peerConnection, trackIdOrKind, init, tra
 			transceiver._id,
 			transceiver.sender ? transceiver.sender._id : 0,
 			transceiver.receiver ? transceiver.receiver._id : 0,
-			(transceiver.receiver && transceiver.receiver.track) ? transceiver.receiver.track.id : null
+			transceiver.receiver && transceiver.receiver.track
+				? transceiver.receiver.track.id
+				: null
 		]);
 
 		function onResultOK(data) {

@@ -25,7 +25,9 @@ function addTransceiverToPeerConnection(peerConnection, trackIdOrKind, init, tra
 			transceiver._id,
 			transceiver.sender ? transceiver.sender._id : 0,
 			transceiver.receiver ? transceiver.receiver._id : 0,
-			(transceiver.receiver && transceiver.receiver.track) ? transceiver.receiver.track.id : null
+			transceiver.receiver && transceiver.receiver.track
+				? transceiver.receiver.track.id
+				: null
 		]);
 
 		function onResultOK(data) {
