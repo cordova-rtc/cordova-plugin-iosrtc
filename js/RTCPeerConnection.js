@@ -18,7 +18,6 @@ var debug = require('debug')('iosrtc:RTCPeerConnection'),
 	RTCRtpReceiver = require('./RTCRtpReceiver'),
 	RTCRtpSender = require('./RTCRtpSender'),
 	{ RTCRtpTransceiver, addTransceiverToPeerConnection } = require('./RTCRtpTransceiver'),
-	RTCStatsResponse = require('./RTCStatsResponse'),
 	RTCStatsReport = require('./RTCStatsReport'),
 	MediaStream = require('./MediaStream'),
 	{ MediaStreamTrack, newMediaStreamTrackId } = require('./MediaStreamTrack'),
@@ -486,6 +485,16 @@ RTCPeerConnection.prototype.addTrack = function (track, ...streams) {
 		this.addStream(stream);
 	}
 
+	var transceiver = new RTCRtpTransceiver(this, {
+		sender: new RTCRtpSender(this, {
+			track: track
+		}),
+		receiver: new RTCRtpReceiver(this),
+		direction: 'sendrecv',
+		currentDirection: null,
+		mid: null
+	});
+
 	for (var streamId in this.localStreams) {
 		if (this.localStreams.hasOwnProperty(streamId)) {
 			// Target provided stream argument or first added stream to group track
@@ -495,6 +504,9 @@ RTCPeerConnection.prototype.addTrack = function (track, ...streams) {
 				exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [
 					this.pcId,
 					track.id,
+					transceiver._id,
+					transceiver.receiver._id,
+					transceiver.sender._id,
 					streamId
 				]);
 				break;
@@ -504,12 +516,21 @@ RTCPeerConnection.prototype.addTrack = function (track, ...streams) {
 
 	// No Stream matched add track without stream
 	if (!stream) {
-		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [this.pcId, track.id, null]);
+		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [
+			this.pcId,
+			track.id,
+			transceiver._id,
+			transceiver.receiver._id,
+			transceiver.sender._id,
+			null
+		]);
 	}
 
 	this.getOrCreateTrack(track);
 
-	return new RTCRtpSender(this, { track });
+	this.transceivers.push(transceiver);
+
+	return transceiver.sender;
 };
 
 RTCPeerConnection.prototype.removeTrack = function (sender) {
@@ -535,8 +556,7 @@ RTCPeerConnection.prototype.removeTrack = function (sender) {
 				stream.removeTrack(track);
 				exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_removeTrack', [
 					this.pcId,
-					track.id,
-					stream.id
+					sender._id
 				]);
 				delete this.tracks[track.id];
 				break;
@@ -551,8 +571,7 @@ RTCPeerConnection.prototype.removeTrack = function (sender) {
 				if (track.id === id) {
 					exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_removeTrack', [
 						this.pcId,
-						track.id,
-						null
+						sender._id
 					]);
 					delete this.tracks[track.id];
 				}
@@ -655,7 +674,7 @@ RTCPeerConnection.prototype.addTransceiver = function (trackOrKind, init) {
 		initJson
 	);
 
-	addTransceiverToPeerConnection(this, trackIdOrKind, initJson, receiverTrackID)
+	addTransceiverToPeerConnection(this, trackIdOrKind, initJson, transceiver)
 		.then((update) => {
 			self.updateTransceiversState(update.transceivers);
 		})
@@ -670,7 +689,7 @@ RTCPeerConnection.prototype.updateTransceiversState = function (transceivers) {
 	debug('updateTransceiversState()');
 	this.transceivers = transceivers.map((transceiver) => {
 		const existingTransceiver = this.transceivers.find(
-			(localTransceiver) => localTransceiver.receiverId === transceiver.receiver.track.id
+			(localTransceiver) => localTransceiver._id === transceiver.id
 		);
 
 		if (existingTransceiver) {
@@ -789,11 +808,7 @@ RTCPeerConnection.prototype.getStats = function (selector) {
 				return;
 			}
 
-			var res = [];
-			array.forEach(function (stat) {
-				res.push(new RTCStatsReport(stat));
-			});
-			resolve(new RTCStatsResponse(res));
+			resolve(new RTCStatsReport(array));
 		}
 
 		function onResultError(error) {
