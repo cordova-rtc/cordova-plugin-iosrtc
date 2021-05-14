@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
 		id="cordova-plugin-iosrtc"
-		version="6.0.20">
+		version="6.0.21">
 
 	<name>iosrtc</name>
 	<description>Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs</description>
@@ -33,6 +33,10 @@
 
 		<config-file target="*-Info.plist" parent="ManualInitAudioDevice">
 			<string>$MANUAL_INIT_AUDIO_DEVICE</string>
+		</config-file>
+
+		<config-file target="*-Info.plist" parent="UseManualLayoutRenderer">
+			<true/>
 		</config-file>
 
 		<!-- Permission notes -->
