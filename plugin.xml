@@ -35,6 +35,10 @@
 			<string>$MANUAL_INIT_AUDIO_DEVICE</string>
 		</config-file>
 
+		<config-file target="*-Info.plist" parent="UseManualLayoutRenderer">
+			<true/>
+		</config-file>
+
 		<!-- Permission notes -->
 		<config-file parent="NSCameraUsageDescription" target="*-Info.plist">
 			<string>This Application uses your camera to make video calls.</string>

@@ -30,8 +30,13 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		self.webView = webView
 		self.eventListener = eventListener
 
+		let useManualLayoutRenderer = Bundle.main.object(forInfoDictionaryKey: "UseManualLayoutRenderer") as? Bool ?? false
+
 		// The video element view.
-		self.elementView = UIView()
+		let guide = webView.safeAreaLayoutGuide;
+		self.elementView = useManualLayoutRenderer
+			? UIView(frame: CGRect(x: 0.0, y: guide.layoutFrame.minY, width: guide.layoutFrame.width, height: guide.layoutFrame.height))
+			: UIView()
 
 		// The effective video view in which the the video stream is shown.
 		// It's placed over the elementView.
@@ -43,6 +48,7 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		self.elementView.backgroundColor = UIColor.black
 		self.elementView.addSubview(self.videoView)
 		self.elementView.layer.masksToBounds = true
+		self.elementView.translatesAutoresizingMaskIntoConstraints = false
 
 		// Place the video element view inside the WebView's superview
 		self.webView.addSubview(self.elementView)
@@ -53,17 +59,18 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		// https://developer.apple.com/documentation/uikit/uiview/2891102-safearealayoutguide
 		// https://developer.apple.com/documentation/uikit/
 		let view = self.elementView;
-		if #available(iOS 11.0, *) {
-			let guide = webView.safeAreaLayoutGuide;
-			view.topAnchor.constraint(equalTo: guide.topAnchor).isActive = true
-			view.bottomAnchor.constraint(equalTo: guide.bottomAnchor).isActive = true
-			view.leftAnchor.constraint(equalTo: guide.leftAnchor).isActive = true
-			view.rightAnchor.constraint(equalTo: guide.rightAnchor).isActive = true
-		} else {
-			NSLayoutConstraint(item: view, attribute: .top, relatedBy: .equal, toItem: webView, attribute: .top, multiplier: 1.0, constant: 0).isActive = true
-			NSLayoutConstraint(item: view, attribute: .bottom, relatedBy: .equal, toItem: webView, attribute: .bottom, multiplier: 1.0, constant: 0).isActive = true
-			NSLayoutConstraint(item: view, attribute: .leading, relatedBy: .equal, toItem: webView, attribute: .leading, multiplier: 1.0, constant: 0).isActive = true
-			NSLayoutConstraint(item: view, attribute: .trailing, relatedBy: .equal, toItem: webView, attribute: .trailing, multiplier: 1.0, constant: 0).isActive = true
+		if !useManualLayoutRenderer {
+			if #available(iOS 11.0, *) {
+				view.topAnchor.constraint(equalTo: guide.topAnchor).isActive = true
+				view.bottomAnchor.constraint(equalTo: guide.bottomAnchor).isActive = true
+				view.leftAnchor.constraint(equalTo: guide.leftAnchor).isActive = true
+				view.rightAnchor.constraint(equalTo: guide.rightAnchor).isActive = true
+			} else {
+				NSLayoutConstraint(item: view, attribute: .top, relatedBy: .equal, toItem: webView, attribute: .top, multiplier: 1.0, constant: 0).isActive = true
+				NSLayoutConstraint(item: view, attribute: .bottom, relatedBy: .equal, toItem: webView, attribute: .bottom, multiplier: 1.0, constant: 0).isActive = true
+				NSLayoutConstraint(item: view, attribute: .leading, relatedBy: .equal, toItem: webView, attribute: .leading, multiplier: 1.0, constant: 0).isActive = true
+				NSLayoutConstraint(item: view, attribute: .trailing, relatedBy: .equal, toItem: webView, attribute: .trailing, multiplier: 1.0, constant: 0).isActive = true
+			}
 		}
 	}
 

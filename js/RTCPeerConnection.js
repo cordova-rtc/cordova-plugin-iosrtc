@@ -313,6 +313,16 @@ RTCPeerConnection.prototype.setRemoteDescription = function (desc) {
 
 	debug('setRemoteDescription() [desc:%o]', desc);
 
+	// Remove extmap-allow-mixed sdp header
+	if (desc && desc.sdp && desc.sdp.indexOf('\na=extmap-allow-mixed') !== -1) {
+		desc = new RTCSessionDescription({
+			type: desc.type,
+			sdp: desc.sdp.split('\n').filter((line) => {
+				return line.trim() !== 'a=extmap-allow-mixed';
+			}).join('\n')
+		});
+	}
+
 	// "This is no longer necessary, however; RTCPeerConnection.setLocalDescription() and other
 	// methods which take SDP as input now directly accept an object conforming to the RTCSessionDescriptionInit dictionary,
 	// so you don't have to instantiate an RTCSessionDescription yourself.""
