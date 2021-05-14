@@ -1,5 +1,5 @@
 /*
- * cordova-plugin-iosrtc v6.0.20
+ * cordova-plugin-iosrtc v6.0.21
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015-2017 eFace2Face, Inc. (https://eface2face.com)
  * Copyright 2015-2019 BasqueVoIPMafia (https://github.com/BasqueVoIPMafia)
@@ -3682,8 +3682,8 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 		}
 
 		return function (arg) {
-			var args = Array.prototype.slice.call(arguments);
-			var context = this;
+			const context = this;
+			let args = Array.prototype.slice.call(arguments);
 			if (arg instanceof HTMLVideoElement && arg.render) {
 				arg.render.save(function (base64Image) {
 					// Destroy old image
@@ -3692,7 +3692,7 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 					}
 
 					// Create a new image from binary data
-					var imageDataBlob = convertDataURIToBlob(base64Image);
+					const imageDataBlob = convertDataURIToBlob('data:image/jpg;base64,' + base64Image);
 
 					// Create a new object URL object
 					imageElement = imageElement || new Image();
