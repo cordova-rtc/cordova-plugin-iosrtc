@@ -36,7 +36,7 @@
 		</config-file>
 
 		<config-file target="*-Info.plist" parent="UseManualLayoutRenderer">
-			<false/>
+			<true/>
 		</config-file>
 
 		<!-- Permission notes -->
