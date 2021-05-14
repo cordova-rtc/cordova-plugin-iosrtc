@@ -260,7 +260,9 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 					}
 
 					// Create a new image from binary data
-					const imageDataBlob = convertDataURIToBlob('data:image/jpg;base64,' + base64Image);
+					const imageDataBlob = convertDataURIToBlob(
+						'data:image/jpg;base64,' + base64Image
+					);
 
 					// Create a new object URL object
 					imageElement = imageElement || new Image();

@@ -317,9 +317,12 @@ RTCPeerConnection.prototype.setRemoteDescription = function (desc) {
 	if (desc && desc.sdp && desc.sdp.indexOf('\na=extmap-allow-mixed') !== -1) {
 		desc = new RTCSessionDescription({
 			type: desc.type,
-			sdp: desc.sdp.split('\n').filter((line) => {
-				return line.trim() !== 'a=extmap-allow-mixed';
-			}).join('\n')
+			sdp: desc.sdp
+				.split('\n')
+				.filter((line) => {
+					return line.trim() !== 'a=extmap-allow-mixed';
+				})
+				.join('\n')
 		});
 	}
 
