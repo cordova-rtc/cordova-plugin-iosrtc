@@ -248,8 +248,8 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 		}
 
 		return function (arg) {
-			var args = Array.prototype.slice.call(arguments);
-			var context = this;
+			const context = this;
+			let args = Array.prototype.slice.call(arguments);
 			if (arg instanceof HTMLVideoElement && arg.render) {
 				arg.render.save(function (base64Image) {
 					// Destroy old image
@@ -258,7 +258,7 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 					}
 
 					// Create a new image from binary data
-					var imageDataBlob = convertDataURIToBlob(base64Image);
+					const imageDataBlob = convertDataURIToBlob('data:image/jpg;base64,' + base64Image);
 
 					// Create a new object URL object
 					imageElement = imageElement || new Image();
