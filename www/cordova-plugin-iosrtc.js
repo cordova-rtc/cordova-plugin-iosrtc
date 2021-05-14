@@ -2222,9 +2222,12 @@ RTCPeerConnection.prototype.setRemoteDescription = function (desc) {
 	if (desc && desc.sdp && desc.sdp.indexOf('\na=extmap-allow-mixed') !== -1) {
 		desc = new RTCSessionDescription({
 			type: desc.type,
-			sdp: desc.sdp.split('\n').filter((line) => {
-				return line.trim() !== 'a=extmap-allow-mixed';
-			}).join('\n')
+			sdp: desc.sdp
+				.split('\n')
+				.filter((line) => {
+					return line.trim() !== 'a=extmap-allow-mixed';
+				})
+				.join('\n')
 		});
 	}
 
@@ -4018,7 +4021,9 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 					}
 
 					// Create a new image from binary data
-					const imageDataBlob = convertDataURIToBlob('data:image/jpg;base64,' + base64Image);
+					const imageDataBlob = convertDataURIToBlob(
+						'data:image/jpg;base64,' + base64Image
+					);
 
 					// Create a new object URL object
 					imageElement = imageElement || new Image();
