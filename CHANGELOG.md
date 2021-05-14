@@ -1,3 +1,7 @@
+#### Version 6.0.21
+* fix Canvas drawImage memory leak fix #681
+* fix Warning [LayoutConstraints] Unable to simultaneously satisfy constraints.
+
 #### Version 6.0.20
 * fix Remove extmap-allow-mixed sdp header on RTCPeerConnection.prototype.setRemoteDescription to handle chrome 89
 
