@@ -392,10 +392,14 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		NSLog("PluginRTCPeerConnection#addTrack() trackId=%@ rtcId=%d streamIds %@",
 				pluginMediaTrack.id, pluginRTCRtpSenderId, streamIds);
 		if (pluginRTCRtpSender == nil) {
-			let rtcRtpSender = self.rtcPeerConnection.add(rtcMediaStreamTrack, streamIds: streamIds)
-			let pluginRTCRtpTransceiver = self.updateTransceivers(rtcRtpSender: rtcRtpSender)
-			self.updateTransceiverId(pluginRTCRtpTransceiver!, pluginRTCRtpTransceiverId, pluginRTCRtpReceiverId, pluginRTCRtpSenderId)
-			pluginRTCRtpSender = pluginRTCRtpTransceiver!.pluginRTCRtpSender
+			let rtcRtpSender: RTCRtpSender? = self.rtcPeerConnection.add(rtcMediaStreamTrack, streamIds: streamIds)
+			if let rtcRtpSender = rtcRtpSender {
+				let pluginRTCRtpTransceiver = self.updateTransceivers(rtcRtpSender: rtcRtpSender)
+				self.updateTransceiverId(pluginRTCRtpTransceiver!, pluginRTCRtpTransceiverId, pluginRTCRtpReceiverId, pluginRTCRtpSenderId)
+				pluginRTCRtpSender = pluginRTCRtpTransceiver!.pluginRTCRtpSender
+			} else {
+				NSLog("PluginRTCPeerConnection#addTrack() | RTCPeerConnection#add() failed")
+			}
 		}
 
 		return pluginRTCRtpSender;
