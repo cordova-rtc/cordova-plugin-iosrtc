@@ -10,7 +10,6 @@ var // Dictionary of MediaStreamRenderers.
 	// - key: MediaStream blobId.
 	// - value: MediaStream.
 	mediaStreams = {},
-
 	/**
 	 * Dependencies.
 	 */
@@ -34,9 +33,8 @@ var // Dictionary of MediaStreamRenderers.
  */
 module.exports = {
 	// Expose WebRTC classes and functions.
-	getUserMedia:          getUserMedia,
-	getDisplayMedia:       getDisplayMedia,
 	getUserMedia: getUserMedia,
+	getDisplayMedia: getDisplayMedia,
 	enumerateDevices: enumerateDevices,
 	getMediaDevices: enumerateDevices, // TMP
 	RTCPeerConnection: RTCPeerConnection,
@@ -194,8 +192,8 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 		restoreCallbacksSupport();
 	}
 
-	navigator.getDisplayMedia				= getDisplayMedia;
-	navigator.mediaDevices.getDisplayMedia	= getDisplayMedia;
+	navigator.getDisplayMedia = getDisplayMedia;
+	navigator.mediaDevices.getDisplayMedia = getDisplayMedia;
 	navigator.getUserMedia = getUserMedia;
 	navigator.webkitGetUserMedia = getUserMedia;
 

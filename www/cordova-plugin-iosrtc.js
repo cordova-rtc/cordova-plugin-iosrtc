@@ -3302,19 +3302,16 @@ function getMediaDeviceInfos(devices) {
  */
 module.exports = getDisplayMedia;
 
-
 /**
  * Dependencies.
  */
-var
-	debug = _dereq_('debug')('iosrtc:getDisplayMedia'),
+var debug = _dereq_('debug')('iosrtc:getDisplayMedia'),
 	debugerror = _dereq_('debug')('iosrtc:ERROR:getDisplayMedia'),
 	exec = _dereq_('cordova/exec'),
 	MediaStream = _dereq_('./MediaStream'),
 	Errors = _dereq_('./Errors');
 
 function getDisplayMedia(constraints) {
-
 	// Detect callback usage to assist 5.0.1 to 5.0.2 migration
 	// TODO remove on 6.0.0
 	Errors.detectDeprecatedCallbaksUsage('cordova.plugins.iosrtc.getDisplayMedia', arguments);
@@ -3325,10 +3322,14 @@ function getDisplayMedia(constraints) {
 
 	if (
 		typeof constraints !== 'object' ||
-			(!constraints.hasOwnProperty('audio') && !constraints.hasOwnProperty('video'))
+		(!constraints.hasOwnProperty('audio') && !constraints.hasOwnProperty('video'))
 	) {
 		return new Promise(function (resolve, reject) {
-			reject(new Errors.MediaStreamError('constraints must be an object with at least "audio" or "video" keys'));
+			reject(
+				new Errors.MediaStreamError(
+					'constraints must be an object with at least "audio" or "video" keys'
+				)
+			);
 		});
 	}
 
@@ -3351,6 +3352,7 @@ function getDisplayMedia(constraints) {
 		exec(onResultOK, onResultError, 'iosrtcPlugin', 'getDisplayMedia', [newConstraints]);
 	});
 }
+
 },{"./Errors":1,"./MediaStream":5,"cordova/exec":undefined,"debug":24}],21:[function(_dereq_,module,exports){
 /**
  * Expose the getUserMedia function.
@@ -3826,7 +3828,6 @@ var // Dictionary of MediaStreamRenderers.
 	// - key: MediaStream blobId.
 	// - value: MediaStream.
 	mediaStreams = {},
-
 	/**
 	 * Dependencies.
 	 */
@@ -3850,9 +3851,8 @@ var // Dictionary of MediaStreamRenderers.
  */
 module.exports = {
 	// Expose WebRTC classes and functions.
-	getUserMedia:          getUserMedia,
-	getDisplayMedia:       getDisplayMedia,
 	getUserMedia: getUserMedia,
+	getDisplayMedia: getDisplayMedia,
 	enumerateDevices: enumerateDevices,
 	getMediaDevices: enumerateDevices, // TMP
 	RTCPeerConnection: RTCPeerConnection,
@@ -4010,8 +4010,8 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 		restoreCallbacksSupport();
 	}
 
-	navigator.getDisplayMedia				= getDisplayMedia;
-	navigator.mediaDevices.getDisplayMedia	= getDisplayMedia;
+	navigator.getDisplayMedia = getDisplayMedia;
+	navigator.mediaDevices.getDisplayMedia = getDisplayMedia;
 	navigator.getUserMedia = getUserMedia;
 	navigator.webkitGetUserMedia = getUserMedia;
 
