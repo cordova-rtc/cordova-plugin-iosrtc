@@ -1088,7 +1088,6 @@ class iosrtcPlugin : CDVPlugin {
 			if audioRequested == true {
 				switch AVCaptureDevice.authorizationStatus(for: AVMediaType.audio) {
 				case AVAuthorizationStatus.notDetermined:
-				case AVAuthorizationStatus.notDetermined:
 					NSLog("PluginGetUserMedia#call() | video authorization: not determined")
 				case AVAuthorizationStatus.restricted:
 					NSLog("PluginGetUserMedia#call() | video authorization: restricted")
