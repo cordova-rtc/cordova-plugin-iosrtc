@@ -10,15 +10,13 @@ module.exports = MediaStream;
 /**
  * Dependencies.
  */
-var
-	debug = require('debug')('iosrtc:MediaStream'),
+var debug = require('debug')('iosrtc:MediaStream'),
 	exec = require('cordova/exec'),
 	EventTarget = require('./EventTarget'),
-	MediaStreamTrack = require('./MediaStreamTrack'),
-
-/**
- * Local variables.
- */
+	{ MediaStreamTrack } = require('./MediaStreamTrack'),
+	/**
+	 * Local variables.
+	 */
 
 	// Dictionary of MediaStreams (provided via getMediaStreams() class method).
 	// - key: MediaStream blobId.
@@ -28,7 +26,7 @@ var
 // TODO longer UUID like native call
 // - "4021904575-2849079001-3048689102-1644344044-4021904575-2849079001-3048689102-1644344044"
 function newMediaStreamId() {
-   return window.crypto.getRandomValues(new Uint32Array(4)).join('-');
+	return window.crypto.getRandomValues(new Uint32Array(4)).join('-');
 }
 
 // Save original MediaStream
@@ -46,9 +44,10 @@ function MediaStream(arg, id) {
 	// new MediaStream(originalMediaStream) // stream
 	// new MediaStream(originalMediaStreamTrack[]) // tracks
 	if (
-		!(arg instanceof window.Blob) &&
-			(arg instanceof originalMediaStream && typeof arg.getBlobId === 'undefined') ||
-				(Array.isArray(arg) && arg[0] instanceof originalMediaStreamTrack)
+		(!(arg instanceof window.Blob) &&
+			arg instanceof originalMediaStream &&
+			typeof arg.getBlobId === 'undefined') ||
+		(Array.isArray(arg) && arg[0] instanceof originalMediaStreamTrack)
 	) {
 		return new originalMediaStream(arg);
 	}
@@ -63,10 +62,9 @@ function MediaStream(arg, id) {
 	// Extend returned MediaTream with custom MediaStream
 	var stream;
 	if (originalMediaStream !== window.Blob) {
-		stream = new (Function.prototype.bind.apply(originalMediaStream.bind(this), [])); // jshint ignore:line
-
-	// Fallback on Blob if originalMediaStream is not a MediaStream and Emulate EventTarget
+		stream = new (Function.prototype.bind.apply(originalMediaStream.bind(this), []))();
 	} else {
+		// Fallback on Blob if originalMediaStream is not a MediaStream and Emulate EventTarget
 		stream = new Blob([blobId], {
 			type: 'stream'
 		});
@@ -92,6 +90,8 @@ function MediaStream(arg, id) {
 	// Public but internal attributes.
 	stream.connected = false;
 
+	stream._addedToConnection = false;
+
 	// Private attributes.
 	stream._audioTracks = {};
 	stream._videoTracks = {};
@@ -101,10 +101,7 @@ function MediaStream(arg, id) {
 	mediaStreams[stream._blobId] = stream;
 
 	// Convert arg to array of tracks if possible
-	if (
-		(arg instanceof MediaStream) ||
-			(arg instanceof MediaStream.originalMediaStream)
-	) {
+	if (arg instanceof MediaStream || arg instanceof MediaStream.originalMediaStream) {
 		arg = arg.getTracks();
 	}
 
@@ -113,7 +110,9 @@ function MediaStream(arg, id) {
 			stream.addTrack(track);
 		});
 	} else if (typeof arg !== 'undefined') {
-		throw new TypeError("Failed to construct 'MediaStream': No matching constructor signature.");
+		throw new TypeError(
+			"Failed to construct 'MediaStream': No matching constructor signature."
+		);
 	}
 
 	function onResultOK(data) {
@@ -140,10 +139,21 @@ MediaStream.prototype = Object.create(originalMediaStream.prototype, {
 		get: function () {
 			return this._id;
 		}
+	},
+	addedToConnection: {
+		get: function () {
+			return this._addedToConnection;
+		},
+		set: function (value) {
+			this._addedToConnection = value;
+		}
 	}
 });
 
-Object.defineProperties(MediaStream.prototype, Object.getOwnPropertyDescriptors(EventTarget.prototype));
+Object.defineProperties(
+	MediaStream.prototype,
+	Object.getOwnPropertyDescriptors(EventTarget.prototype)
+);
 
 MediaStream.prototype.constructor = MediaStream;
 
@@ -165,7 +175,8 @@ MediaStream.getMediaStreams = function () {
 MediaStream.create = function (dataFromEvent) {
 	debug('create() | [dataFromEvent:%o]', dataFromEvent);
 
-	var trackId, track,
+	var trackId,
+		track,
 		stream = new MediaStream([], dataFromEvent.id);
 
 	// We do not use addTrack to prevent false positive "ERROR: video track not added" and "ERROR: audio track not added"
@@ -213,7 +224,6 @@ MediaStream.prototype.getAudioTracks = function () {
 	return tracks;
 };
 
-
 MediaStream.prototype.getVideoTracks = function () {
 	debug('getVideoTracks()');
 
@@ -228,7 +238,6 @@ MediaStream.prototype.getVideoTracks = function () {
 
 	return tracks;
 };
-
 
 MediaStream.prototype.getTracks = function () {
 	debug('getTracks()');
@@ -250,7 +259,6 @@ MediaStream.prototype.getTracks = function () {
 
 	return tracks;
 };
-
 
 MediaStream.prototype.getTrackById = function (id) {
 	debug('getTrackById()');
@@ -312,10 +320,13 @@ MediaStream.prototype.removeTrack = function (track) {
 	checkActive.call(this);
 };
 
-
 MediaStream.prototype.clone = function () {
-	debug('clone()');
-	return new MediaStream(this);
+	var newStream = MediaStream();
+	this.getTracks().forEach(function (track) {
+		newStream.addTrack(track.clone());
+	});
+
+	return newStream;
 };
 
 // Backwards compatible API.
@@ -337,14 +348,11 @@ MediaStream.prototype.stop = function () {
 	}
 };
 
-
 // TODO: API methods and events.
-
 
 /**
  * Private API.
  */
-
 
 MediaStream.prototype.emitConnected = function () {
 	debug('emitConnected()');
@@ -356,13 +364,16 @@ MediaStream.prototype.emitConnected = function () {
 	}
 	this.connected = true;
 
-	setTimeout(function (self) {
-		var event = new Event('connected');
-		Object.defineProperty(event, 'target', {value: self, enumerable: true});
-		self.dispatchEvent(event);
-	}, 0, self);
+	setTimeout(
+		function (self) {
+			var event = new Event('connected');
+			Object.defineProperty(event, 'target', { value: self, enumerable: true });
+			self.dispatchEvent(event);
+		},
+		0,
+		self
+	);
 };
-
 
 function addListenerForTrackEnded(track) {
 	var self = this;
@@ -378,7 +389,6 @@ function addListenerForTrackEnded(track) {
 	});
 }
 
-
 function checkActive() {
 	// A MediaStream object is said to be active when it has at least one MediaStreamTrack
 	// that has not ended. A MediaStream that does not have any tracks or only has tracks
@@ -390,8 +400,15 @@ function checkActive() {
 	if (!this.active) {
 		return;
 	}
+	// Fixes Twilio fails to read a local video if the stream is released.
+	if (this._addedToConnection) {
+		return;
+	}
 
-	if (Object.keys(this._audioTracks).length === 0 && Object.keys(this._videoTracks).length === 0) {
+	if (
+		Object.keys(this._audioTracks).length === 0 &&
+		Object.keys(this._videoTracks).length === 0
+	) {
 		debug('no tracks, releasing MediaStream');
 
 		release();
@@ -414,10 +431,10 @@ function checkActive() {
 		}
 	}
 
-	debug('all tracks are ended, releasing MediaStream');
 	release();
 
 	function release() {
+		debug('all tracks are ended, releasing MediaStream %s', self.id);
 		self._active = false;
 		self.dispatchEvent(new Event('inactive'));
 
@@ -428,7 +445,6 @@ function checkActive() {
 	}
 }
 
-
 function onEvent(data) {
 	var type = data.type,
 		event,
@@ -438,14 +454,22 @@ function onEvent(data) {
 
 	switch (type) {
 		case 'addtrack':
-			track = new MediaStreamTrack(data.track);
-
-			if (track.kind === 'audio') {
-				this._audioTracks[track.id] = track;
-			} else if (track.kind === 'video') {
-				this._videoTracks[track.id] = track;
+			// check if a track already exists before initializing a new
+			// track and calling setListener again.
+			if (data.track.kind === 'audio') {
+				track = this._audioTracks[data.track.id];
+			} else if (data.track.kind === 'video') {
+				track = this._videoTracks[data.track.id];
 			}
-			addListenerForTrackEnded.call(this, track);
+			if (!track) {
+				track = new MediaStreamTrack(data.track);
+				if (track.kind === 'audio') {
+					this._audioTracks[track.id] = track;
+				} else if (track.kind === 'video') {
+					this._videoTracks[track.id] = track;
+				}
+				addListenerForTrackEnded.call(this, track);
+			}
 
 			event = new Event('addtrack');
 			event.track = track;
@@ -466,7 +490,9 @@ function onEvent(data) {
 			}
 
 			if (!track) {
-				throw new Error('"removetrack" event fired on MediaStream for a non existing MediaStreamTrack');
+				throw new Error(
+					'"removetrack" event fired on MediaStream for a non existing MediaStreamTrack'
+				);
 			}
 
 			event = new Event('removetrack');

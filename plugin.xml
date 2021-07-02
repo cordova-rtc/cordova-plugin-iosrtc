@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
 		id="cordova-plugin-iosrtc"
-		version="6.0.14">
+		version="8.0.0">
 
 	<name>iosrtc</name>
 	<description>Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs</description>
@@ -33,6 +33,10 @@
 
 		<config-file target="*-Info.plist" parent="ManualInitAudioDevice">
 			<string>$MANUAL_INIT_AUDIO_DEVICE</string>
+		</config-file>
+
+		<config-file target="*-Info.plist" parent="UseManualLayoutRenderer">
+			<true/>
 		</config-file>
 
 		<!-- Permission notes -->
@@ -73,6 +77,12 @@
 		<source-file src="src/PluginMediaStreamRenderer.swift" />
 		<source-file src="src/PluginRTCAudioController.swift" />
 		<source-file src="src/PluginRTCVideoCaptureController.swift" />
+		<source-file src="src/PluginRTCRtpTransceiver.swift" />
+		<source-file src="src/PluginRTCRtpReceiver.swift" />
+		<source-file src="src/PluginRTCRtpSender.swift" />
+		<source-file src="src/PluginRTCRtpParameters.swift" />
+		<source-file src="src/PluginRTCRtpCodecParameters.swift" />
+		<source-file src="src/PluginRTCRtpEncodingParameters.swift" />
 
 		<!-- iOS shared dependencies -->
 		<framework src="AVFoundation.framework" />
@@ -93,7 +103,7 @@
 		<framework src="VideoToolbox.framework" />
 
 		<!-- WebRTC library -->
-		<framework src="lib/WebRTC.framework" custom="true" embed="true" />
+		<framework src="lib/WebRTC.xcframework" custom="true" embed="true" />
 	</platform>
 
 </plugin>

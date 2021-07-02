@@ -22,18 +22,19 @@ public func objc_getx<TargetObject: AnyObject, AssociatedObject: AnyObject>
 
 /* Expose videoCaptureController on RTCMediaStreamTrack */
 extension RTCMediaStreamTrack {
-	
+
 	class PropClass {
 		var videoCaptureController: PluginRTCVideoCaptureController?
+		let capabilities = NSMutableDictionary()
 	}
-	
+
 	var _propClass : PropClass {
 		get {
 			let key: UnsafeRawPointer! = UnsafeRawPointer.init(bitPattern:self.hashValue)
 			return objc_getx(object: PropClass(), associatedTo: self, withConstPtrKey: key)
 		}
 	}
-	
+
 	var videoCaptureController: PluginRTCVideoCaptureController? {
 		get {
 			return _propClass.videoCaptureController
@@ -42,33 +43,39 @@ extension RTCMediaStreamTrack {
 			_propClass.videoCaptureController = newValue
 		}
 	}
+
+	var capabilities: NSMutableDictionary {
+		get {
+			return _propClass.capabilities
+		}
+	}
 }
 
 class PluginRTCVideoCaptureController : NSObject {
-	
+
 	var isCapturing: Bool = false;
-	
+
 	func startCapture(completionHandler: ((Error?) -> Void)? = nil) -> Bool {
 		return isCapturing;
 	}
-	
+
 	func stopCapture() {
-		
+
 	}
 }
 
 class PluginRTCScreenCaptureController : PluginRTCVideoCaptureController {
-	
+
 	var capturer: RTCVideoCapturer
 	var source: RTCVideoSource
 	var recorder: RPScreenRecorder
-	
+
 	init(capturer: RTCVideoCapturer, recorder: RPScreenRecorder, source: RTCVideoSource) {
 		self.capturer = capturer
 		self.recorder = recorder;
 		self.source = source;
 	}
-	
+
 	override func startCapture(completionHandler: ((Error?) -> Void)? = nil) -> Bool {
 
 		// Stop previous capture in case of setConstraints, followed by startCapture
@@ -76,7 +83,7 @@ class PluginRTCScreenCaptureController : PluginRTCVideoCaptureController {
 		if (isCapturing) {
 			stopCapture();
 		}
-		
+
 		if #available(iOS 11.0, *) {
 			recorder.isMicrophoneEnabled = false
 			recorder.startCapture(handler: {(sampleBuffer, bufferType, error) in
@@ -106,7 +113,7 @@ class PluginRTCScreenCaptureController : PluginRTCVideoCaptureController {
 
 		return isCapturing;
 	}
-	
+
 	override func stopCapture() {
 		// TODO: stopCaptureWithCompletionHandler with DispatchSemaphore
 		if (isCapturing) {
@@ -115,28 +122,28 @@ class PluginRTCScreenCaptureController : PluginRTCVideoCaptureController {
 					// TODO debug error
 				}
 				isCapturing = false
-				
+
 				NSLog("PluginRTCScreenCaptureController#stopCapture Capture stopped");
 			}
 		}
 	}
-	
+
 	func handleSourceBuffer(source: RTCVideoSource, sampleBuffer: CMSampleBuffer, sampleType: RPSampleBufferType) {
 		if (CMSampleBufferGetNumSamples(sampleBuffer) != 1 || !CMSampleBufferIsValid(sampleBuffer) ||
 			!CMSampleBufferDataIsReady(sampleBuffer)) {
 			return;
 		}
-		
+
 		let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
 		if (pixelBuffer == nil) {
 			return;
 		}
-		
+
 		let width = CVPixelBufferGetWidth(pixelBuffer!);
 		let height = CVPixelBufferGetHeight(pixelBuffer!);
-		
+
 		source.adaptOutputFormat(toWidth: Int32(width/2), height: Int32(height/2), fps: 8)
-		
+
 		let rtcPixelBuffer = RTCCVPixelBuffer(pixelBuffer: pixelBuffer!)
 		let timeStampNs =
 			CMTimeGetSeconds(CMSampleBufferGetPresentationTimeStamp(sampleBuffer)) * Float64(NSEC_PER_SEC)
@@ -146,15 +153,15 @@ class PluginRTCScreenCaptureController : PluginRTCVideoCaptureController {
 }
 
 class PluginRTCCameraCaptureController : PluginRTCVideoCaptureController {
-	
+
 	private let DEFAULT_HEIGHT : Int32 = 480
 	private let DEFAULT_WIDTH : Int32 = 640
-	
+
 	private let DEFAULT_FPS : Int = 15
 	private let DEFAULT_ASPECT_RATIO : Float32 = 4/3
 	private let FACING_MODE_USER : String = "user";
 	private let FACING_MODE_ENV : String = "environment";
-	
+
 	var capturer: RTCCameraVideoCapturer
 	
 	// Default to the front camera.

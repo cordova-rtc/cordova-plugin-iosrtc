@@ -29,7 +29,7 @@ matrix:
     - language: node_js
       env: CORDOVA_PLATFORM=browser
       node_js:
-        - "8"
+        - "12"
       cache:
         directories:
           - node_modules
@@ -97,10 +97,6 @@ matrix:
       after_script:
         # Test ios_arch
         - "cordova platform remove $CORDOVA_PLATFORM --verbose"
-        - "node plugins/cordova-plugin-iosrtc/extra/ios_arch.js --extract"
-        - "node plugins/cordova-plugin-iosrtc/extra/ios_arch.js --device"
-        - "node plugins/cordova-plugin-iosrtc/extra/ios_arch.js --list"
-        - "node plugins/cordova-plugin-iosrtc/extra/ios_arch.js --clean"
         - "cordova platform add $CORDOVA_PLATFORM@latest --verbose"
         #- "cordova build $CORDOVA_PLATFORM --verbose --device"
 script:
@@ -108,7 +104,8 @@ script:
   - export BRANCH=$(if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then echo $TRAVIS_BRANCH; else echo $TRAVIS_PULL_REQUEST_BRANCH; fi)
   - export REPO_SLUG=$(if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then echo $TRAVIS_REPO_SLUG; else echo $TRAVIS_PULL_REQUEST_SLUG; fi)
   # Lint and Build plugin
-  - "gulp"
+  - "npm run lint"
+  - "gulp browserify"
   # Test Plugin platform build with ionic
   - "ionic start myApp blank; cd myApp;"
   - "ionic cordova platform add $CORDOVA_PLATFORM@latest --verbose"

@@ -1,5 +1,61 @@
+#### Version 8.0.0
+* Implement RTCPeerConnection.addTransceiver #589 via @agelito
+* Update to WebRTC.framework M87
+* Update to WebRTC.framework M84
+
+#### Version 7.0.0
+* Update to WebRTC.framework M79
+* Update to WebRTC.framework M75
+
+#### Version 6.0.21
+* fix Canvas drawImage memory leak fix #681
+* fix Warning [LayoutConstraints] Unable to simultaneously satisfy constraints.
+
+#### Version 6.0.20
+* fix Remove extmap-allow-mixed sdp header on RTCPeerConnection.prototype.setRemoteDescription to handle chrome 89
+
+#### Version 6.0.19
+* fix MediaStreamRenderer doesn't call PluginMediaStreamTrack.unregisterRender = stuck reference. #649
+* fix ios not build after cordova-plugin-iosrtc #642
+
+#### Version 6.0.18
+* fix: update ios_arch.js to generate WebRTC.xcframework, Include WebRTC.xcframework instead of WebRTC.framework
+* fix: ignore empty IceCandidate, fix RTCPeerConnection_addIceCandidate pluginRTCPeerConnection argument is NIL
+* fix: allow registerGlobals to be called multiple time without error: Attempting to change value of a readonly property.
+
+#### Version 6.0.17
+* fix: fix possible duplicate pluginMediaStream and pluginMediaTrack causing no video
+* fix: fix plugin media stream renderer save leak #609
+* fix: fix navigator.mediaDevices.GetUserMedia webrtc-adapter causing overide of navigator.mediaDevices on ios 14.3 #618
+* fix: fix gUM crash with invalid audio deviceId #630
+* fix: fix event dispatch in replace track in rtcrtpsender #619
+* fix: fix MediaStreamTrack: added getCapabilities().deviceId support for cam device media streams #612
+* fix: fix iosrtcPlugin#dump()
+* fix: Implement MediaStreamTrack.getConstraints|applyConstraints SHAM
+* fix: fix iOS 14.3 getUserMedia fails #618
+
+#### Version 6.0.16
+* fix: correct canvas drawImage SHIM for VideoElement
+* fix: ensure proper camera orientation for first launch
+* fix: fix hook possible Cannot read property '1' of null at getProjectName #597
+* fix: fix possible error on icecandidate event on RTCPeerConnection
+* fix: fix RTCIceCandidate typo
+* fix: fix PluginMediaStreamTrack.eventListener possible Fatal error #602
+* fix: fix MediaStreamTrack lifecycle, clone and make GetStats logs silent. #605 via @samgabriel
+* fix: remove calling checkActive for local streams connected to PeerConnection #607
+* fix: lint codestyle fixed #608 via @RSATom
+* fix: fix fatal error Unexpectedly found nil while unwrapping an Optional value: file PluginMediaStreamTrack.swift, line 123
+* feat: use background-color from video element css #586 via @calebboyd
+* feat: prettier for JS styling #598 via @dgreif
+
+#### Version 6.0.15
+* fix: refactor pluginMediaTracks lifecyle in PluginRTCPeerConnection
+* feat: add canvas drawImage SHIM for VideoElement
+* feat: add (MediaStream|MediaStreamTrack).prototype.clone
+
 #### Version 6.0.14
 * Move dist/cordova-plugin-iosrtc.js to www/cordova-plugin-iosrtc.js to match other cordova plugins practice.
+* fix: Use dispatchAsyncOnType:RTCDispatcherTypeMain instead of dispatchAsyncOnType:RTCDispatcherTypeCaptureSession to fix ios 14.0.1 crash
 * fix: eventListenerForAddStream causing black video on remote stream when using addtrack #576
 * fix: undefined references #563
 * fix: use video view for correct screencap framing #570
@@ -20,8 +76,8 @@
 * Fix onaddtrack wihout stream crash during call initializing #532
 * Fix Video Element Redundancy on Refresh / Re-Navigation on same page #535
 * Fix Bridging header is getting added into the Widget/Extension as well causing build process to fail #504 via #513
-* Fix iceRestart constraint doesnt work #530 ([PR #531](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/531) by @andrewvmail) 
-* Add Plugin option MANUAL_INIT_AUDIO_DEVICE default to false  ([PR #503](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/503) by @andrewvmail) 
+* Fix iceRestart constraint doesnt work #530 ([PR #531](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/531) by @andrewvmail)
+* Add Plugin option MANUAL_INIT_AUDIO_DEVICE default to false  ([PR #503](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/503) by @andrewvmail)
 * Fix getUserMedia compatiblity with Twilio Video #497
 * Fix attach stream to ontrack events only when available.
 * Fix issue with pluginMediaStream creation causing black screen due duplicate rtcMediaStream.streamId
@@ -33,7 +89,7 @@
 * Add SHAM for MediaStreamTrack.getSettings|getCapabilities
 * Add Throw Error Not implemented for MediaStreamTrack.getConstraints|applyConstraints
 * Fix RTCPeerConnection.prototype.getStats.length to match features detection #511
-* Fix Error: Callbacks are not supported by "RTCPeerConnection.prototype.getStats" anymore, use Promise instead. #510 
+* Fix Error: Callbacks are not supported by "RTCPeerConnection.prototype.getStats" anymore, use Promise instead. #510
 * Fix Regex in iosrtc-swift-support.js returns wrong value #502
 * Fix Backgroundcolor is now "clear" instead of "black" #514
 * Fix gulp-util is deprecated - replace it #428
@@ -69,7 +125,7 @@
 
 #### Version 6.0.6
 * Update ios_arch.js script link ([PR #457](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/457) by @onerinas)
-* Fix removeStream and add real Ids with UUID suffix to PluginMediaStream and PluginMediaStreamTrack ([PR #460](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/460)) 
+* Fix removeStream and add real Ids with UUID suffix to PluginMediaStream and PluginMediaStreamTrack ([PR #460](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/460))
 * handle webrtc-adapter multiple video.optional constraints values add support for maxHeight and maxWidth
 * Update README with sdpSemantics, bundlePolicy, rtcpMuxPolicy sample
 
@@ -97,12 +153,12 @@
 #### Version 6.0.0
 * Use WebRTC M69
 * Use WebRTC.framework
-* implement PluginRTCVideoCaptureController with MediaTrackConstraintSet  
+* implement PluginRTCVideoCaptureController with MediaTrackConstraintSet
 * Replace the libwebrtc static lib with the dynamic library from the WebRTC.framework build process using M69 ([PR #399](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/399) by @hthetiot)
 * Be able to use minAspectRatio/maxAspectRatio #287
 * webrtc/adapter breaks deviceId constraint #282
 * Support for facingMode as a video constraint #315
-* Capturing a static image from the local MediaStream #116 
+* Capturing a static image from the local MediaStream #116
 * Added Speakerphone funcionality #379
 * Restore PluginRTCAudioController including selectAudioOutput and move EnumerateDevice. setPreferredInput| saveAudioDevice into PluginRTCAudioController
 * Fix closing and re-opening local stream several times #247
@@ -229,7 +285,7 @@
 #### Version 3.0.1
 
 * Fix positioning video elements using `z-index` and allow pure HTML on top of `<video>` elements ([PR #179](https://github.com/cordova-rtc/cordova-plugin-iosrtc/issues/179) by @saghul and @1N50MN14).
- 
+
 * Improve `ios-websocket-hack.js` ([PR #138](https://github.com/cordova-rtc/cordova-plugin-iosrtc/issues/138) by @apparition47).
 
 

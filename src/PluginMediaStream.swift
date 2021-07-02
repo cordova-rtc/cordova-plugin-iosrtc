@@ -8,22 +8,26 @@ class PluginMediaStream : NSObject {
 	var videoTracks: [String : PluginMediaStreamTrack] = [:]
 	var eventListener: ((_ data: NSDictionary) -> Void)?
 	var eventListenerForAddTrack: ((_ pluginMediaStreamTrack: PluginMediaStreamTrack) -> Void)?
-	var eventListenerForRemoveTrack: ((_ id: String) -> Void)?
+	var eventListenerForRemoveTrack: ((_ pluginMediaStreamTrack: PluginMediaStreamTrack) -> Void)?
 
 	/**
 	 * Constructor for pc.onaddstream event and getUserMedia().
 	 */
-	init(rtcMediaStream: RTCMediaStream) {
+	init(rtcMediaStream: RTCMediaStream, streamId: String? = nil) {
 		NSLog("PluginMediaStream#init()")
 
-		self.rtcMediaStream = rtcMediaStream
+		self.rtcMediaStream = rtcMediaStream;
 
-		/// Handle possible duplicate remote streamId with janus or short duplicate name
-		// See: https://github.com/cordova-rtc/cordova-plugin-iosrtc/issues/432
-		if (rtcMediaStream.streamId.count < 36) {
-			self.id = rtcMediaStream.streamId + "_" + UUID().uuidString;
+		if (streamId == nil) {
+			// Handle possible duplicate remote trackId with  janus or short duplicate name
+			// See: https://github.com/cordova-rtc/cordova-plugin-iosrtc/issues/432
+			if (rtcMediaStream.streamId.count < 36) {
+				self.id = rtcMediaStream.streamId + "_" + UUID().uuidString;
+			} else {
+				self.id = rtcMediaStream.streamId;
+			}
 		} else {
-			self.id = rtcMediaStream.streamId;
+			self.id = streamId!;
 		}
 
 		for track: RTCMediaStreamTrack in (self.rtcMediaStream.audioTracks as Array<RTCMediaStreamTrack>) {
@@ -43,20 +47,26 @@ class PluginMediaStream : NSObject {
 
 	deinit {
 		NSLog("PluginMediaStream#deinit()")
-		for (id, _) in audioTracks {
-			if(self.eventListenerForRemoveTrack != nil) {
-				self.eventListenerForRemoveTrack!(id)
-			}
-		}
-		for (id, _) in videoTracks {
-			if(self.eventListenerForRemoveTrack != nil) {
-				self.eventListenerForRemoveTrack!(id)
-			}
-		}
+		stop();
 	}
 
 	func run() {
 		NSLog("PluginMediaStream#run()")
+	}
+
+	func stop() {
+		NSLog("PluginMediaStream#stop()")
+
+		for (_, track) in audioTracks {
+			if(self.eventListenerForRemoveTrack != nil) {
+				self.eventListenerForRemoveTrack!(track)
+			}
+		}
+		for (_, track) in videoTracks {
+			if(self.eventListenerForRemoveTrack != nil) {
+				self.eventListenerForRemoveTrack!(track)
+			}
+		}
 	}
 
 	func getJSON() -> NSDictionary {
@@ -80,13 +90,23 @@ class PluginMediaStream : NSObject {
 	func setListener(
 		_ eventListener: @escaping (_ data: NSDictionary) -> Void,
 		eventListenerForAddTrack: ((_ pluginMediaStreamTrack: PluginMediaStreamTrack) -> Void)?,
-		eventListenerForRemoveTrack: ((_ id: String) -> Void)?
+		eventListenerForRemoveTrack: ((_ pluginMediaStreamTrack: PluginMediaStreamTrack) -> Void)?
 	) {
 		NSLog("PluginMediaStream#setListener()")
 
 		self.eventListener = eventListener
 		self.eventListenerForAddTrack = eventListenerForAddTrack
 		self.eventListenerForRemoveTrack = eventListenerForRemoveTrack
+	}
+
+	func hasTrack(_ pluginMediaStreamTrack: PluginMediaStreamTrack) -> Bool {
+		if pluginMediaStreamTrack.kind == "audio" {
+			return self.audioTracks[pluginMediaStreamTrack.id] != nil;
+		} else if pluginMediaStreamTrack.kind == "video" {
+			return self.videoTracks[pluginMediaStreamTrack.id] != nil;
+		} else {
+			return false
+		}
 	}
 
 	func addTrack(_ pluginMediaStreamTrack: PluginMediaStreamTrack) -> Bool {
@@ -155,7 +175,7 @@ class PluginMediaStream : NSObject {
 		}
 
 		if self.eventListener != nil {
-			self.eventListenerForRemoveTrack!(track.id)
+			self.eventListenerForRemoveTrack!(track)
 
 			self.eventListener!([
 				"type": "removetrack",
