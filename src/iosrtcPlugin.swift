@@ -1096,6 +1096,7 @@ class iosrtcPlugin : CDVPlugin {
 				case AVAuthorizationStatus.authorized:
 					NSLog("PluginGetUserMedia#call() | video authorization: authorized")
 					status = true
+				}
 			}
 
 			if (status) {
