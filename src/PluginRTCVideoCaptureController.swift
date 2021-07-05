@@ -55,6 +55,13 @@ class PluginRTCVideoCaptureController : NSObject {
 
 	var isCapturing: Bool = false;
 
+	// Default to the front camera.
+	var device: AVCaptureDevice?
+	var deviceFormat: AVCaptureDevice.Format?
+	var deviceFrameRate: Int?
+
+	var constraints: NSDictionary = [:]
+
 	func startCapture(completionHandler: ((Error?) -> Void)? = nil) -> Bool {
 		return isCapturing;
 	}
@@ -163,13 +170,6 @@ class PluginRTCCameraCaptureController : PluginRTCVideoCaptureController {
 	private let FACING_MODE_ENV : String = "environment";
 
 	var capturer: RTCCameraVideoCapturer
-	
-	// Default to the front camera.
-	var device: AVCaptureDevice?
-	var deviceFormat: AVCaptureDevice.Format?
-	var deviceFrameRate: Int?
-	
-	var constraints: NSDictionary = [:]
 	
 	init(capturer: RTCCameraVideoCapturer) {
 		self.capturer = capturer
