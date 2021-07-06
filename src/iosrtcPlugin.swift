@@ -1217,38 +1217,35 @@ class iosrtcPlugin : CDVPlugin {
 
 	@objc(RTCRequestPermission:) func RTCRequestPermission(_ command: CDVInvokedUrlCommand) {
 		DispatchQueue.main.async {
+			var status: Bool = false
 			let audioRequested: Bool = CBool(command.arguments[0] as! Bool)
 			let videoRequested: Bool = CBool(command.arguments[1] as! Bool)
-			var status: Bool = true
 
 			if videoRequested == true {
 				switch AVCaptureDevice.authorizationStatus(for: AVMediaType.video) {
 				case AVAuthorizationStatus.notDetermined:
 					NSLog("PluginGetUserMedia#call() | video authorization: not determined")
-				case AVAuthorizationStatus.authorized:
-					NSLog("PluginGetUserMedia#call() | video authorization: authorized")
-				case AVAuthorizationStatus.denied:
-
-					NSLog("PluginGetUserMedia#call() | video authorization: denied")
-					status = false
 				case AVAuthorizationStatus.restricted:
 					NSLog("PluginGetUserMedia#call() | video authorization: restricted")
-					status = false
+				case AVAuthorizationStatus.denied:
+					NSLog("PluginGetUserMedia#call() | video authorization: denied")
+				case AVAuthorizationStatus.authorized:
+					NSLog("PluginGetUserMedia#call() | video authorization: authorized")
+					status = true
 				}
 			}
 
 			if audioRequested == true {
 				switch AVCaptureDevice.authorizationStatus(for: AVMediaType.audio) {
 				case AVAuthorizationStatus.notDetermined:
-					NSLog("PluginGetUserMedia#call() | audio authorization: not determined")
-				case AVAuthorizationStatus.authorized:
-					NSLog("PluginGetUserMedia#call() | audio authorization: authorized")
-				case AVAuthorizationStatus.denied:
-					NSLog("PluginGetUserMedia#call() | audio authorization: denied")
-					status = false
+					NSLog("PluginGetUserMedia#call() | video authorization: not determined")
 				case AVAuthorizationStatus.restricted:
-					NSLog("PluginGetUserMedia#call() | audio authorization: restricted")
-					status = false
+					NSLog("PluginGetUserMedia#call() | video authorization: restricted")
+				case AVAuthorizationStatus.denied:
+					NSLog("PluginGetUserMedia#call() | video authorization: denied")
+				case AVAuthorizationStatus.authorized:
+					NSLog("PluginGetUserMedia#call() | video authorization: authorized")
+					status = true
 				}
 			}
 
