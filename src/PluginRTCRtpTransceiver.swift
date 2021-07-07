@@ -4,6 +4,8 @@ class PluginRTCRtpTransceiver : NSObject {
     // NOTE: ID used to reference this native transceiver from JS.
     var id: Int
     var rtcRtpTransceiver: RTCRtpTransceiver?
+	var pluginRTCRtpReceiver: PluginRTCRtpReceiver?
+	var pluginRTCRtpSender: PluginRTCRtpSender?
     
     init(_ rtcRtpTransceiver: RTCRtpTransceiver) {
         NSLog("PluginRTCRtpTransceiver#init(rtcRtpTransceiver)")
@@ -11,6 +13,8 @@ class PluginRTCRtpTransceiver : NSObject {
         // TODO: Using random ID could cause conflicts.
         self.id = Int.random(in: 0...10000)
         self.rtcRtpTransceiver = rtcRtpTransceiver
+		self.pluginRTCRtpSender = PluginRTCRtpSender(rtcRtpTransceiver.sender, 0)
+		self.pluginRTCRtpReceiver = PluginRTCRtpReceiver(rtcRtpTransceiver.receiver, 0)
         
         super.init()
     }
@@ -18,17 +22,27 @@ class PluginRTCRtpTransceiver : NSObject {
     init(
         rtcPeerConnection: RTCPeerConnection,
         mediaType: RTCRtpMediaType,
-        options: NSDictionary?
+        options: NSDictionary?,
+		transceiverId: Int,
+		senderId: Int,
+		receiverId: Int
     ) {
         NSLog("PluginRTCRtpTransceiver#init(mediaType)")
         
         let rtcRtpTransceiverInit = PluginRTCRtpTransceiver.initFromOptionsDictionary(options)
 
-        self.id = Int.random(in: 0...10000)
+		self.id = transceiverId != 0 ? transceiverId : Int.random(in: 0...10000)
         self.rtcRtpTransceiver = rtcPeerConnection.addTransceiver(of: mediaType, init: rtcRtpTransceiverInit)
 
         if self.rtcRtpTransceiver == nil {
 			NSLog("PluginRTCRtpTransceiver#init(mediaType) | rtcPeerConnection.addTransceiver() failed")
+		} else {
+			if self.rtcRtpTransceiver?.sender != nil {
+				self.pluginRTCRtpSender = PluginRTCRtpSender(self.rtcRtpTransceiver!.sender, senderId)
+			}
+			if self.rtcRtpTransceiver?.receiver != nil {
+				self.pluginRTCRtpReceiver = PluginRTCRtpReceiver(self.rtcRtpTransceiver!.receiver, receiverId)
+			}
 		}
         
         super.init()
@@ -37,19 +51,29 @@ class PluginRTCRtpTransceiver : NSObject {
     init(
         rtcPeerConnection: RTCPeerConnection, 
         mediaStreamTrack: RTCMediaStreamTrack, 
-        options: NSDictionary?
+        options: NSDictionary?,
+		transceiverId: Int,
+		senderId: Int,
+		receiverId: Int
     ) {
         NSLog("PluginRTCRtpTransceiver#init(mediaStreamTrack)")
         
         let rtcRtpTransceiverInit = PluginRTCRtpTransceiver.initFromOptionsDictionary(options)
 
-        self.id = Int.random(in: 0...10000)
+		self.id = transceiverId != 0 ? transceiverId : Int.random(in: 0...10000)
         self.rtcRtpTransceiver = rtcPeerConnection.addTransceiver(with: mediaStreamTrack, init: rtcRtpTransceiverInit)
 
         if self.rtcRtpTransceiver == nil {
 			NSLog("PluginRTCRtpTransceiver#init(mediaStream) | rtcPeerConnection.addTransceiver() failed")
+		} else {
+			if self.rtcRtpTransceiver?.sender != nil {
+				self.pluginRTCRtpSender = PluginRTCRtpSender(self.rtcRtpTransceiver!.sender, senderId)
+			}
+			if self.rtcRtpTransceiver?.receiver != nil {
+				self.pluginRTCRtpReceiver = PluginRTCRtpReceiver(self.rtcRtpTransceiver!.receiver, receiverId)
+			}
 		}
-        
+
         super.init()
     }
 
@@ -128,4 +152,19 @@ class PluginRTCRtpTransceiver : NSObject {
 
         return rtcRtpTransceiverInit
     }
+
+	func getJSON() -> NSDictionary {
+		var currentDirection = RTCRtpTransceiverDirection.inactive
+		self.rtcRtpTransceiver?.currentDirection(&currentDirection)
+
+		return [
+			"id": self.id,
+			"mid": self.rtcRtpTransceiver?.mid,
+			"stopped": self.rtcRtpTransceiver?.isStopped,
+			"direction": PluginRTCRtpTransceiver.directionToString(rtcRtpTransceiver!.direction),
+			"currentDirection": PluginRTCRtpTransceiver.directionToString(currentDirection),
+			"receiver": self.pluginRTCRtpReceiver?.getJSON(),
+			"sender": self.pluginRTCRtpSender?.getJSON()
+		]
+	}
 }

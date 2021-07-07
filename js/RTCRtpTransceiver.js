@@ -11,17 +11,23 @@ module.exports = { RTCRtpTransceiver, addTransceiverToPeerConnection };
  */
 var debugerror = require('debug')('iosrtc:ERROR:RTCRtpTransceiver'),
 	exec = require('cordova/exec'),
+	randomNumber = require('random-number').generator({ min: 10000, max: 99999, integer: true }),
 	EventTarget = require('./EventTarget');
 
 debugerror.log = console.warn.bind(console);
 
-function addTransceiverToPeerConnection(peerConnection, trackIdOrKind, init, receiverTrackId) {
+function addTransceiverToPeerConnection(peerConnection, trackIdOrKind, init, transceiver) {
 	return new Promise((resolve, reject) => {
 		exec(onResultOK, reject, 'iosrtcPlugin', 'RTCPeerConnection_addTransceiver', [
 			peerConnection.pcId,
 			trackIdOrKind,
 			init,
-			receiverTrackId
+			transceiver._id,
+			transceiver.sender ? transceiver.sender._id : 0,
+			transceiver.receiver ? transceiver.receiver._id : 0,
+			transceiver.receiver && transceiver.receiver.track
+				? transceiver.receiver.track.id
+				: null
 		]);
 
 		function onResultOK(data) {
@@ -35,7 +41,7 @@ function RTCRtpTransceiver(peerConnection, data) {
 
 	this.peerConnection = peerConnection;
 
-	this._id = data.id;
+	this._id = data.id || randomNumber();
 	this._receiver =
 		data.receiver instanceof RTCRtpReceiver
 			? data.receiver
@@ -132,8 +138,6 @@ RTCRtpTransceiver.prototype.stop = function () {
 };
 
 RTCRtpTransceiver.prototype.update = function (data) {
-	this._id = data.id;
-
 	if (data.direction) {
 		this._direction = data.direction;
 	}
