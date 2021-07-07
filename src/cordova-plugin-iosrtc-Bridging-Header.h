@@ -23,6 +23,7 @@
 #import <WebRTC/RTCVideoRenderer.h>
 #import <WebRTC/RTCVideoSource.h>
 #import <WebRTC/RTCVideoTrack.h>
+#import <WebRTC/RTCRtpReceiver.h>
 
 #import "PSWebSocket.h"
 #import "PSWebSocketServer.h"

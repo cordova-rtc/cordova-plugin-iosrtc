@@ -29,7 +29,7 @@ matrix:
     - language: node_js
       env: CORDOVA_PLATFORM=browser
       node_js:
-        - "8"
+        - "12"
       cache:
         directories:
           - node_modules

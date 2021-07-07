@@ -1,10 +1,18 @@
 #### Version 8.0.0
+* Implement RTCPeerConnection.addTransceiver #589 via @agelito
 * Update to WebRTC.framework M87
 * Update to WebRTC.framework M84
 
 #### Version 7.0.0
 * Update to WebRTC.framework M79
 * Update to WebRTC.framework M75
+
+#### Version 6.0.21
+* fix Canvas drawImage memory leak fix #681
+* fix Warning [LayoutConstraints] Unable to simultaneously satisfy constraints.
+
+#### Version 6.0.20
+* fix Remove extmap-allow-mixed sdp header on RTCPeerConnection.prototype.setRemoteDescription to handle chrome 89
 
 #### Version 6.0.19
 * fix MediaStreamRenderer doesn't call PluginMediaStreamTrack.unregisterRender = stuck reference. #649
@@ -44,7 +52,6 @@
 * fix: refactor pluginMediaTracks lifecyle in PluginRTCPeerConnection
 * feat: add canvas drawImage SHIM for VideoElement
 * feat: add (MediaStream|MediaStreamTrack).prototype.clone
->>>>>>> master
 
 #### Version 6.0.14
 * Move dist/cordova-plugin-iosrtc.js to www/cordova-plugin-iosrtc.js to match other cordova plugins practice.
