@@ -2953,7 +2953,7 @@ module.exports = RTCRtpSender;
  * Dependencies.
  */
 var exec = _dereq_('cordova/exec'),
-	MediaStreamTrack = _dereq_('./MediaStreamTrack'),
+	{ MediaStreamTrack } = _dereq_('./MediaStreamTrack'),
 	randomNumber = _dereq_('random-number').generator({ min: 10000, max: 99999, integer: true });
 
 function RTCRtpSender(pc, data) {
