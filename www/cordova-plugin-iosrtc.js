@@ -2192,9 +2192,12 @@ RTCPeerConnection.prototype.setRemoteDescription = function (desc) {
 	if (desc && desc.sdp && desc.sdp.indexOf('\na=extmap-allow-mixed') !== -1) {
 		desc = new RTCSessionDescription({
 			type: desc.type,
-			sdp: desc.sdp.split('\n').filter((line) => {
-				return line.trim() !== 'a=extmap-allow-mixed';
-			}).join('\n')
+			sdp: desc.sdp
+				.split('\n')
+				.filter((line) => {
+					return line.trim() !== 'a=extmap-allow-mixed';
+				})
+				.join('\n')
 		});
 	}
 
@@ -2365,10 +2368,7 @@ RTCPeerConnection.prototype.getSenders = function () {
 	}
 
 	return tracks.map(function (track) {
-		return new RTCRtpSender({
-			pc: self,
-			track: track
-		});
+		return new RTCRtpSender(self, { track });
 	});
 };
 
@@ -2395,9 +2395,10 @@ RTCPeerConnection.prototype.getTransceivers = function () {
 };
 
 RTCPeerConnection.prototype.addTrack = function (track, stream) {
-	var id;
+	var self = this,
+		id;
 
-	if (isClosed.call(this)) {
+	if (isClosed.call(self)) {
 		throw new Errors.InvalidStateError('peerconnection is closed');
 	}
 
@@ -2407,17 +2408,17 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 
 	// Fix webrtc-adapter bad SHIM on addStream
 	if (stream) {
-		this.addStream(stream);
+		self.addStream(stream);
 	}
 
-	for (id in this.localStreams) {
-		if (this.localStreams.hasOwnProperty(id)) {
+	for (id in self.localStreams) {
+		if (self.localStreams.hasOwnProperty(id)) {
 			// Target provided stream argument or first added stream to group track
 			if (!stream || (stream && stream.id === id)) {
-				stream = this.localStreams[id];
+				stream = self.localStreams[id];
 				stream.addTrack(track);
 				exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [
-					this.pcId,
+					self.pcId,
 					track.id,
 					id
 				]);
@@ -2428,14 +2429,12 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 
 	// No Stream matched add track without stream
 	if (!stream) {
-		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [this.pcId, track.id, null]);
+		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [self.pcId, track.id, null]);
 	}
 
-	this.localTracks[track.id] = track;
+	self.localTracks[track.id] = track;
 
-	return new RTCRtpSender({
-		track: track
-	});
+	return new RTCRtpSender(self, { track });
 };
 
 RTCPeerConnection.prototype.removeTrack = function (sender) {
@@ -2798,16 +2797,27 @@ function RTCRtpReceiver(data) {
  */
 module.exports = RTCRtpSender;
 
-function RTCRtpSender(data) {
-	data = data || {};
+/**
+ * Dependencies.
+ */
+var { MediaStreamTrack } = _dereq_('./MediaStreamTrack'),
+	randomNumber = _dereq_('random-number').generator({ min: 10000, max: 99999, integer: true });
 
-	this._pc = data.pc;
-	this.track = data.track;
+function RTCRtpSender(pc, data) {
+	data = data || {};
+	this._id = data.id || randomNumber();
+
+	this._pc = pc;
+	this.track = data.track ? pc.getOrCreateTrack(data.track) : null;
 	this.params = data.params || {};
 }
 
 RTCRtpSender.prototype.getParameters = function () {
 	return this.params;
+};
+
+RTCRtpSender.prototype.getStats = function () {
+	return this._pc.getStats(this.track);
 };
 
 RTCRtpSender.prototype.setParameters = function (params) {
@@ -2819,7 +2829,7 @@ RTCRtpSender.prototype.replaceTrack = function (withTrack) {
 	var self = this,
 		pc = self._pc;
 
-	return new Promise(function (resolve, reject) {
+	return new Promise((resolve, reject) => {
 		pc.removeTrack(self);
 		pc.addTrack(withTrack);
 		self.track = withTrack;
@@ -2840,7 +2850,25 @@ RTCRtpSender.prototype.replaceTrack = function (withTrack) {
 	});
 };
 
-},{}],16:[function(_dereq_,module,exports){
+RTCRtpSender.prototype.update = function ({ track, params }) {
+	var self = this;
+
+	if (!(track instanceof MediaStreamTrack) && track !== null) {
+		throw new Error(
+			'update() must be called with null or a valid MediaStreamTrack instance as argument'
+		);
+	}
+
+	if (track) {
+		this.replaceTrack(track);
+	} else {
+		self.track = null;
+	}
+
+	self.params = params;
+};
+
+},{"./MediaStreamTrack":7,"random-number":29}],16:[function(_dereq_,module,exports){
 /**
  * Expose the RTCRtpTransceiver class.
  */
@@ -3692,7 +3720,9 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 					}
 
 					// Create a new image from binary data
-					const imageDataBlob = convertDataURIToBlob('data:image/jpg;base64,' + base64Image);
+					const imageDataBlob = convertDataURIToBlob(
+						'data:image/jpg;base64,' + base64Image
+					);
 
 					// Create a new object URL object
 					imageElement = imageElement || new Image();

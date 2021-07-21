@@ -295,9 +295,12 @@ RTCPeerConnection.prototype.setRemoteDescription = function (desc) {
 	if (desc && desc.sdp && desc.sdp.indexOf('\na=extmap-allow-mixed') !== -1) {
 		desc = new RTCSessionDescription({
 			type: desc.type,
-			sdp: desc.sdp.split('\n').filter((line) => {
-				return line.trim() !== 'a=extmap-allow-mixed';
-			}).join('\n')
+			sdp: desc.sdp
+				.split('\n')
+				.filter((line) => {
+					return line.trim() !== 'a=extmap-allow-mixed';
+				})
+				.join('\n')
 		});
 	}
 
@@ -468,10 +471,7 @@ RTCPeerConnection.prototype.getSenders = function () {
 	}
 
 	return tracks.map(function (track) {
-		return new RTCRtpSender({
-			pc: self,
-			track: track
-		});
+		return new RTCRtpSender(self, { track });
 	});
 };
 
@@ -498,9 +498,10 @@ RTCPeerConnection.prototype.getTransceivers = function () {
 };
 
 RTCPeerConnection.prototype.addTrack = function (track, stream) {
-	var id;
+	var self = this,
+		id;
 
-	if (isClosed.call(this)) {
+	if (isClosed.call(self)) {
 		throw new Errors.InvalidStateError('peerconnection is closed');
 	}
 
@@ -510,17 +511,17 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 
 	// Fix webrtc-adapter bad SHIM on addStream
 	if (stream) {
-		this.addStream(stream);
+		self.addStream(stream);
 	}
 
-	for (id in this.localStreams) {
-		if (this.localStreams.hasOwnProperty(id)) {
+	for (id in self.localStreams) {
+		if (self.localStreams.hasOwnProperty(id)) {
 			// Target provided stream argument or first added stream to group track
 			if (!stream || (stream && stream.id === id)) {
-				stream = this.localStreams[id];
+				stream = self.localStreams[id];
 				stream.addTrack(track);
 				exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [
-					this.pcId,
+					self.pcId,
 					track.id,
 					id
 				]);
@@ -531,14 +532,12 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 
 	// No Stream matched add track without stream
 	if (!stream) {
-		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [this.pcId, track.id, null]);
+		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [self.pcId, track.id, null]);
 	}
 
-	this.localTracks[track.id] = track;
+	self.localTracks[track.id] = track;
 
-	return new RTCRtpSender({
-		track: track
-	});
+	return new RTCRtpSender(self, { track });
 };
 
 RTCPeerConnection.prototype.removeTrack = function (sender) {
