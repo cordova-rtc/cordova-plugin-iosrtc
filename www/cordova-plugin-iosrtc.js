@@ -2808,7 +2808,7 @@ function RTCRtpSender(pc, data) {
 	this._id = data.id || randomNumber();
 
 	this._pc = pc;
-	this.track = data.track ? pc.getOrCreateTrack(data.track) : null;
+	this.track = data.track || null;
 	this.params = data.params || {};
 }
 
