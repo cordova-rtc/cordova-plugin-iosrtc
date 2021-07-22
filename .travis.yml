@@ -68,10 +68,10 @@ matrix:
           - android-sdk-license-29
           - google-gdk-license-.+
       before_install:
-          - yes | sdkmanager "platforms;android-$ANDROID_API_LEVEL"
-          - yes | sdkmanager "build-tools;$ANDROID_BUILD_TOOLS_VERSION"
           - export LANG=en_US.UTF-8
           - touch $HOME/.android/repositories.cfg
+          - yes | sdkmanager "platforms;android-$ANDROID_API_LEVEL"
+          - yes | sdkmanager "build-tools;$ANDROID_BUILD_TOOLS_VERSION"
       before_cache:
         - "rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock"
         - "rm -fr $HOME/.gradle/caches/*/plugin-resolution/"
