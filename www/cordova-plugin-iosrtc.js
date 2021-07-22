@@ -2800,7 +2800,7 @@ module.exports = RTCRtpSender;
 /**
  * Dependencies.
  */
-var { MediaStreamTrack } = _dereq_('./MediaStreamTrack'),
+var MediaStreamTrack = _dereq_('./MediaStreamTrack'),
 	randomNumber = _dereq_('random-number').generator({ min: 10000, max: 99999, integer: true });
 
 function RTCRtpSender(pc, data) {
