@@ -413,7 +413,6 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		}
 
 		self.rtcPeerConnection.removeTrack(pluginRTCRtpSender.rtpSender)
-		self.pluginRTCRtpSenders.removeValue(forKey: pluginRTCRtpSender.id)
 	}
 
 	func addTransceiver(
