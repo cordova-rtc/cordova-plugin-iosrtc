@@ -273,7 +273,7 @@ RTCPeerConnection.prototype.setLocalDescription = function (desc) {
 
 			debug('setLocalDescription() | success');
 			// Update localDescription.
-			self._localDescription = new RTCSessionDescription(data);
+			self._localDescription = data.type === '' ? null : new RTCSessionDescription(data);
 			resolve();
 		}
 

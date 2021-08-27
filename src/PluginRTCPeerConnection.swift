@@ -176,9 +176,15 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 
 		self.onSetDescriptionSuccessCallback = { [unowned self] () -> Void in
 			NSLog("PluginRTCPeerConnection#setLocalDescription() | success callback")
+			var descType = ""
+			var descSDP = ""
+			if self.rtcPeerConnection.localDescription != nil {
+				descType = RTCSessionDescription.string(for: self.rtcPeerConnection.localDescription!.type)
+				descSDP = self.rtcPeerConnection.localDescription!.sdp
+			}
 			let data = [
-				"type": RTCSessionDescription.string(for: self.rtcPeerConnection.localDescription!.type),
-				"sdp": self.rtcPeerConnection.localDescription!.sdp,
+				"type": descType,
+				"sdp": descSDP,
 				"transceivers": self.getTransceiversJSON()
 			] as [String : Any]
 
