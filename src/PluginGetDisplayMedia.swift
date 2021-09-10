@@ -28,13 +28,13 @@ class PluginGetDisplayMedia {
 			let recorder = RPScreenRecorder.shared()
 			
 			if (recorder.isRecording) {
-				recorder.stopRecording {(preview, error) in
+				recorder.stopCapture(handler: {(error) in
 					if (error != nil) {
 						errback(error!.localizedDescription)
 					} else {
 						self.startCapture(recorder: recorder, callback: callback, errback: errback, eventListenerForNewStream: eventListenerForNewStream)
 					}
-				}
+				})
 			} else if (recorder.isAvailable) {
 				self.startCapture(recorder: recorder, callback: callback, errback: errback, eventListenerForNewStream: eventListenerForNewStream)
 			} else {
