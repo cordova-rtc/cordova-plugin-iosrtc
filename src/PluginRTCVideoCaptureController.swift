@@ -101,11 +101,11 @@ class PluginRTCScreenCaptureController : PluginRTCVideoCaptureController {
 						sampleType: bufferType
 					)
 				}
-				if (error != nil) {
+				if (completionHandler != nil && error != nil) {
 					completionHandler!(error)
 				}
 			}) { (error) in
-				if (error != nil) {
+				if (completionHandler != nil && error != nil) {
 					completionHandler!(error)
 				} else {
 					// TODO Optional closure parameter
