@@ -10,20 +10,29 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 	var pluginRTCDataChannels: [Int : PluginRTCDataChannel] = [:]
 	// PluginRTCDTMFSender dictionary.
 	var pluginRTCDTMFSenders: [Int : PluginRTCDTMFSender] = [:]
+	// PluginRTCRtpTransceiver dictionary.
+	var pluginRTCRtpTransceivers: [Int : PluginRTCRtpTransceiver] = [:]
 	var eventListener: (_ data: NSDictionary) -> Void
 	var eventListenerForAddStream: (_ pluginMediaStream: PluginMediaStream) -> Void
-	var eventListenerForRemoveStream: (_ id: String) -> Void
+	var eventListenerForRemoveStream: (_ pluginMediaStream: PluginMediaStream) -> Void
+	var eventListenerForAddTrack: (_ pluginMediaStreamTrack: PluginMediaStreamTrack) -> Void
+	var eventListenerForRemoveTrack: (_ pluginMediaStreamTrack: PluginMediaStreamTrack) -> Void
 
 	var onCreateLocalDescriptionSuccessCallback: ((_ rtcSessionDescription: RTCSessionDescription) -> Void)!
 	var onCreateLocalDescriptionFailureCallback: ((_ error: Error) -> Void)!
 	var onCreateRemoteDescriptionSuccessCallback: ((_ rtcSessionDescription: RTCSessionDescription) -> Void)!
 	var onCreateRemoteDescriptionFailureCallback: ((_ error: Error) -> Void)!
+
 	var onSetDescriptionSuccessCallback: (() -> Void)!
 	var onSetDescriptionFailureCallback: ((_ error: Error) -> Void)!
+
 	var onGetStatsCallback: ((_ array: NSArray) -> Void)!
 
 	var pluginMediaStreams: [String : PluginMediaStream]! = [:]
-	var trackIdsToSenders: [String : RTCRtpSender] = [:]
+	var pluginMediaTracks: [String : PluginMediaStreamTrack]! = [:]
+
+	var pluginRTCRtpSenders: [Int : PluginRTCRtpSender] = [:]
+	var pluginRTCRtpReceivers: [Int : PluginRTCRtpReceiver] = [:]
 
 	var isAudioInputSelected: Bool = false
 
@@ -33,7 +42,9 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		pcConstraints: NSDictionary?,
 		eventListener: @escaping (_ data: NSDictionary) -> Void,
 		eventListenerForAddStream: @escaping (_ pluginMediaStream: PluginMediaStream) -> Void,
-		eventListenerForRemoveStream: @escaping (_ id: String) -> Void
+		eventListenerForRemoveStream: @escaping (_ pluginMediaStream: PluginMediaStream) -> Void,
+		eventListenerForAddTrack: @escaping (_ pluginMediaStreamTrack: PluginMediaStreamTrack) -> Void,
+		eventListenerForRemoveTrack: @escaping (_ pluginMediaStreamTrack: PluginMediaStreamTrack) -> Void
 	) {
 		NSLog("PluginRTCPeerConnection#init()")
 
@@ -43,11 +54,14 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		self.eventListener = eventListener
 		self.eventListenerForAddStream = eventListenerForAddStream
 		self.eventListenerForRemoveStream = eventListenerForRemoveStream
+		self.eventListenerForAddTrack = eventListenerForAddTrack
+		self.eventListenerForRemoveTrack = eventListenerForRemoveTrack
 	}
 
 	deinit {
 		NSLog("PluginRTCPeerConnection#deinit()")
 		self.pluginRTCDTMFSenders = [:]
+        self.pluginRTCRtpTransceivers = [:]
 	}
 
 	func run() {
@@ -79,7 +93,8 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 
 			let data = [
 				"type": RTCSessionDescription.string(for: rtcSessionDescription.type),
-				"sdp": rtcSessionDescription.sdp
+				"sdp": rtcSessionDescription.sdp,
+				"transceivers": self.getTransceiversJSON()
 			] as [String : Any]
 
 			callback(data as NSDictionary)
@@ -120,7 +135,8 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 
 			let data = [
 				"type": RTCSessionDescription.string(for: rtcSessionDescription.type),
-				"sdp": rtcSessionDescription.sdp
+				"sdp": rtcSessionDescription.sdp,
+				"transceivers": self.getTransceiversJSON()
 			] as [String : Any]
 
 			callback(data as NSDictionary)
@@ -160,19 +176,36 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 
 		self.onSetDescriptionSuccessCallback = { [unowned self] () -> Void in
 			NSLog("PluginRTCPeerConnection#setLocalDescription() | success callback")
+			var descType = ""
+			var descSDP = ""
+			if self.rtcPeerConnection.localDescription != nil {
+				descType = RTCSessionDescription.string(for: self.rtcPeerConnection.localDescription!.type)
+				descSDP = self.rtcPeerConnection.localDescription!.sdp
+			}
 			let data = [
-				"type": RTCSessionDescription.string(for: self.rtcPeerConnection.localDescription!.type),
-				"sdp": self.rtcPeerConnection.localDescription!.sdp
+				"type": descType,
+				"sdp": descSDP,
+				"transceivers": self.getTransceiversJSON()
 			] as [String : Any]
 
 			callback(data as NSDictionary)
 		}
 
 		self.onSetDescriptionFailureCallback = { (error: Error) -> Void in
-			NSLog("PluginRTCPeerConnection#setLocalDescription() | failure callback: %@", String(describing: error))
+			NSLog("PluginRTCPeerConnection#setLocalDescription() | failure callback: %@ description %@",
+						String(describing: error), desc)
 
 			errback(error)
 		}
+
+		// TODO: Would transceivers with mid=null get their mid's assigned after
+		 // setLocalDescription call? Investigate...
+		 //
+		 // Reference:
+		 // Something I overlooked last year is that transceiver.mid is null before setLocalDescription. We avoided 
+		 // that problem above by establishing the connection ahead of sending anything, but this makes mid useless 
+		 // for correlating in the initial negotiation.
+		 // https://blog.mozilla.org/webrtc/rtcrtptransceiver-explored/
 
 		self.rtcPeerConnection.setLocalDescription(rtcSessionDescription, completionHandler: {
 			(error: Error?) in
@@ -206,10 +239,11 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 
 			let data = [
 				"type": RTCSessionDescription.string(for: self.rtcPeerConnection.remoteDescription!.type),
-				"sdp": self.rtcPeerConnection.remoteDescription!.sdp
-			]
+				"sdp": self.rtcPeerConnection.remoteDescription!.sdp,
+				"transceivers": self.getTransceiversJSON()
+            ] as NSDictionary
 
-			callback(data as NSDictionary)
+			callback(data)
 		}
 
 		self.onSetDescriptionFailureCallback = { (error: Error) -> Void in
@@ -291,11 +325,19 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 			var streamAdded : Bool = false;
 			let streamId = pluginMediaStream.rtcMediaStream.streamId;
 			for (_, pluginMediaTrack) in pluginMediaStream.audioTracks {
-				streamAdded = self.addTrack(pluginMediaTrack, [streamId]) && streamAdded;
+				let pluginRTCRtpTransceiverId = self.createIdFor(collection: self.pluginRTCRtpTransceivers)
+				let pluginRTCRtpReceiverId = self.createIdFor(collection: self.pluginRTCRtpReceivers)
+				let pluginRTCRtpSenderId = self.createIdFor(collection: self.pluginRTCRtpSenders)
+				let pluginRTCRtpSender = self.addTrack(pluginMediaTrack, pluginRTCRtpTransceiverId, pluginRTCRtpReceiverId, pluginRTCRtpSenderId, [streamId])
+				streamAdded = streamAdded && (pluginRTCRtpSender != nil)
 			}
 
 			for (_, pluginMediaTrack) in pluginMediaStream.videoTracks {
-				streamAdded = self.addTrack(pluginMediaTrack, [streamId]) && streamAdded;
+				let pluginRTCRtpTransceiverId = self.createIdFor(collection: self.pluginRTCRtpTransceivers)
+				let pluginRTCRtpReceiverId = self.createIdFor(collection: self.pluginRTCRtpReceivers)
+				let pluginRTCRtpSenderId = self.createIdFor(collection: self.pluginRTCRtpSenders)
+				let pluginRTCRtpSender = self.addTrack(pluginMediaTrack, pluginRTCRtpTransceiverId, pluginRTCRtpReceiverId, pluginRTCRtpSenderId, [streamId])
+				streamAdded = streamAdded && (pluginRTCRtpSender != nil)
 			}
 
 			return streamAdded;
@@ -315,15 +357,22 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		}
 
 		if (IsUnifiedPlan()) {
-
-			for (_, pluginMediaStream) in pluginMediaStream.audioTracks {
-				self.removeTrack(pluginMediaStream)
+			var trackIdsToRemove: [String] = []
+			for (_, pluginMediaStreamTrack) in pluginMediaStream.audioTracks {
+				trackIdsToRemove.append(pluginMediaStreamTrack.rtcMediaStreamTrack.trackId)
+			}
+			for (_, pluginMediaStreamTrack) in pluginMediaStream.videoTracks {
+				trackIdsToRemove.append(pluginMediaStreamTrack.rtcMediaStreamTrack.trackId)
 			}
 
-			for (_, pluginMediaStream) in pluginMediaStream.videoTracks {
-				self.removeTrack(pluginMediaStream)
+			for trackId in trackIdsToRemove {
+				for (_, pluginRTCRtpSender) in self.pluginRTCRtpSenders {
+					if pluginRTCRtpSender.rtpSender.track?.trackId == trackId {
+						self.removeTrack(pluginRTCRtpSender)
+						break
+					}
+				}
 			}
-
 		} else {
 			self.rtcPeerConnection.remove(pluginMediaStream.rtcMediaStream)
 		}
@@ -333,38 +382,168 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		return rtcPeerConnection.configuration.sdpSemantics == RTCSdpSemantics.unifiedPlan;
 	}
 
-	func addTrack(_ pluginMediaTrack: PluginMediaStreamTrack, _ streamIds: [String]) -> Bool {
-		NSLog("PluginRTCPeerConnection#addTrack()")
-
+	func addTrack(
+		_ pluginMediaTrack: PluginMediaStreamTrack,
+		_ pluginRTCRtpTransceiverId: Int,
+		_ pluginRTCRtpReceiverId: Int,
+		_ pluginRTCRtpSenderId: Int,
+		_ streamIds: [String]
+	) -> PluginRTCRtpSender? {
 		if self.rtcPeerConnection.signalingState == RTCSignalingState.closed {
-			return false
+			return nil
 		}
 
 		let rtcMediaStreamTrack = pluginMediaTrack.rtcMediaStreamTrack;
-		var rtcSender = trackIdsToSenders[rtcMediaStreamTrack.trackId];
-		if (rtcSender == nil) {
-			rtcSender = self.rtcPeerConnection.add(rtcMediaStreamTrack, streamIds: streamIds)
-			trackIdsToSenders[rtcMediaStreamTrack.trackId] = rtcSender;
-			return true;
+		var pluginRTCRtpSender = self.pluginRTCRtpSenders[pluginRTCRtpSenderId];
+		NSLog("PluginRTCPeerConnection#addTrack() trackId=%@ rtcId=%d streamIds %@",
+				pluginMediaTrack.id, pluginRTCRtpSenderId, streamIds);
+		if (pluginRTCRtpSender == nil) {
+			let rtcRtpSender: RTCRtpSender? = self.rtcPeerConnection.add(rtcMediaStreamTrack, streamIds: streamIds)
+			if let rtcRtpSender = rtcRtpSender {
+				let pluginRTCRtpTransceiver = self.updateTransceivers(rtcRtpSender: rtcRtpSender)
+				self.updateTransceiverId(pluginRTCRtpTransceiver!, pluginRTCRtpTransceiverId, pluginRTCRtpReceiverId, pluginRTCRtpSenderId)
+				pluginRTCRtpSender = pluginRTCRtpTransceiver!.pluginRTCRtpSender
+			} else {
+				NSLog("PluginRTCPeerConnection#addTrack() | RTCPeerConnection#add() failed")
+			}
 		}
 
-		return false;
+		return pluginRTCRtpSender;
 	}
 
-	func removeTrack(_ pluginMediaTrack: PluginMediaStreamTrack) {
+	func removeTrack(_ pluginRTCRtpSender: PluginRTCRtpSender) {
 		NSLog("PluginRTCPeerConnection#removeTrack()")
 
 		if self.rtcPeerConnection.signalingState == RTCSignalingState.closed {
 			return
 		}
 
-		let rtcMediaStreamTrack = pluginMediaTrack.rtcMediaStreamTrack;
-		let rtcSender = trackIdsToSenders[rtcMediaStreamTrack.trackId];
+		self.rtcPeerConnection.removeTrack(pluginRTCRtpSender.rtpSender)
+	}
 
-		if (rtcSender != nil) {
-			self.rtcPeerConnection.removeTrack(rtcSender!)
-			trackIdsToSenders[rtcMediaStreamTrack.trackId] = nil
+	func addTransceiver(
+		with: PluginMediaStreamTrack?,
+		of: RTCRtpMediaType?,
+		options: NSDictionary?,
+		transceiverId: Int,
+		senderId: Int,
+		receiverId: Int,
+		receiverTrackId: String,
+		callback: (_ data: NSDictionary) -> Void
+	) {
+		NSLog("PluginRTCPeerConnection#addTransceiver()")
+
+		if self.rtcPeerConnection.signalingState == RTCSignalingState.closed {
+			return
 		}
+
+		var pluginRTCRtpTransceiver: PluginRTCRtpTransceiver
+
+		if with != nil {
+			pluginRTCRtpTransceiver = PluginRTCRtpTransceiver(
+				rtcPeerConnection: self.rtcPeerConnection,
+                mediaStreamTrack: with!.rtcMediaStreamTrack,
+				options: options,
+				transceiverId: transceiverId,
+				senderId: senderId,
+				receiverId: receiverId
+        	)
+		} else if of != nil {
+			pluginRTCRtpTransceiver = PluginRTCRtpTransceiver(
+				rtcPeerConnection: self.rtcPeerConnection,
+                mediaType: of!,
+				options: options,
+				transceiverId: transceiverId,
+				senderId: senderId,
+				receiverId: receiverId
+        	)
+		} else {
+			NSLog("PluginRTCPeerConnection#addTransceiver() | error: no valid track or type")
+			return
+		}
+
+		// NOTE: Creates native track in case it's not already existing.
+        self.getPluginMediaStreamTrack(pluginRTCRtpTransceiver.rtcRtpTransceiver!.receiver.track, trackId: receiverTrackId)
+
+		self.updateTransceivers(pluginRTCRtpTransceiver: pluginRTCRtpTransceiver)
+
+		let response: NSDictionary = [
+			"transceivers": self.getTransceiversJSON()
+		]
+
+		callback(response)
+	}
+	
+	func createIdFor(collection: [Int : Any]) -> Int {
+		var newId: Int
+		repeat {
+			newId = Int.random(in: 10000..<100000)
+		} while (collection[newId] != nil)
+		return newId
+	}
+
+	func updateTransceiverId(
+		_ pluginRTCRtpTransceiver: PluginRTCRtpTransceiver,
+		_ pluginRTCRtpTransceiverId: Int,
+		_ pluginRTCRtpReceiverId: Int,
+		_ pluginRTCRtpSenderId: Int
+	) {
+		self.pluginRTCRtpTransceivers.removeValue(forKey: pluginRTCRtpTransceiver.id)
+		pluginRTCRtpTransceiver.id = pluginRTCRtpTransceiverId
+		self.pluginRTCRtpTransceivers[pluginRTCRtpTransceiverId] = pluginRTCRtpTransceiver
+
+		self.pluginRTCRtpReceivers.removeValue(forKey: pluginRTCRtpTransceiver.pluginRTCRtpReceiver!.id)
+		pluginRTCRtpTransceiver.pluginRTCRtpReceiver!.id = pluginRTCRtpReceiverId
+		self.pluginRTCRtpReceivers[pluginRTCRtpReceiverId] = pluginRTCRtpTransceiver.pluginRTCRtpReceiver
+
+		self.pluginRTCRtpSenders.removeValue(forKey: pluginRTCRtpTransceiver.pluginRTCRtpSender!.id)
+		pluginRTCRtpTransceiver.pluginRTCRtpSender!.id = pluginRTCRtpSenderId
+		self.pluginRTCRtpSenders[pluginRTCRtpSenderId] = pluginRTCRtpTransceiver.pluginRTCRtpSender
+	}
+
+	func updateTransceivers(pluginRTCRtpTransceiver: PluginRTCRtpTransceiver) {
+		self.pluginRTCRtpTransceivers[pluginRTCRtpTransceiver.id] = pluginRTCRtpTransceiver
+		if pluginRTCRtpTransceiver.pluginRTCRtpSender != nil {
+			self.pluginRTCRtpSenders[pluginRTCRtpTransceiver.pluginRTCRtpSender!.id] = pluginRTCRtpTransceiver.pluginRTCRtpSender
+		}
+		if pluginRTCRtpTransceiver.pluginRTCRtpReceiver != nil {
+			self.pluginRTCRtpReceivers[pluginRTCRtpTransceiver.pluginRTCRtpReceiver!.id] = pluginRTCRtpTransceiver.pluginRTCRtpReceiver
+		}
+	}
+
+	func updateTransceivers(rtcRtpSender: RTCRtpSender) -> PluginRTCRtpTransceiver? {
+		for rtcRtpTransceiver in self.rtcPeerConnection.transceivers {
+			if rtcRtpTransceiver.sender == rtcRtpSender || rtcRtpTransceiver.sender.senderId == rtcRtpSender.senderId {
+				return self.updateTransceivers(rtcRtpTransceiver: rtcRtpTransceiver)
+			}
+		}
+		// NOTE: should not happen
+		return nil
+	}
+
+	func updateTransceivers(rtcRtpTransceiver: RTCRtpTransceiver) -> PluginRTCRtpTransceiver {
+		var senderReceiverToTransceiver: [String:PluginRTCRtpTransceiver] = [:]
+		for (_, pluginRTCRtpTransceiver) in self.pluginRTCRtpTransceivers {
+			// NOTE: this test should be enough
+			if pluginRTCRtpTransceiver.rtcRtpTransceiver == rtcRtpTransceiver {
+				return pluginRTCRtpTransceiver
+			}
+			let senderReceiverKey = pluginRTCRtpTransceiver.rtcRtpTransceiver!.sender.senderId + "::" + pluginRTCRtpTransceiver.rtcRtpTransceiver!.receiver.receiverId
+			senderReceiverToTransceiver[senderReceiverKey] = pluginRTCRtpTransceiver
+		}
+
+		// test by senderId and receiverId
+		let key = rtcRtpTransceiver.sender.senderId + "::" + rtcRtpTransceiver.receiver.receiverId
+		let existingPluginRTCRtpTransceiver = senderReceiverToTransceiver[key]
+		if existingPluginRTCRtpTransceiver != nil {
+			return existingPluginRTCRtpTransceiver!
+		}
+
+		// new transceiver found
+		let pluginRTCRtpTransceiver = PluginRTCRtpTransceiver(rtcRtpTransceiver)
+		self.updateTransceivers(pluginRTCRtpTransceiver: pluginRTCRtpTransceiver)
+		NSLog("PluginRTCPeerConnection#updateTransceivers() | New transceiver created id=\(pluginRTCRtpTransceiver.id)")
+		return pluginRTCRtpTransceiver
 	}
 
 	func createDataChannel(
@@ -445,7 +624,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		callback: @escaping (_ data: [[String:Any]]) -> Void,
 		errback: (_ error: NSError) -> Void
 	) {
-		NSLog("PluginRTCPeerConnection#getStats()")
+//		NSLog("PluginRTCPeerConnection#getStats()")
 
 		if self.rtcPeerConnection.signalingState == RTCSignalingState.closed {
 			return
@@ -462,7 +641,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 					"values" : report.values
 				])
 			}
-			NSLog("Stats:\n %@", data)
+//			NSLog("Stats:\n %@", data)
 			callback(data)
 		})
 	}
@@ -474,11 +653,16 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 			return
 		}
 
-		for (_, pluginMediaStream) in pluginMediaStreams {
-			self.eventListenerForRemoveStream(pluginMediaStream.id)
+		for (_, pluginMediaStream) in self.pluginMediaStreams {
+			self.eventListenerForRemoveStream(pluginMediaStream)
 		}
 
-		pluginMediaStreams = [:];
+		for (_, pluginMediaTrack) in self.pluginMediaTracks {
+			self.eventListenerForRemoveTrack(pluginMediaTrack)
+		}
+
+		self.pluginMediaTracks = [:];
+		self.pluginMediaStreams = [:];
 
 		self.rtcPeerConnection.close()
 	}
@@ -569,47 +753,94 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 	 * Methods inherited from RTCPeerConnectionDelegate.
 	 */
 
-	private func getPluginMediaStream(stream: RTCMediaStream?) -> PluginMediaStream? {
+	private func getPluginMediaStream(_ stream: RTCMediaStream?) -> PluginMediaStream? {
 
 		if (stream == nil) {
 			return nil;
 		}
 
-		var currentPluginMediaStream : PluginMediaStream? = nil;
+		var currentMediaStream : PluginMediaStream? = nil;
 
-		for (_, pluginMediaStream) in pluginMediaStreams {
-			if (pluginMediaStream.rtcMediaStream == stream) {
-				currentPluginMediaStream = pluginMediaStream;
+		for (_, pluginMediaStream) in self.pluginMediaStreams {
+			if (pluginMediaStream.rtcMediaStream.streamId == stream!.streamId) {
+				currentMediaStream = pluginMediaStream;
 				break;
 			}
 		}
 
-		if (currentPluginMediaStream == nil) {
+		if (currentMediaStream == nil) {
 
-			currentPluginMediaStream = PluginMediaStream(rtcMediaStream: stream!)
+			currentMediaStream = PluginMediaStream(rtcMediaStream: stream!)
 
-			currentPluginMediaStream!.run()
+			currentMediaStream!.run()
 
 			// Let the plugin store it in its dictionary.
-			pluginMediaStreams[currentPluginMediaStream!.id] = currentPluginMediaStream;
+			self.pluginMediaStreams[currentMediaStream!.id] = currentMediaStream;
+
+			// Fixes issue #576
+			self.eventListenerForAddStream(currentMediaStream!)
 		}
 
-		return currentPluginMediaStream;
+		return currentMediaStream;
+	}
+
+
+	private func getPluginMediaStreamTrack(_ track: RTCMediaStreamTrack?, trackId: String?) -> PluginMediaStreamTrack? {
+		if (track == nil) {
+			return nil;
+		}
+
+		var currentMediaStreamTrack : PluginMediaStreamTrack? = nil;
+
+		for (_, pluginMediaTrack) in self.pluginMediaTracks {
+			if (pluginMediaTrack.rtcMediaStreamTrack.trackId == track!.trackId) {
+				currentMediaStreamTrack = pluginMediaTrack;
+				break;
+			}
+		}
+
+		if (currentMediaStreamTrack == nil) {
+
+			currentMediaStreamTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: track!, trackId: trackId)
+
+			currentMediaStreamTrack!.run()
+
+			// Let the plugin store it in its dictionary.
+			self.pluginMediaTracks[currentMediaStreamTrack!.id] = currentMediaStreamTrack;
+
+			// Fixes issue #576
+			self.eventListenerForAddTrack(currentMediaStreamTrack!)
+		}
+
+		return currentMediaStreamTrack;
+	}
+
+	func getTransceiversJSON() -> [NSDictionary] {
+        if (!IsUnifiedPlan()) {
+          NSLog("PluginRTCPeerConnection#getTransceiversJSON() | transceiers is not available when using plan-b")
+          return [];
+        }
+        
+		return self.rtcPeerConnection.transceivers.map({ (transceiver: RTCRtpTransceiver) -> NSDictionary in
+//			let receiverTrack = self.getPluginMediaStreamTrack(transceiver.receiver.track, trackId: nil);
+//			let senderTrack = self.getPluginMediaStreamTrack(transceiver.sender.track, trackId: nil);
+			let transceiverHolder = self.updateTransceivers(rtcRtpTransceiver: transceiver)
+			return transceiverHolder.getJSON()
+		})
 	}
 
 	/** Called when media is received on a new stream from remote peer. */
 	func peerConnection(_ peerConnection: RTCPeerConnection, didAdd stream: RTCMediaStream) {
 		NSLog("PluginRTCPeerConnection | onaddstream")
 
-		let pluginMediaStream = getPluginMediaStream(stream: stream);
-
-		self.eventListenerForAddStream(pluginMediaStream!)
+		let pluginMediaStream = getPluginMediaStream(stream);
 
 		// Fire the 'addstream' event so the JS will create a new MediaStream.
 		self.eventListener([
 			"type": "addstream",
 			"streamId": pluginMediaStream!.id,
-			"stream": pluginMediaStream!.getJSON()
+			"stream": pluginMediaStream!.getJSON(),
+			"transceivers": self.getTransceiversJSON()
 		])
 	}
 
@@ -617,25 +848,26 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 	func peerConnection(_ peerConnection: RTCPeerConnection, didRemove stream: RTCMediaStream) {
 		NSLog("PluginRTCPeerConnection | onremovestream")
 
-		let pluginMediaStream = getPluginMediaStream(stream: stream);
+		let pluginMediaStream = getPluginMediaStream(stream);
 
-		self.eventListenerForRemoveStream(pluginMediaStream!.id)
+		self.eventListenerForRemoveStream(pluginMediaStream!)
 
 		// Let the plugin remove it from its dictionary.
 		pluginMediaStreams[pluginMediaStream!.id] = nil;
 
 		self.eventListener([
 			"type": "removestream",
-			"streamId": pluginMediaStream!.id
+			"streamId": pluginMediaStream!.id,
+			"transceivers": self.getTransceiversJSON()
 		])
 	}
 
 	/** New track as been added. */
 	func peerConnection(_ peerConnection: RTCPeerConnection, didAdd rtpReceiver: RTCRtpReceiver, streams:[RTCMediaStream]) {
 
-		NSLog("PluginRTCPeerConnection | onaddtrack")
+		NSLog("PluginRTCPeerConnection | ontrack")
 
-		let pluginMediaTrack = PluginMediaStreamTrack(rtcMediaStreamTrack: rtpReceiver.track!)
+		let pluginMediaTrack = getPluginMediaStreamTrack(rtpReceiver.track, trackId: nil);
 
 		// Add stream only if available in case of Unified-Plan of track event without stream
 		// TODO investigate why no stream sometimes with Unified-Plan and confirm that expexted behavior.
@@ -643,16 +875,23 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		if (streams.isEmpty) {
 			self.eventListener([
 				"type": "track",
-				"track": pluginMediaTrack.getJSON(),
+				"track": pluginMediaTrack!.getJSON(),
+				"transceivers": self.getTransceiversJSON()
 			])
 		} else {
-			let pluginMediaStream = getPluginMediaStream(stream: streams[0]);
+			let pluginMediaStream = getPluginMediaStream(streams[0]);
+
+			// Check if pluginMediaStream had already the new track, otherwise add new track
+			if (pluginMediaStream!.hasTrack(pluginMediaTrack!) == false) {
+				pluginMediaStream!.addTrack(pluginMediaTrack!);
+			}
 
 			self.eventListener([
 				"type": "track",
-				"track": pluginMediaTrack.getJSON(),
+				"track": pluginMediaTrack!.getJSON(),
 				"streamId": pluginMediaStream!.id,
-				"stream": pluginMediaStream!.getJSON()
+				"stream": pluginMediaStream!.getJSON(),
+				"transceivers": self.getTransceiversJSON()
 			])
 		}
 	}
@@ -794,4 +1033,47 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 			]
 		])
 	}
+    
+    // TODO: Is this event required at all?
+    /* Called when transceier will start receiving data. */
+    /* func peerConnection(_ peerConnection: RTCPeerConnection, didStartReceivingOn transceiver: RTCRtpTransceiver) {
+        NSLog("PluginRTCPeerConnection | didStartReceivingOn")
+        
+        // NOTE: Is this a new transceiver or was it created already?
+        var existingTransceiver: PluginRTCRtpTransceiver? = nil
+        
+		// TODO: Is it correct reusing transceiver instance with same mid?
+        for (_, pluginTransceiver) in pluginRTCRtpTransceivers {
+            if (transceiver.mid == pluginTransceiver.rtcRtpTransceiver!.mid) {
+                existingTransceiver = pluginTransceiver
+                break
+            }
+        }
+        
+        if (existingTransceiver == nil) {
+            NSLog("PluginRTCPeerConnection | Info: No existing transceiver matching mid: %@", transceiver.mid)
+
+			let tcId = PluginUtils.randomInt(10000, max: 99999)
+			let pluginRTCRtpTransceiver = PluginRTCRtpTransceiver(transceiver)
+
+			self.pluginRTCRtpTransceivers[tcId] = pluginRTCRtpTransceiver
+
+			var currentDirection = RTCRtpTransceiverDirection.inactive
+            transceiver.currentDirection(&currentDirection)
+
+			self.eventListener([
+				"type": "transceiver",
+				"transceiver": [
+                    "tcId": tcId,
+                    "mid": transceiver.mid,
+					"currentDirection": PluginRTCRtpTransceiver.directionToString(currentDirection),
+                	"direction": PluginRTCRtpTransceiver.directionToString(transceiver.direction),
+                	"stopped": transceiver.isStopped
+				]
+			])
+        } else {
+			// TODO: Can this situation happen?
+            NSLog("PluginRTCPeerConnection | Info: Found existing transceiver matching mid: %@", transceiver.mid)
+        }
+    } */
 }

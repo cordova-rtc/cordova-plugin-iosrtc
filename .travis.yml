@@ -7,14 +7,14 @@ git:
 env:
   global:
     - CORDOVA_PLATFORM=browser
-    - NODE_VERSION=10
-    - CORDOVA_VERSION=9
+    - NODE_VERSION=10ILD_TOOLS_VERSION=28.0.3
+    - CORDOVA_VERSION=10
+    - CAPACITOR_VERSION=3
     - ANGULAR_CLI_VERSION=8
     - IONIC_VERSION=6
-    - CAPACITOR_VERSION=2
-    - ANDROID_API_LEVEL=28
-    - ANDROID_SDK_VERSION=28
-    - ANDROID_BUILD_TOOLS_VERSION=28.0.3
+    - ANDROID_API_LEVEL=30
+    - ANDROID_SDK_VERSION=30
+    - ANDROID_BUILD_TOOLS_VERSION=30.0.3
     - ANDROID_ABI=armeabi-v7a
     - JAVA_HOME=/usr/lib/jvm/java-8-oracle
 install:
@@ -31,7 +31,7 @@ matrix:
     - language: node_js
       env: CORDOVA_PLATFORM=browser
       node_js:
-        - "8"
+        - "12"
       cache:
         directories:
           - node_modules
@@ -50,15 +50,14 @@ matrix:
             - jq
       android:
         components:
+          # Uncomment the lines below if you want to
+          # use the latest revision of Android SDK Tools
           - tools
-          - platform-tools-28.0.2
-          - platform-tools-29.0.2
-          # The BuildTools version used by your project
-          - build-tools-28.0.3
+          - platform-tools
+          # The BuildTools version used
           - build-tools-29.0.2
-          # The SDK version used to compile your project
+          # The SDK version used to compile
           - android-29
-          - android-28
           # Additional components
           - extra-google-google_play_services
           - extra-google-m2repository
@@ -68,12 +67,13 @@ matrix:
         licenses:
           - android-sdk-preview-license-.+
           - android-sdk-license-.+
-          - android-sdk-license-28
           - android-sdk-license-29
           - google-gdk-license-.+
       before_install:
           - export LANG=en_US.UTF-8
           - touch $HOME/.android/repositories.cfg
+          - yes | sdkmanager "platforms;android-$ANDROID_API_LEVEL"
+          - yes | sdkmanager "build-tools;$ANDROID_BUILD_TOOLS_VERSION"
       before_cache:
         - "rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock"
         - "rm -fr $HOME/.gradle/caches/*/plugin-resolution/"
@@ -99,10 +99,6 @@ matrix:
       after_script:
         # Test ios_arch
         - "cordova platform remove $CORDOVA_PLATFORM --verbose"
-        - "node plugins/cordova-plugin-iosrtc/extra/ios_arch.js --extract"
-        - "node plugins/cordova-plugin-iosrtc/extra/ios_arch.js --device"
-        - "node plugins/cordova-plugin-iosrtc/extra/ios_arch.js --list"
-        - "node plugins/cordova-plugin-iosrtc/extra/ios_arch.js --clean"
         - "cordova platform add $CORDOVA_PLATFORM@latest --verbose"
         #- "cordova build $CORDOVA_PLATFORM --verbose --device"
 script:
@@ -110,7 +106,8 @@ script:
   - export BRANCH=$(if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then echo $TRAVIS_BRANCH; else echo $TRAVIS_PULL_REQUEST_BRANCH; fi)
   - export REPO_SLUG=$(if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then echo $TRAVIS_REPO_SLUG; else echo $TRAVIS_PULL_REQUEST_SLUG; fi)
   # Lint and Build plugin
-  - "gulp"
+  - "npm run lint"
+  - "gulp browserify"
   # Test Plugin platform build with cordova only
   - "cordova create myApp-cordova org.apache.cordova.myApp myApp; cd myApp-cordova;"
   - "cordova platform add $CORDOVA_PLATFORM@latest --verbose"
@@ -120,6 +117,7 @@ script:
   - "ionic start myApp-ionic blank; cd myApp-ionic;"
   - "ionic cordova platform add $CORDOVA_PLATFORM@latest --verbose"
   - "ionic cordova plugin add https://github.com/$REPO_SLUG.git#$BRANCH --verbose"
+  - "ionic cordova build $CORDOVA_PLATFORM --verbose"
   # See https://ionic.zendesk.com/hc/en-us/articles/360010049673-Managing-plugins-using-CocoaPods-in-Ionic-Appflow-
   #- "pod install --project-directory='./platforms/ios/'"
   - "ionic cordova build $CORDOVA_PLATFORM --verbose"
