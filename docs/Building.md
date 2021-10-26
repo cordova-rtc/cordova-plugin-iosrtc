@@ -89,29 +89,3 @@ end
 #### Capacitor
 
 When adding ios support using `npx cap add ios` the bitcode setting mentioned above will need to be set to 'NO' for the App project. Also see above for CocoaPods concerns since `pod install` will run every time you do `npx cap sync ios`
-
-#### Apple Store Submission
-
-You should strip simulator (i386/x86_64) archs from WebRTC binary before submit to Apple Store.  
-We provide a handy script to do it easily. see below sections.
-
-credit: The script is originally provided via `react-native-webrtc` by [@besarthoxhaj](https://github.com/besarthoxhaj) in [#141](https://github.com/react-native-webrtc/react-native-webrtc/issues/141), thanks!
-
-###### Capacitor
-Using Capacitor; The plugins will be in the node_modules folder so ios_arch will be run in `node_modules/cordova-plugin-iosrtc/extra`
-
-
-> node node_modules/cordova-plugin-iosrtc/extraios_arch.js --list   
-> node node_modules/cordova-plugin-iosrtc/extraios_arch.js --simulator
-
-You will need to remove and add ios platform again.
-
-###### Meteor
-
-Using Meteor; The plugins will be in the node_modules folder so ios_arch.js will be run in `.meteor/local/cordova-build/node_modules/cordova-plugin-iosrtc/extra/`
-
-> node .meteor/local/cordova-build/node_modules/cordova-plugin-iosrtc/extra/ios_arch.js --list   
-> node .meteor/local/cordova-build/node_modules/cordova-plugin-iosrtc/extra/ios_arch.js --simulator
-
-You will need to copy manually the updated WebRTC file, since remove/add platform does not work like cordova:
-> cp .meteor/local/cordova-build/node_modules/cordova-plugin-iosrtc/lib/WebRTC.framework/WebRTC .meteor/local/cordova-build/platforms/ios/*/Plugins/cordova-plugin-iosrtc/WebRTC.framework/WebRTC
