@@ -1,0 +1,38 @@
+name: Testing
+on:
+  pull_request:
+    branches:
+    - master
+jobs:
+  test:
+    name: Testing Swift Package and iOS app
+    runs-on: macOS-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Force XCode 11.3
+        run: sudo xcode-select -switch /Applications/Xcode_11.3.app
+
+      – name: Setup NodeJS 14
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Install cordova
+        run: npm install cordova@10 -g
+
+      - name: Build
+        run: cordova create myApp org.apache.cordova.myApp myApp; cd myApp; \
+          cordova platform add ios@latest --verbose \
+          cordova plugin add ../ --verbose \
+          cordova build ios --verbose
