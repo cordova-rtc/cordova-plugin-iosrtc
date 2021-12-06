@@ -1,6 +1,9 @@
+#### Version 8.0.1
+* fix RTCPeerConnection.removeTrack support for sender without track
+* add support for local description rollback #704 via @slavchev
+
 #### Version 8.0.0
 * implement RTCPeerConnection.addTransceiver #589 via @agelito
-* add support for local description rollback #704 via @slavchev
 * fix RtpSenders inconsistency after removeTrack call #702 via @RSATom
 * fix RTCRtpSender MediaStreamTrack replace #699 via @RSATom
 * fix requestPermission returns true if AVAuthorizationStatus is notDetermined #692
