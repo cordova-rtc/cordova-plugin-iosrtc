@@ -815,17 +815,49 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		return currentMediaStreamTrack;
 	}
 
-	func getTransceiversJSON() -> [NSDictionary] {
+	func getTransceiversJSON() -> [[String: Any]] {
         if (!IsUnifiedPlan()) {
           NSLog("PluginRTCPeerConnection#getTransceiversJSON() | transceiers is not available when using plan-b")
           return [];
         }
         
-		return self.rtcPeerConnection.transceivers.map({ (transceiver: RTCRtpTransceiver) -> NSDictionary in
+		return self.rtcPeerConnection.transceivers.map({ (transceiver: RTCRtpTransceiver) -> [String: Any] in
 //			let receiverTrack = self.getPluginMediaStreamTrack(transceiver.receiver.track, trackId: nil);
 //			let senderTrack = self.getPluginMediaStreamTrack(transceiver.sender.track, trackId: nil);
 			let transceiverHolder = self.updateTransceivers(rtcRtpTransceiver: transceiver)
-			return transceiverHolder.getJSON()
+			var transceiverDesc = transceiverHolder.getJSON()
+
+			if var receiver = transceiverDesc["receiver"] as? [String: Any] {
+				if var track = receiver["track"] as? [String: Any] {
+					if let id = track["id"] as? String {
+						let pluginTrack = self.pluginMediaTracks.first { (key: String, value: PluginMediaStreamTrack) in
+							return value.originalId == id
+						}
+						if let pluginTrack = pluginTrack {
+							track["id"] = pluginTrack.value.id
+						}
+					}
+					receiver["track"] = track
+				}
+				transceiverDesc["receiver"] = receiver
+			}
+
+			if var sender = transceiverDesc["sender"] as? [String: Any] {
+				if var track = sender["track"] as? [String: Any] {
+					if let id = track["id"] as? String {
+						let pluginTrack = self.pluginMediaTracks.first { (key: String, value: PluginMediaStreamTrack) in
+							return value.originalId == id
+						}
+						if let pluginTrack = pluginTrack {
+							track["id"] = pluginTrack.value.id
+						}
+					}
+					sender["track"] = track
+				}
+				transceiverDesc["sender"] = sender
+			}
+
+			return transceiverDesc
 		})
 	}
 

@@ -54,7 +54,7 @@ class PluginMediaStreamTrack : NSObject {
 		}
 	}
 
-	func getJSON() -> NSDictionary {
+	func getJSON() -> [String: Any] {
 		return [
 			"id": self.id,
 			"kind": self.kind,

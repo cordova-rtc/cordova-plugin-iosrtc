@@ -9,7 +9,7 @@ class PluginRTCRtpReceiver : NSObject {
 		self.id = id != 0 ? id : Int.random(in: 0...10000)
     }
 	
-	func getJSON() -> NSDictionary {
+	func getJSON() -> [String: Any] {
 		let track = self.rtpReceiver.track != nil ? [
 			"id": self.rtpReceiver.track!.trackId,
 			   "kind": self.rtpReceiver.track!.kind,
