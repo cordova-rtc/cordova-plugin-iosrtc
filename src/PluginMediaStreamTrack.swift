@@ -3,6 +3,7 @@ import Foundation
 
 class PluginMediaStreamTrack : NSObject {
 	var rtcMediaStreamTrack: RTCMediaStreamTrack
+	var originalId: String
 	var id: String
 	var kind: String
 	var eventListener: ((_ data: NSDictionary) -> Void)?
@@ -16,6 +17,7 @@ class PluginMediaStreamTrack : NSObject {
 		self.rtcMediaStreamTrack = rtcMediaStreamTrack
 
 		if (trackId == nil) {
+			self.originalId = rtcMediaStreamTrack.trackId;
 			// Handle possible duplicate remote trackId with  janus or short duplicate name
 			// See: https://github.com/cordova-rtc/cordova-plugin-iosrtc/issues/432
 			if (rtcMediaStreamTrack.trackId.count<36) {
@@ -24,6 +26,7 @@ class PluginMediaStreamTrack : NSObject {
 				self.id = rtcMediaStreamTrack.trackId;
 			}
 		} else {
+			self.originalId = String();
 			self.id = trackId!;
 		}
 
