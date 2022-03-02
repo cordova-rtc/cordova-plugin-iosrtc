@@ -28,11 +28,11 @@ This plugin was initially developed at eFace2Face, and later maintained by the c
 
 In order to make this Cordova plugin run into a iOS application some requirements must be satisfied in both development computer and target devices:
 
-* Xcode >= 11.1 (11A1027)
-* iOS >= 10.2 (run on lower versions at your own risk, don't report issues)
+* Xcode >= 13.2.1 (13C100)
+* iOS >= 14.3 (run on lower versions at your own risk, don't report issues)
 * `swift-version` => 4.2
-* `cordova` >= 7.1.0
-* `cordova-ios` >= 4.5.1
+* `cordova` >= 11.0.0
+* `cordova-ios` >= 6.2.0
 
 ### Third-Party Supported Library
 
