@@ -2968,6 +2968,9 @@ function RTCRtpSender(pc, data) {
 	this._pc = pc;
 	this.track = data.track ? pc.getOrCreateTrack(data.track) : null;
 	this.params = data.params || {};
+	if(this.track) {
+		this.dtmf = pc.createDTMFSender(this.track);
+	}
 }
 
 RTCRtpSender.prototype.getParameters = function () {
