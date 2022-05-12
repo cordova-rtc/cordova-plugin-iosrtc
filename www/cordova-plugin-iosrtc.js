@@ -1,9 +1,9 @@
 /*
- * cordova-plugin-iosrtc v8.0.1
+ * cordova-plugin-iosrtc v8.0.2
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015-2017 eFace2Face, Inc. (https://eface2face.com)
  * Copyright 2015-2019 BasqueVoIPMafia (https://github.com/BasqueVoIPMafia)
- * Copyright 2017-2021 Cordova-RTC (https://github.com/cordova-rtc)
+ * Copyright 2017-2022 Cordova-RTC (https://github.com/cordova-rtc)
  * License MIT
  */
 
@@ -2968,7 +2968,7 @@ function RTCRtpSender(pc, data) {
 	this._pc = pc;
 	this.track = data.track ? pc.getOrCreateTrack(data.track) : null;
 	this.params = data.params || {};
-	if(this.track) {
+	if (this.track) {
 		this.dtmf = pc.createDTMFSender(this.track);
 	}
 }
