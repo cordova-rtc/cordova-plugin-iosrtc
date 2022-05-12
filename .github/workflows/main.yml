@@ -43,20 +43,20 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Lint
+      - name: Lint Plugin
         run: npm run lint
 
-      - name: Build
+      - name: Build Plugin
         run: npm run build
 
-      - name: Install cordova
+      - name: Install Cordova CLI
         run: |
           mkdir ~/.npm-global
           npm config set prefix '~/.npm-global'
           export PATH=~/.npm-global/bin:$PATH
           npm install cordova@10 -g
 
-      - name: Build
+      - name: Create Cordova app, install plugin then build app
         run: |
           npm config set prefix '~/.npm-global'
           export PATH=~/.npm-global/bin:$PATH
