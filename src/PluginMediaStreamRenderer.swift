@@ -73,31 +73,34 @@ class PluginRTCVideoView : UIView {
 }
 
 class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
-	
+
 	var id: String
 	var eventListener: (_ data: NSDictionary) -> Void
 	var closed: Bool
-	
+
 	var webView: UIView
 	var videoView: PluginRTCVideoView
 	var pluginMediaStream: PluginMediaStream?
 	var rtcAudioTrack: RTCAudioTrack?
 	var rtcVideoTrack: RTCVideoTrack?
+    var pluginVideoTrack: PluginMediaStreamTrack?
 
 	init(
 		webView: UIView,
 		eventListener: @escaping (_ data: NSDictionary) -> Void
 	) {
 		NSLog("PluginMediaStreamRenderer#init()")
-		
+
 		// Open Renderer
 		self.id = UUID().uuidString;
 		self.closed = false
-		
+
 		// The browser HTML view.
 		self.webView = webView
 		self.eventListener = eventListener
-		
+
+		let useManualLayoutRenderer = Bundle.main.object(forInfoDictionaryKey: "UseManualLayoutRenderer") as? Bool ?? false
+
 		// The video element view.
 		self.videoView = PluginRTCVideoView()
 		
@@ -123,6 +126,7 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		self.elementView.backgroundColor = UIColor.black
 		self.elementView.addSubview(self.videoView)
 		self.elementView.layer.masksToBounds = true
+		self.elementView.translatesAutoresizingMaskIntoConstraints = false
 
 		// Place the video element view inside the WebView's superview
 		self.webView.addSubview(self.elementView)
@@ -135,17 +139,18 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		// https://developer.apple.com/documentation/uikit/uiview/2891102-safearealayoutguide
 		// https://developer.apple.com/documentation/uikit/
 		let view = self.elementView;
-		if #available(iOS 11.0, *) {
-			let guide = webView.safeAreaLayoutGuide;
-			view.topAnchor.constraint(equalTo: guide.topAnchor).isActive = true
-			view.bottomAnchor.constraint(equalTo: guide.bottomAnchor).isActive = true
-			view.leftAnchor.constraint(equalTo: guide.leftAnchor).isActive = true
-			view.rightAnchor.constraint(equalTo: guide.rightAnchor).isActive = true
-		} else {
-			NSLayoutConstraint(item: view, attribute: .top, relatedBy: .equal, toItem: webView, attribute: .top, multiplier: 1.0, constant: 0).isActive = true
-			NSLayoutConstraint(item: view, attribute: .bottom, relatedBy: .equal, toItem: webView, attribute: .bottom, multiplier: 1.0, constant: 0).isActive = true
-			NSLayoutConstraint(item: view, attribute: .leading, relatedBy: .equal, toItem: webView, attribute: .leading, multiplier: 1.0, constant: 0).isActive = true
-			NSLayoutConstraint(item: view, attribute: .trailing, relatedBy: .equal, toItem: webView, attribute: .trailing, multiplier: 1.0, constant: 0).isActive = true
+		if !useManualLayoutRenderer {
+			if #available(iOS 11.0, *) {
+				view.topAnchor.constraint(equalTo: guide.topAnchor).isActive = true
+				view.bottomAnchor.constraint(equalTo: guide.bottomAnchor).isActive = true
+				view.leftAnchor.constraint(equalTo: guide.leftAnchor).isActive = true
+				view.rightAnchor.constraint(equalTo: guide.rightAnchor).isActive = true
+			} else {
+				NSLayoutConstraint(item: view, attribute: .top, relatedBy: .equal, toItem: webView, attribute: .top, multiplier: 1.0, constant: 0).isActive = true
+				NSLayoutConstraint(item: view, attribute: .bottom, relatedBy: .equal, toItem: webView, attribute: .bottom, multiplier: 1.0, constant: 0).isActive = true
+				NSLayoutConstraint(item: view, attribute: .leading, relatedBy: .equal, toItem: webView, attribute: .leading, multiplier: 1.0, constant: 0).isActive = true
+				NSLayoutConstraint(item: view, attribute: .trailing, relatedBy: .equal, toItem: webView, attribute: .trailing, multiplier: 1.0, constant: 0).isActive = true
+			}
 		}
 		*/
 	}
@@ -176,20 +181,18 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		}
 
 		// Take the first video track.
-		var pluginVideoTrack: PluginMediaStreamTrack?
 		for (_, track) in pluginMediaStream.videoTracks {
-			pluginVideoTrack = track
-			
 			if (self.rtcVideoTrack == track.rtcMediaStreamTrack) {
 				return;
 			}
+      self.pluginVideoTrack = track
 			self.rtcVideoTrack = track.rtcMediaStreamTrack as? RTCVideoTrack
 			break
 		}
-
+  
 		if self.rtcVideoTrack != nil {
-			self.rtcVideoTrack!.add(self.videoView.rtcVideoView!)
-			pluginVideoTrack?.registerRender(render: self)
+			self.rtcVideoTrack!.ad(self.videoView.rtcVideoView!)
+      self.pluginVideoTrack?.registerRender(render: self)
 		}
 	}
 	
@@ -200,11 +203,13 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 			return
 		}
 
+        let oldPluginVideoTrack: PluginMediaStreamTrack? = self.pluginVideoTrack
 		let oldRtcVideoTrack: RTCVideoTrack? = self.rtcVideoTrack
-
+        
 		self.rtcAudioTrack = nil
 		self.rtcVideoTrack = nil
-
+        self.pluginVideoTrack = nil
+        
 		// Take the first audio track.
 		for (_, track) in self.pluginMediaStream!.audioTracks {
 			self.rtcAudioTrack = track.rtcMediaStreamTrack as? RTCAudioTrack
@@ -213,6 +218,7 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 
 		// Take the first video track.
 		for (_, track) in pluginMediaStream!.videoTracks {
+            self.pluginVideoTrack = track
 			self.rtcVideoTrack = track.rtcMediaStreamTrack as? RTCVideoTrack
 			break
 		}
@@ -227,27 +233,34 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		else if oldRtcVideoTrack != nil && self.rtcVideoTrack != nil &&
 			oldRtcVideoTrack!.trackId != self.rtcVideoTrack!.trackId {
 			NSLog("PluginMediaStreamRenderer#mediaStreamChanged() | has a new video track")
-
+      oldPluginVideoTrack?.unregisterRender(render: self)
 			oldRtcVideoTrack!.remove(self.videoView.rtcVideoView!)
+      self.pluginVideoTrack?.registerRender(render: self)
 			self.rtcVideoTrack!.add(self.videoView.rtcVideoView!)
 		}
 
 		// Did not have video but now it has.
 		else if oldRtcVideoTrack == nil && self.rtcVideoTrack != nil {
 			NSLog("PluginMediaStreamRenderer#mediaStreamChanged() | video track added")
-
+      
+      if oldPluginVideoTrack != nil{
+          oldPluginVideoTrack?.unregisterRender(render: self)
+      }
+      self.pluginVideoTrack?.registerRender(render: self)
 			self.rtcVideoTrack!.add(self.videoView.rtcVideoView!)
 		}
 
 		// Had video but now it has not.
 		else if oldRtcVideoTrack != nil && self.rtcVideoTrack == nil {
 			NSLog("PluginMediaStreamRenderer#mediaStreamChanged() | video track removed")
+      
+      oldPluginVideoTrack?.unregisterRender(render: self)
 			oldRtcVideoTrack!.remove(self.videoView.rtcVideoView!)
 		}
 	}
 
 	func refresh(_ data: NSDictionary) {
-		
+
 		let elementLeft = data.object(forKey: "elementLeft") as? Double ?? 0
 		let elementTop = data.object(forKey: "elementTop") as? Double ?? 0
 		let elementWidth = data.object(forKey: "elementWidth") as? Double ?? 0
@@ -260,6 +273,7 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		let mirrored = data.object(forKey: "mirrored") as? Bool ?? false
 		let clip = data.object(forKey: "clip") as? Bool ?? true
 		let borderRadius = data.object(forKey: "borderRadius") as? Double ?? 0
+		let backgroundColor = data.object(forKey: "backgroundColor") as? String ?? "0,0,0"
 
 		NSLog("PluginMediaStreamRenderer#refresh() [elementLeft:%@, elementTop:%@, elementWidth:%@, elementHeight:%@, videoViewWidth:%@, videoViewHeight:%@, visible:%@, opacity:%@, zIndex:%@, mirrored:%@, clip:%@, borderRadius:%@]",
 			String(elementLeft), String(elementTop), String(elementWidth), String(elementHeight),
@@ -341,20 +355,22 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		videoView.layer.cornerRadius = CGFloat(borderRadius)
 	}
 	
-	func save() -> String {
-		NSLog("PluginMediaStreamRenderer#save()")
+	func save(callback: (_ data: String) -> Void,
+			  errback: (_ error: String) -> Void) {
+		//NSLog("PluginMediaStreamRenderer#save()")
 		UIGraphicsBeginImageContextWithOptions(videoView.bounds.size, videoView.isOpaque, 0.0)
 		videoView.drawHierarchy(in: videoView.bounds, afterScreenUpdates: false)
 		let snapshotImageFromMyView = UIGraphicsGetImageFromCurrentImageContext()
 		UIGraphicsEndImageContext()
 		let imageData = snapshotImageFromMyView?.jpegData(compressionQuality: 1.0)
 		let strBase64 = imageData?.base64EncodedString(options: .lineLength64Characters)
-		return strBase64!;
+		
+		callback(strBase64!);
 	}
-	
+
 	func stop() {
 		NSLog("PluginMediaStreamRenderer | video stop")
-		
+
 		self.eventListener([
 			"type": "videostop"
 		])
@@ -370,14 +386,17 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 	/**
 	 * Private API.
 	 */
-	
+
 	fileprivate func reset() {
 		NSLog("PluginMediaStreamRenderer#reset()")
 
 		if self.rtcVideoTrack != nil {
 			self.rtcVideoTrack!.remove(self.videoView.rtcVideoView!)
 		}
-
+        if self.pluginVideoTrack != nil {
+            self.pluginVideoTrack?.unregisterRender(render: self)
+        }
+        self.pluginVideoTrack = nil
 		self.pluginMediaStream = nil
 		self.rtcAudioTrack = nil
 		self.rtcVideoTrack = nil
@@ -386,9 +405,9 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 	/**
 	 * Methods inherited from RTCEAGLVideoViewDelegate.
 	 */
-	
+
 	func videoView(_ videoView: RTCVideoRenderer, didChangeVideoSize size: CGSize) {
-	
+
 		NSLog("PluginMediaStreamRenderer | video size changed [width:%@, height:%@]",
 			String(describing: size.width), String(describing: size.height))
 
@@ -400,9 +419,9 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 			]
 		])
 	}
-	
+
 	func videoView(_ videoView: RTCVideoRenderer, didChange frame: RTCVideoFrame?) {
-		
+
 		// TODO save from frame buffer instead of renderer
 		/*
 		let i420: RTCI420BufferProtocol = frame!.buffer.toI420()
@@ -417,14 +436,14 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		var height: Int16 = Int16(frame!.height)
 		var rotation: Int16 = Int16(frame!.rotation.rawValue)
 		var timestamp: Int32 = Int32(frame!.timeStamp)
-		
+
 		// head + body
 		// head: type(2B)+len(4B)+width(2B)+height(2B)+rotation(2B)+timestamp(4B)
 		// body: data(len)
 		let headSize:Int32 = 16
 		let dataSize:Int32 = headSize + frameSize
 		let pduData: NSMutableData? = NSMutableData(length: Int(dataSize))
-		
+
 		let headPtr = pduData!.mutableBytes
 		var pduType:UInt16 = 0x2401
 		memcpy(headPtr, &pduType, 2)
@@ -433,7 +452,7 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		memcpy(headPtr+2+4+2, &height, 2)
 		memcpy(headPtr+2+4+2+2, &rotation, 2)
 		//memcpy(headPtr+2+4+2+2+2, &timestamp, 4)
-		
+
 		let bodyPtr = pduData!.mutableBytes + Int(headSize)
 		memcpy(bodyPtr, YPtr, YSize)
 		memcpy(bodyPtr + YSize, UPtr, USize);
