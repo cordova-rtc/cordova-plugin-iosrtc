@@ -60,7 +60,7 @@ jobs:
         run: |
           npm config set prefix '~/.npm-global'
           export PATH=~/.npm-global/bin:$PATH
-          cordova create myApp org.apache.cordova.myApp myApp; cd myApp;
+          cd ..; cordova create myApp org.apache.cordova.myApp myApp; cd myApp;
           cordova platform add ios@latest --verbose
-          cordova plugin add ../ --verbose
+          cordova plugin add ../cordova-plugin-iosrtc --verbose
           cordova build ios --verbose
