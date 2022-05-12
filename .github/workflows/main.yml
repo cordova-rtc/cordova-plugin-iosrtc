@@ -25,9 +25,6 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      #- name: Force XCode 11.3
-      #  run: sudo xcode-select -switch /Applications/Xcode_11.3.app
-
       - name: Setup NodeJS 12
         uses: actions/setup-node@v1
         with:
@@ -53,10 +50,17 @@ jobs:
         run: npm run build
 
       - name: Install cordova
-        run: npm install cordova@10 -g
+        run:
+          mkdir ~/.npm-global \
+          npm config set prefix '~/.npm-global' \
+          export PATH=~/.npm-global/bin:$PATH \
+          npm install cordova@10 -g
 
       - name: Build
-        run: cordova create myApp org.apache.cordova.myApp myApp; cd myApp; \
+        run:
+          npm config set prefix '~/.npm-global' \
+          export PATH=~/.npm-global/bin:$PATH \
+          cordova create myApp org.apache.cordova.myApp myApp; cd myApp; \
           cordova platform add ios@latest --verbose \
           cordova plugin add ../ --verbose \
           cordova build ios --verbose
