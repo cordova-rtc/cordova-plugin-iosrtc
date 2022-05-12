@@ -37,7 +37,7 @@ In order to make this Cordova plugin run into a iOS application some requirement
 ### Third-Party Supported Library
 
 * WebRTC W3C v1.0.0
-* WebRTC.framework => M87
+* WebRTC.framework => M100
 * Janus => 0.7.4
 * JSSip => 3.1.2
 * Sip.js => 0.15.6
@@ -60,7 +60,7 @@ $ cordova plugin add cordova-plugin-iosrtc
 
 ## Building
 
-* Last [Tested WebRTC.framework](./lib/WebRTC.framework/) version: M87 on cordova-plugin-iosrtc version 8.0.0+
+* Last [Tested WebRTC.framework](./lib/WebRTC.framework/) version: M100 on cordova-plugin-iosrtc version 10.0.0+
 * [Building](docs/Building.md): Guidelines for building a Cordova iOS application including the *cordova-plugin-iosrtc* plugin.
 * [Building `libwebrtc`](docs/BuildingLibWebRTC.md): Guidelines for building Google's *libwebrtc* with modifications needed by the *cordova-plugin-iosrtc* plugin (just in case you want to use a different version of *libwebrtc* or apply your own changes to it).
 
