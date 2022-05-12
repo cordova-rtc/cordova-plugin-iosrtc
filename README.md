@@ -3,7 +3,7 @@
 # cordova-plugin-iosrtc
 
 [![npm version](https://img.shields.io/npm/v/cordova-plugin-iosrtc.svg?style=flat)](https://www.npmjs.com/package/cordova-plugin-iosrtc)
-[![Build Status](https://travis-ci.org/cordova-rtc/cordova-plugin-iosrtc.svg?branch=master)](https://travis-ci.org/cordova-rtc/cordova-plugin-iosrtc)
+[![Build Status](https://travis-ci.com/cordova-rtc/cordova-plugin-iosrtc.svg?branch=master)](https://travis-ci.com/cordova-rtc/cordova-plugin-iosrtc)
 
 [![NPM](https://nodei.co/npm/cordova-plugin-iosrtc.png)](https://npmjs.org/package/cordova-plugin-iosrtc)
 
@@ -28,23 +28,23 @@ This plugin was initially developed at eFace2Face, and later maintained by the c
 
 In order to make this Cordova plugin run into a iOS application some requirements must be satisfied in both development computer and target devices:
 
-* Xcode >= 11.1 (11A1027)
-* iOS >= 10.2 (run on lower versions at your own risk, don't report issues)
+* Xcode >= 13.2.1 (13C100)
+* iOS >= 14.3 (run on lower versions at your own risk, don't report issues)
 * `swift-version` => 4.2
-* `cordova` >= 7.1.0
-* `cordova-ios` >= 4.5.1
+* `cordova` >= 11.0.0
+* `cordova-ios` >= 6.2.0
 
 ### Third-Party Supported Library
 
 * WebRTC W3C v1.0.0
-* WebRTC.framework => M69
+* WebRTC.framework => M87
 * Janus => 0.7.4
 * JSSip => 3.1.2
 * Sip.js => 0.15.6
 * OpenEasyrtc => 2.0.3
 * openvidu => 2.11.0
-* Ionic => v8 
-* Jitsi ~ 3229 
+* Ionic => v8
+* Jitsi ~ 3229
 * Apizee => 2.6.11
 * Twillio => 2.4.0
 
@@ -60,7 +60,7 @@ $ cordova plugin add cordova-plugin-iosrtc
 
 ## Building
 
-* Last [Tested WebRTC.framework](./lib/WebRTC.framework/) version: M69 on cordova-plugin-iosrtc version 6.0.0
+* Last [Tested WebRTC.framework](./lib/WebRTC.framework/) version: M87 on cordova-plugin-iosrtc version 8.0.0+
 * [Building](docs/Building.md): Guidelines for building a Cordova iOS application including the *cordova-plugin-iosrtc* plugin.
 * [Building `libwebrtc`](docs/BuildingLibWebRTC.md): Guidelines for building Google's *libwebrtc* with modifications needed by the *cordova-plugin-iosrtc* plugin (just in case you want to use a different version of *libwebrtc* or apply your own changes to it).
 
@@ -89,7 +89,7 @@ appContainer.innerHTML = "";
 // Sample getUserMedia
 //
 
-// 
+//
 var localStream, localVideoEl;
 function TestGetUserMedia() {
   localVideoEl = document.createElement('video');
@@ -112,7 +112,7 @@ function TestGetUserMedia() {
       }
       // Test FrameRate
       frameRate:{ min: 15.0, max: 30.0 } // Note: Back camera may only support max 30 fps
-    }, 
+    },
     audio: {
       deviceId: {
         exact: 'Built-In Microphone'
@@ -130,7 +130,7 @@ function TestGetUserMedia() {
     localVideoEl.srcObject = localStream;
 
     return localStream;
-   
+
   }).catch(function (err) {
     console.log('getUserMedia.error', err, err.stack);
   });
@@ -138,7 +138,7 @@ function TestGetUserMedia() {
 
 //
 // Sample RTCPeerConnection
-// 
+//
 
 var pc1, pc2;
 
@@ -165,17 +165,17 @@ function TestRTCPeerConnection(localStream) {
 
   pc1 = new RTCPeerConnection(peerConnectionConfig);
   pc2 = new RTCPeerConnection(peerConnectionConfig);
-  
+
   if (useTrackEvent) {
-     
+
     // Add local stream tracks to RTCPeerConnection
     var localPeerStream = new MediaStream();
     localStream.getTracks().forEach(function (track) {
       console.log('pc1.addTrack', track, localPeerStream);
       pc1.addTrack(track, localPeerStream);
     });
-        
-  // Note: Deprecated but supported    
+
+  // Note: Deprecated but supported
   } else {
      pc1.addStream(localStream);
 
@@ -194,7 +194,7 @@ function TestRTCPeerConnection(localStream) {
   pc1.addEventListener('icecandidate', function (e) {
     onAddIceCandidate(pc2, e.candidate);
   });
-  
+
   pc2.addEventListener('icecandidate', function (e) {
     onAddIceCandidate(pc1, e.candidate);
   });
@@ -221,10 +221,10 @@ function TestRTCPeerConnection(localStream) {
       console.log('pc2.track', e);
       newPeerStream = e.streams[0] || newPeerStream || new MediaStream();
       setPeerVideoStream(newPeerStream);
-      newPeerStream.addTrack(e.track);   
+      newPeerStream.addTrack(e.track);
     });
-	
-  // Note: Deprecated but supported    
+
+  // Note: Deprecated but supported
   } else {
     pc2.addEventListener('addstream', function(e) {
       console.log('pc2.addStream', e);
@@ -235,7 +235,7 @@ function TestRTCPeerConnection(localStream) {
   pc1.addEventListener('iceconnectionstatechange', function (e) {
     console.log('pc1.iceConnectionState', e, pc1.iceConnectionState);
 
-    if (pc1.iceConnectionState === 'completed') {      
+    if (pc1.iceConnectionState === 'completed') {
       console.log('pc1.getSenders', pc1.getSenders());
       console.log('pc2.getReceivers', pc2.getReceivers());
     }
@@ -286,7 +286,7 @@ function TestRTCPeerConnection(localStream) {
 }
 
 function TestRTCPeerConnectionLocal() {
-    
+
   // Note: This allow this sample to run on any Browser
   var cordova = window.cordova;
   if (cordova && cordova.plugins && cordova.plugins.iosrtc) {
@@ -301,14 +301,14 @@ function TestRTCPeerConnectionLocal() {
 
   // Run sample
   TestGetUserMedia().then(function (localStream) {
-    TestRTCPeerConnection(localStream); 
+    TestRTCPeerConnection(localStream);
   });
 }
 
 if (document.readyState === "complete" || document.readyState === "loaded") {
   TestRTCPeerConnectionLocal();
 } else {
-  window.addEventListener("DOMContentLoaded", TestRTCPeerConnectionLocal);  
+  window.addEventListener("DOMContentLoaded", TestRTCPeerConnectionLocal);
 }
 
 // See ./extra/renderer-and-libwebrtc-tests.js for more samples usage.
@@ -394,8 +394,11 @@ See [CHANGELOG.md](./CHANGELOG.md).
 
 * [Harold Thetiot](https://sylaps.com)
 
-**If you like this project you can support me.**  
-<a href="https://www.buymeacoffee.com/hthetiot" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-white.png" alt="Buy Me A Coffee" style="height: 51px !important;width: 217px !important;" ></a>
+**If you like this project you can support me.**
+
+<a href="https://www.buymeacoffee.com/hthetiot" target="_blank">
+	<img src="https://cdn.buymeacoffee.com/buttons/default-white.png" alt="Buy Me A Coffee" style="height: 51px !important;width: 217px !important;" >
+</a>
 
 ## License
 

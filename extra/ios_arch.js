@@ -38,6 +38,7 @@ const ARCH_TYPES = ARCH_SIM_TYPES.concat(ARCH_DEVICE_TYPES);
 
 function extractArchitecture(archs, cwd) {
 	archs.forEach((arch) => {
+		//console.log(`lipo -extract ${arch} WebRTC -o WebRTC-${arch}`, cwd);
 		exec(`lipo -extract ${arch} WebRTC -o WebRTC-${arch}`, { cwd: cwd });
 	});
 }

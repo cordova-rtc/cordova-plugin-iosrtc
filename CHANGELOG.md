@@ -1,3 +1,35 @@
+#### Version 8.0.1
+* fix RTCPeerConnection.removeTrack support for sender without track
+* add support for local description rollback #704 via @slavchev
+
+#### Version 8.0.0
+* implement RTCPeerConnection.addTransceiver #589 via @agelito
+* fix RtpSenders inconsistency after removeTrack call #702 via @RSATom
+* fix RTCRtpSender MediaStreamTrack replace #699 via @RSATom
+* fix requestPermission returns true if AVAuthorizationStatus is notDetermined #692
+* fix crash when used with Janus Audiobridge #691 via @RSATom
+* fix Warning [LayoutConstraints] Unable to simultaneously satisfy constraints. #422 via @slavchev
+* fixcrash when used with Janus Audiobridge #691 via @RSATom
+* extend transceiver/sender/receiver functionality #664 via @slavchev
+* fix updateTransceiversState call #661 @ducile
+* Update to WebRTC.framework M87
+* Update to WebRTC.framework M84
+
+#### Version 7.0.0
+* Update to WebRTC.framework M79
+* Update to WebRTC.framework M75
+
+#### Version 6.0.21
+* fix Canvas drawImage memory leak fix #681
+* fix Warning [LayoutConstraints] Unable to simultaneously satisfy constraints.
+
+#### Version 6.0.20
+* fix Remove extmap-allow-mixed sdp header on RTCPeerConnection.prototype.setRemoteDescription to handle chrome 89
+
+#### Version 6.0.19
+* fix MediaStreamRenderer doesn't call PluginMediaStreamTrack.unregisterRender = stuck reference. #649
+* fix ios not build after cordova-plugin-iosrtc #642
+
 #### Version 6.0.18
 * fix: update ios_arch.js to generate WebRTC.xcframework, Include WebRTC.xcframework instead of WebRTC.framework
 * fix: ignore empty IceCandidate, fix RTCPeerConnection_addIceCandidate pluginRTCPeerConnection argument is NIL

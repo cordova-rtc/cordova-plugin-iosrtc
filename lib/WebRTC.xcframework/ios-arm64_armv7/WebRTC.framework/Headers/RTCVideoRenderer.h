@@ -13,27 +13,30 @@
 #import <UIKit/UIKit.h>
 #endif
 
-#import <WebRTC/RTCMacros.h>
+#import "RTCMacros.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@class RTCVideoFrame;
+@class RTC_OBJC_TYPE(RTCVideoFrame);
 
-RTC_EXPORT
-@protocol RTCVideoRenderer <NSObject>
+RTC_OBJC_EXPORT
+@protocol RTC_OBJC_TYPE
+(RTCVideoRenderer)<NSObject>
 
-/** The size of the frame. */
-- (void)setSize:(CGSize)size;
+    /** The size of the frame. */
+    - (void)setSize : (CGSize)size;
 
 /** The frame to be displayed. */
-- (void)renderFrame:(nullable RTCVideoFrame *)frame;
+- (void)renderFrame:(nullable RTC_OBJC_TYPE(RTCVideoFrame) *)frame;
 
 @end
 
-RTC_EXPORT
-@protocol RTCVideoViewDelegate
+RTC_OBJC_EXPORT
+@protocol RTC_OBJC_TYPE
+(RTCVideoViewDelegate)
 
-- (void)videoView:(id<RTCVideoRenderer>)videoView didChangeVideoSize:(CGSize)size;
+    - (void)videoView : (id<RTC_OBJC_TYPE(RTCVideoRenderer)>)videoView didChangeVideoSize
+    : (CGSize)size;
 
 @end
 

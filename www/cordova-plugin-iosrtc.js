@@ -1,5 +1,5 @@
 /*
- * cordova-plugin-iosrtc v6.0.18
+ * cordova-plugin-iosrtc v8.0.1
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015-2017 eFace2Face, Inc. (https://eface2face.com)
  * Copyright 2015-2019 BasqueVoIPMafia (https://github.com/BasqueVoIPMafia)
@@ -202,7 +202,7 @@ MediaDevices.prototype.getSupportedConstraints = function () {
 	};
 };
 
-},{"./EventTarget":2,"./enumerateDevices":20,"./getUserMedia":21}],5:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"./enumerateDevices":19,"./getUserMedia":20}],5:[function(_dereq_,module,exports){
 /**
  * Expose the MediaStream class.
  */
@@ -218,7 +218,7 @@ module.exports = MediaStream;
 var debug = _dereq_('debug')('iosrtc:MediaStream'),
 	exec = _dereq_('cordova/exec'),
 	EventTarget = _dereq_('./EventTarget'),
-	MediaStreamTrack = _dereq_('./MediaStreamTrack'),
+	{ MediaStreamTrack } = _dereq_('./MediaStreamTrack'),
 	/**
 	 * Local variables.
 	 */
@@ -714,7 +714,7 @@ function onEvent(data) {
 	}
 }
 
-},{"./EventTarget":2,"./MediaStreamTrack":7,"cordova/exec":undefined,"debug":24}],6:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"./MediaStreamTrack":7,"cordova/exec":undefined,"debug":23}],6:[function(_dereq_,module,exports){
 /**
  * Expose the MediaStreamRenderer class.
  */
@@ -1124,11 +1124,12 @@ function getElementPositionAndSize() {
 	};
 }
 
-},{"./EventTarget":2,"./MediaStream":5,"cordova/exec":undefined,"debug":24,"random-number":29}],7:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"./MediaStream":5,"cordova/exec":undefined,"debug":23,"random-number":28}],7:[function(_dereq_,module,exports){
 /**
  * Expose the MediaStreamTrack class.
  */
-module.exports = MediaStreamTrack;
+module.exports.MediaStreamTrack = MediaStreamTrack;
+module.exports.newMediaStreamTrackId = newMediaStreamTrackId;
 
 /**
  * Spec: http://w3c.github.io/mediacapture-main/#mediastreamtrack
@@ -1174,6 +1175,8 @@ function MediaStreamTrack(dataFromEvent) {
 	// Private attributes.
 	this._enabled = dataFromEvent.enabled;
 	this._ended = false;
+
+	this.dataFromEvent = dataFromEvent;
 
 	function onResultOK(data) {
 		onEvent.call(self, data);
@@ -1221,7 +1224,8 @@ MediaStreamTrack.prototype.clone = function () {
 		kind: this.kind,
 		label: this.label,
 		readyState: this.readyState,
-		enabled: this.enabled
+		enabled: this.enabled,
+		trackId: this.dataFromEvent.trackId
 	});
 };
 
@@ -1287,7 +1291,7 @@ function onEvent(data) {
 	}
 }
 
-},{"./EventTarget":2,"./MediaTrackCapabilities":8,"./MediaTrackSettings":9,"./enumerateDevices":20,"cordova/exec":undefined,"debug":24}],8:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"./MediaTrackCapabilities":8,"./MediaTrackSettings":9,"./enumerateDevices":19,"cordova/exec":undefined,"debug":23}],8:[function(_dereq_,module,exports){
 /**
  * Expose the MediaTrackSettings class.
  */
@@ -1442,7 +1446,8 @@ function onEvent(data) {
 	}
 }
 
-},{"./EventTarget":2,"cordova/exec":undefined,"debug":24,"random-number":29}],11:[function(_dereq_,module,exports){
+},{"./EventTarget":2,"cordova/exec":undefined,"debug":23,"random-number":28}],11:[function(_dereq_,module,exports){
+(function (setImmediate){
 /**
  * Expose the RTCDataChannel class.
  */
@@ -1586,38 +1591,40 @@ RTCDataChannel.prototype.send = function (data) {
 		return;
 	}
 
-	if (typeof data === 'string' || data instanceof String) {
-		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendString', [
-			this.peerConnection.pcId,
-			this.dcId,
-			data
-		]);
-	} else if (window.ArrayBuffer && data instanceof window.ArrayBuffer) {
-		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendBinary', [
-			this.peerConnection.pcId,
-			this.dcId,
-			data
-		]);
-	} else if (
-		(window.Int8Array && data instanceof window.Int8Array) ||
-		(window.Uint8Array && data instanceof window.Uint8Array) ||
-		(window.Uint8ClampedArray && data instanceof window.Uint8ClampedArray) ||
-		(window.Int16Array && data instanceof window.Int16Array) ||
-		(window.Uint16Array && data instanceof window.Uint16Array) ||
-		(window.Int32Array && data instanceof window.Int32Array) ||
-		(window.Uint32Array && data instanceof window.Uint32Array) ||
-		(window.Float32Array && data instanceof window.Float32Array) ||
-		(window.Float64Array && data instanceof window.Float64Array) ||
-		(window.DataView && data instanceof window.DataView)
-	) {
-		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendBinary', [
-			this.peerConnection.pcId,
-			this.dcId,
-			data.buffer
-		]);
-	} else {
-		throw new Error('invalid data type');
-	}
+	setImmediate(() => {
+		if (typeof data === 'string' || data instanceof String) {
+			exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendString', [
+				this.peerConnection.pcId,
+				this.dcId,
+				data
+			]);
+		} else if (window.ArrayBuffer && data instanceof window.ArrayBuffer) {
+			exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendBinary', [
+				this.peerConnection.pcId,
+				this.dcId,
+				data
+			]);
+		} else if (
+			(window.Int8Array && data instanceof window.Int8Array) ||
+			(window.Uint8Array && data instanceof window.Uint8Array) ||
+			(window.Uint8ClampedArray && data instanceof window.Uint8ClampedArray) ||
+			(window.Int16Array && data instanceof window.Int16Array) ||
+			(window.Uint16Array && data instanceof window.Uint16Array) ||
+			(window.Int32Array && data instanceof window.Int32Array) ||
+			(window.Uint32Array && data instanceof window.Uint32Array) ||
+			(window.Float32Array && data instanceof window.Float32Array) ||
+			(window.Float64Array && data instanceof window.Float64Array) ||
+			(window.DataView && data instanceof window.DataView)
+		) {
+			exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCDataChannel_sendBinary', [
+				this.peerConnection.pcId,
+				this.dcId,
+				data.buffer
+			]);
+		} else {
+			throw new Error('invalid data type');
+		}
+	});
 };
 
 RTCDataChannel.prototype.close = function () {
@@ -1705,7 +1712,8 @@ function onEvent(data) {
 	}
 }
 
-},{"./EventTarget":2,"cordova/exec":undefined,"debug":24,"random-number":29}],12:[function(_dereq_,module,exports){
+}).call(this,_dereq_("timers").setImmediate)
+},{"./EventTarget":2,"cordova/exec":undefined,"debug":23,"random-number":28,"timers":29}],12:[function(_dereq_,module,exports){
 /**
  * Expose the RTCIceCandidate class.
  */
@@ -1914,11 +1922,10 @@ var debug = _dereq_('debug')('iosrtc:RTCPeerConnection'),
 	RTCDTMFSender = _dereq_('./RTCDTMFSender'),
 	RTCRtpReceiver = _dereq_('./RTCRtpReceiver'),
 	RTCRtpSender = _dereq_('./RTCRtpSender'),
-	RTCRtpTransceiver = _dereq_('./RTCRtpTransceiver'),
-	RTCStatsResponse = _dereq_('./RTCStatsResponse'),
+	{ RTCRtpTransceiver, addTransceiverToPeerConnection } = _dereq_('./RTCRtpTransceiver'),
 	RTCStatsReport = _dereq_('./RTCStatsReport'),
 	MediaStream = _dereq_('./MediaStream'),
-	MediaStreamTrack = _dereq_('./MediaStreamTrack'),
+	{ MediaStreamTrack, newMediaStreamTrackId } = _dereq_('./MediaStreamTrack'),
 	Errors = _dereq_('./Errors');
 
 debugerror.log = console.warn.bind(console);
@@ -1952,6 +1959,16 @@ function RTCPeerConnection(pcConfig, pcConstraints) {
 		'getLocalStreams',
 		RTCPeerConnection.prototype_descriptor.getLocalStreams
 	);
+	Object.defineProperty(
+		this,
+		'addTransceiver',
+		RTCPeerConnection.prototype_descriptor.addTransceiver
+	);
+	Object.defineProperty(
+		this,
+		'getOrCreateTrack',
+		RTCPeerConnection.prototype_descriptor.getOrCreateTrack
+	);
 
 	// Public atributes.
 	this._localDescription = null;
@@ -1965,8 +1982,9 @@ function RTCPeerConnection(pcConfig, pcConstraints) {
 	this.pcId = randomNumber();
 	this.localStreams = {};
 	this.remoteStreams = {};
-	this.localTracks = {};
-	this.remoteTracks = {};
+
+	this.tracks = {};
+	this.transceivers = [];
 
 	function onResultOK(data) {
 		onEvent.call(self, data);
@@ -2051,6 +2069,10 @@ RTCPeerConnection.prototype.createOffer = function (options) {
 				return;
 			}
 
+			if (data.transceivers) {
+				self.updateTransceiversState(data.transceivers);
+			}
+
 			var desc = new RTCSessionDescription(data);
 
 			debug('createOffer() | success [desc:%o]', desc);
@@ -2090,6 +2112,10 @@ RTCPeerConnection.prototype.createAnswer = function (options) {
 		function onResultOK(data) {
 			if (isClosed.call(self)) {
 				return;
+			}
+
+			if (data.transceivers) {
+				self.updateTransceiversState(data.transceivers);
 			}
 
 			var desc = new RTCSessionDescription(data);
@@ -2146,9 +2172,13 @@ RTCPeerConnection.prototype.setLocalDescription = function (desc) {
 				return;
 			}
 
+			if (data.transceivers) {
+				self.updateTransceiversState(data.transceivers);
+			}
+
 			debug('setLocalDescription() | success');
 			// Update localDescription.
-			self._localDescription = new RTCSessionDescription(data);
+			self._localDescription = data.type === '' ? null : new RTCSessionDescription(data);
 			resolve();
 		}
 
@@ -2188,6 +2218,19 @@ RTCPeerConnection.prototype.setRemoteDescription = function (desc) {
 
 	debug('setRemoteDescription() [desc:%o]', desc);
 
+	// Remove extmap-allow-mixed sdp header
+	if (desc && desc.sdp && desc.sdp.indexOf('\na=extmap-allow-mixed') !== -1) {
+		desc = new RTCSessionDescription({
+			type: desc.type,
+			sdp: desc.sdp
+				.split('\n')
+				.filter((line) => {
+					return line.trim() !== 'a=extmap-allow-mixed';
+				})
+				.join('\n')
+		});
+	}
+
 	// "This is no longer necessary, however; RTCPeerConnection.setLocalDescription() and other
 	// methods which take SDP as input now directly accept an object conforming to the RTCSessionDescriptionInit dictionary,
 	// so you don't have to instantiate an RTCSessionDescription yourself.""
@@ -2202,6 +2245,10 @@ RTCPeerConnection.prototype.setRemoteDescription = function (desc) {
 		function onResultOK(data) {
 			if (isClosed.call(self)) {
 				return;
+			}
+
+			if (data.transceivers) {
+				self.updateTransceiversState(data.transceivers);
 			}
 
 			debug('setRemoteDescription() | success');
@@ -2325,67 +2372,23 @@ RTCPeerConnection.prototype.getRemoteStreams = function () {
 };
 
 RTCPeerConnection.prototype.getReceivers = function () {
-	var self = this,
-		tracks = [],
-		id;
-
-	for (id in this.remoteTracks) {
-		if (this.remoteTracks.hasOwnProperty(id)) {
-			tracks.push(this.remoteTracks[id]);
-		}
-	}
-
-	return tracks.map(function (track) {
-		return new RTCRtpReceiver({
-			pc: self,
-			track: track
-		});
-	});
+	return this.getTransceivers()
+		.filter((transceiver) => !transceiver.stopped)
+		.map((transceiver) => transceiver.receiver);
 };
 
 RTCPeerConnection.prototype.getSenders = function () {
-	var self = this,
-		tracks = [],
-		id;
-
-	for (id in this.localTracks) {
-		if (this.localTracks.hasOwnProperty(id)) {
-			tracks.push(this.localTracks[id]);
-		}
-	}
-
-	return tracks.map(function (track) {
-		return new RTCRtpSender({
-			pc: self,
-			track: track
-		});
-	});
+	return this.getTransceivers()
+		.filter((transceiver) => !transceiver.stopped)
+		.map((transceiver) => transceiver.sender);
 };
 
 RTCPeerConnection.prototype.getTransceivers = function () {
-	var transceivers = [];
-
-	this.getReceivers().map(function (receiver) {
-		transceivers.push(
-			new RTCRtpTransceiver({
-				receiver: receiver
-			})
-		);
-	});
-
-	this.getSenders().map(function (sender) {
-		transceivers.push(
-			new RTCRtpTransceiver({
-				sender: sender
-			})
-		);
-	});
-
-	return transceivers;
+	return this.transceivers;
 };
 
-RTCPeerConnection.prototype.addTrack = function (track, stream) {
-	var id;
+RTCPeerConnection.prototype.addTrack = function (track, ...streams) {
+	var stream = streams[0];
 
 	if (isClosed.call(this)) {
 		throw new Errors.InvalidStateError('peerconnection is closed');
@@ -2400,16 +2403,29 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 		this.addStream(stream);
 	}
 
-	for (id in this.localStreams) {
-		if (this.localStreams.hasOwnProperty(id)) {
+	var transceiver = new RTCRtpTransceiver(this, {
+		sender: new RTCRtpSender(this, {
+			track: track
+		}),
+		receiver: new RTCRtpReceiver(this),
+		direction: 'sendrecv',
+		currentDirection: null,
+		mid: null
+	});
+
+	for (var streamId in this.localStreams) {
+		if (this.localStreams.hasOwnProperty(streamId)) {
 			// Target provided stream argument or first added stream to group track
-			if (!stream || (stream && stream.id === id)) {
-				stream = this.localStreams[id];
+			if (!stream || (stream && stream.id === streamId)) {
+				stream = this.localStreams[streamId];
 				stream.addTrack(track);
 				exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [
 					this.pcId,
 					track.id,
-					id
+					transceiver._id,
+					transceiver.receiver._id,
+					transceiver.sender._id,
+					streamId
 				]);
 				break;
 			}
@@ -2418,14 +2434,21 @@ RTCPeerConnection.prototype.addTrack = function (track, stream) {
 
 	// No Stream matched add track without stream
 	if (!stream) {
-		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [this.pcId, track.id, null]);
+		exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addTrack', [
+			this.pcId,
+			track.id,
+			transceiver._id,
+			transceiver.receiver._id,
+			transceiver.sender._id,
+			null
+		]);
 	}
 
-	this.localTracks[track.id] = track;
+	this.getOrCreateTrack(track);
 
-	return new RTCRtpSender({
-		track: track
-	});
+	this.transceivers.push(transceiver);
+
+	return transceiver.sender;
 };
 
 RTCPeerConnection.prototype.removeTrack = function (sender) {
@@ -2436,6 +2459,11 @@ RTCPeerConnection.prototype.removeTrack = function (sender) {
 	}
 
 	track = sender.track;
+
+	// No sender track found
+	if (!track) {
+		return;
+	}
 
 	function matchLocalTrack(localTrack) {
 		return localTrack.id === track.id;
@@ -2451,10 +2479,9 @@ RTCPeerConnection.prototype.removeTrack = function (sender) {
 				stream.removeTrack(track);
 				exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_removeTrack', [
 					this.pcId,
-					track.id,
-					stream.id
+					sender._id
 				]);
-				delete this.localTracks[track.id];
+				delete this.tracks[track.id];
 				break;
 			}
 		}
@@ -2462,19 +2489,139 @@ RTCPeerConnection.prototype.removeTrack = function (sender) {
 
 	// No Stream matched remove track without stream
 	if (!stream) {
-		for (id in this.localTracks) {
-			if (this.localTracks.hasOwnProperty(id)) {
+		for (id in this.tracks) {
+			if (this.tracks.hasOwnProperty(id)) {
 				if (track.id === id) {
 					exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_removeTrack', [
 						this.pcId,
-						track.id,
-						null
+						sender._id
 					]);
-					delete this.localTracks[track.id];
+					delete this.tracks[track.id];
 				}
 			}
 		}
 	}
+};
+
+RTCPeerConnection.prototype.getOrCreateTrack = function (trackInput) {
+	var { id } = trackInput,
+		existingTrack = this.tracks[id];
+
+	if (existingTrack) {
+		return existingTrack;
+	}
+
+	var track;
+	if (trackInput instanceof MediaStreamTrack) {
+		track = trackInput;
+	} else {
+		track = new MediaStreamTrack(trackInput);
+	}
+
+	this.tracks[id] = track;
+	track.addEventListener('ended', () => {
+		delete this.tracks[id];
+	});
+
+	return track;
+};
+
+RTCPeerConnection.prototype.addTransceiver = function (trackOrKind, init) {
+	if (isClosed.call(this)) {
+		throw new Errors.InvalidStateError('peerconnection is closed');
+	}
+
+	var kind,
+		track = null,
+		self = this,
+		trackIdOrKind;
+	if (trackOrKind instanceof MediaStreamTrack) {
+		kind = trackOrKind.kind;
+		track = trackOrKind;
+		trackIdOrKind = trackOrKind.id;
+	} else {
+		if (!(trackOrKind === 'audio' || trackOrKind === 'video')) {
+			throw new TypeError(
+				'An invalid string was specified as trackOrKind. The string must be either "audio" or "video".'
+			);
+		}
+		kind = trackOrKind;
+		trackIdOrKind = trackOrKind;
+	}
+
+	var receiverTrackID = newMediaStreamTrackId();
+
+	var receiver = new RTCRtpReceiver(this, {
+		track: new MediaStreamTrack({
+			id: receiverTrackID,
+			kind,
+			enabled: true,
+			readyState: 'live',
+			trackId: 'unknown'
+		})
+	});
+
+	var sender = new RTCRtpSender(this, {
+		track
+	});
+
+	var data = init || {};
+	data.sender = sender;
+	data.receiver = receiver;
+
+	var transceiver = new RTCRtpTransceiver(this, data);
+
+	this.transceivers.push(transceiver);
+
+	var initJson = {};
+	if (init && init.direction) {
+		initJson.direction = init.direction;
+	} else {
+		initJson.direction = 'sendrecv';
+	}
+
+	if (init && init.sendEncodings) {
+		initJson.sendEncodings = init.sendEncodings;
+	}
+
+	if (init && init.streams) {
+		initJson.streams = init.streams.map((stream) => stream.id);
+	} else {
+		initJson.streams = [];
+	}
+
+	debug(
+		'addTransceiver() [trackIdOrKind:%s, init:%o, initJson: %o]',
+		trackIdOrKind,
+		init,
+		initJson
+	);
+
+	addTransceiverToPeerConnection(this, trackIdOrKind, initJson, transceiver)
+		.then((update) => {
+			self.updateTransceiversState(update.transceivers);
+		})
+		.catch((error) => {
+			debugerror('addTransceiver() | failure: %s', error);
+		});
+
+	return transceiver;
+};
+
+RTCPeerConnection.prototype.updateTransceiversState = function (transceivers) {
+	debug('updateTransceiversState()');
+	this.transceivers = transceivers.map((transceiver) => {
+		const existingTransceiver = this.transceivers.find(
+			(localTransceiver) => localTransceiver._id === transceiver.id
+		);
+
+		if (existingTransceiver) {
+			existingTransceiver.update(transceiver);
+			return existingTransceiver;
+		}
+
+		return new RTCRtpTransceiver(this, transceiver);
+	});
 };
 
 RTCPeerConnection.prototype.getStreamById = function (id) {
@@ -2506,10 +2653,7 @@ RTCPeerConnection.prototype.addStream = function (stream) {
 	stream.addedToConnection = true;
 
 	stream.getTracks().forEach(function (track) {
-		self.localTracks[track.id] = track;
-		track.addEventListener('ended', function () {
-			delete self.localTracks[track.id];
-		});
+		self.getOrCreateTrack(track);
 	});
 
 	exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_addStream', [this.pcId, stream.id]);
@@ -2536,7 +2680,7 @@ RTCPeerConnection.prototype.removeStream = function (stream) {
 	delete this.localStreams[stream.id];
 
 	stream.getTracks().forEach(function (track) {
-		delete self.localTracks[track.id];
+		delete self.tracks[track.id];
 	});
 
 	exec(null, null, 'iosrtcPlugin', 'RTCPeerConnection_removeStream', [this.pcId, stream.id]);
@@ -2587,11 +2731,7 @@ RTCPeerConnection.prototype.getStats = function (selector) {
 				return;
 			}
 
-			var res = [];
-			array.forEach(function (stat) {
-				res.push(new RTCStatsReport(stat));
-			});
-			resolve(new RTCStatsResponse(res));
+			resolve(new RTCStatsReport(array));
 		}
 
 		function onResultError(error) {
@@ -2670,11 +2810,16 @@ function onEvent(data) {
 		self = this,
 		event = new Event(type),
 		dataChannel,
+		transceiver,
 		id;
 
 	Object.defineProperty(event, 'target', { value: self, enumerable: true });
 
 	debug('onEvent() | [type:%s, data:%o]', type, data);
+
+	if (data.transceivers) {
+		this.updateTransceiversState(data.transceivers);
+	}
 
 	switch (type) {
 		case 'signalingstatechange':
@@ -2718,8 +2863,10 @@ function onEvent(data) {
 
 		case 'track':
 			var track = (event.track = new MediaStreamTrack(data.track));
-			event.receiver = new RTCRtpReceiver({ track: track });
-			event.transceiver = new RTCRtpTransceiver({ receiver: event.receiver });
+			event.receiver = new RTCRtpReceiver(self, { track: track });
+
+			transceiver = this.transceivers.find((t) => t.receiver.track.id === track.id);
+			event.transceiver = transceiver;
 			event.streams = [];
 
 			// Add stream only if available in case of Unified-Plan of track event without stream
@@ -2729,10 +2876,7 @@ function onEvent(data) {
 			}
 
 			// Store remote track
-			this.remoteTracks[track.id] = track;
-			track.addEventListener('ended', function () {
-				delete self.remoteTracks[track.id];
-			});
+			this.getOrCreateTrack(track);
 
 			break;
 
@@ -2769,50 +2913,118 @@ function onEvent(data) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./Errors":1,"./EventTarget":2,"./MediaStream":5,"./MediaStreamTrack":7,"./RTCDTMFSender":10,"./RTCDataChannel":11,"./RTCIceCandidate":12,"./RTCRtpReceiver":14,"./RTCRtpSender":15,"./RTCRtpTransceiver":16,"./RTCSessionDescription":17,"./RTCStatsReport":18,"./RTCStatsResponse":19,"cordova/exec":undefined,"debug":24,"random-number":29}],14:[function(_dereq_,module,exports){
+},{"./Errors":1,"./EventTarget":2,"./MediaStream":5,"./MediaStreamTrack":7,"./RTCDTMFSender":10,"./RTCDataChannel":11,"./RTCIceCandidate":12,"./RTCRtpReceiver":14,"./RTCRtpSender":15,"./RTCRtpTransceiver":16,"./RTCSessionDescription":17,"./RTCStatsReport":18,"cordova/exec":undefined,"debug":23,"random-number":28}],14:[function(_dereq_,module,exports){
 /**
  * Expose the RTCRtpReceiver class.
  */
 module.exports = RTCRtpReceiver;
 
-function RTCRtpReceiver(data) {
-	data = data || {};
+var randomNumber = _dereq_('random-number').generator({ min: 10000, max: 99999, integer: true });
 
-	this._pc = data.pc;
-	this.track = data.track;
+function RTCRtpReceiver(pc, data) {
+	data = data || {};
+	this._id = data.id || randomNumber();
+
+	this._pc = pc;
+	this.track = data.track ? pc.getOrCreateTrack(data.track) : null;
+	this.params = data.params || {};
 }
 
-},{}],15:[function(_dereq_,module,exports){
+RTCRtpReceiver.prototype.getParameters = function () {
+	return this.params;
+};
+
+RTCRtpReceiver.prototype.getStats = function () {
+	return this._pc.getStats();
+};
+
+RTCRtpReceiver.prototype.update = function ({ track, params }) {
+	if (track) {
+		this.track = this._pc.getOrCreateTrack(track);
+	} else {
+		this.track = null;
+	}
+
+	this.params = params;
+};
+
+},{"random-number":28}],15:[function(_dereq_,module,exports){
 /**
  * Expose the RTCRtpSender class.
  */
 module.exports = RTCRtpSender;
 
-function RTCRtpSender(data) {
-	data = data || {};
+/**
+ * Dependencies.
+ */
+var exec = _dereq_('cordova/exec'),
+	{ MediaStreamTrack } = _dereq_('./MediaStreamTrack'),
+	randomNumber = _dereq_('random-number').generator({ min: 10000, max: 99999, integer: true });
 
-	this._pc = data.pc;
-	this.track = data.track;
+function RTCRtpSender(pc, data) {
+	data = data || {};
+	this._id = data.id || randomNumber();
+
+	this._pc = pc;
+	this.track = data.track ? pc.getOrCreateTrack(data.track) : null;
 	this.params = data.params || {};
+	if(this.track) {
+		this.dtmf = pc.createDTMFSender(this.track);
+	}
 }
 
 RTCRtpSender.prototype.getParameters = function () {
 	return this.params;
 };
 
+RTCRtpSender.prototype.getStats = function () {
+	return this._pc.getStats();
+};
+
 RTCRtpSender.prototype.setParameters = function (params) {
 	Object.assign(this.params, params);
-	return Promise.resolve(this.params);
+	return new Promise((resolve, reject) => {
+		function onResultOK(result) {
+			resolve(result);
+		}
+
+		function onResultError(error) {
+			reject(error);
+		}
+
+		exec(
+			onResultOK,
+			onResultError,
+			'iosrtcPlugin',
+			'RTCPeerConnection_RTCRtpSender_setParameters',
+			[this._pc.pcId, this._id, params]
+		);
+	});
 };
 
 RTCRtpSender.prototype.replaceTrack = function (withTrack) {
 	var self = this,
 		pc = self._pc;
 
-	return new Promise(function (resolve, reject) {
-		pc.removeTrack(self);
-		pc.addTrack(withTrack);
-		self.track = withTrack;
+	return new Promise((resolve, reject) => {
+		function onResultOK(result) {
+			self.track = result.track ? new MediaStreamTrack(result.track) : null;
+			resolve();
+		}
+
+		function onResultError(error) {
+			reject(error);
+		}
+
+		var trackId = withTrack ? withTrack.id : null;
+
+		exec(
+			onResultOK,
+			onResultError,
+			'iosrtcPlugin',
+			'RTCPeerConnection_RTCRtpSender_replaceTrack',
+			[this._pc.pcId, this._id, trackId]
+		);
 
 		// https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/negotiationneeded_event
 		var event = new Event('negotiationneeded');
@@ -2830,26 +3042,174 @@ RTCRtpSender.prototype.replaceTrack = function (withTrack) {
 	});
 };
 
-},{}],16:[function(_dereq_,module,exports){
+RTCRtpSender.prototype.update = function ({ track, params }) {
+	if (track) {
+		this.track = this._pc.getOrCreateTrack(track);
+	} else {
+		this.track = null;
+	}
+
+	this.params = params;
+};
+
+},{"./MediaStreamTrack":7,"cordova/exec":undefined,"random-number":28}],16:[function(_dereq_,module,exports){
+const RTCRtpSender = _dereq_('./RTCRtpSender');
+const RTCRtpReceiver = _dereq_('./RTCRtpReceiver');
+
 /**
  * Expose the RTCRtpTransceiver class.
  */
-module.exports = RTCRtpTransceiver;
+module.exports = { RTCRtpTransceiver, addTransceiverToPeerConnection };
 
-function RTCRtpTransceiver(data) {
-	data = data || {};
+/**
+ * Dependencies.
+ */
+var debugerror = _dereq_('debug')('iosrtc:ERROR:RTCRtpTransceiver'),
+	exec = _dereq_('cordova/exec'),
+	randomNumber = _dereq_('random-number').generator({ min: 10000, max: 99999, integer: true }),
+	EventTarget = _dereq_('./EventTarget');
 
-	this.receiver = data.receiver;
-	this.sender = data.sender;
+debugerror.log = console.warn.bind(console);
+
+function addTransceiverToPeerConnection(peerConnection, trackIdOrKind, init, transceiver) {
+	return new Promise((resolve, reject) => {
+		exec(onResultOK, reject, 'iosrtcPlugin', 'RTCPeerConnection_addTransceiver', [
+			peerConnection.pcId,
+			trackIdOrKind,
+			init,
+			transceiver._id,
+			transceiver.sender ? transceiver.sender._id : 0,
+			transceiver.receiver ? transceiver.receiver._id : 0,
+			transceiver.receiver && transceiver.receiver.track
+				? transceiver.receiver.track.id
+				: null
+		]);
+
+		function onResultOK(data) {
+			resolve(data);
+		}
+	});
 }
 
-// TODO
-// https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpTransceiver/currentDirection
-// https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpTransceiverDirection
-// https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpTransceiver/mid
-// https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpTransceiver/stop
+function RTCRtpTransceiver(peerConnection, data) {
+	data = data || {};
 
-},{}],17:[function(_dereq_,module,exports){
+	this.peerConnection = peerConnection;
+
+	this._id = data.id || randomNumber();
+	this._receiver =
+		data.receiver instanceof RTCRtpReceiver
+			? data.receiver
+			: new RTCRtpReceiver(peerConnection, data.receiver);
+	this._sender =
+		data.sender instanceof RTCRtpSender
+			? data.sender
+			: new RTCRtpSender(peerConnection, data.sender);
+	this._stopped = false;
+
+	if (data.mid) {
+		this._mid = data.mid;
+	} else {
+		this._mid = null;
+	}
+
+	if (data.direction) {
+		this._direction = data.direction;
+		this._currentDirection = data.direction;
+	} else {
+		this._direction = 'sendrecv';
+		this._currentDirection = 'sendrecv';
+	}
+}
+
+RTCRtpTransceiver.prototype = Object.create(EventTarget.prototype);
+RTCRtpTransceiver.prototype.constructor = RTCRtpTransceiver;
+
+Object.defineProperties(RTCRtpTransceiver.prototype, {
+	currentDirection: {
+		get: function () {
+			return this._currentDirection;
+		}
+	},
+	direction: {
+		get: function () {
+			return this._direction;
+		},
+		set: function (direction) {
+			var self = this;
+			this._direction = direction;
+
+			exec(
+				onResultOK,
+				null,
+				'iosrtcPlugin',
+				'RTCPeerConnection_RTCRtpTransceiver_setDirection',
+				[this.peerConnection.pcId, this._id, direction]
+			);
+
+			function onResultOK(data) {
+				self.peerConnection.updateTransceiversState(data.transceivers);
+			}
+		}
+	},
+	mid: {
+		get: function () {
+			return this._mid;
+		}
+	},
+	receiver: {
+		get: function () {
+			return this._receiver;
+		}
+	},
+	sender: {
+		get: function () {
+			return this._sender;
+		}
+	},
+	stopped: {
+		get: function () {
+			return this._stopped;
+		}
+	},
+	receiverId: {
+		get: function () {
+			return this._receiver.track.id;
+		}
+	}
+});
+
+RTCRtpTransceiver.prototype.stop = function () {
+	var self = this;
+
+	exec(onResultOK, null, 'iosrtcPlugin', 'RTCPeerConnection_RTCRtpTransceiver_stop', [
+		this.peerConnection.pcId,
+		this._id
+	]);
+
+	function onResultOK(data) {
+		self.peerConnection.updateTransceiversState(data.transceivers);
+	}
+};
+
+RTCRtpTransceiver.prototype.update = function (data) {
+	if (data.direction) {
+		this._direction = data.direction;
+	}
+	if (data.currentDirection) {
+		this._currentDirection = data.currentDirection;
+	}
+	if (data.mid) {
+		this._mid = data.mid;
+	}
+
+	this._stopped = data.stopped;
+
+	this.receiver.update(data.receiver);
+	this.sender.update(data.sender);
+};
+
+},{"./EventTarget":2,"./RTCRtpReceiver":14,"./RTCRtpSender":15,"cordova/exec":undefined,"debug":23,"random-number":28}],17:[function(_dereq_,module,exports){
 /**
  * Expose the RTCSessionDescription class.
  */
@@ -2864,54 +3224,39 @@ function RTCSessionDescription(data) {
 }
 
 },{}],18:[function(_dereq_,module,exports){
+class RTCStatsReport {
+	constructor(data) {
+		const arr = data || [];
+		this.data = {};
+		arr.forEach((el) => {
+			this.data[el.reportId] = el;
+		});
+		this.size = arr.length;
+	}
+
+	entries() {
+		return this.keys().map((k) => [k, this.data[k]]);
+	}
+
+	keys() {
+		return Object.getOwnPropertyNames(this.data);
+	}
+
+	values() {
+		return this.keys().map((k) => this.data[k]);
+	}
+
+	get(key) {
+		return this.data[key];
+	}
+}
+
 /**
  * Expose the RTCStatsReport class.
  */
 module.exports = RTCStatsReport;
 
-function RTCStatsReport(data) {
-	data = data || {};
-
-	this.id = data.reportId;
-	this.timestamp = data.timestamp;
-	this.type = data.type;
-
-	this.names = function () {
-		return Object.keys(data.values);
-	};
-
-	this.stat = function (key) {
-		return data.values[key] || '';
-	};
-}
-
 },{}],19:[function(_dereq_,module,exports){
-/**
- * Expose the RTCStatsResponse class.
- */
-module.exports = RTCStatsResponse;
-
-function RTCStatsResponse(data) {
-	data = data || [];
-
-	this.result = function () {
-		return data;
-	};
-
-	this.forEach = function (callback, thisArg) {
-		return data.forEach(callback, thisArg);
-	};
-
-	this.namedItem = function () {
-		return null;
-	};
-
-	this.values = function () {
-		return data;
-	};
-}
-
-},{}],20:[function(_dereq_,module,exports){
 /**
  * Expose the enumerateDevices function.
  */
@@ -2959,7 +3304,7 @@ function getMediaDeviceInfos(devices) {
 	return mediaDeviceInfos;
 }
 
-},{"./Errors":1,"./MediaDeviceInfo":3,"cordova/exec":undefined,"debug":24}],21:[function(_dereq_,module,exports){
+},{"./Errors":1,"./MediaDeviceInfo":3,"cordova/exec":undefined,"debug":23}],20:[function(_dereq_,module,exports){
 /**
  * Expose the getUserMedia function.
  */
@@ -3420,7 +3765,7 @@ function getUserMedia(constraints) {
 	});
 }
 
-},{"./Errors":1,"./MediaStream":5,"cordova/exec":undefined,"debug":24}],22:[function(_dereq_,module,exports){
+},{"./Errors":1,"./MediaStream":5,"cordova/exec":undefined,"debug":23}],21:[function(_dereq_,module,exports){
 (function (global){
 /**
  * Variables.
@@ -3447,8 +3792,9 @@ var // Dictionary of MediaStreamRenderers.
 	RTCIceCandidate = _dereq_('./RTCIceCandidate'),
 	MediaDevices = _dereq_('./MediaDevices'),
 	MediaStream = _dereq_('./MediaStream'),
-	MediaStreamTrack = _dereq_('./MediaStreamTrack'),
-	videoElementsHandler = _dereq_('./videoElementsHandler');
+	{ MediaStreamTrack } = _dereq_('./MediaStreamTrack'),
+	videoElementsHandler = _dereq_('./videoElementsHandler'),
+	{ RTCRtpTransceiver } = _dereq_('./RTCRtpTransceiver');
 
 /**
  * Expose the iosrtc object.
@@ -3641,26 +3987,69 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 	window.MediaStream = MediaStream;
 	window.webkitMediaStream = MediaStream;
 	window.MediaStreamTrack = MediaStreamTrack;
+	window.RTCRtpTransceiver = RTCRtpTransceiver;
 
 	// Apply CanvasRenderingContext2D.drawImage monkey patch
 	var drawImage = CanvasRenderingContext2D.prototype.drawImage;
-	CanvasRenderingContext2D.prototype.drawImage = function (arg) {
-		var args = Array.prototype.slice.call(arguments);
-		var context = this;
-		if (arg instanceof HTMLVideoElement && arg.render) {
-			arg.render.save(function (data) {
-				var img = new window.Image();
-				img.addEventListener('load', function () {
-					args.splice(0, 1, img);
-					drawImage.apply(context, args);
-					img.src = null;
-				});
-				img.setAttribute('src', 'data:image/jpg;base64,' + data);
-			});
-		} else {
-			return drawImage.apply(context, args);
+	CanvasRenderingContext2D.prototype.drawImage = (function () {
+		// Methods to address the memory leaks problems in Safari
+		let temporaryImage, imageElement;
+		const BASE64_MARKER = ';base64,';
+		const objectURL = window.URL || window.webkitURL;
+
+		function convertDataURIToBlob(dataURI) {
+			// Validate input data
+			if (!dataURI) {
+				return;
+			}
+
+			// Convert image (in base64) to binary data
+			const base64Index = dataURI.indexOf(BASE64_MARKER) + BASE64_MARKER.length;
+			const base64 = dataURI.substring(base64Index);
+			const raw = window.atob(base64);
+			const rawLength = raw.length;
+			let array = new Uint8Array(new ArrayBuffer(rawLength));
+
+			for (let i = 0; i < rawLength; i++) {
+				array[i] = raw.charCodeAt(i);
+			}
+
+			// Create and return a new blob object using binary data
+			return new Blob([array], { type: 'image/jpeg' });
 		}
-	};
+
+		return function (arg) {
+			const context = this;
+			let args = Array.prototype.slice.call(arguments);
+			if (arg instanceof HTMLVideoElement && arg.render) {
+				arg.render.save(function (base64Image) {
+					// Destroy old image
+					if (temporaryImage) {
+						objectURL.revokeObjectURL(temporaryImage);
+					}
+
+					// Create a new image from binary data
+					const imageDataBlob = convertDataURIToBlob(
+						'data:image/jpg;base64,' + base64Image
+					);
+
+					// Create a new object URL object
+					imageElement = imageElement || new Image();
+					temporaryImage = objectURL.createObjectURL(imageDataBlob);
+
+					imageElement.addEventListener('load', function () {
+						args.splice(0, 1, imageElement);
+						drawImage.apply(context, args);
+					});
+
+					// Set the new image
+					imageElement.src = temporaryImage;
+				});
+			} else {
+				return drawImage.apply(context, args);
+			}
+		};
+	})();
 }
 
 function dump() {
@@ -3668,7 +4057,7 @@ function dump() {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./MediaDevices":4,"./MediaStream":5,"./MediaStreamTrack":7,"./RTCIceCandidate":12,"./RTCPeerConnection":13,"./RTCSessionDescription":17,"./enumerateDevices":20,"./getUserMedia":21,"./videoElementsHandler":23,"cordova/exec":undefined,"debug":24,"domready":26}],23:[function(_dereq_,module,exports){
+},{"./MediaDevices":4,"./MediaStream":5,"./MediaStreamTrack":7,"./RTCIceCandidate":12,"./RTCPeerConnection":13,"./RTCRtpTransceiver":16,"./RTCSessionDescription":17,"./enumerateDevices":19,"./getUserMedia":20,"./videoElementsHandler":22,"cordova/exec":undefined,"debug":23,"domready":25}],22:[function(_dereq_,module,exports){
 /**
  * Expose a function that must be called when the library is loaded.
  * And also a helper function.
@@ -4055,7 +4444,7 @@ function releaseMediaStreamRenderer(video) {
 	delete video.readyState;
 }
 
-},{"./MediaStreamRenderer":6,"debug":24}],24:[function(_dereq_,module,exports){
+},{"./MediaStreamRenderer":6,"debug":23}],23:[function(_dereq_,module,exports){
 (function (process){
 /* eslint-env browser */
 
@@ -4323,7 +4712,7 @@ formatters.j = function (v) {
 };
 
 }).call(this,_dereq_('_process'))
-},{"./common":25,"_process":28}],25:[function(_dereq_,module,exports){
+},{"./common":24,"_process":27}],24:[function(_dereq_,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -4591,7 +4980,7 @@ function setup(env) {
 
 module.exports = setup;
 
-},{"ms":27}],26:[function(_dereq_,module,exports){
+},{"ms":26}],25:[function(_dereq_,module,exports){
 /*!
   * domready (c) Dustin Diaz 2014 - License MIT
   */
@@ -4623,7 +5012,7 @@ module.exports = setup;
 
 });
 
-},{}],27:[function(_dereq_,module,exports){
+},{}],26:[function(_dereq_,module,exports){
 /**
  * Helpers.
  */
@@ -4787,7 +5176,7 @@ function plural(ms, msAbs, n, name) {
   return Math.round(ms / n) + ' ' + name + (isPlural ? 's' : '');
 }
 
-},{}],28:[function(_dereq_,module,exports){
+},{}],27:[function(_dereq_,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -4973,7 +5362,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],29:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
 void function(root){
 
   function defaults(options){
@@ -5019,7 +5408,86 @@ void function(root){
   module.exports.defaults = defaults
 }(this)
 
-},{}],30:[function(_dereq_,module,exports){
+},{}],29:[function(_dereq_,module,exports){
+(function (setImmediate,clearImmediate){
+var nextTick = _dereq_('process/browser.js').nextTick;
+var apply = Function.prototype.apply;
+var slice = Array.prototype.slice;
+var immediateIds = {};
+var nextImmediateId = 0;
+
+// DOM APIs, for completeness
+
+exports.setTimeout = function() {
+  return new Timeout(apply.call(setTimeout, window, arguments), clearTimeout);
+};
+exports.setInterval = function() {
+  return new Timeout(apply.call(setInterval, window, arguments), clearInterval);
+};
+exports.clearTimeout =
+exports.clearInterval = function(timeout) { timeout.close(); };
+
+function Timeout(id, clearFn) {
+  this._id = id;
+  this._clearFn = clearFn;
+}
+Timeout.prototype.unref = Timeout.prototype.ref = function() {};
+Timeout.prototype.close = function() {
+  this._clearFn.call(window, this._id);
+};
+
+// Does not start the time, just sets up the members needed.
+exports.enroll = function(item, msecs) {
+  clearTimeout(item._idleTimeoutId);
+  item._idleTimeout = msecs;
+};
+
+exports.unenroll = function(item) {
+  clearTimeout(item._idleTimeoutId);
+  item._idleTimeout = -1;
+};
+
+exports._unrefActive = exports.active = function(item) {
+  clearTimeout(item._idleTimeoutId);
+
+  var msecs = item._idleTimeout;
+  if (msecs >= 0) {
+    item._idleTimeoutId = setTimeout(function onTimeout() {
+      if (item._onTimeout)
+        item._onTimeout();
+    }, msecs);
+  }
+};
+
+// That's not how node.js implements it but the exposed api is the same.
+exports.setImmediate = typeof setImmediate === "function" ? setImmediate : function(fn) {
+  var id = nextImmediateId++;
+  var args = arguments.length < 2 ? false : slice.call(arguments, 1);
+
+  immediateIds[id] = true;
+
+  nextTick(function onNextTick() {
+    if (immediateIds[id]) {
+      // fn.call() is faster so we optimize for the common use-case
+      // @see http://jsperf.com/call-apply-segu
+      if (args) {
+        fn.apply(null, args);
+      } else {
+        fn.call(null);
+      }
+      // Prevent ids from leaking
+      exports.clearImmediate(id);
+    }
+  });
+
+  return id;
+};
+
+exports.clearImmediate = typeof clearImmediate === "function" ? clearImmediate : function(id) {
+  delete immediateIds[id];
+};
+}).call(this,_dereq_("timers").setImmediate,_dereq_("timers").clearImmediate)
+},{"process/browser.js":27,"timers":29}],30:[function(_dereq_,module,exports){
 module.exports =
 {
 	EventTarget : _dereq_('./lib/EventTarget'),
@@ -5170,5 +5638,5 @@ yaetiEventTarget.prototype.dispatchEvent = function(event)
 
 module.exports = yaetiEventTarget;
 
-},{}]},{},[22])(22)
+},{}]},{},[21])(21)
 });

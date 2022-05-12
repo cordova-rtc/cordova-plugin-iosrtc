@@ -10,12 +10,12 @@
 
 #import <Foundation/Foundation.h>
 
-#import <WebRTC/RTCMacros.h>
+#import "RTCMacros.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-RTC_EXPORT
-@interface RTCPeerConnectionFactoryOptions : NSObject
+RTC_OBJC_EXPORT
+@interface RTC_OBJC_TYPE (RTCPeerConnectionFactoryOptions) : NSObject
 
 @property(nonatomic, assign) BOOL disableEncryption;
 
@@ -30,8 +30,6 @@ RTC_EXPORT
 @property(nonatomic, assign) BOOL ignoreWiFiNetworkAdapter;
 
 @property(nonatomic, assign) BOOL ignoreEthernetNetworkAdapter;
-
-@property(nonatomic, assign) BOOL enableAes128Sha1_32CryptoCipher;
 
 - (instancetype)init NS_DESIGNATED_INITIALIZER;
 
