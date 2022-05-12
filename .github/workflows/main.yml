@@ -50,17 +50,17 @@ jobs:
         run: npm run build
 
       - name: Install cordova
-        run:
-          mkdir ~/.npm-global \
-          npm config set prefix '~/.npm-global' \
-          export PATH=~/.npm-global/bin:$PATH \
+        run: |
+          mkdir ~/.npm-global
+          npm config set prefix '~/.npm-global'
+          export PATH=~/.npm-global/bin:$PATH
           npm install cordova@10 -g
 
       - name: Build
-        run:
-          npm config set prefix '~/.npm-global' \
-          export PATH=~/.npm-global/bin:$PATH \
-          cordova create myApp org.apache.cordova.myApp myApp; cd myApp; \
-          cordova platform add ios@latest --verbose \
-          cordova plugin add ../ --verbose \
+        run: |
+          npm config set prefix '~/.npm-global'
+          export PATH=~/.npm-global/bin:$PATH
+          cordova create myApp org.apache.cordova.myApp myApp; cd myApp;
+          cordova platform add ios@latest --verbose
+          cordova plugin add ../ --verbose
           cordova build ios --verbose
