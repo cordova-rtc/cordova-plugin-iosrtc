@@ -7,7 +7,7 @@ module.exports = RTCRtpSender;
  * Dependencies.
  */
 var exec = require('cordova/exec'),
-	MediaStreamTrack = require('./MediaStreamTrack'),
+	{ MediaStreamTrack } = require('./MediaStreamTrack'),
 	randomNumber = require('random-number').generator({ min: 10000, max: 99999, integer: true });
 
 function RTCRtpSender(pc, data) {
@@ -17,6 +17,9 @@ function RTCRtpSender(pc, data) {
 	this._pc = pc;
 	this.track = data.track ? pc.getOrCreateTrack(data.track) : null;
 	this.params = data.params || {};
+	if (this.track) {
+		this.dtmf = pc.createDTMFSender(this.track);
+	}
 }
 
 RTCRtpSender.prototype.getParameters = function () {

@@ -273,7 +273,7 @@ RTCPeerConnection.prototype.setLocalDescription = function (desc) {
 
 			debug('setLocalDescription() | success');
 			// Update localDescription.
-			self._localDescription = new RTCSessionDescription(data);
+			self._localDescription = data.type === '' ? null : new RTCSessionDescription(data);
 			resolve();
 		}
 
@@ -554,6 +554,11 @@ RTCPeerConnection.prototype.removeTrack = function (sender) {
 	}
 
 	track = sender.track;
+
+	// No sender track found
+	if (!track) {
+		return;
+	}
 
 	function matchLocalTrack(localTrack) {
 		return localTrack.id === track.id;

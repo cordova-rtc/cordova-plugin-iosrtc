@@ -1,5 +1,5 @@
 /*
- * cordova-plugin-iosrtc v8.0.0
+ * cordova-plugin-iosrtc v8.0.1
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015-2017 eFace2Face, Inc. (https://eface2face.com)
  * Copyright 2015-2019 BasqueVoIPMafia (https://github.com/BasqueVoIPMafia)
@@ -2178,7 +2178,7 @@ RTCPeerConnection.prototype.setLocalDescription = function (desc) {
 
 			debug('setLocalDescription() | success');
 			// Update localDescription.
-			self._localDescription = new RTCSessionDescription(data);
+			self._localDescription = data.type === '' ? null : new RTCSessionDescription(data);
 			resolve();
 		}
 
@@ -2459,6 +2459,11 @@ RTCPeerConnection.prototype.removeTrack = function (sender) {
 	}
 
 	track = sender.track;
+
+	// No sender track found
+	if (!track) {
+		return;
+	}
 
 	function matchLocalTrack(localTrack) {
 		return localTrack.id === track.id;
@@ -2953,7 +2958,7 @@ module.exports = RTCRtpSender;
  * Dependencies.
  */
 var exec = _dereq_('cordova/exec'),
-	MediaStreamTrack = _dereq_('./MediaStreamTrack'),
+	{ MediaStreamTrack } = _dereq_('./MediaStreamTrack'),
 	randomNumber = _dereq_('random-number').generator({ min: 10000, max: 99999, integer: true });
 
 function RTCRtpSender(pc, data) {
@@ -2963,6 +2968,9 @@ function RTCRtpSender(pc, data) {
 	this._pc = pc;
 	this.track = data.track ? pc.getOrCreateTrack(data.track) : null;
 	this.params = data.params || {};
+	if(this.track) {
+		this.dtmf = pc.createDTMFSender(this.track);
+	}
 }
 
 RTCRtpSender.prototype.getParameters = function () {

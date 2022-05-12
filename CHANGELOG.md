@@ -1,5 +1,17 @@
+#### Version 8.0.1
+* fix RTCPeerConnection.removeTrack support for sender without track
+* add support for local description rollback #704 via @slavchev
+
 #### Version 8.0.0
-* Implement RTCPeerConnection.addTransceiver #589 via @agelito
+* implement RTCPeerConnection.addTransceiver #589 via @agelito
+* fix RtpSenders inconsistency after removeTrack call #702 via @RSATom
+* fix RTCRtpSender MediaStreamTrack replace #699 via @RSATom
+* fix requestPermission returns true if AVAuthorizationStatus is notDetermined #692
+* fix crash when used with Janus Audiobridge #691 via @RSATom
+* fix Warning [LayoutConstraints] Unable to simultaneously satisfy constraints. #422 via @slavchev
+* fixcrash when used with Janus Audiobridge #691 via @RSATom
+* extend transceiver/sender/receiver functionality #664 via @slavchev
+* fix updateTransceiversState call #661 @ducile
 * Update to WebRTC.framework M87
 * Update to WebRTC.framework M84
 
