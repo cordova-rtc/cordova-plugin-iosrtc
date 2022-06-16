@@ -18,11 +18,6 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 	var eventListenerForAddTrack: (_ pluginMediaStreamTrack: PluginMediaStreamTrack) -> Void
 	var eventListenerForRemoveTrack: (_ pluginMediaStreamTrack: PluginMediaStreamTrack) -> Void
 
-	var onCreateLocalDescriptionSuccessCallback: ((_ rtcSessionDescription: RTCSessionDescription) -> Void)!
-	var onCreateLocalDescriptionFailureCallback: ((_ error: Error) -> Void)!
-	var onCreateRemoteDescriptionSuccessCallback: ((_ rtcSessionDescription: RTCSessionDescription) -> Void)!
-	var onCreateRemoteDescriptionFailureCallback: ((_ error: Error) -> Void)!
-
 	var onSetDescriptionSuccessCallback: (() -> Void)!
 	var onSetDescriptionFailureCallback: ((_ error: Error) -> Void)!
 
@@ -88,7 +83,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		let pluginRTCPeerConnectionConstraints = PluginRTCPeerConnectionConstraints(pcConstraints: options)
 
 
-		self.onCreateLocalDescriptionSuccessCallback = { (rtcSessionDescription: RTCSessionDescription) -> Void in
+		let onCreateLocalDescriptionSuccessCallback = { (rtcSessionDescription: RTCSessionDescription) -> Void in
 			NSLog("PluginRTCPeerConnection#createOffer() | success callback")
 
 			let data = [
@@ -100,7 +95,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 			callback(data as NSDictionary)
 		}
 
-		self.onCreateLocalDescriptionFailureCallback = { (error: Error) -> Void in
+		let onCreateLocalDescriptionFailureCallback = { (error: Error) -> Void in
 			NSLog("PluginRTCPeerConnection#createOffer() | failure callback: %@", String(describing: error))
 
 			errback(error)
@@ -109,9 +104,9 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		self.rtcPeerConnection.offer(for: pluginRTCPeerConnectionConstraints.getConstraints(), completionHandler: {
 			(sdp: RTCSessionDescription?, error: Error?) in
 			if (error == nil) {
-				self.onCreateLocalDescriptionSuccessCallback(sdp!);
+				onCreateLocalDescriptionSuccessCallback(sdp!);
 			} else {
-				self.onCreateLocalDescriptionFailureCallback(error!);
+				onCreateLocalDescriptionFailureCallback(error!);
 			}
 		})
 	}
@@ -130,7 +125,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 
 		let pluginRTCPeerConnectionConstraints = PluginRTCPeerConnectionConstraints(pcConstraints: options)
 
-		self.onCreateRemoteDescriptionSuccessCallback = { (rtcSessionDescription: RTCSessionDescription) -> Void in
+		let onCreateRemoteDescriptionSuccessCallback = { (rtcSessionDescription: RTCSessionDescription) -> Void in
 			NSLog("PluginRTCPeerConnection#createAnswer() | success callback")
 
 			let data = [
@@ -142,7 +137,7 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 			callback(data as NSDictionary)
 		}
 
-		self.onCreateRemoteDescriptionFailureCallback = { (error: Error) -> Void in
+		let onCreateRemoteDescriptionFailureCallback = { (error: Error) -> Void in
 			NSLog("PluginRTCPeerConnection#createAnswer() | failure callback: %@", String(describing: error))
 
 			errback(error)
@@ -151,9 +146,9 @@ class PluginRTCPeerConnection : NSObject, RTCPeerConnectionDelegate {
 		self.rtcPeerConnection.answer(for: pluginRTCPeerConnectionConstraints.getConstraints(), completionHandler: {
 			(sdp: RTCSessionDescription?, error: Error?) in
 			if (error == nil) {
-				self.onCreateRemoteDescriptionSuccessCallback(sdp!)
+				onCreateRemoteDescriptionSuccessCallback(sdp!)
 			} else {
-				self.onCreateRemoteDescriptionFailureCallback(error!)
+				onCreateRemoteDescriptionFailureCallback(error!)
 			}
 		})
 	}
