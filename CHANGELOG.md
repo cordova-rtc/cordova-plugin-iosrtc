@@ -2,6 +2,10 @@
 * fix: update to WebRTC.framework M100
 * feat: remove i386 build from WebRTC.xcframework
 
+#### Version 8.0.3
+* fix: PluginRTCPeerConnection: cyclic reference leak fixed #754 via @RSATom
+* fix: update npm packages with audit security warnings
+
 #### Version 8.0.2
 * feat: add github action CI build
 * fix: update npm packages with audit security warnings

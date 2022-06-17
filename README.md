@@ -3,7 +3,7 @@
 # cordova-plugin-iosrtc
 
 [![npm version](https://img.shields.io/npm/v/cordova-plugin-iosrtc.svg?style=flat)](https://www.npmjs.com/package/cordova-plugin-iosrtc)
-[![Build Status](https://travis-ci.com/cordova-rtc/cordova-plugin-iosrtc.svg?branch=master)](https://travis-ci.com/cordova-rtc/cordova-plugin-iosrtc)
+[![Build Status](https://github.com/cordova-rtc/cordova-plugin-iosrtc/actions/workflows/main.yml/badge.svg)](https://github.com/cordova-rtc/cordova-plugin-iosrtc/actions/workflows/main.yml)
 
 [![NPM](https://nodei.co/npm/cordova-plugin-iosrtc.png)](https://npmjs.org/package/cordova-plugin-iosrtc)
 
