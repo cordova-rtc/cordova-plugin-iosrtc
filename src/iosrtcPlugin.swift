@@ -100,6 +100,7 @@ class iosrtcPlugin : CDVPlugin {
 		}
 
 		let pluginRTCPeerConnection = PluginRTCPeerConnection(
+			queue: self.queue,
 			rtcPeerConnectionFactory: self.rtcPeerConnectionFactory,
 			pcConfig: pcConfig,
 			pcConstraints: pcConstraints,
