@@ -30,7 +30,7 @@ function getProjectName(protoPath) {
 	var cordovaConfigPath = path.join(protoPath, 'config.xml'),
 		content = fs.readFileSync(cordovaConfigPath, 'utf-8');
 
-	var name = /<name>([\s\S]*)<\/name>/im.exec(content)[1].trim();
+	var name = /<name.*>([\s\S]*)<\/name>/im.exec(content)[1].trim();
 
 	return xmlEntities.decode(name);
 }
