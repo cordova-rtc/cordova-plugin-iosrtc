@@ -21,7 +21,9 @@ class PluginRTCDTMFSender : NSObject {
 		// TODO check if new rtcRtpSender can be used one Unified-Plan merged
 		//let streamIds = [streamId]
 		//self.rtcRtpSender = rtcPeerConnection.add(track, streamIds: streamIds);
-		self.rtcRtpSender = rtcPeerConnection.senders[0]
+		if !rtcPeerConnection.senders.isEmpty {
+                self.rtcRtpSender = rtcPeerConnection.senders[0]
+            }
 
 		if self.rtcRtpSender == nil {
 			NSLog("PluginRTCDTMFSender#init() | rtcPeerConnection.createDTMFSenderForTrack() failed")
