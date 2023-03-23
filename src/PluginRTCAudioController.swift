@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import WebRTC
 import AVFoundation
 
 class PluginRTCAudioController {
@@ -152,6 +153,27 @@ class PluginRTCAudioController {
 		};
 	}
 
+    static func setDefaultAudioOutput(isSpeaker: Bool) {
+    	speakerEnabled = isSpeaker
+
+        let audioConfiguration = RTCAudioSessionConfiguration()
+        audioConfiguration.category = PluginRTCAudioController.audioCategory.rawValue;
+        audioConfiguration.categoryOptions = PluginRTCAudioController.audioCategoryOptions
+        audioConfiguration.mode = PluginRTCAudioController.audioMode.rawValue
+        RTCAudioSessionConfiguration.setWebRTC(audioConfiguration)
+        NSLog("PluginRTCAudioController#setDefaultAudioOutput() | audioConfiguration \(audioConfiguration.category) \(audioConfiguration.mode) \(audioConfiguration.categoryOptions)")
+
+        let audioSession: AVAudioSession = AVAudioSession.sharedInstance()
+        NSLog("PluginRTCAudioController#setDefaultAudioOutput() | audioSession \(audioSession.category)\(audioSession.mode)\(audioSession.categoryOptions)")
+
+        if (speakerEnabled) {
+            audioConfiguration.categoryOptions.insert(AVAudioSession.CategoryOptions.defaultToSpeaker)
+        }
+
+        RTCAudioSessionConfiguration.setWebRTC(audioConfiguration)
+        NSLog("PluginRTCAudioController#setDefaultAudioOutput() | audioConfiguration \(audioConfiguration.category) \(audioConfiguration.mode) \(audioConfiguration.categoryOptions)")
+
+    }
 	//
 	// Audio Output
 	//
