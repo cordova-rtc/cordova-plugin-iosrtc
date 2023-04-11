@@ -1,8 +1,6 @@
 class RTCStatsReport {
 	constructor(data) {
-		this.data = new Map(
-			(data || []).map((el) => [el.reportId, el])
-		);
+		this.data = new Map((data || []).map((el) => [el.reportId, el]));
 	}
 
 	get size() {
