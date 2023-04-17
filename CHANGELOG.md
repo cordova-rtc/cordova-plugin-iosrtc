@@ -1,3 +1,7 @@
+#### Version 8.0.4
+* fix: spec compliant RTCStatsReport #769 via @jerry2013
+* fix: add setDefaultAudioOutput to source #768 via @mjcctech and @jerry2013
+
 #### Version 8.0.3
 * fix: PluginRTCPeerConnection: cyclic reference leak fixed #754 via @RSATom
 * fix: update npm packages with audit security warnings
