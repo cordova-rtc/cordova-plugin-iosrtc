@@ -3226,28 +3226,36 @@ function RTCSessionDescription(data) {
 },{}],18:[function(_dereq_,module,exports){
 class RTCStatsReport {
 	constructor(data) {
-		const arr = data || [];
-		this.data = {};
-		arr.forEach((el) => {
-			this.data[el.reportId] = el;
-		});
-		this.size = arr.length;
+		this.data = new Map((data || []).map((el) => [el.reportId, el]));
 	}
 
-	entries() {
-		return this.keys().map((k) => [k, this.data[k]]);
+	get size() {
+		return this.data.size;
+	}
+
+	has(key) {
+		return this.data.has(key);
+	}
+	get(key) {
+		return this.data.get(key);
+	}
+	forEach(callbackfn, thisArg) {
+		return this.data.forEach(callbackfn, thisArg);
 	}
 
 	keys() {
-		return Object.getOwnPropertyNames(this.data);
+		return this.data.keys();
 	}
-
 	values() {
-		return this.keys().map((k) => this.data[k]);
+		return this.data.values();
 	}
-
-	get(key) {
-		return this.data[key];
+	entries() {
+		return this.data.entries();
+	}
+	*[Symbol.iterator]() {
+		for (const value of this.data) {
+			yield value;
+		}
 	}
 }
 
@@ -3820,13 +3828,10 @@ module.exports = {
 	// Select audio output (earpiece or speaker).
 	selectAudioOutput: selectAudioOutput,
 
-	// Set default audio output (earpiece or speaker).
-	setDefaultAudioOutput: setDefaultAudioOutput,
-
 	// turnOnSpeaker with options
 	turnOnSpeaker: turnOnSpeaker,
 
-	// Checking permission (audio and camera)
+	// Checking permision (audio and camera)
 	requestPermission: requestPermission,
 
 	// Expose a function to initAudioDevices if needed, sets the audio session active
@@ -3871,14 +3876,6 @@ function selectAudioOutput(output) {
 		default:
 			throw new Error('output must be "earpiece" or "speaker"');
 	}
-}
-
-function setDefaultAudioOutput(output) {
-	debug('setDefaultAudioOutput() | [output:"%s"]', output);
-	if (!['earpiece', 'speaker'].includes(output)) {
-		throw new Error('output must be "earpiece" or "speaker"');
-	}
-	exec(null, null, 'iosrtcPlugin', 'setDefaultAudioOutput', [output === 'speaker']);
 }
 
 function turnOnSpeaker(isTurnOn) {
