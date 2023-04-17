@@ -4007,6 +4007,7 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 	window.webkitMediaStream = MediaStream;
 	window.MediaStreamTrack = MediaStreamTrack;
 	window.RTCRtpTransceiver = RTCRtpTransceiver;
+	window.MediaStreamTrackEvent = window.Event;
 
 	// Apply CanvasRenderingContext2D.drawImage monkey patch
 	var drawImage = CanvasRenderingContext2D.prototype.drawImage;
