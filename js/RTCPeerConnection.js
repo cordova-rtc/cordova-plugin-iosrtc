@@ -610,7 +610,7 @@ RTCPeerConnection.prototype.getOrCreateTrack = function (trackInput) {
 	if (trackInput instanceof MediaStreamTrack) {
 		track = trackInput;
 	} else {
-		track = new MediaStreamTrack(trackInput);
+		track = MediaStreamTrack.findOrCreate(trackInput);
 	}
 
 	this.tracks[id] = track;

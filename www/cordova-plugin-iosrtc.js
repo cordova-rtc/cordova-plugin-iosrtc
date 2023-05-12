@@ -1148,6 +1148,9 @@ var debug = _dereq_('debug')('iosrtc:MediaStreamTrack'),
 // Save original MediaStreamTrack
 var originalMediaStreamTrack = window.MediaStreamTrack || function dummyMediaStreamTrack() {};
 
+// All "active" tracks, to ensure RTCRtpSender gets the same object
+var activeMediaStreamTracks = new Map();
+
 function newMediaStreamTrackId() {
 	return window.crypto.getRandomValues(new Uint32Array(4)).join('-');
 }
@@ -1177,6 +1180,8 @@ function MediaStreamTrack(dataFromEvent) {
 	this._ended = false;
 
 	this.dataFromEvent = dataFromEvent;
+
+	activeMediaStreamTracks.set(this.id, this);
 
 	function onResultOK(data) {
 		onEvent.call(self, data);
@@ -1261,6 +1266,13 @@ MediaStreamTrack.getSources = function () {
 	return enumerateDevices.apply(this, arguments);
 };
 
+MediaStreamTrack.findOrCreate = function (trackData) {
+	var id = trackData.id;
+	debug('findOrCreate()', id);
+
+	return activeMediaStreamTracks.get(id) || new MediaStreamTrack(trackData);
+};
+
 /**
  * Private API.
  */
@@ -1281,6 +1293,7 @@ function onEvent(data) {
 				case 'live':
 					break;
 				case 'ended':
+					activeMediaStreamTracks.delete(this.id);
 					this._ended = true;
 					this.dispatchEvent(new Event('ended'));
 					break;
@@ -2515,7 +2528,7 @@ RTCPeerConnection.prototype.getOrCreateTrack = function (trackInput) {
 	if (trackInput instanceof MediaStreamTrack) {
 		track = trackInput;
 	} else {
-		track = new MediaStreamTrack(trackInput);
+		track = MediaStreamTrack.findOrCreate(trackInput);
 	}
 
 	this.tracks[id] = track;
@@ -3008,7 +3021,7 @@ RTCRtpSender.prototype.replaceTrack = function (withTrack) {
 
 	return new Promise((resolve, reject) => {
 		function onResultOK(result) {
-			self.track = result.track ? new MediaStreamTrack(result.track) : null;
+			self.track = result.track ? MediaStreamTrack.findOrCreate(result.track) : null;
 			resolve();
 		}
 
