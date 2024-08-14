@@ -1444,39 +1444,42 @@ class iosrtcPlugin : CDVPlugin {
 	}
 
 	@objc(RTCPeerConnection_RTCRtpSender_replaceTrack:) func RTCPeerConnection_RTCRtpSender_replaceTrack(_ command: CDVInvokedUrlCommand) {
-		NSLog("iosrtcPlugin#RTCPeerConnection_RTCRtpSender_replaceTrack()")
+        NSLog("iosrtcPlugin#RTCPeerConnection_RTCRtpSender_replaceTrack()")
 
-		let pcId = command.argument(at: 0) as! Int
-		let senderId = command.argument(at: 1) as! Int
-		let trackId : String? = command.argument(at: 2) as? String
+        guard let pcId = command.argument(at: 0) as? Int,
+              let senderId = command.argument(at: 1) as? Int else {
+            NSLog("iosrtcPlugin#RTCPeerConnection_RTCRtpSender_replaceTrack() | ERROR: Invalid pcId or senderId")
+            return
+        }
 
-		let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId]
+        let trackId: String? = command.argument(at: 2) as? String
 
-		if pluginRTCPeerConnection == nil {
-			NSLog("iosrtcPlugin#RTCPeerConnection_RTCRtpSender_replaceTrack() | ERROR: pluginRTCPeerConnection with pcId=%@ does not exist", String(pcId))
-			return;
-		}
+        guard let pluginRTCPeerConnection = self.pluginRTCPeerConnections[pcId] else {
+            NSLog("iosrtcPlugin#RTCPeerConnection_RTCRtpSender_replaceTrack() | ERROR: pluginRTCPeerConnection with pcId=%@ does not exist", String(pcId))
+            return
+        }
 
-		let pluginMediaStreamTrack = trackId != nil ? self.pluginMediaStreamTracks[trackId!] : nil
+        self.queue.async { [weak pluginRTCPeerConnection] in
+            guard let pluginRTCRptSender = pluginRTCPeerConnection?.pluginRTCRtpSenders[senderId] else {
+                NSLog("iosrtcPlugin#RTCPeerConnection_RTCRtpSender_replaceTrack() | ERROR: Unable to find sender")
+                return
+            }
 
-		self.queue.async { [weak pluginRTCPeerConnection, weak pluginMediaStreamTrack] in
-			let pluginRTCRptSender = pluginRTCPeerConnection!.pluginRTCRtpSenders[senderId]
-			if pluginRTCRptSender == nil {
-				NSLog("iosrtcPlugin#RTCPeerConnection_RTCRtpSender_replaceTrack() | ERROR: pluginRTCRptSender with id=%@ does not exist", String(senderId))
-				self.emit(command.callbackId,
-						  result: CDVPluginResult(
-							status: CDVCommandStatus_ERROR,
-							messageAs: "Cannot find native RTCRtpSender with id=\(senderId)"))
-				return;
-			}
-
-			pluginRTCRptSender!.replaceTrack(pluginMediaStreamTrack)
-			self.emit(command.callbackId,
-					  result: CDVPluginResult(
-						status: CDVCommandStatus_OK,
-						messageAs: [
-							"track": pluginMediaStreamTrack?.getJSON()
-						]))
-		}
-	}
+            if let trackId = trackId, let pluginMediaStreamTrack = self.pluginMediaStreamTracks[trackId] {
+                pluginRTCRptSender.replaceTrack(pluginMediaStreamTrack)
+                self.emit(command.callbackId,
+                          result: CDVPluginResult(
+                            status: CDVCommandStatus_OK,
+                            messageAs: [
+                                "track": pluginMediaStreamTrack.getJSON()
+                            ]))
+            } else {
+                NSLog("iosrtcPlugin#RTCPeerConnection_RTCRtpSender_replaceTrack() | ERROR: Unable to find track")
+                self.emit(command.callbackId,
+                          result: CDVPluginResult(
+                            status: CDVCommandStatus_ERROR,
+                            messageAs: "Cannot find native RTCRtpSender track"))
+            }
+        }
+    }
 }
