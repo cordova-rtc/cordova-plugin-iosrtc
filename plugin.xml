@@ -19,8 +19,9 @@
 	</engines>
 
 	<platform name="ios">
-
-		<hook type="after_prepare" src="extra/hooks/iosrtc-swift-support.js" />
+		<!-- Using `before_build` instead of `after_prepare` hook because in some environments the hook could get triggered
+			 before the npm dependencies would be installed, which would then break the build process. -->
+		<hook type="before_build" src="extra/hooks/iosrtc-swift-support.js" />
 
 		<config-file target="config.xml" parent="/*">
 			<feature name="iosrtcPlugin">
