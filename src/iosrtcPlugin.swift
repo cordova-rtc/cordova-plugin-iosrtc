@@ -1465,13 +1465,14 @@ class iosrtcPlugin : CDVPlugin {
                 return
             }
 
-            if let trackId = trackId, let pluginMediaStreamTrack = self.pluginMediaStreamTracks[trackId] {
+            let pluginMediaStreamTrack = trackId != nil ? self.pluginMediaStreamTracks[trackId!] : nil;
+            if trackId == nil || pluginMediaStreamTrack != nil {
                 pluginRTCRptSender.replaceTrack(pluginMediaStreamTrack)
                 self.emit(command.callbackId,
                           result: CDVPluginResult(
                             status: CDVCommandStatus_OK,
                             messageAs: [
-                                "track": pluginMediaStreamTrack.getJSON()
+                                "track": pluginMediaStreamTrack?.getJSON()
                             ]))
             } else {
                 NSLog("iosrtcPlugin#RTCPeerConnection_RTCRtpSender_replaceTrack() | ERROR: Unable to find track")
