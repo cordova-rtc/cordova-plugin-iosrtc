@@ -23,7 +23,7 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Configure xcode version
-        uses: maxim-lobanov/setup-xcode
+        uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: "14.1"
 
