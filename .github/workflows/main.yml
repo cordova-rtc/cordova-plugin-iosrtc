@@ -58,35 +58,13 @@ jobs:
           export PATH=~/.npm-global/bin:$PATH
           npm install cordova@$CORDOVA_VERSION -g
 
-      - name: Create Cordova app, install plugin
+      - name: Create Cordova app, install plugin then build app
         env:
-          CORDOVA_IOS_VERSION: "latest"
+          CORDOVA_IOS_VERSION: latest
         run: |
           npm config set prefix '~/.npm-global'
           export PATH=~/.npm-global/bin:$PATH
           cd ..; cordova create myApp org.apache.cordova.myApp myApp; cd myApp;
           cordova platform add ios@$CORDOVA_IOS_VERSION --verbose
           cordova plugin add ../cordova-plugin-iosrtc --verbose
-
-      - name: Set iOS Deployment Target
-        run: |
-          npm config set prefix '~/.npm-global'
-          export PATH=~/.npm-global/bin:$PATH
-          cd ../myApp
-          # Check if iOS platform section exists and add deployment target
-          if grep -q '<platform name="ios">' config.xml; then
-            echo "iOS platform section found, adding deployment target preference"
-            perl -i -pe 's|(<platform name="ios">)|$1\n    <preference name="deployment-target" value="12.0" />|g' config.xml
-          else
-            echo "iOS platform section not found, adding entire section"
-            perl -i -pe 's|</widget>|  <platform name="ios">\n    <preference name="deployment-target" value="12.0" />\n  </platform>\n</widget>|g' config.xml
-          fi
-          # Verify the change
-          echo "Config.xml after modification:"
-          cat config.xml
-      - name: Build app
-        run: |
-          npm config set prefix '~/.npm-global'
-          export PATH=~/.npm-global/bin:$PATH
-          cd ../myApp
           cordova build ios --verbose
