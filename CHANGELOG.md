@@ -1,3 +1,8 @@
+
+#### Version 8.0.5
+* fix: make it impossible to do sender.replaceTrack(null) #780 via @jerry2013
+* fix: correct mimeType serialization #788 via @jerry2013
+
 #### Version 8.0.4
 * fix: spec compliant RTCStatsReport #769 via @jerry2013
 * fix: add setDefaultAudioOutput to source #768 via @mjcctech and @jerry2013
