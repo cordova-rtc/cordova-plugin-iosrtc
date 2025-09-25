@@ -8,6 +8,6 @@
 #import <WebRTC/RTCEAGLVideoView.h>
 
 // Expose RTCEAGLVideoViewDelegate to Swift
-RTC_OBJC_EXPORT
-@protocol RTCEAGLVideoViewDelegate <RTCVideoViewDelegate>
-@end
+// RTC_OBJC_EXPORT
+// @protocol RTCEAGLVideoViewDelegate <RTCVideoViewDelegate>
+// @end
