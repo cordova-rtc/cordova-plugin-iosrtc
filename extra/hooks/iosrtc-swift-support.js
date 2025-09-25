@@ -10,7 +10,7 @@ var fs = require('fs'),
 	xcode = require('xcode'),
 	xmlEntities = new (require('html-entities').XmlEntities)(),
 	DISABLE_IOSRTC_HOOK = process.env.DISABLE_IOSRTC_HOOK ? true : false,
-	IPHONEOS_DEPLOYMENT_TARGET = process.env.IPHONEOS_DEPLOYMENT_TARGET || '10.2',
+	IPHONEOS_DEPLOYMENT_TARGET = process.env.IPHONEOS_DEPLOYMENT_TARGET || '12',
 	IPHONEOS_DEPLOYMENT_TARGET_XCODE = '"' + IPHONEOS_DEPLOYMENT_TARGET + '"',
 	SWIFT_VERSION = process.env.SWIFT_VERSION || '4.2',
 	SWIFT_VERSION_XCODE = '"' + SWIFT_VERSION + '"',
@@ -30,7 +30,7 @@ function getProjectName(protoPath) {
 	var cordovaConfigPath = path.join(protoPath, 'config.xml'),
 		content = fs.readFileSync(cordovaConfigPath, 'utf-8');
 
-	var name = /<name>([\s\S]*)<\/name>/im.exec(content)[1].trim();
+	var name = /<name.*>([\s\S]*)<\/name>/im.exec(content)[1].trim();
 
 	return xmlEntities.decode(name);
 }

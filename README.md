@@ -3,7 +3,7 @@
 # cordova-plugin-iosrtc
 
 [![npm version](https://img.shields.io/npm/v/cordova-plugin-iosrtc.svg?style=flat)](https://www.npmjs.com/package/cordova-plugin-iosrtc)
-[![Build Status](https://travis-ci.com/cordova-rtc/cordova-plugin-iosrtc.svg?branch=master)](https://travis-ci.com/cordova-rtc/cordova-plugin-iosrtc)
+[![Build Status](https://github.com/cordova-rtc/cordova-plugin-iosrtc/actions/workflows/main.yml/badge.svg)](https://github.com/cordova-rtc/cordova-plugin-iosrtc/actions/workflows/main.yml)
 
 [![NPM](https://nodei.co/npm/cordova-plugin-iosrtc.png)](https://npmjs.org/package/cordova-plugin-iosrtc)
 
@@ -28,11 +28,11 @@ This plugin was initially developed at eFace2Face, and later maintained by the c
 
 In order to make this Cordova plugin run into a iOS application some requirements must be satisfied in both development computer and target devices:
 
-* Xcode >= 13.2.1 (13C100)
+* Xcode >= 14.1 (14B47b)
 * iOS >= 14.3 (run on lower versions at your own risk, don't report issues)
 * `swift-version` => 4.2
 * `cordova` >= 11.0.0
-* `cordova-ios` >= 6.2.0
+* `cordova-ios` >= 7.1.1
 
 ### Third-Party Supported Library
 

@@ -57,7 +57,7 @@ RTCRtpSender.prototype.replaceTrack = function (withTrack) {
 
 	return new Promise((resolve, reject) => {
 		function onResultOK(result) {
-			self.track = result.track ? new MediaStreamTrack(result.track) : null;
+			self.track = result.track ? MediaStreamTrack.findOrCreate(result.track) : null;
 			resolve();
 		}
 

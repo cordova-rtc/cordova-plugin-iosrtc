@@ -198,9 +198,10 @@ class PluginMediaStreamRenderer : NSObject, RTCEAGLVideoViewDelegate {
 		let videoViewLeft: Double = (elementWidth - videoViewWidth) / 2
 		let videoViewTop: Double = (elementHeight - videoViewHeight) / 2
 
+		// use SAI to adjust the top/left corner from the client
 		self.elementView.frame = CGRect(
-			x: CGFloat(elementLeft),
-			y: CGFloat(elementTop),
+			x: CGFloat(elementLeft + self.webView.safeAreaInsets.left),
+			y: CGFloat(elementTop + self.webView.safeAreaInsets.top),
 			width: CGFloat(elementWidth),
 			height: CGFloat(elementHeight)
 		)
