@@ -1,34 +1,52 @@
+
+#### Version 8.0.5
+* fix: make it impossible to do sender.replaceTrack(null) #780 via @jerry2013
+* fix: correct mimeType serialization #788 via @jerry2013
+
+#### Version 8.0.4
+* fix: spec compliant RTCStatsReport #769 via @jerry2013
+* fix: add setDefaultAudioOutput to source #768 via @mjcctech and @jerry2013
+
+#### Version 8.0.3
+* fix: PluginRTCPeerConnection: cyclic reference leak fixed #754 via @RSATom
+* fix: update npm packages with audit security warnings
+
+#### Version 8.0.2
+* feat: add github action CI build
+* fix: update npm packages with audit security warnings
+* feat: Added createDTMFSender for RTCRtpSender via @buckun
+
 #### Version 8.0.1
-* fix RTCPeerConnection.removeTrack support for sender without track
-* add support for local description rollback #704 via @slavchev
+* fix: RTCPeerConnection.removeTrack support for sender without track
+* feat: add support for local description rollback #704 via @slavchev
 
 #### Version 8.0.0
-* implement RTCPeerConnection.addTransceiver #589 via @agelito
-* fix RtpSenders inconsistency after removeTrack call #702 via @RSATom
-* fix RTCRtpSender MediaStreamTrack replace #699 via @RSATom
-* fix requestPermission returns true if AVAuthorizationStatus is notDetermined #692
-* fix crash when used with Janus Audiobridge #691 via @RSATom
-* fix Warning [LayoutConstraints] Unable to simultaneously satisfy constraints. #422 via @slavchev
-* fixcrash when used with Janus Audiobridge #691 via @RSATom
-* extend transceiver/sender/receiver functionality #664 via @slavchev
-* fix updateTransceiversState call #661 @ducile
-* Update to WebRTC.framework M87
-* Update to WebRTC.framework M84
+* feat: implement RTCPeerConnection.addTransceiver #589 via @agelito
+* fix: RtpSenders inconsistency after removeTrack call #702 via @RSATom
+* fix: RTCRtpSender MediaStreamTrack replace #699 via @RSATom
+* fix: requestPermission returns true if AVAuthorizationStatus is notDetermined #692
+* fix: crash when used with Janus Audiobridge #691 via @RSATom
+* fix: Warning [LayoutConstraints] Unable to simultaneously satisfy constraints. #422 via @slavchev
+* fix: crash when used with Janus Audiobridge #691 via @RSATom
+* feat: extend transceiver/sender/receiver functionality #664 via @slavchev
+* fix: updateTransceiversState call #661 @ducile
+* fix: update to WebRTC.framework M87
+* fix: update to WebRTC.framework M84
 
 #### Version 7.0.0
-* Update to WebRTC.framework M79
-* Update to WebRTC.framework M75
+* fix: update to WebRTC.framework M79
+* fix: update to WebRTC.framework M75
 
 #### Version 6.0.21
-* fix Canvas drawImage memory leak fix #681
-* fix Warning [LayoutConstraints] Unable to simultaneously satisfy constraints.
+* fix: canvas drawImage memory leak fix #681
+* fix: warning [LayoutConstraints] Unable to simultaneously satisfy constraints.
 
 #### Version 6.0.20
-* fix Remove extmap-allow-mixed sdp header on RTCPeerConnection.prototype.setRemoteDescription to handle chrome 89
+* fix: Remove extmap-allow-mixed sdp header on RTCPeerConnection.prototype.setRemoteDescription to handle chrome 89
 
 #### Version 6.0.19
-* fix MediaStreamRenderer doesn't call PluginMediaStreamTrack.unregisterRender = stuck reference. #649
-* fix ios not build after cordova-plugin-iosrtc #642
+* fix: MediaStreamRenderer doesn't call PluginMediaStreamTrack.unregisterRender = stuck reference. #649
+* fix: ios not build after cordova-plugin-iosrtc #642
 
 #### Version 6.0.18
 * fix: update ios_arch.js to generate WebRTC.xcframework, Include WebRTC.xcframework instead of WebRTC.framework
@@ -73,7 +91,7 @@
 * fix: use video view for correct screencap framing #570
 * fix: cleanup old streams #570
 * implement basic MediaDevices.prototype.getSupportedConstraints SHIM #564
-* fix RTCPeerConnection.prototype.addTrack missing return RTCRtpSender #572
+* fix: RTCPeerConnection.prototype.addTrack missing return RTCRtpSender #572
 
 #### Version 6.0.13
 * Bump lodash from 4.17.15 to 4.17.19 #543
@@ -122,8 +140,8 @@
 * Handle ios 10.x.x that does not have MediaStream Native Prototype and fallback on Blob with EventTarget shim #489
 
 #### Version 6.0.9
-* fix possible TypeError: null is not an object (evaluating 'iceCandidateFields.foundation') due fail match candidateToJson #473
-* fix getStats typo report.timestamp #472
+* fix: possible TypeError: null is not an object (evaluating 'iceCandidateFields.foundation') due fail match candidateToJson #473
+* fix: getStats typo report.timestamp #472
 * Fix getMediaDevice audioConstraints to allowing audio devices change #470
 
 #### Version 6.0.8
@@ -157,10 +175,10 @@
 
 #### Version 6.0.2
 * implement M69 Native RTCPeerConnection.(addTrack|removeTrack) and sdpSemantics unified-plan support #407
-* fix insertDtmf #431
+* fix: insertDtmf #431
 
 #### Version 6.0.1
-* fix stopCapture while RTCCameraVideoCapturer is not capturing causing crash due Assertion failure in -[FBSSerialQueue assertOnQueue] #426
+* fix: stopCapture while RTCCameraVideoCapturer is not capturing causing crash due Assertion failure in -[FBSSerialQueue assertOnQueue] #426
 
 #### Version 6.0.0
 * Use WebRTC M69
@@ -225,15 +243,15 @@
 * Upgrade packages debug to ^4.1.1 and yaeti to ^1.0.2
 * Add cordova.plugins.iosrtc.getUserMedia MediaTrackConstraints.(video|audio).deviceId.(exact|ideal) support ([PR #374](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/374) by @CSantosM).
 * Add cordova.plugins.iosrtc.getMediaDevices bluetooth and wired audio devices support ([PR #374](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/374) by @CSantosM).
-* fix TypeError: undefined is not an object (evaluating 'stream.id') when removing stream [PR #383](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/383) by @hthetiot via @l7s).
+* fix: TypeError: undefined is not an object (evaluating 'stream.id') when removing stream [PR #383](https://github.com/cordova-rtc/cordova-plugin-iosrtc/pull/383) by @hthetiot via @l7s).
 
 #### Version 5.0.1
 
-* fix typo on iosrtcPlugin.swift
+* fix: typo on iosrtcPlugin.swift
 
 #### Version 5.0.0
 
-* fix README.md
+* fix: README.md
 * Convert syntax to Swift 4.2
 * Uncomment, and fix, onGetStatsCallback closure
 * Update NPM dependencies

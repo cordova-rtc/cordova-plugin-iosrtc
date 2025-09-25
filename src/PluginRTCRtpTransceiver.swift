@@ -153,7 +153,7 @@ class PluginRTCRtpTransceiver : NSObject {
         return rtcRtpTransceiverInit
     }
 
-	func getJSON() -> NSDictionary {
+	func getJSON() -> [String: Any] {
 		var currentDirection = RTCRtpTransceiverDirection.inactive
 		self.rtcRtpTransceiver?.currentDirection(&currentDirection)
 

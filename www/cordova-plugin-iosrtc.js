@@ -1,9 +1,9 @@
 /*
- * cordova-plugin-iosrtc v8.0.1
+ * cordova-plugin-iosrtc v8.0.4
  * Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs
  * Copyright 2015-2017 eFace2Face, Inc. (https://eface2face.com)
  * Copyright 2015-2019 BasqueVoIPMafia (https://github.com/BasqueVoIPMafia)
- * Copyright 2017-2021 Cordova-RTC (https://github.com/cordova-rtc)
+ * Copyright 2017-2023 Cordova-RTC (https://github.com/cordova-rtc)
  * License MIT
  */
 
@@ -1513,6 +1513,9 @@ var debug = _dereq_('debug')('iosrtc:MediaStreamTrack'),
 // Save original MediaStreamTrack
 var originalMediaStreamTrack = window.MediaStreamTrack || function dummyMediaStreamTrack() {};
 
+// All "active" tracks, to ensure RTCRtpSender gets the same object
+var activeMediaStreamTracks = new Map();
+
 function newMediaStreamTrackId() {
 	return window.crypto.getRandomValues(new Uint32Array(4)).join('-');
 }
@@ -1542,6 +1545,8 @@ function MediaStreamTrack(dataFromEvent) {
 	this._ended = false;
 
 	this.dataFromEvent = dataFromEvent;
+
+	activeMediaStreamTracks.set(this.id, this);
 
 	function onResultOK(data) {
 		onEvent.call(self, data);
@@ -1626,6 +1631,13 @@ MediaStreamTrack.getSources = function () {
 	return enumerateDevices.apply(this, arguments);
 };
 
+MediaStreamTrack.findOrCreate = function (trackData) {
+	var id = trackData.id;
+	debug('findOrCreate()', id);
+
+	return activeMediaStreamTracks.get(id) || new MediaStreamTrack(trackData);
+};
+
 /**
  * Private API.
  */
@@ -1646,6 +1658,7 @@ function onEvent(data) {
 				case 'live':
 					break;
 				case 'ended':
+					activeMediaStreamTracks.delete(this.id);
 					this._ended = true;
 					this.dispatchEvent(new Event('ended'));
 					break;
@@ -2880,7 +2893,7 @@ RTCPeerConnection.prototype.getOrCreateTrack = function (trackInput) {
 	if (trackInput instanceof MediaStreamTrack) {
 		track = trackInput;
 	} else {
-		track = new MediaStreamTrack(trackInput);
+		track = MediaStreamTrack.findOrCreate(trackInput);
 	}
 
 	this.tracks[id] = track;
@@ -3333,7 +3346,7 @@ function RTCRtpSender(pc, data) {
 	this._pc = pc;
 	this.track = data.track ? pc.getOrCreateTrack(data.track) : null;
 	this.params = data.params || {};
-	if(this.track) {
+	if (this.track) {
 		this.dtmf = pc.createDTMFSender(this.track);
 	}
 }
@@ -3373,7 +3386,7 @@ RTCRtpSender.prototype.replaceTrack = function (withTrack) {
 
 	return new Promise((resolve, reject) => {
 		function onResultOK(result) {
-			self.track = result.track ? new MediaStreamTrack(result.track) : null;
+			self.track = result.track ? MediaStreamTrack.findOrCreate(result.track) : null;
 			resolve();
 		}
 
@@ -3591,28 +3604,36 @@ function RTCSessionDescription(data) {
 },{}],18:[function(_dereq_,module,exports){
 class RTCStatsReport {
 	constructor(data) {
-		const arr = data || [];
-		this.data = {};
-		arr.forEach((el) => {
-			this.data[el.reportId] = el;
-		});
-		this.size = arr.length;
+		this.data = new Map((data || []).map((el) => [el.reportId, el]));
 	}
 
-	entries() {
-		return this.keys().map((k) => [k, this.data[k]]);
+	get size() {
+		return this.data.size;
+	}
+
+	has(key) {
+		return this.data.has(key);
+	}
+	get(key) {
+		return this.data.get(key);
+	}
+	forEach(callbackfn, thisArg) {
+		return this.data.forEach(callbackfn, thisArg);
 	}
 
 	keys() {
-		return Object.getOwnPropertyNames(this.data);
+		return this.data.keys();
 	}
-
 	values() {
-		return this.keys().map((k) => this.data[k]);
+		return this.data.values();
 	}
-
-	get(key) {
-		return this.data[key];
+	entries() {
+		return this.data.entries();
+	}
+	*[Symbol.iterator]() {
+		for (const value of this.data) {
+			yield value;
+		}
 	}
 }
 
@@ -4185,10 +4206,13 @@ module.exports = {
 	// Select audio output (earpiece or speaker).
 	selectAudioOutput: selectAudioOutput,
 
+	// Set default audio output (earpiece or speaker).
+	setDefaultAudioOutput: setDefaultAudioOutput,
+
 	// turnOnSpeaker with options
 	turnOnSpeaker: turnOnSpeaker,
 
-	// Checking permision (audio and camera)
+	// Checking permission (audio and camera)
 	requestPermission: requestPermission,
 
 	// Expose a function to initAudioDevices if needed, sets the audio session active
@@ -4233,6 +4257,14 @@ function selectAudioOutput(output) {
 		default:
 			throw new Error('output must be "earpiece" or "speaker"');
 	}
+}
+
+function setDefaultAudioOutput(output) {
+	debug('setDefaultAudioOutput() | [output:"%s"]', output);
+	if (!['earpiece', 'speaker'].includes(output)) {
+		throw new Error('output must be "earpiece" or "speaker"');
+	}
+	exec(null, null, 'iosrtcPlugin', 'setDefaultAudioOutput', [output === 'speaker']);
 }
 
 function turnOnSpeaker(isTurnOn) {
@@ -4356,6 +4388,7 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 	window.webkitMediaStream = MediaStream;
 	window.MediaStreamTrack = MediaStreamTrack;
 	window.RTCRtpTransceiver = RTCRtpTransceiver;
+	window.MediaStreamTrackEvent = window.Event;
 
 	// Apply CanvasRenderingContext2D.drawImage monkey patch
 	var drawImage = CanvasRenderingContext2D.prototype.drawImage;

@@ -60,7 +60,7 @@ class PluginRTCRtpSender : NSObject {
 		self.rtpSender.track = rtcMediaStreamTrack
 	}
 
-	func getJSON() -> NSDictionary {
+	func getJSON() -> [String: Any] {
 		let track = self.rtpSender.track != nil ? [
 			"id": self.rtpSender.track!.trackId,
 			   "kind": self.rtpSender.track!.kind,
