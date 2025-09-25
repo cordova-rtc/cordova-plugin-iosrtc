@@ -67,4 +67,22 @@ jobs:
           cd ..; cordova create myApp org.apache.cordova.myApp myApp; cd myApp;
           cordova platform add ios@$CORDOVA_IOS_VERSION --verbose
           cordova plugin add ../cordova-plugin-iosrtc --verbose
+
+      - name: Set iOS Deployment Target
+        run: |
+          npm config set prefix '~/.npm-global'
+          export PATH=~/.npm-global/bin:$PATH
+          cd ..;  cd myApp;
+          # Check if iOS platform section exists
+          if grep -q '<platform name="ios">' config.xml; then
+            # Add preference after the opening platform tag
+            sed -i '' '/<platform name="ios">/a\
+            \ \ \ \ <preference name="deployment-target" value="12.0" />
+            ' config.xml
+
+      - name: Create Cordova app, install plugin then build app
+        run: |
+          npm config set prefix '~/.npm-global'
+          export PATH=~/.npm-global/bin:$PATH
+          cd ..;  cd myApp;
           cordova build ios --verbose
