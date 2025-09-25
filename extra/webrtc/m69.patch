@@ -1,0 +1,22 @@
+diff --git i/sdk/objc/Framework/Classes/PeerConnection/RTCCameraVideoCapturer.m w/sdk/objc/Framework/Classes/PeerConnection/RTCCameraVideoCapturer.m
+index 8f93937c75..e21cc76280 100644
+--- i/sdk/objc/Framework/Classes/PeerConnection/RTCCameraVideoCapturer.m
++++ w/sdk/objc/Framework/Classes/PeerConnection/RTCCameraVideoCapturer.m
+@@ -148,7 +148,7 @@ const int64_t kNanosecondsPerSecond = 1000000000;
+              completionHandler:(nullable void (^)(NSError *))completionHandler {
+   _willBeRunning = YES;
+   [RTCDispatcher
+-      dispatchAsyncOnType:RTCDispatcherTypeCaptureSession
++      dispatchAsyncOnType:RTCDispatcherTypeMain
+                     block:^{
+                       RTCLogInfo("startCaptureWithDevice %@ @ %ld fps", format, (long)fps);
+
+@@ -184,7 +184,7 @@ const int64_t kNanosecondsPerSecond = 1000000000;
+ - (void)stopCaptureWithCompletionHandler:(nullable void (^)(void))completionHandler {
+   _willBeRunning = NO;
+   [RTCDispatcher
+-      dispatchAsyncOnType:RTCDispatcherTypeCaptureSession
++      dispatchAsyncOnType:RTCDispatcherTypeMain
+                     block:^{
+                       RTCLogInfo("Stop");
+                       _currentDevice = nil;

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
 		id="cordova-plugin-iosrtc"
-		version="6.0.13">
+		version="8.0.4">
 
 	<name>iosrtc</name>
 	<description>Cordova iOS plugin exposing the full WebRTC W3C JavaScript APIs</description>
@@ -28,12 +28,18 @@
 				<param name="ios-package" value="iosrtcPlugin" />
 				<param name="onload" value="true" />
 			</feature>
+			<preference name="deployment-target" value="12.0" />
+			<preference name="target-device" value="universal" />
 		</config-file>
 
 		<preference name="MANUAL_INIT_AUDIO_DEVICE" default="FALSE"/>
 
 		<config-file target="*-Info.plist" parent="ManualInitAudioDevice">
 			<string>$MANUAL_INIT_AUDIO_DEVICE</string>
+		</config-file>
+
+		<config-file target="*-Info.plist" parent="UseManualLayoutRenderer">
+			<true/>
 		</config-file>
 
 		<!-- Permission notes -->
@@ -50,7 +56,7 @@
 			<string>This Application uses your wireless headphones and microphone to make calls.</string>
 		</config-file>
 
-		<js-module src="dist/cordova-plugin-iosrtc.js" name="Plugin">
+		<js-module src="www/cordova-plugin-iosrtc.js" name="Plugin">
 			<clobbers target="cordova.plugins.iosrtc" />
 		</js-module>
 
@@ -73,6 +79,12 @@
 		<source-file src="src/PluginMediaStreamRenderer.swift" />
 		<source-file src="src/PluginRTCAudioController.swift" />
 		<source-file src="src/PluginRTCVideoCaptureController.swift" />
+		<source-file src="src/PluginRTCRtpTransceiver.swift" />
+		<source-file src="src/PluginRTCRtpReceiver.swift" />
+		<source-file src="src/PluginRTCRtpSender.swift" />
+		<source-file src="src/PluginRTCRtpParameters.swift" />
+		<source-file src="src/PluginRTCRtpCodecParameters.swift" />
+		<source-file src="src/PluginRTCRtpEncodingParameters.swift" />
 
 		<!-- iOS shared dependencies -->
 		<framework src="AVFoundation.framework" />

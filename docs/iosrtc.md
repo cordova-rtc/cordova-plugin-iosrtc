@@ -230,6 +230,17 @@ cordova.plugins.iosrtc.selectAudioOutput('speaker');
 cordova.plugins.iosrtc.selectAudioOutput('earpiece');
 ```
 
+### `iosrtc.setDefaultAudioOutput`
+
+Tell the plugin that it must use `speaker` or `earpiece` as default audio output. You can call this method before establishing audio connection.
+
+```javascript
+// Use speaker audio output
+cordova.plugins.iosrtc.setDefaultAudioOutput('speaker');
+
+// Use earpiece audio output
+cordova.plugins.iosrtc.setDefaultAudioOutput('earpiece');
+```
 
 ### `iosrtc.turnOnSpeaker`
 
