@@ -51,10 +51,13 @@ module.exports = {
 	// Select audio output (earpiece or speaker).
 	selectAudioOutput: selectAudioOutput,
 
+	// Set default audio output (earpiece or speaker).
+	setDefaultAudioOutput: setDefaultAudioOutput,
+
 	// turnOnSpeaker with options
 	turnOnSpeaker: turnOnSpeaker,
 
-	// Checking permision (audio and camera)
+	// Checking permission (audio and camera)
 	requestPermission: requestPermission,
 
 	// Expose a function to initAudioDevices if needed, sets the audio session active
@@ -99,6 +102,14 @@ function selectAudioOutput(output) {
 		default:
 			throw new Error('output must be "earpiece" or "speaker"');
 	}
+}
+
+function setDefaultAudioOutput(output) {
+	debug('setDefaultAudioOutput() | [output:"%s"]', output);
+	if (!['earpiece', 'speaker'].includes(output)) {
+		throw new Error('output must be "earpiece" or "speaker"');
+	}
+	exec(null, null, 'iosrtcPlugin', 'setDefaultAudioOutput', [output === 'speaker']);
 }
 
 function turnOnSpeaker(isTurnOn) {
@@ -219,6 +230,7 @@ function registerGlobals(doNotRestoreCallbacksSupport) {
 	window.webkitMediaStream = MediaStream;
 	window.MediaStreamTrack = MediaStreamTrack;
 	window.RTCRtpTransceiver = RTCRtpTransceiver;
+	window.MediaStreamTrackEvent = window.Event;
 
 	// Apply CanvasRenderingContext2D.drawImage monkey patch
 	var drawImage = CanvasRenderingContext2D.prototype.drawImage;

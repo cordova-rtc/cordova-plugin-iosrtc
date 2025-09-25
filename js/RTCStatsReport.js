@@ -1,27 +1,35 @@
 class RTCStatsReport {
 	constructor(data) {
-		const arr = data || [];
-		this.data = {};
-		arr.forEach((el) => {
-			this.data[el.reportId] = el;
-		});
-		this.size = arr.length;
+		this.data = new Map((data || []).map((el) => [el.reportId, el]));
 	}
 
-	entries() {
-		return this.keys().map((k) => [k, this.data[k]]);
+	get size() {
+		return this.data.size;
+	}
+
+	has(key) {
+		return this.data.has(key);
+	}
+	get(key) {
+		return this.data.get(key);
+	}
+	forEach(callbackfn, thisArg) {
+		return this.data.forEach(callbackfn, thisArg);
 	}
 
 	keys() {
-		return Object.getOwnPropertyNames(this.data);
+		return this.data.keys();
 	}
-
 	values() {
-		return this.keys().map((k) => this.data[k]);
+		return this.data.values();
 	}
-
-	get(key) {
-		return this.data[key];
+	entries() {
+		return this.data.entries();
+	}
+	*[Symbol.iterator]() {
+		for (const value of this.data) {
+			yield value;
+		}
 	}
 }
 

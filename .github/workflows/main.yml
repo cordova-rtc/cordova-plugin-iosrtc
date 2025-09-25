@@ -18,20 +18,27 @@ jobs:
   # This workflow contains a single job called "build"
   test:
     # The type of runner that the job will run on
-    runs-on: macOS-11
+    # - https://github.com/actions/runner-images?tab=readme-ov-file#available-images
+    # - https://github.com/actions/runner-images/blob/main/images/macos/macos-13-Readme.md
+    runs-on: macos-13
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
-
-      - name: Setup NodeJS 12
-        uses: actions/setup-node@v1
+      - name: Configure xcode version
+        uses: maxim-lobanov/setup-xcode@v1
         with:
-          node-version: "12"
+          xcode-version: "14.1"
+
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
+
+      - name: Setup NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: "22"
 
       - name: Cache Node.js modules
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           # npm cache files are stored in `~/.npm` on Linux/macOS
           path: ~/.npm
@@ -50,17 +57,21 @@ jobs:
         run: npm run build
 
       - name: Install Cordova CLI
+        env:
+          CORDOVA_VERSION: "11"
         run: |
           mkdir ~/.npm-global
           npm config set prefix '~/.npm-global'
           export PATH=~/.npm-global/bin:$PATH
-          npm install cordova@10 -g
+          npm install cordova@$CORDOVA_VERSION -g
 
       - name: Create Cordova app, install plugin then build app
+        env:
+          CORDOVA_IOS_VERSION: latest
         run: |
           npm config set prefix '~/.npm-global'
           export PATH=~/.npm-global/bin:$PATH
           cd ..; cordova create myApp org.apache.cordova.myApp myApp; cd myApp;
-          cordova platform add ios@latest --verbose
+          cordova platform add ios@$CORDOVA_IOS_VERSION --verbose
           cordova plugin add ../cordova-plugin-iosrtc --verbose
           cordova build ios --verbose
