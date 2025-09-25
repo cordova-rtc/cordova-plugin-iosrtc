@@ -1,3 +1,7 @@
+#### Version 10.0.0
+* fix: update to WebRTC.framework M100
+* feat: remove i386 build from WebRTC.xcframework
+
 #### Version 8.0.4
 * fix: spec compliant RTCStatsReport #769 via @jerry2013
 * fix: add setDefaultAudioOutput to source #768 via @mjcctech and @jerry2013
