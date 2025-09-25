@@ -5,6 +5,7 @@
 #import <Cordova/CDVPlugin.h>
 
 @import WebRTC;
+#import <WebRTC/RTCEAGLVideoView.h>
 
 // Expose RTCEAGLVideoViewDelegate to Swift
 RTC_OBJC_EXPORT
