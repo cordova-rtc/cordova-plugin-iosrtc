@@ -18,6 +18,8 @@ jobs:
   # This workflow contains a single job called "build"
   test:
     # The type of runner that the job will run on
+    # - https://github.com/actions/runner-images?tab=readme-ov-file#available-images
+    # - https://github.com/actions/runner-images/blob/main/images/macos/macos-13-Readme.md
     runs-on: macos-13
 
     # Steps represent a sequence of tasks that will be executed as part of the job
